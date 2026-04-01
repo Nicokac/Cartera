@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 8 cerrada`
+- Estado global: `Fase 9 cerrada`
 - Última actualización: `2026-04-01`
 
 ## Fase 0. Línea base y resguardo
@@ -361,7 +361,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 9. Limpieza final del notebook
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: dejar `Cartera.ipynb` como interfaz liviana de uso.
 
 ### Tareas
@@ -375,6 +375,25 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - El notebook deja de ser el backend del proyecto.
 - La lógica principal vive en `src/`.
+
+### Cierre
+
+- Se creó `src/pipeline.py` como fachada de orquestación de alto nivel para:
+  - cartera
+  - dashboard
+  - decisión
+  - sizing
+- Se actualizó `src/__init__.py` para exponer la ruta canónica de pipeline desde el paquete base.
+- Se creó [`notebook-runbook.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\notebook-runbook.md) con el modo de uso final del notebook.
+- Se ajustó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para:
+  - declarar que la lógica canónica vive en `src/`
+  - importar la fachada `pipeline`
+  - dejar explícito el enlace del bootstrap a `src/` y `src/pipeline.py`
+- Se agregó `tests/test_pipeline.py` como smoke test de la fachada.
+- Se validó la suite local con:
+  - `python -m unittest discover -s tests -v`
+- Resultado de verificación:
+  - `8 tests OK`
 
 ## Registro de avances
 
@@ -403,6 +422,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - El notebook quedó enlazado a la ruta canónica de propuesta operativa, asignación prudente y asignación dinámica final.
 - Se cerró la Fase 8 con la creación de `tests/` y una convención inicial para `tests/snapshots/`.
 - La lógica crítica ya tiene una suite local mínima para detectar regresiones antes de seguir limpiando el notebook.
+- Se cerró la Fase 9 con una fachada de orquestación en `src/pipeline.py` y un runbook de uso final del notebook.
+- `Cartera.ipynb` quedó posicionado como interfaz de uso; la lógica principal ya vive en `src/`.
 
 ## Política de actualización
 
