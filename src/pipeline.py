@@ -4,19 +4,34 @@ from typing import Any
 
 import pandas as pd
 
-from analytics.dashboard import build_executive_dashboard_data
-from decision.actions import assign_action_v2, assign_base_action, enrich_decision_explanations
-from decision.scoring import (
-    apply_base_scores,
-    apply_technical_overlay_scores,
-    build_decision_base,
-    finalize_unified_score,
-)
-from decision.sizing import build_dynamic_allocation, build_operational_proposal, build_prudent_allocation
-from portfolio.checks import build_integrity_report
-from portfolio.classify import classify_iol_portfolio
-from portfolio.liquidity import rebuild_liquidity
-from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+try:
+    from .analytics.dashboard import build_executive_dashboard_data
+    from .decision.actions import assign_action_v2, assign_base_action, enrich_decision_explanations
+    from .decision.scoring import (
+        apply_base_scores,
+        apply_technical_overlay_scores,
+        build_decision_base,
+        finalize_unified_score,
+    )
+    from .decision.sizing import build_dynamic_allocation, build_operational_proposal, build_prudent_allocation
+    from .portfolio.checks import build_integrity_report
+    from .portfolio.classify import classify_iol_portfolio
+    from .portfolio.liquidity import rebuild_liquidity
+    from .portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+except ImportError:
+    from analytics.dashboard import build_executive_dashboard_data
+    from decision.actions import assign_action_v2, assign_base_action, enrich_decision_explanations
+    from decision.scoring import (
+        apply_base_scores,
+        apply_technical_overlay_scores,
+        build_decision_base,
+        finalize_unified_score,
+    )
+    from decision.sizing import build_dynamic_allocation, build_operational_proposal, build_prudent_allocation
+    from portfolio.checks import build_integrity_report
+    from portfolio.classify import classify_iol_portfolio
+    from portfolio.liquidity import rebuild_liquidity
+    from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
 
 
 def build_portfolio_bundle(
