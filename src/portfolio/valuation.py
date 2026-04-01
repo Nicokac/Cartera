@@ -1,0 +1,154 @@
+from __future__ import annotations
+
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+
+def build_cedears_df(
+    portafolio: list[tuple],
+    precios_iol: dict[str, float],
+    *,
+    ratios: dict[str, float | int],
+) -> pd.DataFrame:
+    registros = []
+    for ticker_iol, ticker_finviz, bloque, cantidad, ppc_ars in portafolio:
+        precio = precios_iol.get(ticker_iol)
+        valorizado = cantidad * precio if precio is not None else None
+        ganancia = (precio - ppc_ars) * cantidad if precio is not None else None
+        registros.append(
+            {
+                "Ticker_IOL": ticker_iol,
+                "Ticker_Finviz": ticker_finviz,
+                "Bloque": bloque,
+                "Tipo": "CEDEAR",
+                "Cantidad": cantidad,
+                "Precio_ARS": precio,
+                "PPC_ARS": ppc_ars,
+                "Valorizado_ARS": valorizado,
+                "Ganancia_ARS": ganancia,
+            }
+        )
+
+    df = pd.DataFrame(registros)
+    if df.empty:
+        return df
+    df["Ratio"] = df["Ticker_IOL"].map(ratios)
+    df["Peso_%"] = (df["Valorizado_ARS"] / df["Valorizado_ARS"].sum() * 100).round(2)
+    return df
+
+
+def build_local_df(acciones_locales: list[tuple], precios_iol: dict[str, float]) -> pd.DataFrame:
+    registros = []
+    for ticker_iol, ticker_api, bloque, cantidad, ppc_ars in acciones_locales:
+        precio = precios_iol.get(ticker_iol)
+        valorizado = cantidad * precio if precio is not None else None
+        ganancia = (precio - ppc_ars) * cantidad if precio is not None else None
+        registros.append(
+            {
+                "Ticker_IOL": ticker_iol,
+                "Ticker_API": ticker_api,
+                "Bloque": bloque,
+                "Tipo": "Acción Local",
+                "Cantidad": cantidad,
+                "Precio_ARS": precio,
+                "PPC_ARS": ppc_ars,
+                "Ratio": None,
+                "Ticker_Finviz": None,
+                "Valorizado_ARS": valorizado,
+                "Ganancia_ARS": ganancia,
+            }
+        )
+
+    df_local = pd.DataFrame(registros)
+    if df_local.empty:
+        return df_local
+    df_local["Peso_%"] = (df_local["Valorizado_ARS"] / df_local["Valorizado_ARS"].sum() * 100).round(2)
+    return df_local
+
+
+def build_bonos_df(bonos: list[tuple], precios_iol: dict[str, float]) -> pd.DataFrame:
+    registros = []
+    for ticker_iol, bloque, cantidad, ppc_ars, vn_factor in bonos:
+        precio = precios_iol.get(ticker_iol)
+        cantidad_real = cantidad / vn_factor
+        valorizado = cantidad_real * precio if precio is not None else None
+        costo = cantidad_real * ppc_ars
+        ganancia = valorizado - costo if valorizado is not None else None
+        registros.append(
+            {
+                "Ticker_IOL": ticker_iol,
+                "Bloque": bloque,
+                "Tipo": "Bono",
+                "Cantidad": cantidad,
+                "Cantidad_Real": cantidad_real,
+                "VN_Factor": vn_factor,
+                "Precio_ARS": precio,
+                "PPC_ARS": ppc_ars,
+                "Valorizado_ARS": valorizado,
+                "Ganancia_ARS": ganancia,
+            }
+        )
+
+    df_bonos = pd.DataFrame(registros)
+    if df_bonos.empty:
+        return df_bonos
+    df_bonos["Peso_%"] = (df_bonos["Valorizado_ARS"] / df_bonos["Valorizado_ARS"].sum() * 100).round(2)
+    return df_bonos
+
+
+def attach_value_usd(
+    df: pd.DataFrame,
+    *,
+    mep_real: float | None,
+    default_columns: list[str] | None = None,
+) -> pd.DataFrame:
+    if df.empty:
+        return df
+    out = df.copy()
+    if "Valor_USD" not in out.columns:
+        out["Valor_USD"] = out["Valorizado_ARS"] / mep_real if mep_real else np.nan
+    if default_columns:
+        for col in default_columns:
+            if col not in out.columns:
+                out[col] = np.nan
+    return out
+
+
+def build_portfolio_master(
+    df_cedears: pd.DataFrame,
+    df_local: pd.DataFrame,
+    df_bonos: pd.DataFrame,
+    df_liquidez: pd.DataFrame,
+    *,
+    mep_real: float | None,
+) -> pd.DataFrame:
+    frames = []
+    for frame in [df_cedears, df_local, df_bonos, df_liquidez]:
+        if frame is None or frame.empty:
+            continue
+        frames.append(frame.copy())
+
+    if not frames:
+        return pd.DataFrame()
+
+    df_total = pd.concat(frames, ignore_index=True, sort=False)
+
+    if "Cantidad_Real" not in df_total.columns:
+        df_total["Cantidad_Real"] = df_total.get("Cantidad")
+    else:
+        df_total["Cantidad_Real"] = df_total["Cantidad_Real"].fillna(df_total.get("Cantidad"))
+
+    if "Valor_USD" not in df_total.columns:
+        df_total["Valor_USD"] = df_total["Valorizado_ARS"] / mep_real if mep_real else np.nan
+    else:
+        faltantes = df_total["Valor_USD"].isna()
+        if mep_real:
+            df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"] / mep_real
+
+    total_valorizado = df_total["Valorizado_ARS"].sum()
+    if total_valorizado:
+        df_total["Peso_%"] = (df_total["Valorizado_ARS"] / total_valorizado * 100).round(2)
+
+    return df_total

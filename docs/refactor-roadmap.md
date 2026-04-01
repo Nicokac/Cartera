@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 2 cerrada`
+- Estado global: `Fase 3 cerrada`
 - Última actualización: `2026-03-31`
 
 ## Fase 0. Línea base y resguardo
@@ -135,7 +135,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 3. Construcción de cartera maestra
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: consolidar la lógica de clasificación, liquidez y valuación.
 
 ### Tareas
@@ -151,6 +151,23 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - `df_total` sale de una sola ruta de construcción.
 - La lógica de cartera puede correrse fuera del notebook.
+
+### Cierre
+
+- Se creó `src/portfolio/` con:
+  - `classify.py`
+  - `liquidity.py`
+  - `valuation.py`
+- Se encapsularon en módulos canónicos:
+  - clasificación de activos IOL
+  - normalización de moneda de cuenta
+  - extracción de componentes de `estadocuenta`
+  - reconstrucción de liquidez
+  - construcción de `df`, `df_local`, `df_bonos`
+  - construcción de `df_total` mediante `build_portfolio_master(...)`
+- Se adaptó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para enlazarse con la ruta canónica de `src/portfolio/` en clasificación, liquidez, valuación base y tabla maestra.
+- Se agregó [`.gitignore`](C:\Users\kachu\Python user\Colab\Cartera de Activos\.gitignore) para excluir `__pycache__/`, `*.pyc` e `.ipynb_checkpoints/`.
+- Se limpió el `__pycache__` local de `src/clients/` para no seguir arrastrando artefactos generados.
 
 ## Fase 4. Checks y validaciones
 
@@ -277,6 +294,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - El notebook quedó apuntando a la configuración externa como fuente canónica.
 - Se cerró la Fase 2 con la creación de clientes de datos en `src/clients/`.
 - El flujo efectivo del notebook quedó enlazado a los clientes de IOL y ArgentinaDatos.
+- Se cerró la Fase 3 con la extracción de clasificación, liquidez y valuación a `src/portfolio/`.
+- `df_total` quedó con una ruta canónica de construcción vía `build_portfolio_master(...)`.
 
 ## Política de actualización
 

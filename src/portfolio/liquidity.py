@@ -1,0 +1,207 @@
+from __future__ import annotations
+
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+
+def normalize_account_currency(moneda: Any) -> str:
+    m = str(moneda or "").strip().upper()
+    if "DOLAR" in m or "USD" in m:
+        return "USD"
+    return "ARS"
+
+
+def extract_estado_cuenta_components(estado_payload: dict[str, Any]) -> dict[str, float]:
+    cash_immediate_ars = 0.0
+    cash_immediate_usd = 0.0
+    cash_pending_ars = 0.0
+    cash_pending_usd = 0.0
+    fallback_cash_ars = 0.0
+    fallback_cash_usd = 0.0
+    total_broker_en_pesos = float(estado_payload.get("totalEnPesos", 0) or 0)
+
+    for cuenta in estado_payload.get("cuentas", []):
+        moneda = normalize_account_currency(cuenta.get("moneda"))
+        disponible = float(cuenta.get("disponible", 0) or 0)
+
+        if moneda == "ARS":
+            fallback_cash_ars += disponible
+        else:
+            fallback_cash_usd += disponible
+
+        saldos = cuenta.get("saldos", []) or []
+        if not saldos:
+            continue
+
+        immediate_found = False
+
+        for saldo_row in saldos:
+            liquidacion = str(saldo_row.get("liquidacion") or "").strip().lower()
+            disponible_row = float(saldo_row.get("disponible", 0) or 0)
+
+            if liquidacion == "inmediato":
+                immediate_found = True
+                if moneda == "ARS":
+                    cash_immediate_ars += disponible_row
+                else:
+                    cash_immediate_usd += disponible_row
+            else:
+                if moneda == "ARS":
+                    cash_pending_ars += disponible_row
+                else:
+                    cash_pending_usd += disponible_row
+
+        if not immediate_found:
+            if moneda == "ARS":
+                cash_immediate_ars += disponible
+            else:
+                cash_immediate_usd += disponible
+
+    if cash_immediate_ars == 0 and fallback_cash_ars > 0:
+        cash_immediate_ars = fallback_cash_ars
+    if cash_immediate_usd == 0 and fallback_cash_usd > 0:
+        cash_immediate_usd = fallback_cash_usd
+
+    return {
+        "cash_immediate_ars": cash_immediate_ars,
+        "cash_immediate_usd": cash_immediate_usd,
+        "cash_pending_ars": cash_pending_ars,
+        "cash_pending_usd": cash_pending_usd,
+        "cash_disponible_ars": fallback_cash_ars,
+        "cash_disponible_usd": fallback_cash_usd,
+        "total_broker_en_pesos": total_broker_en_pesos,
+    }
+
+
+def rebuild_liquidity(
+    activos: list[dict[str, Any]],
+    estado_payload: dict[str, Any],
+    *,
+    mep_real: float | None,
+    fci_cash_management: set[str],
+) -> tuple[pd.DataFrame, dict[str, float], list[tuple]]:
+    liquidez_rows: list[tuple] = []
+
+    caucion_ars = 0.0
+    fci_cash_management_ars = 0.0
+
+    for activo in activos:
+        titulo = activo.get("titulo", {}) or {}
+        simbolo = str(titulo.get("simbolo") or "").strip()
+        descripcion = str(titulo.get("descripcion") or "").strip()
+        tipo = str(titulo.get("tipo") or "").strip()
+        tipo_norm = tipo.upper().replace(" ", "")
+        moneda_raw = str(titulo.get("moneda") or "")
+        moneda = normalize_account_currency(moneda_raw)
+
+        valorizado = float(activo.get("valorizado", 0) or 0)
+        ganancia_dinero = float(activo.get("gananciaDinero", 0) or 0)
+
+        if "CAUCION" in tipo_norm or "CAUCION" in simbolo.upper():
+            caucion_ars += valorizado
+            liquidez_rows.append(
+                ("CAUCION", descripcion or "Caución", "Liquidez", "ARS", valorizado, ganancia_dinero)
+            )
+            continue
+
+        if simbolo.upper() in fci_cash_management or "FONDOCOMUNDEINVERSION" in tipo_norm or "FCI" in tipo_norm:
+            valorizado_ars = valorizado * mep_real if moneda == "USD" and mep_real else valorizado
+            ganancia_ars = ganancia_dinero * mep_real if moneda == "USD" and mep_real else ganancia_dinero
+
+            if simbolo.upper() in fci_cash_management:
+                fci_cash_management_ars += valorizado_ars
+
+            liquidez_rows.append(
+                (
+                    simbolo,
+                    descripcion,
+                    "Liquidez",
+                    moneda,
+                    valorizado if moneda == "USD" else valorizado_ars,
+                    ganancia_dinero if moneda == "USD" else ganancia_ars,
+                )
+            )
+
+    cash_components = extract_estado_cuenta_components(estado_payload)
+
+    cash_immediate_ars = cash_components["cash_immediate_ars"]
+    cash_immediate_usd = cash_components["cash_immediate_usd"]
+    cash_pending_ars = cash_components["cash_pending_ars"]
+    cash_pending_usd = cash_components["cash_pending_usd"]
+    total_broker_en_pesos = cash_components["total_broker_en_pesos"]
+
+    if cash_immediate_ars > 0:
+        liquidez_rows.append(("CASH_ARS", "Cash disponible broker ARS", "Liquidez", "ARS", cash_immediate_ars, 0.0))
+    if cash_immediate_usd > 0:
+        liquidez_rows.append(("CASH_USD", "Cash disponible broker USD", "Liquidez", "USD", cash_immediate_usd, 0.0))
+    if cash_pending_ars > 0:
+        liquidez_rows.append(("PEND_ARS", "Cash a liquidar ARS", "Liquidez", "ARS", cash_pending_ars, 0.0))
+    if cash_pending_usd > 0:
+        liquidez_rows.append(("PEND_USD", "Cash a liquidar USD", "Liquidez", "USD", cash_pending_usd, 0.0))
+
+    registros_liquidez = []
+    for ticker, descripcion, bloque, moneda, valorizado_raw, ganancia_raw in liquidez_rows:
+        if moneda == "USD":
+            valorizado_ars = valorizado_raw * mep_real if mep_real else np.nan
+            ganancia_ars = ganancia_raw * mep_real if mep_real else np.nan
+            valor_usd = valorizado_raw
+        else:
+            valorizado_ars = valorizado_raw
+            ganancia_ars = ganancia_raw
+            valor_usd = valorizado_ars / mep_real if mep_real else np.nan
+
+        registros_liquidez.append(
+            {
+                "Ticker_IOL": ticker,
+                "Descripcion": descripcion,
+                "Bloque": bloque,
+                "Tipo": "Liquidez",
+                "Moneda": moneda,
+                "Valorizado_ARS": valorizado_ars,
+                "Valor_USD": valor_usd,
+                "Ganancia_ARS": ganancia_ars,
+                "Cantidad": None,
+                "Cantidad_Real": None,
+                "PPC_ARS": None,
+                "Precio_ARS": None,
+            }
+        )
+
+    df_liquidez = pd.DataFrame(registros_liquidez)
+    if not df_liquidez.empty:
+        df_liquidez = (
+            df_liquidez.groupby(
+                ["Ticker_IOL", "Descripcion", "Bloque", "Tipo", "Moneda"], as_index=False
+            ).agg(
+                {
+                    "Valorizado_ARS": "sum",
+                    "Valor_USD": "sum",
+                    "Ganancia_ARS": "sum",
+                    "Cantidad": "first",
+                    "Cantidad_Real": "first",
+                    "PPC_ARS": "first",
+                    "Precio_ARS": "first",
+                }
+            )
+        )
+
+    cash_disponible_broker_ars = cash_immediate_ars + cash_immediate_usd * mep_real if mep_real else cash_immediate_ars
+    caucion_colocada_ars = caucion_ars
+    liquidez_estrategica_ars = fci_cash_management_ars
+    liquidez_desplegable_total_ars = cash_disponible_broker_ars + caucion_colocada_ars + liquidez_estrategica_ars
+
+    liquidity_contract = {
+        "cash_operativo_ars": round(cash_disponible_broker_ars, 2),
+        "caucion_tactica_ars": round(caucion_colocada_ars, 2),
+        "fci_estrategico_ars": round(liquidez_estrategica_ars, 2),
+        "liquidez_desplegable_total_ars": round(liquidez_desplegable_total_ars, 2),
+        "cash_operativo_usd": round(cash_disponible_broker_ars / mep_real, 2) if mep_real else np.nan,
+        "caucion_tactica_usd": round(caucion_colocada_ars / mep_real, 2) if mep_real else np.nan,
+        "fci_estrategico_usd": round(liquidez_estrategica_ars / mep_real, 2) if mep_real else np.nan,
+        "liquidez_desplegable_total_usd": round(liquidez_desplegable_total_ars / mep_real, 2) if mep_real else np.nan,
+        "total_broker_en_pesos": total_broker_en_pesos,
+    }
+
+    return df_liquidez, liquidity_contract, liquidez_rows
