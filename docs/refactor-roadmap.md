@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 0 cerrada`
+- Estado global: `Fase 1 cerrada`
 - Última actualización: `2026-03-31`
 
 ## Fase 0. Línea base y resguardo
@@ -53,7 +53,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 1. Configuración y mappings externos
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: sacar del notebook la configuración mutable y los mapas de negocio.
 
 ### Tareas
@@ -72,6 +72,26 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - El notebook ya no depende de mappings hardcodeados en celdas.
 - Los parámetros de negocio se cambian sin editar lógica central.
+
+### Cierre
+
+- Se creó `src/config.py` como fuente canónica de configuración del proyecto.
+- Se creó `data/mappings/` con:
+  - `finviz_map.json`
+  - `block_map.json`
+  - `ratios.json`
+  - `vn_factor_map.json`
+- Se externalizaron también parámetros generales y listas prudenciales:
+  - base URL de IOL
+  - mercado
+  - URL de ArgentinaDatos
+  - casa MEP
+  - umbrales de alertas
+  - FCI cash management
+  - tickers defensivos/agresivos
+  - pesos por bucket
+- Se adaptó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para cargar la configuración desde `src/config.py`.
+- Los hardcodes históricos siguen visibles en el notebook como referencia de transición, pero la fuente efectiva pasó a ser la configuración externa.
 
 ## Fase 2. Clientes de datos
 
@@ -232,6 +252,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Se definieron fases, criterios de cierre y política de actualización.
 - Se cerró la Fase 0 con una línea base documentada del notebook actual.
 - Se agregó [`baseline-actual.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md) como referencia de comparación para el refactor.
+- Se cerró la Fase 1 con la extracción de configuración y mappings a `src/` y `data/mappings/`.
+- El notebook quedó apuntando a la configuración externa como fuente canónica.
 
 ## Política de actualización
 
