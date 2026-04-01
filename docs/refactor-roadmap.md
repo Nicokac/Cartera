@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 1 cerrada`
+- Estado global: `Fase 2 cerrada`
 - Última actualización: `2026-03-31`
 
 ## Fase 0. Línea base y resguardo
@@ -95,7 +95,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 2. Clientes de datos
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: encapsular las integraciones externas.
 
 ### Tareas
@@ -111,6 +111,27 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - El notebook llama funciones cliente en vez de hacer requests directos.
 - Los errores de fuente quedan aislados y son más auditables.
+
+### Cierre
+
+- Se creó `src/clients/` con:
+  - `iol.py`
+  - `argentinadatos.py`
+  - `finviz_client.py`
+  - `market_data.py`
+- Se encapsularon en clientes dedicados:
+  - login IOL
+  - portfolio IOL
+  - estado de cuenta IOL
+  - cotización IOL
+  - cotización IOL con re-login
+  - consulta de MEP desde ArgentinaDatos
+- Se prepararon wrappers para:
+  - bundle Finviz
+  - histórico técnico con yfinance
+- Se adaptó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para usar los clientes de IOL por alias/rebind en el flujo efectivo y para revalidar el MEP con el cliente de ArgentinaDatos antes de la valuación.
+- Se dejó import diferido en los clientes de Finviz y yfinance para no romper el entorno cuando esas dependencias todavía no están instaladas.
+- Las requests históricas siguen visibles en algunas celdas del notebook como parte de la transición, pero la ruta efectiva de ejecución para IOL y MEP ya quedó desacoplada en `src/clients/`.
 
 ## Fase 3. Construcción de cartera maestra
 
@@ -254,6 +275,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Se agregó [`baseline-actual.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md) como referencia de comparación para el refactor.
 - Se cerró la Fase 1 con la extracción de configuración y mappings a `src/` y `data/mappings/`.
 - El notebook quedó apuntando a la configuración externa como fuente canónica.
+- Se cerró la Fase 2 con la creación de clientes de datos en `src/clients/`.
+- El flujo efectivo del notebook quedó enlazado a los clientes de IOL y ArgentinaDatos.
 
 ## Política de actualización
 
