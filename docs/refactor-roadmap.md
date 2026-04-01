@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 6 cerrada`
+- Estado global: `Fase 7 cerrada`
 - Última actualización: `2026-04-01`
 
 ## Fase 0. Línea base y resguardo
@@ -291,7 +291,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 7. Fondeo y sizing
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: estabilizar la propuesta de despliegue de liquidez.
 
 ### Tareas
@@ -307,6 +307,24 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Hay una sola propuesta de fondeo y asignación.
 - El sizing no depende de múltiples variantes en el notebook.
+
+### Cierre
+
+- Se creó `src/decision/sizing.py`.
+- Se centralizaron en una ruta canónica:
+  - propuesta operativa de fondeo
+  - sizing prudente por bucket
+  - asignación final dinámica con topes
+- Se expusieron en `src/decision/__init__.py`:
+  - `build_operational_proposal(...)`
+  - `build_prudent_allocation(...)`
+  - `build_dynamic_allocation(...)`
+- Se adaptó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para usar la ruta canónica de `src/decision/sizing.py` en:
+  - `propuesta`
+  - `candidatos_refuerzo`
+  - `asignacion_final`
+- Se validó import de `src/decision/sizing.py` con smoke test local.
+- La visualización histórica del notebook sigue presente, pero la salida efectiva de fondeo y sizing ya quedó desacoplada en `src/decision/`.
 
 ## Fase 8. Tests y snapshots
 
@@ -365,6 +383,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - El notebook quedó enlazado a `build_executive_dashboard_data(...)` como entrada canónica del dashboard ejecutivo.
 - Se cerró la Fase 6 con la extracción del motor de scoring y acción sugerida a `src/decision/`.
 - El notebook quedó enlazado a la ruta canónica de decisión en scoring base, overlay técnico y score unificado.
+- Se cerró la Fase 7 con la extracción de fondeo y sizing a `src/decision/sizing.py`.
+- El notebook quedó enlazado a la ruta canónica de propuesta operativa, asignación prudente y asignación dinámica final.
 
 ## Política de actualización
 
