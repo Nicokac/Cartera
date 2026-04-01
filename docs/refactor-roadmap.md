@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 5 cerrada`
+- Estado global: `Fase 6 cerrada`
 - Última actualización: `2026-04-01`
 
 ## Fase 0. Línea base y resguardo
@@ -243,7 +243,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 6. Scoring y decisión operativa
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: dejar una única implementación auditada del motor de decisión.
 
 ### Tareas
@@ -263,6 +263,31 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Existe una sola ruta para llegar a la decisión final.
 - Cada recomendación puede explicarse sin inspeccionar varias celdas.
+
+### Cierre
+
+- Se creó `src/decision/` con:
+  - `scoring.py`
+  - `actions.py`
+- Se centralizaron en `src/decision/scoring.py`:
+  - `rank_score(...)`
+  - `consensus_to_score(...)`
+  - construcción de base de decisión
+  - score base
+  - overlay técnico v2
+  - score unificado final
+- Se centralizaron en `src/decision/actions.py`:
+  - acción sugerida base
+  - acción sugerida v2
+  - columnas explicativas:
+    - `motivo_score`
+    - `motivo_accion`
+    - `driver_1`
+    - `driver_2`
+    - `driver_3`
+- Se adaptó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para usar la ruta canónica de `src/decision/` en `decision`, `decision_tech` y `final_decision`.
+- Se limpió el `__pycache__` local generado en `src/decision/`.
+- La capa de propuesta operativa y sizing sigue separada para la Fase 7.
 
 ## Fase 7. Fondeo y sizing
 
@@ -338,6 +363,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - El notebook pasó a usar `build_integrity_report(...)` como fuente canónica del chequeo de integridad.
 - Se cerró la Fase 5 con la creación de `src/analytics/` y la extracción inicial del dashboard descriptivo.
 - El notebook quedó enlazado a `build_executive_dashboard_data(...)` como entrada canónica del dashboard ejecutivo.
+- Se cerró la Fase 6 con la extracción del motor de scoring y acción sugerida a `src/decision/`.
+- El notebook quedó enlazado a la ruta canónica de decisión en scoring base, overlay técnico y score unificado.
 
 ## Política de actualización
 
