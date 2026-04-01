@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 4 cerrada`
+- Estado global: `Fase 5 cerrada`
 - Última actualización: `2026-04-01`
 
 ## Fase 0. Línea base y resguardo
@@ -201,7 +201,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 5. Analytics y presentación
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: separar análisis descriptivo de lógica operativa.
 
 ### Tareas
@@ -218,6 +218,28 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - El notebook renderiza resultados llamando funciones analíticas.
 - La capa visual deja de ser el lugar donde vive la lógica.
+
+### Cierre
+
+- Se creó `src/analytics/` con:
+  - `dashboard.py`
+  - `fundamentals.py`
+  - `ratings.py`
+  - `news.py`
+  - `insiders.py`
+  - `technical.py`
+- Se extrajeron funciones reutilizables para:
+  - KPIs ejecutivos
+  - resumen por tipo
+  - top posiciones / ganadoras / perdedoras
+  - tablas de fundamentals
+  - resumen de ratings
+  - últimas noticias por ticker
+  - resumen de insiders
+  - normalización base del overlay técnico
+- Se adaptó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para importar y usar `build_executive_dashboard_data(...)` como ruta canónica del dashboard descriptivo.
+- Se limpió el `__pycache__` local generado en `src/analytics/` y `src/`.
+- La migración visual todavía es parcial: el notebook conserva formateo y rendering histórico, pero la capa descriptiva principal ya empezó a salir desde `src/analytics/`.
 
 ## Fase 6. Scoring y decisión operativa
 
@@ -314,6 +336,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Se cerró la Fase 4 con la extracción de checks y validaciones a `src/portfolio/checks.py`.
 - El notebook pasó a usar `build_integrity_report(...)` como fuente canónica del chequeo de integridad.
+- Se cerró la Fase 5 con la creación de `src/analytics/` y la extracción inicial del dashboard descriptivo.
+- El notebook quedó enlazado a `build_executive_dashboard_data(...)` como entrada canónica del dashboard ejecutivo.
 
 ## Política de actualización
 
