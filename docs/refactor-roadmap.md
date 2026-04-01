@@ -22,7 +22,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 7 cerrada`
+- Estado global: `Fase 8 cerrada`
 - Última actualización: `2026-04-01`
 
 ## Fase 0. Línea base y resguardo
@@ -328,7 +328,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 8. Tests y snapshots
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: mejorar reproducibilidad y confianza.
 
 ### Tareas
@@ -342,6 +342,22 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Las piezas críticas tienen tests automatizados.
 - Podemos detectar regresiones antes de tocar producción analítica.
+
+### Cierre
+
+- Se creó `tests/` con cobertura inicial sobre:
+  - clasificación de activos
+  - reconstrucción de liquidez
+  - valuación y cartera maestra
+  - checks de integridad
+  - fondeo y sizing
+- Se agregó documentación de ejecución en `tests/README.md`.
+- Se agregó `tests/snapshots/README.md` como convención inicial para snapshots de referencia.
+- Se validó la suite local con:
+  - `python -m unittest discover -s tests -v`
+- Resultado de verificación:
+  - `7 tests OK`
+- Todavía no se versionaron snapshots reales de corridas del notebook; la carpeta y la convención ya quedaron listas para empezar a guardarlos.
 
 ## Fase 9. Limpieza final del notebook
 
@@ -385,6 +401,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - El notebook quedó enlazado a la ruta canónica de decisión en scoring base, overlay técnico y score unificado.
 - Se cerró la Fase 7 con la extracción de fondeo y sizing a `src/decision/sizing.py`.
 - El notebook quedó enlazado a la ruta canónica de propuesta operativa, asignación prudente y asignación dinámica final.
+- Se cerró la Fase 8 con la creación de `tests/` y una convención inicial para `tests/snapshots/`.
+- La lógica crítica ya tiene una suite local mínima para detectar regresiones antes de seguir limpiando el notebook.
 
 ## Política de actualización
 

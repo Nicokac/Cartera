@@ -1,0 +1,102 @@
+import math
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.append(str(SRC))
+
+from portfolio.liquidity import extract_estado_cuenta_components, rebuild_liquidity
+
+
+class LiquidityTests(unittest.TestCase):
+    def test_extract_estado_cuenta_components_distinguishes_immediate_and_pending(self) -> None:
+        estado_payload = {
+            "totalEnPesos": 250000,
+            "cuentas": [
+                {
+                    "moneda": "Pesos",
+                    "disponible": 150000,
+                    "saldos": [
+                        {"liquidacion": "inmediato", "disponible": 100000},
+                        {"liquidacion": "48hs", "disponible": 50000},
+                    ],
+                },
+                {
+                    "moneda": "Dolares",
+                    "disponible": 200,
+                    "saldos": [
+                        {"liquidacion": "inmediato", "disponible": 120},
+                        {"liquidacion": "24hs", "disponible": 80},
+                    ],
+                },
+            ],
+        }
+
+        result = extract_estado_cuenta_components(estado_payload)
+
+        self.assertEqual(result["cash_immediate_ars"], 100000)
+        self.assertEqual(result["cash_pending_ars"], 50000)
+        self.assertEqual(result["cash_immediate_usd"], 120)
+        self.assertEqual(result["cash_pending_usd"], 80)
+        self.assertEqual(result["total_broker_en_pesos"], 250000)
+
+    def test_rebuild_liquidity_builds_contract_and_converts_usd(self) -> None:
+        activos = [
+            {
+                "valorizado": 50000,
+                "gananciaDinero": 1200,
+                "titulo": {
+                    "simbolo": "CAU123",
+                    "descripcion": "Caucion colocada",
+                    "tipo": "CAUCION",
+                    "moneda": "Pesos",
+                },
+            },
+            {
+                "valorizado": 100,
+                "gananciaDinero": 0,
+                "titulo": {
+                    "simbolo": "FCI_USD",
+                    "descripcion": "Fondo Dolar",
+                    "tipo": "FCI",
+                    "moneda": "USD",
+                },
+            },
+        ]
+        estado_payload = {
+            "totalEnPesos": 300000,
+            "cuentas": [
+                {
+                    "moneda": "Pesos",
+                    "disponible": 100000,
+                    "saldos": [{"liquidacion": "inmediato", "disponible": 100000}],
+                },
+                {
+                    "moneda": "USD",
+                    "disponible": 50,
+                    "saldos": [{"liquidacion": "inmediato", "disponible": 50}],
+                },
+            ],
+        }
+
+        df_liquidez, contract, raw_rows = rebuild_liquidity(
+            activos,
+            estado_payload,
+            mep_real=1000,
+            fci_cash_management={"FCI_USD"},
+        )
+
+        self.assertEqual(len(raw_rows), 4)
+        self.assertIn("CASH_ARS", df_liquidez["Ticker_IOL"].tolist())
+        self.assertIn("CASH_USD", df_liquidez["Ticker_IOL"].tolist())
+        self.assertTrue(math.isclose(contract["cash_operativo_ars"], 150000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(contract["caucion_tactica_ars"], 50000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 100000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(contract["liquidez_desplegable_total_ars"], 300000, rel_tol=0, abs_tol=0.01))
+
+
+if __name__ == "__main__":
+    unittest.main()
