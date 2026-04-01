@@ -1,1 +1,1 @@
-"""Lógica de cartera: clasificación, liquidez y valuación."""
+"""Lógica de cartera: clasificación, liquidez, valuación y checks."""

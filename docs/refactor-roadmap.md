@@ -22,8 +22,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 3 cerrada`
-- Última actualización: `2026-03-31`
+- Estado global: `Fase 4 cerrada`
+- Última actualización: `2026-04-01`
 
 ## Fase 0. Línea base y resguardo
 
@@ -171,7 +171,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ## Fase 4. Checks y validaciones
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: volver explícitas las validaciones del pipeline.
 
 ### Tareas
@@ -185,6 +185,19 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - El pipeline detecta inconsistencias antes del scoring.
 - Los errores de datos no quedan ocultos en celdas posteriores.
+
+### Cierre
+
+- Se creó `src/portfolio/checks.py`.
+- Se agregaron validaciones canónicas para:
+  - columnas requeridas
+  - precios faltantes en instrumentos invertidos
+  - valores USD faltantes
+  - valorizados faltantes
+  - suma total de pesos
+- Se integró `build_integrity_report(...)` en [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) como ruta efectiva del resumen de checks de integridad.
+- Se limpió el `__pycache__` local de `src/portfolio/`.
+- La presentación del notebook todavía conserva parte del formato histórico, pero la lógica de validación ya quedó centralizada en `src/portfolio/checks.py`.
 
 ## Fase 5. Analytics y presentación
 
@@ -296,6 +309,11 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - El flujo efectivo del notebook quedó enlazado a los clientes de IOL y ArgentinaDatos.
 - Se cerró la Fase 3 con la extracción de clasificación, liquidez y valuación a `src/portfolio/`.
 - `df_total` quedó con una ruta canónica de construcción vía `build_portfolio_master(...)`.
+
+### 2026-04-01
+
+- Se cerró la Fase 4 con la extracción de checks y validaciones a `src/portfolio/checks.py`.
+- El notebook pasó a usar `build_integrity_report(...)` como fuente canónica del chequeo de integridad.
 
 ## Política de actualización
 
