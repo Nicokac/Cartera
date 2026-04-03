@@ -104,6 +104,11 @@ class SizingTests(unittest.TestCase):
         self.assertTrue(math.isclose(result["aporte_externo_ars"], 600000, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(result["monto_fondeo_liquidez_ars"], 0, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(result["monto_fondeo_ars"], 600000, rel_tol=0, abs_tol=0.01))
+        self.assertEqual(result["top_fondeo"].shape[0], 0)
+        self.assertEqual(
+            result["propuesta"].loc[result["propuesta"]["Ticker_IOL"] == "CAUCION", "accion_operativa"].iloc[0],
+            "Mantener liquidez bloqueada",
+        )
 
     def test_prudent_and_dynamic_allocation_apply_buckets_and_caps(self) -> None:
         proposal_bundle = build_operational_proposal(self.final_decision, mep_real=1000)

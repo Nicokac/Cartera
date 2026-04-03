@@ -76,7 +76,12 @@ def badge_class(action: object) -> str:
     return "badge badge-neutral"
 
 
-def build_decision_table(df: pd.DataFrame) -> str:
+def build_decision_table(
+    df: pd.DataFrame,
+    *,
+    action_col: str,
+    motive_col: str,
+) -> str:
     if df.empty:
         return '<div class="empty">Sin decisiones para mostrar.</div>'
 
@@ -85,8 +90,8 @@ def build_decision_table(df: pd.DataFrame) -> str:
     for _, row in ordered.iterrows():
         ticker = html.escape(str(row["Ticker_IOL"]))
         tipo = html.escape(str(row["Tipo"]))
-        accion = str(row["accion_sugerida_v2"])
-        motivo = html.escape(str(row["motivo_accion"]))
+        accion = str(row.get(action_col, ""))
+        motivo = html.escape(str(row.get(motive_col, "")))
         rows.append(
             "<tr "
             f"data-ticker=\"{ticker}\" "
@@ -123,11 +128,27 @@ def render_report(
     df_total = portfolio_bundle["df_total"].copy()
     integrity_report = portfolio_bundle["integrity_report"].copy()
     final_decision = decision_bundle["final_decision"].copy()
+    propuesta = sizing_bundle.get("propuesta", pd.DataFrame()).copy()
     asignacion_final = sizing_bundle["asignacion_final"].copy()
     resumen_tipos = dashboard_bundle["resumen_tipos"].copy()
     kpis = dashboard_bundle["kpis"]
 
-    action_counts = final_decision["accion_sugerida_v2"].value_counts(dropna=False).to_dict()
+    if not propuesta.empty and "accion_operativa" in propuesta.columns:
+        decision_view = propuesta
+        action_col = "accion_operativa"
+        motive_col = "comentario_operativo" if "comentario_operativo" in propuesta.columns else "motivo_accion"
+    else:
+        decision_view = final_decision
+        action_col = "accion_sugerida_v2"
+        motive_col = "motivo_accion"
+
+    action_counts = decision_view[action_col].value_counts(dropna=False).to_dict()
+    neutrales = (
+        int(action_counts.get("Mantener / Neutral", 0))
+        + int(action_counts.get("Mantener / monitorear", 0))
+        + int(action_counts.get("Mantener liquidez", 0))
+        + int(action_counts.get("Mantener liquidez bloqueada", 0))
+    )
 
     summary_cards = f"""
     <section class="cards">
@@ -147,7 +168,7 @@ def render_report(
       <article class="action-card buy"><span>Refuerzos</span><strong>{int(action_counts.get('Refuerzo', 0))}</strong></article>
       <article class="action-card sell"><span>Reducciones</span><strong>{int(action_counts.get('Reducir', 0))}</strong></article>
       <article class="action-card fund"><span>Despliegue</span><strong>{int(action_counts.get('Desplegar liquidez', 0))}</strong></article>
-      <article class="action-card neutral"><span>Neutrales</span><strong>{int(action_counts.get('Mantener / Neutral', 0))}</strong></article>
+      <article class="action-card neutral"><span>Neutrales</span><strong>{neutrales}</strong></article>
     </section>
     """
 
@@ -239,7 +260,7 @@ def render_report(
           </select>
         </div>
       </div>
-      {build_decision_table(final_decision)}
+      {build_decision_table(decision_view, action_col=action_col, motive_col=motive_col)}
     </section>
 
     <section class="panel" id="cartera">

@@ -13,6 +13,8 @@ def _comentario_operativo(row: pd.Series) -> str:
         return "Liquidez disponible para fondear refuerzos sin vender posiciones de riesgo."
     if accion == "Mantener liquidez":
         return "Liquidez conservada como reserva táctica."
+    if accion == "Mantener liquidez bloqueada":
+        return "Liquidez excluida del fondeo por política explícita del análisis."
     if accion == "Rebalancear / tomar ganancia":
         return "Bono con señal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
     if accion == "Refuerzo":
@@ -60,11 +62,14 @@ def build_operational_proposal(
     propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
 
     mask_liq = propuesta["Tipo"] == "Liquidez"
-    propuesta.loc[mask_liq, "accion_operativa"] = np.where(
-        propuesta.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,
-        "Desplegar liquidez",
-        "Mantener liquidez",
-    )
+    if usar_liquidez_iol:
+        propuesta.loc[mask_liq, "accion_operativa"] = np.where(
+            propuesta.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,
+            "Desplegar liquidez",
+            "Mantener liquidez",
+        )
+    else:
+        propuesta.loc[mask_liq, "accion_operativa"] = "Mantener liquidez bloqueada"
 
     mask_bonos = propuesta["Tipo"] == "Bono"
     propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= -0.20), "accion_operativa"] = (
