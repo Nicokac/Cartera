@@ -86,7 +86,6 @@ def build_decision_base(
     decision["Es_Cedear"] = decision["Tipo"].eq("CEDEAR")
     decision["Es_Bono"] = decision["Tipo"].eq("Bono")
     decision["Es_Accion_Local"] = decision["Tipo"].eq("Acción Local")
-    decision["Es_Core"] = decision["Bloque"].eq("Core")
     decision["MEP_Premium_%"] = np.where(
         decision["MEP_Implicito"].notna() & bool(mep_real),
         (decision["MEP_Implicito"] / mep_real - 1) * 100,
@@ -167,7 +166,6 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         float(refuerzo_penalties.get("beta_high", 0.08)),
         0.00,
     )
-    out["score_refuerzo"] -= np.where(out["Es_Core"], float(refuerzo_penalties.get("core", 0.05)), 0.00)
     out["score_refuerzo"] = out["score_refuerzo"].clip(0, 1)
 
     out["score_reduccion"] = (
@@ -180,7 +178,6 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
     )
     out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
-    out["score_reduccion"] -= np.where(out["Es_Core"], float(reduccion_penalties.get("core", 0.12)), 0.00)
     out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
     out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
 

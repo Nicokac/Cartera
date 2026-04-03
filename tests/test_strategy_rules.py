@@ -10,6 +10,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from decision.actions import assign_action_v2
+from decision.scoring import apply_base_scores
 
 
 class StrategyRulesTests(unittest.TestCase):
@@ -40,6 +41,49 @@ class StrategyRulesTests(unittest.TestCase):
 
         self.assertEqual(default_result.loc[0, "accion_sugerida_v2"], "Mantener / Neutral")
         self.assertEqual(custom_result.loc[0, "accion_sugerida_v2"], "Refuerzo")
+
+    def test_block_label_no_longer_changes_scores(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "SPY",
+                    "Bloque": "Core",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 4.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 2.0,
+                    "Perf YTD": 3.0,
+                    "Beta": 1.0,
+                    "P/E": 20.0,
+                    "MEP_Premium_%": 1.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "SPY",
+                    "Bloque": "Growth",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 4.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 2.0,
+                    "Perf YTD": 3.0,
+                    "Beta": 1.0,
+                    "P/E": 20.0,
+                    "MEP_Premium_%": 1.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(df)
+
+        self.assertEqual(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+        self.assertEqual(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
 
 
 if __name__ == "__main__":

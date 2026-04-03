@@ -19,13 +19,12 @@ Este roadmap cubre solo hardcodes que afectan la estrategia. No incluye mappings
 
 ## Estado actual
 
-Luego de la Fase C, ya no quedan influyendo por ticker manual:
-- bucket de prudencia
-- peso base del sizing
-- asignacion final por ticker
+Luego de la Fase D, ya no quedan influyendo de forma material:
+- listas manuales de tickers
+- sesgo por bloque via `BLOCK_MAP`
+- pesos y thresholds embebidos en codigo
 
 Siguen influyendo en la estrategia:
-- heuristicas de bloque via [block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
 - taxonomia textual de consenso en [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
 - preferencia explicita por `CAUCION` como fuente cuando se usa liquidez IOL en [sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
 - thresholds de bucket por beta en [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
@@ -59,48 +58,33 @@ Siguen influyendo en la estrategia:
 ## Fase C. Eliminacion de listas de tickers
 
 - Estado: `Hecho`
-- Objetivo: reemplazar `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS`.
-
-### Tareas cerradas
-
-- derivar bucket de prudencia desde features:
-  - `Beta`
-  - tipo de activo
-  - peso relativo en cartera
-- eliminar la dependencia efectiva de listas manuales en sizing
-
-### Criterio de cierre
-
-- el bucket de prudencia no depende de ticker hardcodeado
 
 ### Cierre
 
 - [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py) ya no usa listas de tickers para definir `Bucket_Prudencia`.
-- El bucket ahora se deriva desde:
-  - tipo de activo
-  - thresholds de beta
-  - peso relativo
-- [data/strategy/sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json) incorpora reglas de bucket por features.
-- [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py) dejo de exponer `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` al runtime.
-- El pipeline, el smoke run y el runner real quedaron desacoplados de esas listas.
+- El bucket ahora se deriva desde tipo, beta y peso relativo.
 
 ## Fase D. Desacople de `BLOCK_MAP` en scoring
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: que el scoring no dependa de etiquetas fijas de bloque para premiar o castigar activos.
 
-### Tareas
+### Tareas cerradas
 
-- auditar usos de `Bloque` dentro de scoring
-- reemplazar sesgos por senales derivadas:
-  - diversificacion
-  - peso relativo
-  - exposicion sectorial o geografica si esta disponible
-- conservar `Bloque` solo para reporting
+- eliminar el uso de `Es_Core` dentro del scoring
+- mantener `Bloque` solo para reporting
+- validar por test que dos activos iguales con distinto bloque puntuan igual
 
 ### Criterio de cierre
 
 - `BLOCK_MAP` deja de influir materialmente en `Refuerzo` o `Reducir`
+
+### Cierre
+
+- [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) dejo de usar `Es_Core` en `score_refuerzo` y `score_reduccion`.
+- [data/strategy/scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json) dejo de incluir castigos por `core`.
+- [tests/test_strategy_rules.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\test_strategy_rules.py) ahora valida que el bloque no altera los scores.
+- `Bloque` sigue existiendo para reporting y lectura del portfolio, pero ya no sesga la decision operativa.
 
 ## Fase E. Politica de liquidez explicita
 
@@ -150,3 +134,4 @@ Siguen influyendo en la estrategia:
 - Se cerro la Fase B con la externalizacion de thresholds y pesos de estrategia a `data/strategy/`.
 - El pipeline ya toma reglas de scoring, acciones y sizing desde archivos configurables.
 - Se cerro la Fase C con la eliminacion de `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` del sizing.
+- Se cerro la Fase D con la eliminacion del sesgo por `BLOCK_MAP` dentro del scoring.

@@ -13,38 +13,28 @@ Separacion usada:
 - `Integracion`: conecta o traduce datos, pero no decide la estrategia
 - `Presentacion`: cambia mensajes o labels, no la logica central
 
-## Estado despues de la Fase C
+## Estado despues de la Fase D
 
 Ya quedaron eliminados del flujo estrategico:
 - listas manuales de tickers defensivos/agresivos
 - asignacion de bucket por ticker
+- sesgo por bloque manual en scoring
 
 Ya quedaron externalizados en `data/strategy/`:
 - pesos de `score_refuerzo`
 - pesos de `score_reduccion`
 - pesos de momentum
-- castigos por liquidez, bono, beta y core
+- castigos por liquidez, bono y beta
 - thresholds de `Refuerzo`, `Reducir` y `Desplegar liquidez`
 - thresholds de rebalanceo de bonos
 - pesos de sizing, topes y politica de fondeo
 - thresholds de bucket por beta y defaults por tipo
 
 Siguen hardcodeados y afectan estrategia:
-- sesgo por bloque via `BLOCK_MAP`
 - taxonomia textual de consenso
 - preferencia por `CAUCION` como fuente cuando se usa liquidez IOL
 
 ## Inventario vigente
-
-### [data/mappings/block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
-
-#### `BLOCK_MAP`
-
-- Tipo: `Estrategia`
-- Impacta en:
-  - `Bloque`
-  - flag `Es_Core`
-  - sesgos del scoring
 
 ### [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
 
@@ -75,12 +65,14 @@ Siguen hardcodeados y afectan estrategia:
 - Tipo: `Estrategia`
 - Estado:
   - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - sin sesgo por `Bloque`
 
 #### `score_reduccion`
 
 - Tipo: `Estrategia`
 - Estado:
   - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - sin sesgo por `Bloque`
 
 #### `score_despliegue_liquidez`
 
@@ -153,13 +145,13 @@ Siguen hardcodeados y afectan estrategia:
 - [finviz_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\finviz_map.json)
 - [ratios.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\ratios.json)
 - [vn_factor_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\vn_factor_map.json)
+- [block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json) como taxonomia de reporting
 - tipos cotizables permitidos en [generate_real_report.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
 
 ## Prioridad actual de remocion
 
 ### Prioridad 1
 
-- sesgo `Es_Core` derivado de `BLOCK_MAP`
 - preferencia explicita por `CAUCION` como fuente de fondeo
 
 ### Prioridad 2
@@ -172,9 +164,8 @@ Siguen hardcodeados y afectan estrategia:
 
 ## Conclusion
 
-La Fase C elimino el sesgo por ticker manual del sizing.
+La Fase D dejo fuera del scoring el sesgo por bloque manual.
 
 Lo que queda pendiente para la estrategia es principalmente:
-- sesgo por bloque manual
-- heuristica textual de consenso
 - una preferencia fija por caucion dentro del fondeo
+- una heuristica textual de consenso
