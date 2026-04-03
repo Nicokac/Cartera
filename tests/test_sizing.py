@@ -111,19 +111,30 @@ class SizingTests(unittest.TestCase):
         )
 
     def test_build_operational_proposal_no_longer_prefers_caucion_by_name(self) -> None:
-        final_decision = self.final_decision.copy()
-        final_decision.loc[len(final_decision)] = {
-            "Ticker_IOL": "ADBAICA",
-            "Descripcion": "FCI cobertura",
-            "Tipo": "Liquidez",
-            "accion_sugerida_v2": "Mantener / Neutral",
-            "score_unificado": 0.0,
-            "score_despliegue_liquidez": 0.95,
-            "Valorizado_ARS": 1200000.0,
-            "Valor_USD": 1200.0,
-            "Tech_Trend": None,
-            "Beta": None,
-        }
+        extra_row = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "ADBAICA",
+                    "Descripcion": "FCI cobertura",
+                    "Tipo": "Liquidez",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_unificado": 0.0,
+                    "score_despliegue_liquidez": 0.95,
+                    "Valorizado_ARS": 1200000.0,
+                    "Valor_USD": 1200.0,
+                    "Tech_Trend": None,
+                    "Beta": math.nan,
+                }
+            ]
+        )
+        extra_row = extra_row.astype(self.final_decision.dtypes.to_dict())
+        final_decision = pd.concat(
+            [
+                self.final_decision,
+                extra_row,
+            ],
+            ignore_index=True,
+        )
 
         result = build_operational_proposal(final_decision, mep_real=1000)
 
