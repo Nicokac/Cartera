@@ -107,66 +107,90 @@ def build_decision_base(
     return decision
 
 
-def apply_base_scores(decision: pd.DataFrame) -> pd.DataFrame:
+def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object] | None = None) -> pd.DataFrame:
+    scoring_rules = scoring_rules or {}
+    rank_neutral = float(scoring_rules.get("rank_neutral", 0.5))
+    gain_clip = scoring_rules.get("gain_clip", {}) or {}
+    momentum_weights = scoring_rules.get("momentum_weights", {}) or {}
+    score_refuerzo_weights = scoring_rules.get("score_refuerzo_weights", {}) or {}
+    score_reduccion_weights = scoring_rules.get("score_reduccion_weights", {}) or {}
+    score_despliegue_liquidez_weights = scoring_rules.get("score_despliegue_liquidez_weights", {}) or {}
+    penalties = scoring_rules.get("penalties", {}) or {}
+    refuerzo_penalties = penalties.get("refuerzo", {}) or {}
+    reduccion_penalties = penalties.get("reduccion", {}) or {}
+
+    gain_clip_min = float(gain_clip.get("min", -100))
+    gain_clip_max = float(gain_clip.get("max", 150))
+    mom_week = float(momentum_weights.get("week", 0.2))
+    mom_month = float(momentum_weights.get("month", 0.4))
+    mom_ytd = float(momentum_weights.get("ytd", 0.4))
+
     out = decision.copy()
-    out["s_low_weight"] = rank_score(out["Peso_%"], higher_is_better=False)
-    out["s_high_weight"] = rank_score(out["Peso_%"], higher_is_better=True)
-    out["s_mom_week"] = rank_score(out["Perf Week"], higher_is_better=True)
-    out["s_mom_month"] = rank_score(out["Perf Month"], higher_is_better=True)
-    out["s_mom_ytd"] = rank_score(out["Perf YTD"], higher_is_better=True)
-    out["s_weak_mom_week"] = rank_score(out["Perf Week"], higher_is_better=False)
-    out["s_weak_mom_month"] = rank_score(out["Perf Month"], higher_is_better=False)
-    out["s_weak_mom_ytd"] = rank_score(out["Perf YTD"], higher_is_better=False)
-    out["s_beta_ok"] = rank_score(out["Beta"], higher_is_better=False)
-    out["s_beta_risk"] = rank_score(out["Beta"], higher_is_better=True)
-    out["s_pe_ok"] = rank_score(out["P/E"], higher_is_better=False)
-    out["s_pe_expensive"] = rank_score(out["P/E"], higher_is_better=True)
-    out["s_mep_ok"] = rank_score(out["MEP_Premium_%"], higher_is_better=False)
-    out["s_mep_premium"] = rank_score(out["MEP_Premium_%"], higher_is_better=True)
+    out["s_low_weight"] = rank_score(out["Peso_%"], higher_is_better=False, neutral=rank_neutral)
+    out["s_high_weight"] = rank_score(out["Peso_%"], higher_is_better=True, neutral=rank_neutral)
+    out["s_mom_week"] = rank_score(out["Perf Week"], higher_is_better=True, neutral=rank_neutral)
+    out["s_mom_month"] = rank_score(out["Perf Month"], higher_is_better=True, neutral=rank_neutral)
+    out["s_mom_ytd"] = rank_score(out["Perf YTD"], higher_is_better=True, neutral=rank_neutral)
+    out["s_weak_mom_week"] = rank_score(out["Perf Week"], higher_is_better=False, neutral=rank_neutral)
+    out["s_weak_mom_month"] = rank_score(out["Perf Month"], higher_is_better=False, neutral=rank_neutral)
+    out["s_weak_mom_ytd"] = rank_score(out["Perf YTD"], higher_is_better=False, neutral=rank_neutral)
+    out["s_beta_ok"] = rank_score(out["Beta"], higher_is_better=False, neutral=rank_neutral)
+    out["s_beta_risk"] = rank_score(out["Beta"], higher_is_better=True, neutral=rank_neutral)
+    out["s_pe_ok"] = rank_score(out["P/E"], higher_is_better=False, neutral=rank_neutral)
+    out["s_pe_expensive"] = rank_score(out["P/E"], higher_is_better=True, neutral=rank_neutral)
+    out["s_mep_ok"] = rank_score(out["MEP_Premium_%"], higher_is_better=False, neutral=rank_neutral)
+    out["s_mep_premium"] = rank_score(out["MEP_Premium_%"], higher_is_better=True, neutral=rank_neutral)
     out["s_consensus_good"] = out["Consensus_Final"].fillna(0.5)
     out["s_consensus_bad"] = 1 - out["s_consensus_good"]
-    out["s_big_gain"] = rank_score(out["Ganancia_%_Cap"], higher_is_better=True)
-    out["s_big_loss"] = rank_score(out["Ganancia_%_Cap"], higher_is_better=False)
+    out["Ganancia_%_Cap"] = out["Ganancia_%"].clip(lower=gain_clip_min, upper=gain_clip_max)
+    out["s_big_gain"] = rank_score(out["Ganancia_%_Cap"], higher_is_better=True, neutral=rank_neutral)
+    out["s_big_loss"] = rank_score(out["Ganancia_%_Cap"], higher_is_better=False, neutral=rank_neutral)
 
-    out["Momentum_Refuerzo"] = 0.2 * out["s_mom_week"] + 0.4 * out["s_mom_month"] + 0.4 * out["s_mom_ytd"]
+    out["Momentum_Refuerzo"] = mom_week * out["s_mom_week"] + mom_month * out["s_mom_month"] + mom_ytd * out["s_mom_ytd"]
     out["Momentum_Reduccion"] = (
-        0.2 * out["s_weak_mom_week"] + 0.4 * out["s_weak_mom_month"] + 0.4 * out["s_weak_mom_ytd"]
+        mom_week * out["s_weak_mom_week"] + mom_month * out["s_weak_mom_month"] + mom_ytd * out["s_weak_mom_ytd"]
     )
 
     out["score_refuerzo"] = (
-        0.20 * out["s_low_weight"]
-        + 0.25 * out["Momentum_Refuerzo"]
-        + 0.15 * out["s_consensus_good"]
-        + 0.10 * out["s_beta_ok"]
-        + 0.10 * out["s_mep_ok"]
-        + 0.10 * out["s_pe_ok"]
-        + 0.10 * (1 - out["s_big_gain"])
+        float(score_refuerzo_weights.get("low_weight", 0.20)) * out["s_low_weight"]
+        + float(score_refuerzo_weights.get("momentum", 0.25)) * out["Momentum_Refuerzo"]
+        + float(score_refuerzo_weights.get("consensus_good", 0.15)) * out["s_consensus_good"]
+        + float(score_refuerzo_weights.get("beta_ok", 0.10)) * out["s_beta_ok"]
+        + float(score_refuerzo_weights.get("mep_ok", 0.10)) * out["s_mep_ok"]
+        + float(score_refuerzo_weights.get("pe_ok", 0.10)) * out["s_pe_ok"]
+        + float(score_refuerzo_weights.get("big_gain_inverse", 0.10)) * (1 - out["s_big_gain"])
     )
-    out["score_refuerzo"] -= np.where(out["Es_Liquidez"], 0.35, 0.00)
-    out["score_refuerzo"] -= np.where(out["Es_Bono"], 0.08, 0.00)
-    out["score_refuerzo"] -= np.where(out["Beta"].fillna(0) > 1.8, 0.08, 0.00)
-    out["score_refuerzo"] -= np.where(out["Es_Core"], 0.05, 0.00)
+    out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
+    out["score_refuerzo"] -= np.where(out["Es_Bono"], float(refuerzo_penalties.get("bono", 0.08)), 0.00)
+    out["score_refuerzo"] -= np.where(
+        out["Beta"].fillna(0) > float(refuerzo_penalties.get("beta_high_threshold", 1.8)),
+        float(refuerzo_penalties.get("beta_high", 0.08)),
+        0.00,
+    )
+    out["score_refuerzo"] -= np.where(out["Es_Core"], float(refuerzo_penalties.get("core", 0.05)), 0.00)
     out["score_refuerzo"] = out["score_refuerzo"].clip(0, 1)
 
     out["score_reduccion"] = (
-        0.25 * out["s_high_weight"]
-        + 0.20 * out["Momentum_Reduccion"]
-        + 0.15 * out["s_beta_risk"]
-        + 0.10 * out["s_mep_premium"]
-        + 0.10 * out["s_consensus_bad"]
-        + 0.10 * out["s_pe_expensive"]
-        + 0.10 * out["s_big_gain"]
+        float(score_reduccion_weights.get("high_weight", 0.25)) * out["s_high_weight"]
+        + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion"]
+        + float(score_reduccion_weights.get("beta_risk", 0.15)) * out["s_beta_risk"]
+        + float(score_reduccion_weights.get("mep_premium", 0.10)) * out["s_mep_premium"]
+        + float(score_reduccion_weights.get("consensus_bad", 0.10)) * out["s_consensus_bad"]
+        + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive"]
+        + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
     )
-    out["score_reduccion"] -= np.where(out["Es_Liquidez"], 0.25, 0.00)
-    out["score_reduccion"] -= np.where(out["Es_Core"], 0.12, 0.00)
-    out["score_reduccion"] -= np.where(out["Es_Bono"], 0.05, 0.00)
+    out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
+    out["score_reduccion"] -= np.where(out["Es_Core"], float(reduccion_penalties.get("core", 0.12)), 0.00)
+    out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
     out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
 
     out["score_despliegue_liquidez"] = 0.0
     mask_liq = out["Es_Liquidez"]
     out.loc[mask_liq, "score_despliegue_liquidez"] = (
-        0.60 * rank_score(out.loc[mask_liq, "Peso_%"], higher_is_better=True)
-        + 0.40 * rank_score(out.loc[mask_liq, "Ganancia_ARS"], higher_is_better=False)
+        float(score_despliegue_liquidez_weights.get("peso", 0.60))
+        * rank_score(out.loc[mask_liq, "Peso_%"], higher_is_better=True, neutral=rank_neutral)
+        + float(score_despliegue_liquidez_weights.get("ganancia_inversa", 0.40))
+        * rank_score(out.loc[mask_liq, "Ganancia_ARS"], higher_is_better=False, neutral=rank_neutral)
     ).clip(0, 1)
 
     return out

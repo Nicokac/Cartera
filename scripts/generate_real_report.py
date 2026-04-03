@@ -243,6 +243,8 @@ def main() -> None:
         df_cedears=df_cedears,
         df_ratings_res=df_ratings_res,
         mep_real=mep_real,
+        scoring_rules=project_config.SCORING_RULES,
+        action_rules=project_config.ACTION_RULES,
     )
     sizing_bundle = build_sizing_bundle(
         final_decision=decision_bundle["final_decision"],
@@ -252,6 +254,8 @@ def main() -> None:
         bucket_weights=project_config.BUCKET_WEIGHTS,
         usar_liquidez_iol=usar_liquidez_iol,
         aporte_externo_ars=aporte_externo_ars,
+        action_rules=project_config.ACTION_RULES,
+        sizing_rules=project_config.SIZING_RULES,
     )
     dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
 

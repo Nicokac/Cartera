@@ -3,59 +3,73 @@ from __future__ import annotations
 import pandas as pd
 
 
-def assign_base_action(decision: pd.DataFrame) -> pd.DataFrame:
+def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
+    action_rules = action_rules or {}
+    refuerzo_threshold = float(action_rules.get("refuerzo_threshold", 0.60))
+    reduccion_threshold = float(action_rules.get("reduccion_threshold", 0.60))
+    bono_reduccion_threshold = float(action_rules.get("bono_reduccion_threshold", 0.60))
+    score_gap_min = float(action_rules.get("score_gap_min", 0.10))
+    despliegue_liquidez_threshold = float(action_rules.get("despliegue_liquidez_threshold", 0.55))
+
     out = decision.copy()
     out["accion_sugerida"] = "Mantener / Neutral"
 
     out.loc[
         (~out["Es_Liquidez"])
         & (~out["Es_Bono"])
-        & (out["score_refuerzo"] >= 0.60)
-        & ((out["score_refuerzo"] - out["score_reduccion"]) >= 0.10),
+        & (out["score_refuerzo"] >= refuerzo_threshold)
+        & ((out["score_refuerzo"] - out["score_reduccion"]) >= score_gap_min),
         "accion_sugerida",
     ] = "Refuerzo"
 
     out.loc[
         (~out["Es_Liquidez"])
         & (~out["Es_Bono"])
-        & (out["score_reduccion"] >= 0.60)
-        & ((out["score_reduccion"] - out["score_refuerzo"]) >= 0.10),
+        & (out["score_reduccion"] >= reduccion_threshold)
+        & ((out["score_reduccion"] - out["score_refuerzo"]) >= score_gap_min),
         "accion_sugerida",
     ] = "Reducir"
 
-    out.loc[(out["Es_Bono"]) & (out["score_reduccion"] >= 0.60), "accion_sugerida"] = (
+    out.loc[(out["Es_Bono"]) & (out["score_reduccion"] >= bono_reduccion_threshold), "accion_sugerida"] = (
         "Rebalancear / tomar ganancia"
     )
-    out.loc[(out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= 0.55), "accion_sugerida"] = (
+    out.loc[(out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold), "accion_sugerida"] = (
         "Desplegar liquidez"
     )
     return out
 
 
-def assign_action_v2(decision_tech: pd.DataFrame) -> pd.DataFrame:
+def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
+    action_rules = action_rules or {}
+    refuerzo_threshold = float(action_rules.get("refuerzo_threshold", 0.60))
+    reduccion_threshold = float(action_rules.get("reduccion_threshold", 0.60))
+    bono_reduccion_threshold = float(action_rules.get("bono_reduccion_threshold", 0.60))
+    score_gap_min = float(action_rules.get("score_gap_min", 0.10))
+    despliegue_liquidez_threshold = float(action_rules.get("despliegue_liquidez_threshold", 0.55))
+
     out = decision_tech.copy()
     out["accion_sugerida_v2"] = "Mantener / Neutral"
 
     out.loc[
         (~out["Es_Liquidez"])
         & (~out["Es_Bono"])
-        & (out["score_refuerzo_v2"] >= 0.60)
-        & ((out["score_refuerzo_v2"] - out["score_reduccion_v2"]) >= 0.10),
+        & (out["score_refuerzo_v2"] >= refuerzo_threshold)
+        & ((out["score_refuerzo_v2"] - out["score_reduccion_v2"]) >= score_gap_min),
         "accion_sugerida_v2",
     ] = "Refuerzo"
 
     out.loc[
         (~out["Es_Liquidez"])
         & (~out["Es_Bono"])
-        & (out["score_reduccion_v2"] >= 0.60)
-        & ((out["score_reduccion_v2"] - out["score_refuerzo_v2"]) >= 0.10),
+        & (out["score_reduccion_v2"] >= reduccion_threshold)
+        & ((out["score_reduccion_v2"] - out["score_refuerzo_v2"]) >= score_gap_min),
         "accion_sugerida_v2",
     ] = "Reducir"
 
-    out.loc[(out["Es_Bono"]) & (out["score_reduccion_v2"] >= 0.60), "accion_sugerida_v2"] = (
+    out.loc[(out["Es_Bono"]) & (out["score_reduccion_v2"] >= bono_reduccion_threshold), "accion_sugerida_v2"] = (
         "Rebalancear / tomar ganancia"
     )
-    out.loc[(out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= 0.55), "accion_sugerida_v2"] = (
+    out.loc[(out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold), "accion_sugerida_v2"] = (
         "Desplegar liquidez"
     )
     return out

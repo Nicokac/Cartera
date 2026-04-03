@@ -8,7 +8,7 @@ Eliminar datos hardcodeados que hoy influyen en la estrategia de:
 - `Desplegar liquidez`
 - `Sizing`
 
-La meta es que la decisión dependa de datos observables y reglas parametrizadas, no de listas fijas de tickers.
+La meta es que la decision dependa de datos observables y reglas parametrizadas, no de listas fijas de tickers.
 
 ## Alcance
 
@@ -19,40 +19,30 @@ Este roadmap cubre solo hardcodes que afectan la estrategia. No incluye mappings
 
 ## Estado actual
 
-Hoy siguen influyendo en la estrategia:
+Luego de la Fase B, ya no quedan embebidos en codigo:
+- pesos de scoring
+- thresholds de accion
+- pesos y topes de sizing
+- politica porcentual de fondeo
+
+Siguen influyendo en la estrategia:
 - `DEFENSIVE_TICKERS` en [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
 - `AGGRESSIVE_TICKERS` en [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
-- `BUCKET_WEIGHTS` en [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
-- heurísticas de bloque vía `BLOCK_MAP` en [data/mappings/block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
-- thresholds embebidos en:
-  - [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [src/decision/actions.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
-  - [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
+- heuristicas de bloque via [block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
+- taxonomia textual de consenso en [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+- thresholds de bucket por beta en [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
 
 ## Principios
 
 - No usar tickers manuales para decidir perfil de riesgo.
-- No mezclar política de inversión con código.
-- Mantener una ruta de fallback explícita durante la transición.
+- No mezclar politica de inversion con codigo.
+- Mantener una ruta de fallback explicita durante la transicion.
 - Validar cada fase con snapshot real.
 
 ## Fase A. Inventario y aislamiento
 
 - Estado: `Hecho`
-- Objetivo: identificar todos los hardcodes que alteran la decisión final o el sizing.
-
-### Tareas
-
-- listar condiciones por archivo y función
-- distinguir:
-  - hardcode de estrategia
-  - hardcode de integración
-  - hardcode de presentación
-- marcar cuáles cambian:
-  - acción sugerida
-  - acción operativa
-  - bucket de prudencia
-  - monto asignado
+- Objetivo: identificar todos los hardcodes que alteran la decision final o el sizing.
 
 ### Criterio de cierre
 
@@ -60,29 +50,20 @@ Hoy siguen influyendo en la estrategia:
 
 ### Cierre
 
-- Se relevó el inventario de hardcodes que afectan estrategia en:
+- Se relevo el inventario de hardcodes que afectan estrategia en:
   - [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
   - [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
   - [src/decision/actions.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
   - [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
   - [data/mappings/block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
-- Se documentó el impacto de cada hardcode sobre:
-  - acción sugerida
-  - acción operativa
-  - bucket de prudencia
-  - monto asignado
-- Se separaron explícitamente los hardcodes de:
-  - estrategia
-  - integración
-  - presentación
-- Quedó creado el inventario base en [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md).
+- Se creo [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md).
 
-## Fase B. Parametrización externa
+## Fase B. Parametrizacion externa
 
-- Estado: `Pendiente`
-- Objetivo: mover thresholds y pesos de estrategia a configuración externa.
+- Estado: `Hecho`
+- Objetivo: mover thresholds y pesos de estrategia a configuracion externa.
 
-### Tareas
+### Tareas cerradas
 
 - crear `data/strategy/`
 - extraer:
@@ -96,9 +77,19 @@ Hoy siguen influyendo en la estrategia:
 
 ### Criterio de cierre
 
-- cambiar thresholds no requiere tocar código Python
+- cambiar thresholds no requiere tocar codigo Python
 
-## Fase C. Eliminación de listas de tickers
+### Cierre
+
+- Se creo `data/strategy/` con:
+  - [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
+  - [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
+- [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py) ahora carga `SCORING_RULES`, `ACTION_RULES` y `SIZING_RULES`.
+- El pipeline y los runners usan esas reglas externas.
+- La suite valida que thresholds externos cambian la accion sin tocar codigo.
+
+## Fase C. Eliminacion de listas de tickers
 
 - Estado: `Pendiente`
 - Objetivo: reemplazar `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS`.
@@ -109,7 +100,7 @@ Hoy siguen influyendo en la estrategia:
   - `Beta`
   - tipo de activo
   - volatilidad o proxy equivalente
-  - concentración o peso en cartera
+  - concentracion o peso en cartera
 - dejar listas manuales solo como fallback transitorio
 
 ### Criterio de cierre
@@ -124,50 +115,50 @@ Hoy siguen influyendo en la estrategia:
 ### Tareas
 
 - auditar usos de `Bloque` dentro de scoring
-- reemplazar sesgos por señales derivadas:
-  - diversificación
+- reemplazar sesgos por senales derivadas:
+  - diversificacion
   - peso relativo
-  - exposición sectorial o geográfica si está disponible
+  - exposicion sectorial o geografica si esta disponible
 - conservar `Bloque` solo para reporting
 
 ### Criterio de cierre
 
 - `BLOCK_MAP` deja de influir materialmente en `Refuerzo` o `Reducir`
 
-## Fase E. Política de liquidez explícita
+## Fase E. Politica de liquidez explicita
 
 - Estado: `En progreso`
-- Objetivo: separar decisión de mercado de política de fondeo.
+- Objetivo: separar decision de mercado de politica de fondeo.
 
 ### Tareas
 
 - usar `usar_liquidez_iol` y `aporte_externo_ars` como inputs obligatorios del sizing real
-- impedir que el reporte sugiera desplegar liquidez cuando la política la bloquea
+- impedir que el reporte sugiera desplegar liquidez cuando la politica la bloquea
 - documentar reglas de fondeo en reporte y snapshots
 
 ### Criterio de cierre
 
-- la estrategia operativa respeta siempre la política de fondeo elegida
+- la estrategia operativa respeta siempre la politica de fondeo elegida
 
 ### Avance actual
 
-- ya se incorporó la política de fondeo al runner real
+- ya se incorporo la politica de fondeo al runner real
 - ya se bloquea la liquidez IOL cuando el usuario decide no usarla
 
-## Fase F. Validación y cierre
+## Fase F. Validacion y cierre
 
 - Estado: `Pendiente`
-- Objetivo: confirmar que la estrategia sigue siendo útil después del deshardcodeo.
+- Objetivo: confirmar que la estrategia sigue siendo util despues del deshardcodeo.
 
 ### Tareas
 
-- comparar decisiones antes/después con snapshot real
+- comparar decisiones antes/despues con snapshot real
 - revisar cambios en:
   - top refuerzos
   - top reducciones
   - fuente de fondeo
   - sizing
-- ajustar solo parámetros externos, no código
+- ajustar solo parametros externos, no codigo
 
 ### Criterio de cierre
 
@@ -177,10 +168,7 @@ Hoy siguen influyendo en la estrategia:
 
 ### 2026-04-03
 
-- Se cerró la Fase A con el relevamiento completo de hardcodes que afectan la estrategia.
-- Se creó [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md) como documento base de inventario.
-- Se confirmó que las prioridades de remoción son:
-  - listas de tickers defensivos/agresivos
-  - thresholds de acción
-  - pesos y castigos del scoring
-  - sesgo por bloque y buckets de prudencia
+- Se cerro la Fase A con el relevamiento completo de hardcodes que afectan la estrategia.
+- Se creo [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md) como documento base de inventario.
+- Se cerro la Fase B con la externalizacion de thresholds y pesos de estrategia a `data/strategy/`.
+- El pipeline ya toma reglas de scoring, acciones y sizing desde archivos configurables.

@@ -183,6 +183,8 @@ def run_smoke_pipeline() -> dict[str, object]:
         df_cedears=df_cedears,
         df_ratings_res=df_ratings_res,
         mep_real=mep_real,
+        scoring_rules=project_config.SCORING_RULES,
+        action_rules=project_config.ACTION_RULES,
     )
     final_decision = decision_bundle["final_decision"]
 
@@ -192,6 +194,8 @@ def run_smoke_pipeline() -> dict[str, object]:
         defensive_tickers=project_config.DEFENSIVE_TICKERS,
         aggressive_tickers=project_config.AGGRESSIVE_TICKERS,
         bucket_weights=project_config.BUCKET_WEIGHTS,
+        action_rules=project_config.ACTION_RULES,
+        sizing_rules=project_config.SIZING_RULES,
     )
 
     dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)

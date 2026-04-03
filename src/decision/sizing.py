@@ -37,16 +37,22 @@ def _bucket_prudencia(
     *,
     defensive_tickers: set[str],
     aggressive_tickers: set[str],
+    sizing_rules: dict[str, object] | None = None,
 ) -> str:
+    sizing_rules = sizing_rules or {}
+    bucket_beta_thresholds = sizing_rules.get("bucket_beta_thresholds", {}) or {}
+    defensivo_max = float(bucket_beta_thresholds.get("defensivo_max", 0.8))
+    agresivo_min = float(bucket_beta_thresholds.get("agresivo_min", 1.3))
+
     ticker = row["Ticker_IOL"]
     beta = row.get("Beta")
     if ticker in defensive_tickers:
         return "Defensivo"
     if ticker in aggressive_tickers:
         return "Agresivo"
-    if pd.notna(beta) and beta <= 0.8:
+    if pd.notna(beta) and beta <= defensivo_max:
         return "Defensivo"
-    if pd.notna(beta) and beta >= 1.3:
+    if pd.notna(beta) and beta >= agresivo_min:
         return "Agresivo"
     return "Intermedio"
 
@@ -57,7 +63,22 @@ def build_operational_proposal(
     mep_real: float | None,
     usar_liquidez_iol: bool = True,
     aporte_externo_ars: float = 0.0,
+    action_rules: dict[str, object] | None = None,
+    sizing_rules: dict[str, object] | None = None,
 ) -> dict[str, object]:
+    action_rules = action_rules or {}
+    sizing_rules = sizing_rules or {}
+    top_candidates = int(sizing_rules.get("top_candidates", 3))
+    funding_policy = sizing_rules.get("funding_policy", {}) or {}
+    strong_refuerzo_threshold = float(funding_policy.get("strong_refuerzo_threshold", 0.20))
+    pct_fondeo_rules = funding_policy.get("pct_fondeo", {}) or {}
+    pct_fondeo_3_plus = float(pct_fondeo_rules.get("strong_refuerzo_3_plus", 0.30))
+    pct_fondeo_1_plus = float(pct_fondeo_rules.get("strong_refuerzo_1_plus", 0.20))
+    pct_fondeo_default = float(pct_fondeo_rules.get("default", 0.10))
+    bono_rebalance_threshold = float(action_rules.get("bono_rebalance_threshold", -0.20))
+    bono_monitor_min = float(action_rules.get("bono_monitor_min", -0.20))
+    bono_monitor_max = float(action_rules.get("bono_monitor_max", 0.08))
+
     propuesta = final_decision.copy()
     propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
 
@@ -72,11 +93,11 @@ def build_operational_proposal(
         propuesta.loc[mask_liq, "accion_operativa"] = "Mantener liquidez bloqueada"
 
     mask_bonos = propuesta["Tipo"] == "Bono"
-    propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= -0.20), "accion_operativa"] = (
+    propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bono_rebalance_threshold), "accion_operativa"] = (
         "Rebalancear / tomar ganancia"
     )
     propuesta.loc[
-        mask_bonos & (propuesta["score_unificado"] > -0.20) & (propuesta["score_unificado"] < 0.08),
+        mask_bonos & (propuesta["score_unificado"] > bono_monitor_min) & (propuesta["score_unificado"] < bono_monitor_max),
         "accion_operativa",
     ] = "Mantener / monitorear"
 
@@ -85,25 +106,25 @@ def build_operational_proposal(
     top_reforzar_final = (
         propuesta[propuesta["accion_operativa"] == "Refuerzo"]
         .sort_values("score_unificado", ascending=False)
-        .head(3)
+        .head(top_candidates)
         .copy()
     )
     top_reducir_final = (
         propuesta[propuesta["accion_operativa"] == "Reducir"]
         .sort_values("score_unificado", ascending=True)
-        .head(3)
+        .head(top_candidates)
         .copy()
     )
     top_bonos_rebalancear = (
         propuesta[propuesta["accion_operativa"] == "Rebalancear / tomar ganancia"]
         .sort_values("score_unificado", ascending=True)
-        .head(3)
+        .head(top_candidates)
         .copy()
     )
     top_fondeo = (
         propuesta[propuesta["accion_operativa"] == "Desplegar liquidez"]
         .sort_values("score_despliegue_liquidez", ascending=False)
-        .head(3)
+        .head(top_candidates)
         .copy()
     )
 
@@ -123,13 +144,13 @@ def build_operational_proposal(
         fuente_fondeo = str(row_caucion["Ticker_IOL"].iloc[0])
         liquidez_ars = float(row_caucion["Valorizado_ARS"].iloc[0])
         liquidez_usd = float(row_caucion["Valor_USD"].iloc[0])
-        n_refuerzo_fuerte = int((propuesta["score_unificado"] >= 0.20).sum())
+        n_refuerzo_fuerte = int((propuesta["score_unificado"] >= strong_refuerzo_threshold).sum())
         if n_refuerzo_fuerte >= 3:
-            pct_fondeo = 0.30
+            pct_fondeo = pct_fondeo_3_plus
         elif n_refuerzo_fuerte >= 1:
-            pct_fondeo = 0.20
+            pct_fondeo = pct_fondeo_1_plus
         else:
-            pct_fondeo = 0.10
+            pct_fondeo = pct_fondeo_default
         monto_fondeo_liquidez_ars = liquidez_ars * pct_fondeo
         monto_fondeo_liquidez_usd = liquidez_usd * pct_fondeo
         fuente_liquidez = fuente_fondeo
@@ -195,7 +216,15 @@ def build_prudent_allocation(
     defensive_tickers: set[str],
     aggressive_tickers: set[str],
     bucket_weights: dict[str, float],
+    sizing_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
+    sizing_rules = sizing_rules or {}
+    allocation_mix = sizing_rules.get("allocation_mix", {}) or {}
+    peso_base_weight = float(allocation_mix.get("peso_base", 0.80))
+    score_ajustado_weight = float(allocation_mix.get("score_ajustado", 0.20))
+    bucket_fallback_weight = float(sizing_rules.get("bucket_fallback_weight", 0.60))
+    tope_posicion_pct = float(sizing_rules.get("tope_posicion_pct", 65.0))
+
     candidatos_refuerzo = propuesta[propuesta["accion_operativa"] == "Refuerzo"].copy()
     if len(candidatos_refuerzo) == 0 or monto_fondeo_ars <= 0:
         return candidatos_refuerzo
@@ -205,19 +234,20 @@ def build_prudent_allocation(
             row,
             defensive_tickers=defensive_tickers,
             aggressive_tickers=aggressive_tickers,
+            sizing_rules=sizing_rules,
         ),
         axis=1,
     )
-    candidatos_refuerzo["Peso_Base"] = candidatos_refuerzo["Bucket_Prudencia"].map(bucket_weights).fillna(0.60)
+    candidatos_refuerzo["Peso_Base"] = candidatos_refuerzo["Bucket_Prudencia"].map(bucket_weights).fillna(bucket_fallback_weight)
     candidatos_refuerzo["Score_Ajustado"] = candidatos_refuerzo["score_unificado"].clip(lower=0)
     candidatos_refuerzo["Peso_Asignacion"] = (
-        0.80 * candidatos_refuerzo["Peso_Base"] + 0.20 * candidatos_refuerzo["Score_Ajustado"]
+        peso_base_weight * candidatos_refuerzo["Peso_Base"] + score_ajustado_weight * candidatos_refuerzo["Score_Ajustado"]
     )
 
     pesos = candidatos_refuerzo["Peso_Asignacion"] / candidatos_refuerzo["Peso_Asignacion"].sum()
     candidatos_refuerzo["Asignacion_Bruta_ARS"] = (pesos * monto_fondeo_ars).round(0)
 
-    tope_ars = monto_fondeo_ars * 0.65
+    tope_ars = monto_fondeo_ars * (tope_posicion_pct / 100)
     candidatos_refuerzo["Asignacion_Topeada_ARS"] = candidatos_refuerzo["Asignacion_Bruta_ARS"].clip(upper=tope_ars)
     remanente = monto_fondeo_ars - candidatos_refuerzo["Asignacion_Topeada_ARS"].sum()
     if remanente > 0:
@@ -254,7 +284,15 @@ def build_dynamic_allocation(
     aggressive_tickers: set[str],
     bucket_weights: dict[str, float],
     tope_pct: float = 65.0,
+    sizing_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
+    sizing_rules = sizing_rules or {}
+    allocation_mix = sizing_rules.get("allocation_mix", {}) or {}
+    peso_base_weight = float(allocation_mix.get("peso_base", 0.80))
+    score_ajustado_weight = float(allocation_mix.get("score_ajustado", 0.20))
+    bucket_fallback_weight = float(sizing_rules.get("bucket_fallback_weight", 0.60))
+    tope_pct = float(sizing_rules.get("tope_posicion_pct", tope_pct))
+
     asignacion_final = top_reforzar_final.copy()
     if asignacion_final.empty or monto_fondeo_ars <= 0:
         return asignacion_final
@@ -264,13 +302,14 @@ def build_dynamic_allocation(
             row,
             defensive_tickers=defensive_tickers,
             aggressive_tickers=aggressive_tickers,
+            sizing_rules=sizing_rules,
         ),
         axis=1,
     )
-    asignacion_final["Peso_Base"] = asignacion_final["Bucket_Prudencia"].map(bucket_weights).fillna(0.60)
+    asignacion_final["Peso_Base"] = asignacion_final["Bucket_Prudencia"].map(bucket_weights).fillna(bucket_fallback_weight)
     asignacion_final["Score_Ajustado"] = asignacion_final["score_unificado"].clip(lower=0)
     asignacion_final["Peso_Asignacion"] = (
-        0.80 * asignacion_final["Peso_Base"] + 0.20 * asignacion_final["Score_Ajustado"]
+        peso_base_weight * asignacion_final["Peso_Base"] + score_ajustado_weight * asignacion_final["Score_Ajustado"]
     )
 
     pesos = asignacion_final["Peso_Asignacion"] / asignacion_final["Peso_Asignacion"].sum()

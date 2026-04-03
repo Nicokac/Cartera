@@ -91,10 +91,12 @@ def build_decision_bundle(
     df_ratings_res: pd.DataFrame,
     decision_tech: pd.DataFrame | None = None,
     mep_real: float | None,
+    scoring_rules: dict[str, Any] | None = None,
+    action_rules: dict[str, Any] | None = None,
 ) -> dict[str, pd.DataFrame]:
     decision = build_decision_base(df_total, df_cedears, df_ratings_res, mep_real=mep_real)
-    decision = apply_base_scores(decision)
-    decision = assign_base_action(decision)
+    decision = apply_base_scores(decision, scoring_rules=scoring_rules)
+    decision = assign_base_action(decision, action_rules=action_rules)
 
     if decision_tech is None:
         decision_tech = decision.copy()
@@ -107,7 +109,7 @@ def build_decision_bundle(
         decision_tech["score_unificado_v2"] = (
             decision_tech["score_refuerzo_v2"] - decision_tech["score_reduccion_v2"]
         ).round(3)
-    decision_tech = assign_action_v2(decision_tech)
+    decision_tech = assign_action_v2(decision_tech, action_rules=action_rules)
     final_decision = finalize_unified_score(decision_tech)
     final_decision = enrich_decision_explanations(final_decision)
 
@@ -127,12 +129,16 @@ def build_sizing_bundle(
     bucket_weights: dict[str, float],
     usar_liquidez_iol: bool = True,
     aporte_externo_ars: float = 0.0,
+    action_rules: dict[str, Any] | None = None,
+    sizing_rules: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     operational_bundle = build_operational_proposal(
         final_decision,
         mep_real=mep_real,
         usar_liquidez_iol=usar_liquidez_iol,
         aporte_externo_ars=aporte_externo_ars,
+        action_rules=action_rules,
+        sizing_rules=sizing_rules,
     )
     candidatos_refuerzo = build_prudent_allocation(
         operational_bundle["propuesta"],
@@ -142,6 +148,7 @@ def build_sizing_bundle(
         defensive_tickers=defensive_tickers,
         aggressive_tickers=aggressive_tickers,
         bucket_weights=bucket_weights,
+        sizing_rules=sizing_rules,
     )
     asignacion_final = build_dynamic_allocation(
         operational_bundle["top_reforzar_final"],
@@ -151,6 +158,7 @@ def build_sizing_bundle(
         defensive_tickers=defensive_tickers,
         aggressive_tickers=aggressive_tickers,
         bucket_weights=bucket_weights,
+        sizing_rules=sizing_rules,
     )
     return {
         **operational_bundle,

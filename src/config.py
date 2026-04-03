@@ -7,6 +7,7 @@ from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 MAPPINGS_DIR = ROOT_DIR / "data" / "mappings"
+STRATEGY_DIR = ROOT_DIR / "data" / "strategy"
 
 IOL_BASE_URL = "https://api.invertironline.com"
 MARKET = "BCBA"
@@ -22,12 +23,6 @@ FCI_CASH_MANAGEMENT = {"ADBAICA", "IOLPORA", "PRPEDOB"}
 DEFENSIVE_TICKERS = {"KO", "XLU", "T", "MCD", "BRKB"}
 AGGRESSIVE_TICKERS = {"VIST", "AMD", "NVDA", "MELI"}
 
-BUCKET_WEIGHTS = {
-    "Defensivo": 1.00,
-    "Intermedio": 0.70,
-    "Agresivo": 0.35,
-}
-
 
 def _load_json_mapping(filename: str) -> dict[str, Any]:
     path = MAPPINGS_DIR / filename
@@ -38,10 +33,24 @@ def _load_json_mapping(filename: str) -> dict[str, Any]:
     return data
 
 
+def _load_strategy_rules(filename: str) -> dict[str, Any]:
+    path = STRATEGY_DIR / filename
+    with path.open(encoding="utf-8") as fh:
+        data = json.load(fh)
+    if not isinstance(data, dict):
+        raise ValueError(f"La estrategia {path} debe ser un objeto JSON.")
+    return data
+
+
 FINVIZ_MAP = _load_json_mapping("finviz_map.json")
 BLOCK_MAP = _load_json_mapping("block_map.json")
 RATIOS = _load_json_mapping("ratios.json")
 VN_FACTOR_MAP = _load_json_mapping("vn_factor_map.json")
+
+SCORING_RULES = _load_strategy_rules("scoring_rules.json")
+ACTION_RULES = _load_strategy_rules("action_rules.json")
+SIZING_RULES = _load_strategy_rules("sizing_rules.json")
+BUCKET_WEIGHTS = dict(SIZING_RULES.get("bucket_weights", {}))
 
 
 def load_runtime_config() -> dict[str, Any]:
@@ -56,6 +65,9 @@ def load_runtime_config() -> dict[str, Any]:
         "DEFENSIVE_TICKERS": set(DEFENSIVE_TICKERS),
         "AGGRESSIVE_TICKERS": set(AGGRESSIVE_TICKERS),
         "BUCKET_WEIGHTS": dict(BUCKET_WEIGHTS),
+        "SCORING_RULES": dict(SCORING_RULES),
+        "ACTION_RULES": dict(ACTION_RULES),
+        "SIZING_RULES": dict(SIZING_RULES),
     }
 
 
