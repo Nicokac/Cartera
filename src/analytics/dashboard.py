@@ -9,6 +9,8 @@ def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | 
     work = df_total.copy()
     if "Es_Liquidez" not in work.columns:
         work["Es_Liquidez"] = work["Tipo"].eq("Liquidez")
+    if "Moneda" not in work.columns:
+        work["Moneda"] = pd.NA
 
     total_ars = work["Valorizado_ARS"].sum()
     total_usd = work["Valor_USD"].sum()
@@ -16,11 +18,15 @@ def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | 
 
     df_invertido = work[~work["Es_Liquidez"]].copy()
     df_liquidez_total = work[work["Es_Liquidez"]].copy()
+    df_liquidez_usd = df_liquidez_total[df_liquidez_total["Moneda"].eq("USD")].copy()
 
     invertido_ars = df_invertido["Valorizado_ARS"].sum()
     invertido_usd = df_invertido["Valor_USD"].sum()
     liquidez_ars = df_liquidez_total["Valorizado_ARS"].sum()
     liquidez_usd = df_liquidez_total["Valor_USD"].sum()
+    liquidez_usd_ars = df_liquidez_usd["Valorizado_ARS"].sum()
+    total_ars_iol = total_ars - liquidez_usd_ars
+    liquidez_ars_iol = liquidez_ars - liquidez_usd_ars
 
     costo_invertido = (
         df_invertido["PPC_ARS"].fillna(0) * df_invertido["Cantidad_Real"].fillna(0)
@@ -69,13 +75,16 @@ def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | 
     kpis = {
         "fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
         "total_ars": total_ars,
+        "total_ars_iol": total_ars_iol,
         "total_usd": total_usd,
         "ganancia_total": ganancia_total,
         "mep_real": mep_real,
         "invertido_ars": invertido_ars,
         "invertido_usd": invertido_usd,
         "liquidez_ars": liquidez_ars,
+        "liquidez_ars_iol": liquidez_ars_iol,
         "liquidez_usd": liquidez_usd,
+        "liquidez_usd_ars": liquidez_usd_ars,
         "costo_invertido": costo_invertido,
         "rentabilidad_invertida": rentabilidad_invertida,
         "rentabilidad_total": rentabilidad_total,

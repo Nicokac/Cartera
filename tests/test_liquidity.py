@@ -92,10 +92,13 @@ class LiquidityTests(unittest.TestCase):
         self.assertEqual(len(raw_rows), 4)
         self.assertIn("CASH_ARS", df_liquidez["Ticker_IOL"].tolist())
         self.assertIn("CASH_USD", df_liquidez["Ticker_IOL"].tolist())
+        self.assertNotIn("PEND_ARS", df_liquidez["Ticker_IOL"].tolist())
+        self.assertNotIn("PEND_USD", df_liquidez["Ticker_IOL"].tolist())
         self.assertTrue(math.isclose(contract["cash_operativo_ars"], 150000, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(contract["caucion_tactica_ars"], 50000, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 100000, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(contract["liquidez_desplegable_total_ars"], 300000, rel_tol=0, abs_tol=0.01))
+        self.assertFalse(contract["duplicate_caucion_in_cash"])
 
 
 if __name__ == "__main__":

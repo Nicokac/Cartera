@@ -132,14 +132,20 @@ def rebuild_liquidity(
     cash_pending_usd = cash_components["cash_pending_usd"]
     total_broker_en_pesos = cash_components["total_broker_en_pesos"]
 
+    # En corridas reales de IOL, la caucion puede ya reflejarse en saldos ARS de la cuenta.
+    # Si el cash inmediato+pendiente replica casi exactamente la caucion informada como posicion,
+    # evitamos el doble conteo priorizando la caucion como activo y descartando ese cash espejo.
+    mirror_gap_ars = abs((cash_immediate_ars + cash_pending_ars) - caucion_ars)
+    duplicate_caucion_in_cash = caucion_ars > 0 and mirror_gap_ars <= max(1.0, caucion_ars * 0.02)
+
+    if duplicate_caucion_in_cash:
+        cash_immediate_ars = 0.0
+        cash_pending_ars = 0.0
+
     if cash_immediate_ars > 0:
         liquidez_rows.append(("CASH_ARS", "Cash disponible broker ARS", "Liquidez", "ARS", cash_immediate_ars, 0.0))
     if cash_immediate_usd > 0:
         liquidez_rows.append(("CASH_USD", "Cash disponible broker USD", "Liquidez", "USD", cash_immediate_usd, 0.0))
-    if cash_pending_ars > 0:
-        liquidez_rows.append(("PEND_ARS", "Cash a liquidar ARS", "Liquidez", "ARS", cash_pending_ars, 0.0))
-    if cash_pending_usd > 0:
-        liquidez_rows.append(("PEND_USD", "Cash a liquidar USD", "Liquidez", "USD", cash_pending_usd, 0.0))
 
     registros_liquidez = []
     for ticker, descripcion, bloque, moneda, valorizado_raw, ganancia_raw in liquidez_rows:
@@ -202,6 +208,7 @@ def rebuild_liquidity(
         "fci_estrategico_usd": round(liquidez_estrategica_ars / mep_real, 2) if mep_real else np.nan,
         "liquidez_desplegable_total_usd": round(liquidez_desplegable_total_ars / mep_real, 2) if mep_real else np.nan,
         "total_broker_en_pesos": total_broker_en_pesos,
+        "duplicate_caucion_in_cash": duplicate_caucion_in_cash,
     }
 
     return df_liquidez, liquidity_contract, liquidez_rows

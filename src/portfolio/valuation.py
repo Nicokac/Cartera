@@ -6,6 +6,27 @@ import numpy as np
 import pandas as pd
 
 
+MASTER_PORTFOLIO_COLUMNS = [
+    "Ticker_IOL",
+    "Ticker_Finviz",
+    "Ticker_API",
+    "Descripcion",
+    "Bloque",
+    "Tipo",
+    "Moneda",
+    "Cantidad",
+    "Cantidad_Real",
+    "VN_Factor",
+    "Precio_ARS",
+    "PPC_ARS",
+    "Ratio",
+    "Valorizado_ARS",
+    "Valor_USD",
+    "Ganancia_ARS",
+    "Peso_%",
+]
+
+
 def build_cedears_df(
     portafolio: list[tuple],
     precios_iol: dict[str, float],
@@ -128,12 +149,22 @@ def build_portfolio_master(
     for frame in [df_cedears, df_local, df_bonos, df_liquidez]:
         if frame is None or frame.empty:
             continue
-        frames.append(frame.copy())
+        normalized = frame.copy().dropna(axis=1, how="all")
+        frames.append(normalized)
 
     if not frames:
         return pd.DataFrame()
 
-    df_total = pd.concat(frames, ignore_index=True, sort=False)
+    dynamic_cols = []
+    for frame in frames:
+        for col in frame.columns:
+            if col not in dynamic_cols:
+                dynamic_cols.append(col)
+    ordered_cols = [col for col in MASTER_PORTFOLIO_COLUMNS if col in dynamic_cols] + [
+        col for col in dynamic_cols if col not in MASTER_PORTFOLIO_COLUMNS
+    ]
+
+    df_total = pd.concat(frames, ignore_index=True, sort=False).reindex(columns=ordered_cols)
 
     if "Cantidad_Real" not in df_total.columns:
         df_total["Cantidad_Real"] = df_total.get("Cantidad")

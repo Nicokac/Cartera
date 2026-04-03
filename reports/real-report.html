@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smoke Report</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Real Run</p>
+        <h1>Prueba visual con datos reales de IOL</h1>
+        <p class="lede">Reporte generado con login por terminal. Las credenciales no se guardan en disco.</p>
+      </div>
+    </header>
+
+    <nav class="quick-nav">
+      <a href="#integridad">Integridad</a>
+      <a href="#resumen">Resumen</a>
+      <a href="#decision">Decisión</a>
+      <a href="#sizing">Sizing</a>
+      <a href="#cartera">Cartera</a>
+    </nav>
+
+    
+    <section class="cards">
+      <article class="card"><span class="label">MEP</span><strong>$1,434</strong></article>
+      <article class="card"><span class="label">Total ARS consolidado</span><strong>$25,064,115</strong></article>
+      <article class="card"><span class="label">Total ARS estilo IOL</span><strong>$24,526,165</strong></article>
+      <article class="card"><span class="label">Total USD</span><strong>USD 17,474.81</strong></article>
+      <article class="card"><span class="label">Ganancia</span><strong>$3,977,780</strong></article>
+      <article class="card"><span class="label">Instrumentos</span><strong>38</strong></article>
+      <article class="card"><span class="label">Liquidez</span><strong>$10,714,397</strong></article>
+      <article class="card"><span class="label">Liquidez USD en ARS</span><strong>$537,950</strong></article>
+    </section>
+    
+    
+    <section class="action-strip">
+      <article class="action-card buy"><span>Refuerzos</span><strong>1</strong></article>
+      <article class="action-card sell"><span>Reducciones</span><strong>2</strong></article>
+      <article class="action-card fund"><span>Despliegue</span><strong>1</strong></article>
+      <article class="action-card neutral"><span>Neutrales</span><strong>34</strong></article>
+    </section>
+    
+
+    <section class="panel" id="integridad">
+      <h2>Integridad</h2>
+      <table class=""><thead><tr><th>check</th><th>estado</th><th>detalle</th></tr></thead><tbody><tr><td>precio_ars_invertidos</td><td>OK</td><td>Todos los instrumentos invertidos tienen Precio_ARS</td></tr><tr><td>valor_usd</td><td>OK</td><td>Todos los instrumentos tienen Valor_USD</td></tr><tr><td>valorizado_ars</td><td>OK</td><td>Todos los instrumentos tienen Valorizado_ARS</td></tr><tr><td>peso_total</td><td>OK</td><td>Suma de pesos: 99.99%</td></tr></tbody></table>
+    </section>
+
+    <section class="grid">
+      <section class="panel" id="resumen">
+        <h2>Resumen por tipo</h2>
+        <div class="meta">
+          <span>Total consolidado: <strong>$25,064,115</strong></span>
+          <span>Total estilo IOL: <strong>$24,526,165</strong></span>
+          <span>Liquidez USD convertida: <strong>$537,950</strong></span>
+        </div>
+        <table class=""><thead><tr><th>Tipo</th><th>Instrumentos</th><th>Valorizado_ARS</th><th>Valor_USD</th><th>Ganancia_ARS</th><th>Peso_%</th></tr></thead><tbody><tr><td>Liquidez</td><td>4</td><td>$10,714,397</td><td>USD 7,470.12</td><td>$1,159,270</td><td>42.75%</td></tr><tr><td>CEDEAR</td><td>24</td><td>$10,301,200</td><td>USD 7,182.04</td><td>$1,637,437</td><td>41.10%</td></tr><tr><td>Bono</td><td>7</td><td>$3,465,751</td><td>USD 2,416.34</td><td>$895,536</td><td>13.83%</td></tr><tr><td>Acción Local</td><td>3</td><td>$582,768</td><td>USD 406.31</td><td>$285,537</td><td>2.33%</td></tr></tbody></table>
+      </section>
+
+      <section class="panel" id="sizing">
+        <h2>Sizing</h2>
+        <div class="meta">
+          <span>Fuente de fondeo: <strong>CAUCION</strong></span>
+          <span>Porcentaje: <strong>20%</strong></span>
+          <span>Monto: <strong>$1,514,893</strong></span>
+        </div>
+        <table class=""><thead><tr><th>Ticker_IOL</th><th>Bucket_Prudencia</th><th>Peso_Fondeo_%</th><th>Monto_ARS</th><th>Monto_USD</th></tr></thead><tbody><tr><td>CRM</td><td>Intermedio</td><td>65.00%</td><td>$984,680</td><td>USD 686.52</td></tr></tbody></table>
+      </section>
+    </section>
+
+    <section class="panel" id="decision">
+      <div class="panel-head">
+        <h2>Decisión final</h2>
+        <div class="filters">
+          <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
+          <select id="action-filter">
+            <option value="">Todas las acciones</option>
+            <option value="Refuerzo">Refuerzo</option>
+            <option value="Reducir">Reducir</option>
+            <option value="Desplegar liquidez">Desplegar liquidez</option>
+            <option value="Mantener / Neutral">Mantener / Neutral</option>
+          </select>
+        </div>
+      </div>
+      <table id="decision-table"><thead><tr><th>Ticker</th><th>Tipo</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead><tbody><tr data-ticker="CRM" data-action="Refuerzo" data-type="CEDEAR"><td><strong>CRM</strong></td><td>CEDEAR</td><td class="score">+0.248</td><td><span class="badge badge-buy">Refuerzo</span></td><td>Refuerzo por score favorable y diferencia positiva frente a reducción.</td></tr><tr data-ticker="DISN" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>DISN</strong></td><td>CEDEAR</td><td class="score">+0.207</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="XLV" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>XLV</strong></td><td>CEDEAR</td><td class="score">+0.183</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="DIA" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>DIA</strong></td><td>CEDEAR</td><td class="score">+0.177</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="AMD" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>AMD</strong></td><td>CEDEAR</td><td class="score">+0.166</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="BABA" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>BABA</strong></td><td>CEDEAR</td><td class="score">+0.148</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="BRKB" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>BRKB</strong></td><td>CEDEAR</td><td class="score">+0.142</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="V" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>V</strong></td><td>CEDEAR</td><td class="score">+0.136</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="MSFT" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>MSFT</strong></td><td>CEDEAR</td><td class="score">+0.124</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="MCD" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>MCD</strong></td><td>CEDEAR</td><td class="score">+0.124</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="TZXM7" data-action="Mantener / Neutral" data-type="Bono"><td><strong>TZXM7</strong></td><td>Bono</td><td class="score">+0.124</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="TZXD6" data-action="Mantener / Neutral" data-type="Bono"><td><strong>TZXD6</strong></td><td>Bono</td><td class="score">+0.106</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="TECO2" data-action="Mantener / Neutral" data-type="Acción Local"><td><strong>TECO2</strong></td><td>Acción Local</td><td class="score">+0.101</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="LOMA" data-action="Mantener / Neutral" data-type="Acción Local"><td><strong>LOMA</strong></td><td>Acción Local</td><td class="score">+0.101</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="GD35" data-action="Mantener / Neutral" data-type="Bono"><td><strong>GD35</strong></td><td>Bono</td><td class="score">+0.064</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="XLU" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>XLU</strong></td><td>CEDEAR</td><td class="score">+0.047</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="EEM" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>EEM</strong></td><td>CEDEAR</td><td class="score">+0.023</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="GOOGL" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>GOOGL</strong></td><td>CEDEAR</td><td class="score">-0.011</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="NVDA" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>NVDA</strong></td><td>CEDEAR</td><td class="score">-0.023</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="KO" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>KO</strong></td><td>CEDEAR</td><td class="score">-0.030</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="EWZ" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>EWZ</strong></td><td>CEDEAR</td><td class="score">-0.065</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="AL30" data-action="Mantener / Neutral" data-type="Bono"><td><strong>AL30</strong></td><td>Bono</td><td class="score">-0.066</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="IEUR" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>IEUR</strong></td><td>CEDEAR</td><td class="score">-0.066</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="VIST" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>VIST</strong></td><td>CEDEAR</td><td class="score">-0.076</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="YPFD" data-action="Mantener / Neutral" data-type="Acción Local"><td><strong>YPFD</strong></td><td>Acción Local</td><td class="score">-0.106</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="TZX26" data-action="Mantener / Neutral" data-type="Bono"><td><strong>TZX26</strong></td><td>Bono</td><td class="score">-0.125</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="AMZN" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>AMZN</strong></td><td>CEDEAR</td><td class="score">-0.130</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="MELI" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>MELI</strong></td><td>CEDEAR</td><td class="score">-0.142</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="SPY" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>SPY</strong></td><td>CEDEAR</td><td class="score">-0.143</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="BPOC7" data-action="Mantener / Neutral" data-type="Bono"><td><strong>BPOC7</strong></td><td>Bono</td><td class="score">-0.143</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="PRPEDOB" data-action="Mantener / Neutral" data-type="Liquidez"><td><strong>PRPEDOB</strong></td><td>Liquidez</td><td class="score">-0.159</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="NEM" data-action="Mantener / Neutral" data-type="CEDEAR"><td><strong>NEM</strong></td><td>CEDEAR</td><td class="score">-0.171</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="T" data-action="Reducir" data-type="CEDEAR"><td><strong>T</strong></td><td>CEDEAR</td><td class="score">-0.195</td><td><span class="badge badge-sell">Reducir</span></td><td>Reducción por score débil y mayor presión de riesgo/valuación.</td></tr><tr data-ticker="IOLPORA" data-action="Mantener / Neutral" data-type="Liquidez"><td><strong>IOLPORA</strong></td><td>Liquidez</td><td class="score">-0.218</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="AAPL" data-action="Reducir" data-type="CEDEAR"><td><strong>AAPL</strong></td><td>CEDEAR</td><td class="score">-0.225</td><td><span class="badge badge-sell">Reducir</span></td><td>Reducción por score débil y mayor presión de riesgo/valuación.</td></tr><tr data-ticker="GD30" data-action="Mantener / Neutral" data-type="Bono"><td><strong>GD30</strong></td><td>Bono</td><td class="score">-0.284</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="ADBAICA" data-action="Mantener / Neutral" data-type="Liquidez"><td><strong>ADBAICA</strong></td><td>Liquidez</td><td class="score">-0.313</td><td><span class="badge badge-neutral">Mantener / Neutral</span></td><td>Sin señal dominante; mantener y monitorear.</td></tr><tr data-ticker="CAUCION" data-action="Desplegar liquidez" data-type="Liquidez"><td><strong>CAUCION</strong></td><td>Liquidez</td><td class="score">-0.325</td><td><span class="badge badge-fund">Desplegar liquidez</span></td><td>Liquidez identificada como fuente potencial de fondeo.</td></tr></tbody></table>
+    </section>
+
+    <section class="panel" id="cartera">
+      <h2>Cartera maestra</h2>
+      <table class=""><thead><tr><th>Ticker_IOL</th><th>Tipo</th><th>Bloque</th><th>Valorizado_ARS</th><th>Valor_USD</th><th>Ganancia_ARS</th><th>Peso_%</th></tr></thead><tbody><tr><td>CAUCION</td><td>Liquidez</td><td>Liquidez</td><td>$7,574,464</td><td>USD 5,280.95</td><td>$20,800</td><td>30.22%</td></tr><tr><td>ADBAICA</td><td>Liquidez</td><td>Liquidez</td><td>$1,782,802</td><td>USD 1,242.98</td><td>$837,802</td><td>7.11%</td></tr><tr><td>SPY</td><td>CEDEAR</td><td>Core</td><td>$1,219,000</td><td>USD 849.89</td><td>$173,196</td><td>4.86%</td></tr><tr><td>AAPL</td><td>CEDEAR</td><td>Growth</td><td>$1,215,360</td><td>USD 847.35</td><td>$334,988</td><td>4.85%</td></tr><tr><td>T</td><td>CEDEAR</td><td>Dividendos</td><td>$1,187,450</td><td>USD 827.90</td><td>$180,025</td><td>4.74%</td></tr><tr><td>MELI</td><td>CEDEAR</td><td>Growth</td><td>$960,750</td><td>USD 669.84</td><td>$44,743</td><td>3.83%</td></tr><tr><td>GD30</td><td>Bono</td><td>Soberano AR</td><td>$907,013</td><td>USD 632.37</td><td>$764,588</td><td>3.62%</td></tr><tr><td>BPOC7</td><td>Bono</td><td>Bopreal</td><td>$834,098</td><td>USD 581.54</td><td>$34,666</td><td>3.33%</td></tr><tr><td>IEUR</td><td>CEDEAR</td><td>Europa</td><td>$830,760</td><td>USD 579.21</td><td>$-9,855</td><td>3.31%</td></tr><tr><td>IOLPORA</td><td>Liquidez</td><td>Liquidez</td><td>$819,181</td><td>USD 571.14</td><td>$217,809</td><td>3.27%</td></tr><tr><td>AMZN</td><td>CEDEAR</td><td>Growth</td><td>$763,350</td><td>USD 532.21</td><td>$161,923</td><td>3.05%</td></tr><tr><td>TZX26</td><td>Bono</td><td>CER</td><td>$712,616</td><td>USD 496.84</td><td>$65,105</td><td>2.84%</td></tr><tr><td>NEM</td><td>CEDEAR</td><td>Commodities</td><td>$565,000</td><td>USD 393.92</td><td>$286,472</td><td>2.25%</td></tr><tr><td>KO</td><td>CEDEAR</td><td>Dividendos</td><td>$544,080</td><td>USD 379.33</td><td>$5,580</td><td>2.17%</td></tr><tr><td>PRPEDOB</td><td>Liquidez</td><td>Liquidez</td><td>$537,950</td><td>USD 375.06</td><td>$82,860</td><td>2.15%</td></tr><tr><td>AL30</td><td>Bono</td><td>Soberano AR</td><td>$491,319</td><td>USD 342.55</td><td>$40,038</td><td>1.96%</td></tr><tr><td>EWZ</td><td>CEDEAR</td><td>Brasil</td><td>$486,540</td><td>USD 339.22</td><td>$118,910</td><td>1.94%</td></tr><tr><td>EEM</td><td>CEDEAR</td><td>Emergentes</td><td>$460,890</td><td>USD 321.33</td><td>$4,430</td><td>1.84%</td></tr><tr><td>YPFD</td><td>Acción Local</td><td>Commodities</td><td>$392,700</td><td>USD 273.79</td><td>$216,165</td><td>1.57%</td></tr><tr><td>VIST</td><td>CEDEAR</td><td>Commodities</td><td>$307,980</td><td>USD 214.72</td><td>$150,930</td><td>1.23%</td></tr><tr><td>XLU</td><td>CEDEAR</td><td>Defensivo</td><td>$302,610</td><td>USD 210.98</td><td>$5,455</td><td>1.21%</td></tr><tr><td>GD35</td><td>Bono</td><td>Soberano AR</td><td>$222,447</td><td>USD 155.09</td><td>$-9,241</td><td>0.89%</td></tr><tr><td>NVDA</td><td>CEDEAR</td><td>Growth</td><td>$218,200</td><td>USD 152.13</td><td>$97,148</td><td>0.87%</td></tr><tr><td>V</td><td>CEDEAR</td><td>Growth</td><td>$197,440</td><td>USD 137.66</td><td>$-35,440</td><td>0.79%</td></tr><tr><td>BRKB</td><td>CEDEAR</td><td>Defensivo</td><td>$194,280</td><td>USD 135.45</td><td>$-14,560</td><td>0.78%</td></tr><tr><td>GOOGL</td><td>CEDEAR</td><td>Growth</td><td>$152,300</td><td>USD 106.18</td><td>$76,594</td><td>0.61%</td></tr><tr><td>TZXD6</td><td>Bono</td><td>Sin clasificar</td><td>$149,636</td><td>USD 104.33</td><td>$306</td><td>0.60%</td></tr><tr><td>TZXM7</td><td>Bono</td><td>Sin clasificar</td><td>$148,622</td><td>USD 103.62</td><td>$74</td><td>0.59%</td></tr><tr><td>XLV</td><td>CEDEAR</td><td>Defensivo</td><td>$136,530</td><td>USD 95.19</td><td>$-9,990</td><td>0.54%</td></tr><tr><td>MCD</td><td>CEDEAR</td><td>Dividendos</td><td>$133,560</td><td>USD 93.12</td><td>$11,208</td><td>0.53%</td></tr><tr><td>MSFT</td><td>CEDEAR</td><td>Growth</td><td>$128,310</td><td>USD 89.46</td><td>$13,201</td><td>0.51%</td></tr><tr><td>LOMA</td><td>Acción Local</td><td>Argentina</td><td>$116,200</td><td>USD 81.02</td><td>$36,077</td><td>0.46%</td></tr><tr><td>CRM</td><td>CEDEAR</td><td>Growth</td><td>$107,310</td><td>USD 74.82</td><td>$-20,789</td><td>0.43%</td></tr><tr><td>TECO2</td><td>Acción Local</td><td>Argentina</td><td>$73,868</td><td>USD 51.50</td><td>$33,296</td><td>0.29%</td></tr><tr><td>DIA</td><td>CEDEAR</td><td>Core</td><td>$69,360</td><td>USD 48.36</td><td>$31,760</td><td>0.28%</td></tr><tr><td>DISN</td><td>CEDEAR</td><td>Growth</td><td>$48,000</td><td>USD 33.47</td><td>$2,504</td><td>0.19%</td></tr><tr><td>BABA</td><td>CEDEAR</td><td>Growth</td><td>$40,940</td><td>USD 28.54</td><td>$17,914</td><td>0.16%</td></tr><tr><td>AMD</td><td>CEDEAR</td><td>Growth</td><td>$31,200</td><td>USD 21.75</td><td>$11,091</td><td>0.12%</td></tr></tbody></table>
+    </section>
+  </main>
+  <script>
+    const tickerInput = document.getElementById('ticker-filter');
+    const actionSelect = document.getElementById('action-filter');
+    const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
+
+    function applyDecisionFilter() {
+      const tickerNeedle = (tickerInput?.value || '').toLowerCase().trim();
+      const actionNeedle = actionSelect?.value || '';
+      rows.forEach((row) => {
+        const ticker = (row.dataset.ticker || '').toLowerCase();
+        const action = row.dataset.action || '';
+        const matchesTicker = !tickerNeedle || ticker.includes(tickerNeedle);
+        const matchesAction = !actionNeedle || action === actionNeedle;
+        row.style.display = matchesTicker && matchesAction ? '' : 'none';
+      });
+    }
+
+    tickerInput?.addEventListener('input', applyDecisionFilter);
+    actionSelect?.addEventListener('change', applyDecisionFilter);
+  </script>
+</body>
+</html>

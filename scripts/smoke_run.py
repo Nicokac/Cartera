@@ -1,0 +1,249 @@
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.append(str(SRC))
+
+import config as project_config
+from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
+
+
+def build_mock_inputs() -> tuple[list[dict], dict, dict[str, float], float]:
+    mep_real = 1250.0
+
+    activos = [
+        {
+            "cantidad": 85,
+            "ppc": 9800,
+            "valorizado": 1187450,
+            "gananciaDinero": 354450,
+            "titulo": {
+                "simbolo": "T",
+                "descripcion": "Cedear AT&T",
+                "tipo": "CEDEARS",
+                "moneda": "peso_Argentino",
+            },
+        },
+        {
+            "cantidad": 25,
+            "ppc": 30000,
+            "valorizado": 1219000,
+            "gananciaDinero": 469000,
+            "titulo": {
+                "simbolo": "VIST",
+                "descripcion": "Cedear Vista",
+                "tipo": "CEDEARS",
+                "moneda": "peso_Argentino",
+            },
+        },
+        {
+            "cantidad": 12,
+            "ppc": 15000,
+            "valorizado": 165000,
+            "gananciaDinero": -15000,
+            "titulo": {
+                "simbolo": "NVDA",
+                "descripcion": "Cedear NVIDIA",
+                "tipo": "CEDEARS",
+                "moneda": "peso_Argentino",
+            },
+        },
+        {
+            "cantidad": 1000,
+            "ppc": 82,
+            "valorizado": 950,
+            "gananciaDinero": 130,
+            "titulo": {
+                "simbolo": "GD30",
+                "descripcion": "Bono GD30",
+                "tipo": "TITULOS PUBLICOS",
+                "moneda": "peso_Argentino",
+            },
+        },
+        {
+            "cantidad": 1,
+            "ppc": 1,
+            "valorizado": 300000,
+            "gananciaDinero": 0,
+            "titulo": {
+                "simbolo": "ADBAICA",
+                "descripcion": "FCI Cash Management",
+                "tipo": "FCI",
+                "moneda": "peso_Argentino",
+            },
+        },
+        {
+            "cantidad": 1,
+            "ppc": 1,
+            "valorizado": 500000,
+            "gananciaDinero": 0,
+            "titulo": {
+                "simbolo": "CAU123",
+                "descripcion": "Caucion colocada",
+                "tipo": "CAUCION",
+                "moneda": "peso_Argentino",
+            },
+        },
+    ]
+
+    estado_payload = {
+        "totalEnPesos": 2800000,
+        "cuentas": [
+            {
+                "moneda": "peso_Argentino",
+                "disponible": 650000,
+                "saldos": [
+                    {"liquidacion": "inmediato", "disponible": 600000},
+                    {"liquidacion": "48hs", "disponible": 50000},
+                ],
+            },
+            {
+                "moneda": "USD",
+                "disponible": 160,
+                "saldos": [
+                    {"liquidacion": "inmediato", "disponible": 120},
+                    {"liquidacion": "24hs", "disponible": 40},
+                ],
+            },
+        ],
+    }
+
+    precios_iol = {
+        "T": 13970.0,
+        "VIST": 48760.0,
+        "NVDA": 13750.0,
+        "GD30": 95.0,
+    }
+
+    return activos, estado_payload, precios_iol, mep_real
+
+
+def enrich_mock_cedears(df_cedears: pd.DataFrame, *, mep_real: float) -> pd.DataFrame:
+    if df_cedears.empty:
+        return df_cedears
+
+    overlays = {
+        "T": {"Perf Week": 1.2, "Perf Month": 3.8, "Perf YTD": 8.4, "Beta": 0.72, "P/E": 18.0},
+        "VIST": {"Perf Week": 2.4, "Perf Month": 8.1, "Perf YTD": 21.0, "Beta": 1.48, "P/E": 11.5},
+        "NVDA": {"Perf Week": -4.8, "Perf Month": -6.0, "Perf YTD": -12.0, "Beta": 1.86, "P/E": 42.0},
+    }
+
+    out = df_cedears.copy()
+    out["Perf Week"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("Perf Week"))
+    out["Perf Month"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("Perf Month"))
+    out["Perf YTD"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("Perf YTD"))
+    out["Beta"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("Beta"))
+    out["P/E"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("P/E"))
+    out["MEP_Implicito"] = mep_real * pd.Series([0.995, 1.015, 1.055][: len(out)], index=out.index)
+    return out
+
+
+def build_mock_ratings() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"Ticker_Finviz": "T", "consenso": "buy", "consenso_n": 12, "total_ratings": 15},
+            {"Ticker_Finviz": "VIST", "consenso": "buy", "consenso_n": 8, "total_ratings": 10},
+            {"Ticker_Finviz": "NVDA", "consenso": "hold", "consenso_n": 4, "total_ratings": 11},
+        ]
+    ).set_index("Ticker_Finviz")
+
+
+def print_section(title: str) -> None:
+    print(f"\n{title}")
+    print("-" * len(title))
+
+
+def run_smoke_pipeline() -> dict[str, object]:
+    activos, estado_payload, precios_iol, mep_real = build_mock_inputs()
+
+    portfolio_bundle = build_portfolio_bundle(
+        activos=activos,
+        estado_payload=estado_payload,
+        precios_iol=precios_iol,
+        mep_real=mep_real,
+        finviz_map=project_config.FINVIZ_MAP,
+        block_map=project_config.BLOCK_MAP,
+        vn_factor_map=project_config.VN_FACTOR_MAP,
+        ratios=project_config.RATIOS,
+        fci_cash_management=project_config.FCI_CASH_MANAGEMENT,
+    )
+
+    df_total = portfolio_bundle["df_total"]
+    df_cedears = enrich_mock_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
+    df_ratings_res = build_mock_ratings()
+
+    decision_bundle = build_decision_bundle(
+        df_total=df_total,
+        df_cedears=df_cedears,
+        df_ratings_res=df_ratings_res,
+        mep_real=mep_real,
+    )
+    final_decision = decision_bundle["final_decision"]
+
+    sizing_bundle = build_sizing_bundle(
+        final_decision=final_decision,
+        mep_real=mep_real,
+        defensive_tickers=project_config.DEFENSIVE_TICKERS,
+        aggressive_tickers=project_config.AGGRESSIVE_TICKERS,
+        bucket_weights=project_config.BUCKET_WEIGHTS,
+    )
+
+    dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
+
+    return {
+        "mep_real": mep_real,
+        "portfolio_bundle": portfolio_bundle,
+        "dashboard_bundle": dashboard_bundle,
+        "decision_bundle": decision_bundle,
+        "sizing_bundle": sizing_bundle,
+    }
+
+
+def main() -> None:
+    result = run_smoke_pipeline()
+    mep_real = float(result["mep_real"])
+    portfolio_bundle = result["portfolio_bundle"]
+    dashboard_bundle = result["dashboard_bundle"]
+    decision_bundle = result["decision_bundle"]
+    sizing_bundle = result["sizing_bundle"]
+
+    df_total = portfolio_bundle["df_total"]
+    final_decision = decision_bundle["final_decision"]
+
+    print_section("Smoke Run")
+    print(f"MEP usado: ${mep_real:,.2f}")
+    print(f"Instrumentos totales: {len(df_total)}")
+    print(f"Total ARS: ${df_total['Valorizado_ARS'].sum():,.0f}")
+    print(f"Total USD: USD {df_total['Valor_USD'].sum():,.2f}")
+    print(f"Peso total: {df_total['Peso_%'].sum():.2f}%")
+
+    print_section("Integridad")
+    print(portfolio_bundle["integrity_report"].to_string(index=False))
+
+    print_section("Dashboard")
+    print(pd.Series(dashboard_bundle["kpis"]).to_string())
+
+    print_section("Decision")
+    cols = ["Ticker_IOL", "Tipo", "score_unificado", "accion_sugerida_v2", "motivo_accion"]
+    print(final_decision[cols].sort_values("score_unificado", ascending=False).to_string(index=False))
+
+    print_section("Sizing")
+    print(f"Fuente de fondeo: {sizing_bundle['fuente_fondeo']}")
+    print(f"Pct fondeo: {sizing_bundle['pct_fondeo']:.0%}")
+    print(f"Monto fondeo ARS: ${sizing_bundle['monto_fondeo_ars']:,.0f}")
+    asignacion = sizing_bundle["asignacion_final"]
+    if asignacion.empty:
+        print("Sin asignacion final generada.")
+    else:
+        cols = ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"]
+        print(asignacion[cols].to_string(index=False))
+
+
+if __name__ == "__main__":
+    main()

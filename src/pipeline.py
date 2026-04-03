@@ -100,6 +100,13 @@ def build_decision_bundle(
         decision_tech = decision.copy()
 
     decision_tech = apply_technical_overlay_scores(decision_tech)
+    if "score_refuerzo_v2" not in decision_tech.columns:
+        # Fallback: sin overlay tecnico, reutilizar el score base como variante v2.
+        decision_tech["score_refuerzo_v2"] = decision_tech["score_refuerzo"]
+        decision_tech["score_reduccion_v2"] = decision_tech["score_reduccion"]
+        decision_tech["score_unificado_v2"] = (
+            decision_tech["score_refuerzo_v2"] - decision_tech["score_reduccion_v2"]
+        ).round(3)
     decision_tech = assign_action_v2(decision_tech)
     final_decision = finalize_unified_score(decision_tech)
     final_decision = enrich_decision_explanations(final_decision)
