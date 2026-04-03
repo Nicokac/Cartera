@@ -38,7 +38,7 @@ Hoy siguen influyendo en la estrategia:
 
 ## Fase A. Inventario y aislamiento
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: identificar todos los hardcodes que alteran la decisión final o el sizing.
 
 ### Tareas
@@ -57,6 +57,25 @@ Hoy siguen influyendo en la estrategia:
 ### Criterio de cierre
 
 - existe un inventario completo con impacto por regla
+
+### Cierre
+
+- Se relevó el inventario de hardcodes que afectan estrategia en:
+  - [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
+  - [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [src/decision/actions.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
+  - [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
+  - [data/mappings/block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
+- Se documentó el impacto de cada hardcode sobre:
+  - acción sugerida
+  - acción operativa
+  - bucket de prudencia
+  - monto asignado
+- Se separaron explícitamente los hardcodes de:
+  - estrategia
+  - integración
+  - presentación
+- Quedó creado el inventario base en [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md).
 
 ## Fase B. Parametrización externa
 
@@ -153,3 +172,15 @@ Hoy siguen influyendo en la estrategia:
 ### Criterio de cierre
 
 - la estrategia queda explicable, auditable y sin sesgos por ticker manual
+
+## Registro de avances
+
+### 2026-04-03
+
+- Se cerró la Fase A con el relevamiento completo de hardcodes que afectan la estrategia.
+- Se creó [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md) como documento base de inventario.
+- Se confirmó que las prioridades de remoción son:
+  - listas de tickers defensivos/agresivos
+  - thresholds de acción
+  - pesos y castigos del scoring
+  - sesgo por bloque y buckets de prudencia
