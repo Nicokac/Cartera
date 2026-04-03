@@ -18,6 +18,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
 import config as project_config
+from analytics.technical import build_technical_overlay
 from clients.argentinadatos import get_mep_real
 from clients.finviz_client import fetch_finviz_bundle
 from clients.iol import (
@@ -237,11 +238,13 @@ def main() -> None:
 
     df_total = portfolio_bundle["df_total"]
     df_cedears, df_ratings_res = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
+    technical_overlay = build_technical_overlay(df_cedears, scoring_rules=project_config.SCORING_RULES)
 
     decision_bundle = build_decision_bundle(
         df_total=df_total,
         df_cedears=df_cedears,
         df_ratings_res=df_ratings_res,
+        decision_tech=technical_overlay,
         mep_real=mep_real,
         scoring_rules=project_config.SCORING_RULES,
         action_rules=project_config.ACTION_RULES,

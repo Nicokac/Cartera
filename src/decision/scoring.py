@@ -205,13 +205,105 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     return out
 
 
-def apply_technical_overlay_scores(decision_tech: pd.DataFrame) -> pd.DataFrame:
+def clamp01(value: pd.Series | float) -> pd.Series | float:
+    return np.clip(value, 0, 1)
+
+
+def build_technical_overlay_scores(
+    decision: pd.DataFrame,
+    technical_overlay: pd.DataFrame | None,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+) -> pd.DataFrame:
+    out = decision.copy()
+    if technical_overlay is None or technical_overlay.empty:
+        return out
+
+    scoring_rules = scoring_rules or {}
+    tech_rules = scoring_rules.get("technical_overlay", {}) or {}
+    if tech_rules.get("enabled", True) is False:
+        return out
+
+    merge_cols = [
+        "Ticker_IOL",
+        "Dist_SMA20_%",
+        "Dist_SMA50_%",
+        "Dist_EMA20_%",
+        "Dist_EMA50_%",
+        "RSI_14",
+        "Momentum_20d_%",
+        "Momentum_60d_%",
+        "Vol_20d_Anual_%",
+        "Drawdown_desde_Max3m_%",
+        "Tech_Trend",
+    ]
+    available_cols = [col for col in merge_cols if col in technical_overlay.columns]
+    if set(available_cols) <= {"Ticker_IOL"}:
+        return out
+    overlay = technical_overlay[available_cols].copy()
+    out = out.merge(overlay, on="Ticker_IOL", how="left")
+
+    subscores = tech_rules.get("subscores", {}) or {}
+    out["ts_above_sma20"] = clamp01((out["Dist_SMA20_%"].fillna(0) + 10) / 20)
+    out["ts_above_sma50"] = clamp01((out["Dist_SMA50_%"].fillna(0) + 15) / 30)
+    out["ts_above_ema20"] = clamp01((out["Dist_EMA20_%"].fillna(0) + 10) / 20)
+    out["ts_above_ema50"] = clamp01((out["Dist_EMA50_%"].fillna(0) + 15) / 30)
+    out["ts_rsi"] = np.where(
+        out["RSI_14"].isna(),
+        0.5,
+        np.select(
+            [
+                out["RSI_14"] < 30,
+                (out["RSI_14"] >= 30) & (out["RSI_14"] < 45),
+                (out["RSI_14"] >= 45) & (out["RSI_14"] <= 65),
+                (out["RSI_14"] > 65) & (out["RSI_14"] <= 75),
+                out["RSI_14"] > 75,
+            ],
+            [0.35, 0.60, 1.00, 0.65, 0.30],
+            default=0.5,
+        ),
+    )
+    out["ts_mom20"] = clamp01((out["Momentum_20d_%"].fillna(0) + 15) / 30)
+    out["ts_mom60"] = clamp01((out["Momentum_60d_%"].fillna(0) + 25) / 50)
+    out["ts_drawdown"] = np.where(
+        out["Drawdown_desde_Max3m_%"].isna(),
+        0.5,
+        clamp01((out["Drawdown_desde_Max3m_%"].fillna(-20) + 25) / 25),
+    )
+    out["ts_volatility"] = np.where(
+        out["Vol_20d_Anual_%"].isna(),
+        0.5,
+        1 - clamp01((out["Vol_20d_Anual_%"] - 15) / 45),
+    )
+    out["tech_refuerzo"] = (
+        float(subscores.get("above_sma20", 0.15)) * out["ts_above_sma20"]
+        + float(subscores.get("above_sma50", 0.15)) * out["ts_above_sma50"]
+        + float(subscores.get("above_ema20", 0.10)) * out["ts_above_ema20"]
+        + float(subscores.get("above_ema50", 0.10)) * out["ts_above_ema50"]
+        + float(subscores.get("rsi", 0.15)) * out["ts_rsi"]
+        + float(subscores.get("mom20", 0.15)) * out["ts_mom20"]
+        + float(subscores.get("mom60", 0.10)) * out["ts_mom60"]
+        + float(subscores.get("drawdown", 0.05)) * out["ts_drawdown"]
+        + float(subscores.get("volatility", 0.05)) * out["ts_volatility"]
+    ).clip(0, 1)
+    return out
+
+
+def apply_technical_overlay_scores(
+    decision_tech: pd.DataFrame,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+) -> pd.DataFrame:
     out = decision_tech.copy()
     if "tech_refuerzo" not in out.columns:
         return out
+    scoring_rules = scoring_rules or {}
+    tech_rules = scoring_rules.get("technical_overlay", {}) or {}
+    blend_base = float(tech_rules.get("blend_base", 0.75))
+    blend_tech = float(tech_rules.get("blend_tech", 0.25))
     out["tech_reduccion"] = 1 - out["tech_refuerzo"]
-    out["score_refuerzo_v2"] = (0.75 * out["score_refuerzo"] + 0.25 * out["tech_refuerzo"]).clip(0, 1)
-    out["score_reduccion_v2"] = (0.75 * out["score_reduccion"] + 0.25 * out["tech_reduccion"]).clip(0, 1)
+    out["score_refuerzo_v2"] = (blend_base * out["score_refuerzo"] + blend_tech * out["tech_refuerzo"]).clip(0, 1)
+    out["score_reduccion_v2"] = (blend_base * out["score_reduccion"] + blend_tech * out["tech_reduccion"]).clip(0, 1)
     out["score_unificado_v2"] = (out["score_refuerzo_v2"] - out["score_reduccion_v2"]).round(3)
     return out
 

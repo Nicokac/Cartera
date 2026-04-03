@@ -10,7 +10,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from decision.actions import assign_action_v2
-from decision.scoring import apply_base_scores, consensus_to_score
+from decision.scoring import apply_base_scores, apply_technical_overlay_scores, build_technical_overlay_scores, consensus_to_score
 
 
 class StrategyRulesTests(unittest.TestCase):
@@ -100,6 +100,43 @@ class StrategyRulesTests(unittest.TestCase):
 
         self.assertEqual(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
         self.assertEqual(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
+    def test_technical_overlay_is_blended_when_present(self) -> None:
+        decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CRM",
+                    "score_refuerzo": 0.40,
+                    "score_reduccion": 0.30,
+                }
+            ]
+        )
+        technical_overlay = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CRM",
+                    "Dist_SMA20_%": 8.0,
+                    "Dist_SMA50_%": 10.0,
+                    "Dist_EMA20_%": 7.0,
+                    "Dist_EMA50_%": 9.0,
+                    "RSI_14": 55.0,
+                    "Momentum_20d_%": 12.0,
+                    "Momentum_60d_%": 18.0,
+                    "Vol_20d_Anual_%": 18.0,
+                    "Drawdown_desde_Max3m_%": -4.0,
+                    "Tech_Trend": "Alcista fuerte",
+                }
+            ]
+        )
+
+        with_tech = build_technical_overlay_scores(decision, technical_overlay)
+        blended = apply_technical_overlay_scores(with_tech)
+
+        self.assertIn("tech_refuerzo", blended.columns)
+        self.assertIn("score_refuerzo_v2", blended.columns)
+        self.assertIn("score_reduccion_v2", blended.columns)
+        self.assertGreater(blended.loc[0, "tech_refuerzo"], 0.5)
+        self.assertGreater(blended.loc[0, "score_refuerzo_v2"], blended.loc[0, "score_refuerzo"])
 
 
 if __name__ == "__main__":

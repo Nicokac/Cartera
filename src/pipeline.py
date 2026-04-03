@@ -10,6 +10,7 @@ try:
     from .decision.scoring import (
         apply_base_scores,
         apply_technical_overlay_scores,
+        build_technical_overlay_scores,
         build_decision_base,
         finalize_unified_score,
     )
@@ -24,6 +25,7 @@ except ImportError:
     from decision.scoring import (
         apply_base_scores,
         apply_technical_overlay_scores,
+        build_technical_overlay_scores,
         build_decision_base,
         finalize_unified_score,
     )
@@ -107,7 +109,8 @@ def build_decision_bundle(
     if decision_tech is None:
         decision_tech = decision.copy()
 
-    decision_tech = apply_technical_overlay_scores(decision_tech)
+    decision_tech = build_technical_overlay_scores(decision, decision_tech, scoring_rules=scoring_rules)
+    decision_tech = apply_technical_overlay_scores(decision_tech, scoring_rules=scoring_rules)
     if "score_refuerzo_v2" not in decision_tech.columns:
         # Fallback: sin overlay tecnico, reutilizar el score base como variante v2.
         decision_tech["score_refuerzo_v2"] = decision_tech["score_refuerzo"]

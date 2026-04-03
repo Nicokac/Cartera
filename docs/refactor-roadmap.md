@@ -22,8 +22,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 ## Estado actual
 
 - Fecha base del roadmap: `2026-03-31`
-- Estado global: `Fase 9 cerrada`
-- Última actualización: `2026-04-01`
+- Estado global: `Fase 10 en progreso`
+- Última actualización: `2026-04-03`
 
 ## Fase 0. Línea base y resguardo
 
@@ -395,6 +395,33 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Resultado de verificación:
   - `8 tests OK`
 
+## Fase 10. Reintegración funcional del notebook original
+
+- Estado: `En progreso`
+- Objetivo: reincorporar al core actual las funcionalidades relevantes del notebook original que quedaron fuera del runner real.
+
+### Tareas
+
+- cerrar la trazabilidad completa entre `Cartera.ipynb` y `src/`
+- identificar brechas funcionales reales, no solo diferencias de presentación
+- reintegrar el overlay técnico ampliado de CEDEARs al flujo canónico
+- validar con snapshots reales el impacto de la reintegración en:
+  - `decision`
+  - `final_decision`
+  - `propuesta`
+  - `asignacion_final`
+
+### Criterio de cierre
+
+- las señales relevantes del notebook original vuelven a estar conectadas al pipeline real
+- la estrategia queda explicable con trazabilidad entre notebook histórico y código actual
+
+### Avance actual
+
+- se completó la trazabilidad funcional del notebook en [`notebook-feature-traceability.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\notebook-feature-traceability.md)
+- se identificó como brecha principal que el overlay técnico de las celdas 29 y 30 no estaba conectado al runner real
+- se inició la reintegración del overlay técnico al pipeline canónico y a [`generate_real_report.py`](C:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+
 ## Registro de avances
 
 ### 2026-03-31
@@ -424,6 +451,12 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - La lógica crítica ya tiene una suite local mínima para detectar regresiones antes de seguir limpiando el notebook.
 - Se cerró la Fase 9 con una fachada de orquestación en `src/pipeline.py` y un runbook de uso final del notebook.
 - `Cartera.ipynb` quedó posicionado como interfaz de uso; la lógica principal ya vive en `src/`.
+
+### 2026-04-03
+
+- Se completó la trazabilidad funcional de las celdas relevantes de [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb).
+- Se detectó que el score base sobrevivió al refactor, pero el overlay técnico ampliado del notebook original había quedado fuera del runner real.
+- Se abrió la Fase 10 para reintegrar esa brecha funcional al pipeline canónico.
 
 ## Política de actualización
 
