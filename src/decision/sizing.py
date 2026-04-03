@@ -53,6 +53,8 @@ def build_operational_proposal(
     final_decision: pd.DataFrame,
     *,
     mep_real: float | None,
+    usar_liquidez_iol: bool = True,
+    aporte_externo_ars: float = 0.0,
 ) -> dict[str, object]:
     propuesta = final_decision.copy()
     propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
@@ -108,7 +110,11 @@ def build_operational_proposal(
     if row_caucion.empty:
         row_caucion = top_fondeo.head(1).copy()
 
-    if not row_caucion.empty:
+    monto_fondeo_liquidez_ars = 0.0
+    monto_fondeo_liquidez_usd = 0.0
+    fuente_liquidez = None
+
+    if usar_liquidez_iol and not row_caucion.empty:
         fuente_fondeo = str(row_caucion["Ticker_IOL"].iloc[0])
         liquidez_ars = float(row_caucion["Valorizado_ARS"].iloc[0])
         liquidez_usd = float(row_caucion["Valor_USD"].iloc[0])
@@ -119,13 +125,26 @@ def build_operational_proposal(
             pct_fondeo = 0.20
         else:
             pct_fondeo = 0.10
-        monto_fondeo_ars = liquidez_ars * pct_fondeo
-        monto_fondeo_usd = liquidez_usd * pct_fondeo
+        monto_fondeo_liquidez_ars = liquidez_ars * pct_fondeo
+        monto_fondeo_liquidez_usd = liquidez_usd * pct_fondeo
+        fuente_liquidez = fuente_fondeo
     else:
-        fuente_fondeo = "Sin fuente detectada"
         pct_fondeo = 0.0
-        monto_fondeo_ars = 0.0
-        monto_fondeo_usd = 0.0
+
+    aporte_externo_ars = max(float(aporte_externo_ars or 0.0), 0.0)
+    aporte_externo_usd = aporte_externo_ars / mep_real if mep_real and aporte_externo_ars > 0 else 0.0
+
+    monto_fondeo_ars = monto_fondeo_liquidez_ars + aporte_externo_ars
+    monto_fondeo_usd = monto_fondeo_liquidez_usd + aporte_externo_usd
+
+    if usar_liquidez_iol and aporte_externo_ars > 0 and fuente_liquidez:
+        fuente_fondeo = f"Mixto: {fuente_liquidez} + aporte externo"
+    elif usar_liquidez_iol and fuente_liquidez:
+        fuente_fondeo = fuente_liquidez
+    elif aporte_externo_ars > 0:
+        fuente_fondeo = "Aporte externo"
+    else:
+        fuente_fondeo = "Sin fondeo disponible"
 
     if not top_reforzar_final.empty and monto_fondeo_ars > 0:
         peso_scores = top_reforzar_final["score_unificado"].clip(lower=0)
@@ -151,7 +170,12 @@ def build_operational_proposal(
         "top_bonos_rebalancear": top_bonos_rebalancear,
         "top_fondeo": top_fondeo,
         "fuente_fondeo": fuente_fondeo,
+        "usar_liquidez_iol": usar_liquidez_iol,
         "pct_fondeo": pct_fondeo,
+        "aporte_externo_ars": aporte_externo_ars,
+        "aporte_externo_usd": aporte_externo_usd,
+        "monto_fondeo_liquidez_ars": monto_fondeo_liquidez_ars,
+        "monto_fondeo_liquidez_usd": monto_fondeo_liquidez_usd,
         "monto_fondeo_ars": monto_fondeo_ars,
         "monto_fondeo_usd": monto_fondeo_usd,
     }

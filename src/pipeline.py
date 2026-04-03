@@ -125,8 +125,15 @@ def build_sizing_bundle(
     defensive_tickers: set[str],
     aggressive_tickers: set[str],
     bucket_weights: dict[str, float],
+    usar_liquidez_iol: bool = True,
+    aporte_externo_ars: float = 0.0,
 ) -> dict[str, Any]:
-    operational_bundle = build_operational_proposal(final_decision, mep_real=mep_real)
+    operational_bundle = build_operational_proposal(
+        final_decision,
+        mep_real=mep_real,
+        usar_liquidez_iol=usar_liquidez_iol,
+        aporte_externo_ars=aporte_externo_ars,
+    )
     candidatos_refuerzo = build_prudent_allocation(
         operational_bundle["propuesta"],
         monto_fondeo_ars=operational_bundle["monto_fondeo_ars"],

@@ -34,6 +34,22 @@ HTML_PATH = REPORTS_DIR / "real-report.html"
 SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
 
 
+def prompt_yes_no(label: str, *, default: bool = False) -> bool:
+    suffix = " [s/N]: " if not default else " [S/n]: "
+    raw = input(label + suffix).strip().lower()
+    if not raw:
+        return default
+    return raw in {"s", "si", "sí", "y", "yes"}
+
+
+def prompt_money_ars(label: str) -> float:
+    raw = input(label + " ").strip()
+    if not raw:
+        return 0.0
+    normalized = raw.replace("$", "").replace(".", "").replace(",", ".").strip()
+    return max(float(normalized), 0.0)
+
+
 def extract_quote_tickers(activos: list[dict]) -> list[str]:
     tickers: set[str] = set()
     allowed_types = {"CEDEARS", "ACCIONES", "ACCION", "TITULOSPUBLICOS", "TITULOPUBLICO"}
@@ -196,6 +212,10 @@ def main() -> None:
     estado_payload = iol_get_estado_cuenta(token, base_url=project_config.IOL_BASE_URL)
     activos = portfolio_payload.get("activos", []) or []
 
+    print("Definiendo politica de fondeo...")
+    usar_liquidez_iol = prompt_yes_no("Usar liquidez actual de IOL para fondear la estrategia?", default=False)
+    aporte_externo_ars = prompt_money_ars("Cuanto dinero nuevo vas a ingresar en ARS? (enter para 0)")
+
     mep_data = get_mep_real(casa=project_config.MEP_CASA, base_url=project_config.ARGENTINADATOS_URL)
     mep_real = float(mep_data["promedio"]) if mep_data else None
 
@@ -230,6 +250,8 @@ def main() -> None:
         defensive_tickers=project_config.DEFENSIVE_TICKERS,
         aggressive_tickers=project_config.AGGRESSIVE_TICKERS,
         bucket_weights=project_config.BUCKET_WEIGHTS,
+        usar_liquidez_iol=usar_liquidez_iol,
+        aporte_externo_ars=aporte_externo_ars,
     )
     dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
 

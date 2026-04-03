@@ -90,6 +90,21 @@ class SizingTests(unittest.TestCase):
         self.assertEqual(result["top_reforzar_final"]["Ticker_IOL"].tolist(), ["T", "VIST"])
         self.assertEqual(result["top_bonos_rebalancear"]["Ticker_IOL"].tolist(), ["GD30"])
 
+    def test_build_operational_proposal_supports_external_funding_without_using_iol_liquidity(self) -> None:
+        result = build_operational_proposal(
+            self.final_decision,
+            mep_real=1000,
+            usar_liquidez_iol=False,
+            aporte_externo_ars=600000,
+        )
+
+        self.assertEqual(result["fuente_fondeo"], "Aporte externo")
+        self.assertEqual(result["usar_liquidez_iol"], False)
+        self.assertTrue(math.isclose(result["pct_fondeo"], 0.0, rel_tol=0, abs_tol=0.001))
+        self.assertTrue(math.isclose(result["aporte_externo_ars"], 600000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_ars"], 0, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(result["monto_fondeo_ars"], 600000, rel_tol=0, abs_tol=0.01))
+
     def test_prudent_and_dynamic_allocation_apply_buckets_and_caps(self) -> None:
         proposal_bundle = build_operational_proposal(self.final_decision, mep_real=1000)
         propuesta = proposal_bundle["propuesta"]

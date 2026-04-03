@@ -208,6 +208,8 @@ def render_report(
         <h2>Sizing</h2>
         <div class="meta">
           <span>Fuente de fondeo: <strong>{html.escape(str(sizing_bundle['fuente_fondeo']))}</strong></span>
+          <span>Usa liquidez IOL: <strong>{"Sí" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+          <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
           <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
           <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
         </div>
