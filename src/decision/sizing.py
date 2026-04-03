@@ -129,27 +129,20 @@ def build_operational_proposal(
     )
     top_fondeo = (
         propuesta[propuesta["accion_operativa"] == "Desplegar liquidez"]
-        .sort_values("score_despliegue_liquidez", ascending=False)
+        .sort_values(["score_despliegue_liquidez", "Valorizado_ARS"], ascending=[False, False])
         .head(top_candidates)
         .copy()
     )
-
-    row_caucion = propuesta[(propuesta["Ticker_IOL"].astype(str).str.upper() == "CAUCION")].copy()
-    if row_caucion.empty and "Descripcion" in propuesta.columns:
-        row_caucion = propuesta[
-            propuesta["Descripcion"].astype(str).str.upper().str.contains("CAUCION", na=False)
-        ].copy()
-    if row_caucion.empty:
-        row_caucion = top_fondeo.head(1).copy()
+    source_row = top_fondeo.head(1).copy()
 
     monto_fondeo_liquidez_ars = 0.0
     monto_fondeo_liquidez_usd = 0.0
     fuente_liquidez = None
 
-    if usar_liquidez_iol and not row_caucion.empty:
-        fuente_fondeo = str(row_caucion["Ticker_IOL"].iloc[0])
-        liquidez_ars = float(row_caucion["Valorizado_ARS"].iloc[0])
-        liquidez_usd = float(row_caucion["Valor_USD"].iloc[0])
+    if usar_liquidez_iol and not source_row.empty:
+        fuente_fondeo = str(source_row["Ticker_IOL"].iloc[0])
+        liquidez_ars = float(source_row["Valorizado_ARS"].iloc[0])
+        liquidez_usd = float(source_row["Valor_USD"].iloc[0])
         n_refuerzo_fuerte = int((propuesta["score_unificado"] >= strong_refuerzo_threshold).sum())
         if n_refuerzo_fuerte >= 3:
             pct_fondeo = pct_fondeo_3_plus

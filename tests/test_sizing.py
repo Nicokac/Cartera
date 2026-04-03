@@ -110,6 +110,25 @@ class SizingTests(unittest.TestCase):
             "Mantener liquidez bloqueada",
         )
 
+    def test_build_operational_proposal_no_longer_prefers_caucion_by_name(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision.loc[len(final_decision)] = {
+            "Ticker_IOL": "ADBAICA",
+            "Descripcion": "FCI cobertura",
+            "Tipo": "Liquidez",
+            "accion_sugerida_v2": "Mantener / Neutral",
+            "score_unificado": 0.0,
+            "score_despliegue_liquidez": 0.95,
+            "Valorizado_ARS": 1200000.0,
+            "Valor_USD": 1200.0,
+            "Tech_Trend": None,
+            "Beta": None,
+        }
+
+        result = build_operational_proposal(final_decision, mep_real=1000)
+
+        self.assertEqual(result["fuente_fondeo"], "ADBAICA")
+
     def test_prudent_and_dynamic_allocation_apply_buckets_and_caps(self) -> None:
         proposal_bundle = build_operational_proposal(self.final_decision, mep_real=1000)
         propuesta = proposal_bundle["propuesta"]

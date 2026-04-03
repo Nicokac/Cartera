@@ -19,14 +19,14 @@ Este roadmap cubre solo hardcodes que afectan la estrategia. No incluye mappings
 
 ## Estado actual
 
-Luego de la Fase D, ya no quedan influyendo de forma material:
+Luego de la Fase E, ya no quedan influyendo de forma material:
 - listas manuales de tickers
 - sesgo por bloque via `BLOCK_MAP`
 - pesos y thresholds embebidos en codigo
+- preferencia fija por `CAUCION` como fuente de fondeo
 
 Siguen influyendo en la estrategia:
 - taxonomia textual de consenso en [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-- preferencia explicita por `CAUCION` como fuente cuando se usa liquidez IOL en [sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
 - thresholds de bucket por beta en [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
 
 ## Principios
@@ -67,44 +67,35 @@ Siguen influyendo en la estrategia:
 ## Fase D. Desacople de `BLOCK_MAP` en scoring
 
 - Estado: `Hecho`
-- Objetivo: que el scoring no dependa de etiquetas fijas de bloque para premiar o castigar activos.
-
-### Tareas cerradas
-
-- eliminar el uso de `Es_Core` dentro del scoring
-- mantener `Bloque` solo para reporting
-- validar por test que dos activos iguales con distinto bloque puntuan igual
-
-### Criterio de cierre
-
-- `BLOCK_MAP` deja de influir materialmente en `Refuerzo` o `Reducir`
 
 ### Cierre
 
-- [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) dejo de usar `Es_Core` en `score_refuerzo` y `score_reduccion`.
-- [data/strategy/scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json) dejo de incluir castigos por `core`.
-- [tests/test_strategy_rules.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\test_strategy_rules.py) ahora valida que el bloque no altera los scores.
-- `Bloque` sigue existiendo para reporting y lectura del portfolio, pero ya no sesga la decision operativa.
+- [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) dejo de usar `Es_Core`.
+- `Bloque` sigue existiendo para reporting, pero ya no sesga la decision.
 
 ## Fase E. Politica de liquidez explicita
 
-- Estado: `En progreso`
+- Estado: `Hecho`
 - Objetivo: separar decision de mercado de politica de fondeo.
 
-### Tareas
+### Tareas cerradas
 
-- usar `usar_liquidez_iol` y `aporte_externo_ars` como inputs obligatorios del sizing real
+- usar `usar_liquidez_iol` y `aporte_externo_ars` como inputs del sizing real
 - impedir que el reporte sugiera desplegar liquidez cuando la politica la bloquea
-- documentar reglas de fondeo en reporte y snapshots
+- eliminar la preferencia fija por `CAUCION` como fuente de fondeo
+- seleccionar la fuente de fondeo por score y monto de liquidez candidata
 
 ### Criterio de cierre
 
 - la estrategia operativa respeta siempre la politica de fondeo elegida
 
-### Avance actual
+### Cierre
 
-- ya se incorporo la politica de fondeo al runner real
-- ya se bloquea la liquidez IOL cuando el usuario decide no usarla
+- el runner real ya pregunta politica de fondeo antes de armar la estrategia
+- la liquidez se bloquea cuando el usuario decide no usar IOL
+- [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py) ya no privilegia `CAUCION` por nombre
+- la fuente de fondeo ahora sale de la liquidez efectivamente candidata, ordenada por score y monto
+- [tests/test_sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\test_sizing.py) valida que una liquidez con mejor score desplaza a caucion como fuente
 
 ## Fase F. Validacion y cierre
 
@@ -135,3 +126,4 @@ Siguen influyendo en la estrategia:
 - El pipeline ya toma reglas de scoring, acciones y sizing desde archivos configurables.
 - Se cerro la Fase C con la eliminacion de `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` del sizing.
 - Se cerro la Fase D con la eliminacion del sesgo por `BLOCK_MAP` dentro del scoring.
+- Se cerro la Fase E con la politica de fondeo explicita y la eliminacion de la preferencia fija por caucion.

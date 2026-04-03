@@ -13,12 +13,13 @@ Separacion usada:
 - `Integracion`: conecta o traduce datos, pero no decide la estrategia
 - `Presentacion`: cambia mensajes o labels, no la logica central
 
-## Estado despues de la Fase D
+## Estado despues de la Fase E
 
 Ya quedaron eliminados del flujo estrategico:
 - listas manuales de tickers defensivos/agresivos
 - asignacion de bucket por ticker
 - sesgo por bloque manual en scoring
+- preferencia por `CAUCION` como fuente de fondeo
 
 Ya quedaron externalizados en `data/strategy/`:
 - pesos de `score_refuerzo`
@@ -32,7 +33,6 @@ Ya quedaron externalizados en `data/strategy/`:
 
 Siguen hardcodeados y afectan estrategia:
 - taxonomia textual de consenso
-- preferencia por `CAUCION` como fuente cuando se usa liquidez IOL
 
 ## Inventario vigente
 
@@ -116,8 +116,9 @@ Siguen hardcodeados y afectan estrategia:
 #### `build_operational_proposal(...)`
 
 - Tipo: `Estrategia`
-- Hardcode vigente:
-  - eleccion preferente de `CAUCION` como fuente cuando se usa liquidez IOL
+- Estado actual:
+  - la fuente de fondeo se elige por score y monto de liquidez candidata
+  - ya no depende de buscar `CAUCION` por nombre
 - Parametrizado:
   - top candidatos
   - politica porcentual de fondeo
@@ -152,20 +153,15 @@ Siguen hardcodeados y afectan estrategia:
 
 ### Prioridad 1
 
-- preferencia explicita por `CAUCION` como fuente de fondeo
-
-### Prioridad 2
-
 - taxonomia textual de `consensus_to_score(...)`
 
-### Prioridad 3
+### Prioridad 2
 
 - labels y comentarios de presentacion
 
 ## Conclusion
 
-La Fase D dejo fuera del scoring el sesgo por bloque manual.
+La Fase E dejo la estrategia sin sesgo por ticker manual, por bloque y sin preferencia fija por caucion.
 
-Lo que queda pendiente para la estrategia es principalmente:
-- una preferencia fija por caucion dentro del fondeo
-- una heuristica textual de consenso
+Lo que queda pendiente como hardcode material de estrategia es principalmente:
+- la heuristica textual de consenso
