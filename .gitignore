@@ -8,3 +8,6 @@ __pycache__/
 *.xls
 *.json
 *.log
+
+#Notebooks
+*.ipynb
