@@ -1,0 +1,21 @@
+{
+  "fecha": "03/04/2026 13:16",
+  "total_ars": 25063747.99371751,
+  "total_ars_iol": 24525797.636295505,
+  "total_usd": 17474.550647505763,
+  "ganancia_total": 3977412.71185,
+  "mep_real": 1434.3,
+  "invertido_ars": 14349350.8655,
+  "invertido_usd": 10004.427850170818,
+  "liquidez_ars": 10714397.128217509,
+  "liquidez_ars_iol": 10176446.770795504,
+  "liquidez_usd": 7470.122797334944,
+  "liquidez_usd_ars": 537950.3574220057,
+  "costo_invertido": 11531208.16465,
+  "rentabilidad_invertida": 24.439266559156227,
+  "rentabilidad_total": 34.49259310089581,
+  "n_ganadoras": 32,
+  "n_perdedoras": 6,
+  "n_neutras": 0,
+  "n_instrumentos": 38
+}

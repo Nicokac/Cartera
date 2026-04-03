@@ -1,3 +1,10 @@
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
+
+#/docs
+*.csv
+*.xlsx
+*.xls
+*.json
+*.log
