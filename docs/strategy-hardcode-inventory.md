@@ -13,7 +13,7 @@ Separacion usada:
 - `Integracion`: conecta o traduce datos, pero no decide la estrategia
 - `Presentacion`: cambia mensajes o labels, no la logica central
 
-## Estado despues de la Fase E
+## Estado despues de la Fase F
 
 Ya quedaron eliminados del flujo estrategico:
 - listas manuales de tickers defensivos/agresivos
@@ -25,14 +25,14 @@ Ya quedaron externalizados en `data/strategy/`:
 - pesos de `score_refuerzo`
 - pesos de `score_reduccion`
 - pesos de momentum
+- taxonomia textual de consenso
 - castigos por liquidez, bono y beta
 - thresholds de `Refuerzo`, `Reducir` y `Desplegar liquidez`
 - thresholds de rebalanceo de bonos
 - pesos de sizing, topes y politica de fondeo
 - thresholds de bucket por beta y defaults por tipo
 
-Siguen hardcodeados y afectan estrategia:
-- taxonomia textual de consenso
+No quedan hardcodes materiales afectando estrategia.
 
 ## Inventario vigente
 
@@ -41,8 +41,8 @@ Siguen hardcodeados y afectan estrategia:
 #### `consensus_to_score(...)`
 
 - Tipo: `Estrategia`
-- Hardcode vigente:
-  - listas fijas de palabras positivas, negativas y neutras
+- Estado:
+  - taxonomia textual parametrizada via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
 - Impacta en:
   - `Consensus_Score`
   - `score_refuerzo`
@@ -153,15 +153,11 @@ Siguen hardcodeados y afectan estrategia:
 
 ### Prioridad 1
 
-- taxonomia textual de `consensus_to_score(...)`
-
-### Prioridad 2
-
 - labels y comentarios de presentacion
 
 ## Conclusion
 
-La Fase E dejo la estrategia sin sesgo por ticker manual, por bloque y sin preferencia fija por caucion.
+La Fase F deja la estrategia sin hardcodes materiales de decision.
 
-Lo que queda pendiente como hardcode material de estrategia es principalmente:
-- la heuristica textual de consenso
+Lo que queda pendiente ya no afecta la logica central, sino principalmente:
+- labels y comentarios de presentacion

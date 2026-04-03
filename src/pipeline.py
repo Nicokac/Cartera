@@ -94,7 +94,13 @@ def build_decision_bundle(
     scoring_rules: dict[str, Any] | None = None,
     action_rules: dict[str, Any] | None = None,
 ) -> dict[str, pd.DataFrame]:
-    decision = build_decision_base(df_total, df_cedears, df_ratings_res, mep_real=mep_real)
+    decision = build_decision_base(
+        df_total,
+        df_cedears,
+        df_ratings_res,
+        mep_real=mep_real,
+        scoring_rules=scoring_rules,
+    )
     decision = apply_base_scores(decision, scoring_rules=scoring_rules)
     decision = assign_base_action(decision, action_rules=action_rules)
 

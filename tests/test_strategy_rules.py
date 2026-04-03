@@ -10,10 +10,26 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from decision.actions import assign_action_v2
-from decision.scoring import apply_base_scores
+from decision.scoring import apply_base_scores, consensus_to_score
 
 
 class StrategyRulesTests(unittest.TestCase):
+    def test_consensus_taxonomy_can_be_overridden_from_external_rules(self) -> None:
+        default_score = consensus_to_score("accumulate")
+        custom_score = consensus_to_score(
+            "accumulate",
+            scoring_rules={
+                "consensus_taxonomy": {
+                    "positive_terms": ["accumulate"],
+                    "negative_terms": [],
+                    "neutral_terms": [],
+                }
+            },
+        )
+
+        self.assertEqual(default_score, 0.5)
+        self.assertEqual(custom_score, 1.0)
+
     def test_action_thresholds_can_be_overridden_from_external_rules(self) -> None:
         df = pd.DataFrame(
             [

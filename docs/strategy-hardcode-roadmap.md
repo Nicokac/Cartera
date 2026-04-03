@@ -19,15 +19,17 @@ Este roadmap cubre solo hardcodes que afectan la estrategia. No incluye mappings
 
 ## Estado actual
 
-Luego de la Fase E, ya no quedan influyendo de forma material:
+Luego de la Fase F, ya no quedan influyendo de forma material:
 - listas manuales de tickers
 - sesgo por bloque via `BLOCK_MAP`
 - pesos y thresholds embebidos en codigo
 - preferencia fija por `CAUCION` como fuente de fondeo
+- taxonomia textual embebida en codigo
 
-Siguen influyendo en la estrategia:
-- taxonomia textual de consenso en [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-- thresholds de bucket por beta en [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
+Siguen existiendo decisiones parametrizadas de estrategia, pero ya viven fuera del codigo en:
+- [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+- [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
+- [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
 
 ## Principios
 
@@ -99,10 +101,10 @@ Siguen influyendo en la estrategia:
 
 ## Fase F. Validacion y cierre
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: confirmar que la estrategia sigue siendo util despues del deshardcodeo.
 
-### Tareas
+### Tareas cerradas
 
 - comparar decisiones antes/despues con snapshot real
 - revisar cambios en:
@@ -116,6 +118,13 @@ Siguen influyendo en la estrategia:
 
 - la estrategia queda explicable, auditable y sin sesgos por ticker manual
 
+### Cierre
+
+- la taxonomia de consenso quedo externalizada en [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+- [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) ya no define listas textuales de consenso en el flujo principal
+- los tests validan override de taxonomia y estabilidad de la estrategia parametrizada
+- el roadmap de deshardcodeo estrategico queda cerrado
+
 ## Registro de avances
 
 ### 2026-04-03
@@ -127,3 +136,4 @@ Siguen influyendo en la estrategia:
 - Se cerro la Fase C con la eliminacion de `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` del sizing.
 - Se cerro la Fase D con la eliminacion del sesgo por `BLOCK_MAP` dentro del scoring.
 - Se cerro la Fase E con la politica de fondeo explicita y la eliminacion de la preferencia fija por caucion.
+- Se cerro la Fase F con la externalizacion de la taxonomia de consenso y el cierre del deshardcodeo estrategico.

@@ -14,14 +14,23 @@ def rank_score(series: pd.Series, higher_is_better: bool = True, neutral: float 
     return out
 
 
-def consensus_to_score(text: object) -> float:
+DEFAULT_CONSENSUS_TAXONOMY = {
+    "positive_terms": ["buy", "outperform", "overweight", "upgrade", "positive", "strong buy", "initiated"],
+    "negative_terms": ["sell", "underperform", "underweight", "downgrade", "negative", "reduce"],
+    "neutral_terms": ["hold", "neutral", "equal-weight", "equal weight", "market perform", "sector perform", "reiterated"],
+}
+
+
+def consensus_to_score(text: object, *, scoring_rules: dict[str, object] | None = None) -> float:
     if pd.isna(text):
         return 0.5
     t = str(text).strip().lower()
 
-    positivos = ["buy", "outperform", "overweight", "upgrade", "positive", "strong buy", "initiated"]
-    negativos = ["sell", "underperform", "underweight", "downgrade", "negative", "reduce"]
-    neutros = ["hold", "neutral", "equal-weight", "equal weight", "market perform", "sector perform", "reiterated"]
+    scoring_rules = scoring_rules or {}
+    taxonomy = scoring_rules.get("consensus_taxonomy", {}) or {}
+    positivos = [str(x).strip().lower() for x in taxonomy.get("positive_terms", DEFAULT_CONSENSUS_TAXONOMY["positive_terms"])]
+    negativos = [str(x).strip().lower() for x in taxonomy.get("negative_terms", DEFAULT_CONSENSUS_TAXONOMY["negative_terms"])]
+    neutros = [str(x).strip().lower() for x in taxonomy.get("neutral_terms", DEFAULT_CONSENSUS_TAXONOMY["neutral_terms"])]
 
     if any(x in t for x in positivos):
         return 1.0
@@ -38,6 +47,7 @@ def build_decision_base(
     df_ratings_res: pd.DataFrame,
     *,
     mep_real: float | None,
+    scoring_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
     decision_cols = [
         "Ticker_IOL",
@@ -92,7 +102,9 @@ def build_decision_base(
         np.nan,
     )
 
-    decision["Consensus_Score"] = decision["consenso"].apply(consensus_to_score)
+    decision["Consensus_Score"] = decision["consenso"].apply(
+        lambda value: consensus_to_score(value, scoring_rules=scoring_rules)
+    )
     decision["Consensus_Strength"] = np.where(
         decision["total_ratings"].fillna(0) > 0,
         decision["consenso_n"].fillna(0) / decision["total_ratings"].fillna(1),
