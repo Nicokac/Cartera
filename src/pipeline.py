@@ -124,8 +124,6 @@ def build_sizing_bundle(
     *,
     final_decision: pd.DataFrame,
     mep_real: float | None,
-    defensive_tickers: set[str],
-    aggressive_tickers: set[str],
     bucket_weights: dict[str, float],
     usar_liquidez_iol: bool = True,
     aporte_externo_ars: float = 0.0,
@@ -145,8 +143,6 @@ def build_sizing_bundle(
         monto_fondeo_ars=operational_bundle["monto_fondeo_ars"],
         monto_fondeo_usd=operational_bundle["monto_fondeo_usd"],
         mep_real=mep_real,
-        defensive_tickers=defensive_tickers,
-        aggressive_tickers=aggressive_tickers,
         bucket_weights=bucket_weights,
         sizing_rules=sizing_rules,
     )
@@ -155,8 +151,6 @@ def build_sizing_bundle(
         monto_fondeo_ars=operational_bundle["monto_fondeo_ars"],
         monto_fondeo_usd=operational_bundle["monto_fondeo_usd"],
         mep_real=mep_real,
-        defensive_tickers=defensive_tickers,
-        aggressive_tickers=aggressive_tickers,
         bucket_weights=bucket_weights,
         sizing_rules=sizing_rules,
     )

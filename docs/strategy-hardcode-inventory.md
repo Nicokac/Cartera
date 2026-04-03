@@ -13,7 +13,11 @@ Separacion usada:
 - `Integracion`: conecta o traduce datos, pero no decide la estrategia
 - `Presentacion`: cambia mensajes o labels, no la logica central
 
-## Estado despues de la Fase B
+## Estado despues de la Fase C
+
+Ya quedaron eliminados del flujo estrategico:
+- listas manuales de tickers defensivos/agresivos
+- asignacion de bucket por ticker
 
 Ya quedaron externalizados en `data/strategy/`:
 - pesos de `score_refuerzo`
@@ -23,38 +27,14 @@ Ya quedaron externalizados en `data/strategy/`:
 - thresholds de `Refuerzo`, `Reducir` y `Desplegar liquidez`
 - thresholds de rebalanceo de bonos
 - pesos de sizing, topes y politica de fondeo
+- thresholds de bucket por beta y defaults por tipo
 
 Siguen hardcodeados y afectan estrategia:
-- listas de tickers defensivos/agresivos
 - sesgo por bloque via `BLOCK_MAP`
 - taxonomia textual de consenso
+- preferencia por `CAUCION` como fuente cuando se usa liquidez IOL
 
 ## Inventario vigente
-
-### [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
-
-#### `DEFENSIVE_TICKERS`
-
-- Tipo: `Estrategia`
-- Impacta en:
-  - `Bucket_Prudencia`
-  - `Peso_Base`
-  - `Monto_ARS`
-
-#### `AGGRESSIVE_TICKERS`
-
-- Tipo: `Estrategia`
-- Impacta en:
-  - `Bucket_Prudencia`
-  - `Peso_Base`
-  - `Monto_ARS`
-
-#### `FCI_CASH_MANAGEMENT`
-
-- Tipo: `Integracion`
-- Impacta en:
-  - clasificacion de liquidez
-  - reconstruccion de cash management
 
 ### [data/mappings/block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
 
@@ -82,31 +62,31 @@ Siguen hardcodeados y afectan estrategia:
 
 - Tipo: `Estrategia`
 - Estado:
-  - ya parametrizado via `data/strategy/scoring_rules.json`
+  - parametrizado via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
 
 #### `Ganancia_%_Cap`
 
 - Tipo: `Estrategia`
 - Estado:
-  - ya parametrizado via `data/strategy/scoring_rules.json`
+  - parametrizado via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
 
 #### `score_refuerzo`
 
 - Tipo: `Estrategia`
 - Estado:
-  - pesos y castigos ya parametrizados via `data/strategy/scoring_rules.json`
+  - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
 
 #### `score_reduccion`
 
 - Tipo: `Estrategia`
 - Estado:
-  - pesos y castigos ya parametrizados via `data/strategy/scoring_rules.json`
+  - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
 
 #### `score_despliegue_liquidez`
 
 - Tipo: `Estrategia`
 - Estado:
-  - pesos ya parametrizados via `data/strategy/scoring_rules.json`
+  - pesos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
 
 ### [src/decision/actions.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
 
@@ -114,13 +94,13 @@ Siguen hardcodeados y afectan estrategia:
 
 - Tipo: `Estrategia`
 - Estado:
-  - thresholds ya parametrizados via `data/strategy/action_rules.json`
+  - thresholds parametrizados via [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
 
 #### `assign_action_v2(...)`
 
 - Tipo: `Estrategia`
 - Estado:
-  - thresholds ya parametrizados via `data/strategy/action_rules.json`
+  - thresholds parametrizados via [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
 
 #### labels y mensajes
 
@@ -133,10 +113,13 @@ Siguen hardcodeados y afectan estrategia:
 #### `_bucket_prudencia(...)`
 
 - Tipo: `Estrategia`
-- Hardcode vigente:
-  - prioridad de listas manuales de tickers
+- Estado actual:
+  - deriva el bucket desde tipo, beta y peso relativo
+  - ya no depende de tickers manuales
 - Parametrizado:
-  - thresholds beta via `data/strategy/sizing_rules.json`
+  - thresholds beta
+  - defaults por tipo
+  - threshold de peso relativo
 
 #### `build_operational_proposal(...)`
 
@@ -165,28 +148,33 @@ Siguen hardcodeados y afectan estrategia:
   - fallback de bucket
   - tope por posicion
 
+## Hardcodes de integracion que no son prioridad estrategica
+
+- [finviz_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\finviz_map.json)
+- [ratios.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\ratios.json)
+- [vn_factor_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\vn_factor_map.json)
+- tipos cotizables permitidos en [generate_real_report.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+
 ## Prioridad actual de remocion
 
 ### Prioridad 1
 
-- `DEFENSIVE_TICKERS`
-- `AGGRESSIVE_TICKERS`
 - sesgo `Es_Core` derivado de `BLOCK_MAP`
+- preferencia explicita por `CAUCION` como fuente de fondeo
 
 ### Prioridad 2
 
-- preferencia explicita por `CAUCION` como fuente de fondeo
 - taxonomia textual de `consensus_to_score(...)`
 
 ### Prioridad 3
 
 - labels y comentarios de presentacion
 
-## Conclusión
+## Conclusion
 
-La Fase B elimino del codigo la mayor parte de los thresholds y pesos operativos.
+La Fase C elimino el sesgo por ticker manual del sizing.
 
 Lo que queda pendiente para la estrategia es principalmente:
-- sesgo por ticker manual
 - sesgo por bloque manual
-- una parte de la heuristica textual de consenso
+- heuristica textual de consenso
+- una preferencia fija por caucion dentro del fondeo

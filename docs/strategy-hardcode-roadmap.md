@@ -19,17 +19,15 @@ Este roadmap cubre solo hardcodes que afectan la estrategia. No incluye mappings
 
 ## Estado actual
 
-Luego de la Fase B, ya no quedan embebidos en codigo:
-- pesos de scoring
-- thresholds de accion
-- pesos y topes de sizing
-- politica porcentual de fondeo
+Luego de la Fase C, ya no quedan influyendo por ticker manual:
+- bucket de prudencia
+- peso base del sizing
+- asignacion final por ticker
 
 Siguen influyendo en la estrategia:
-- `DEFENSIVE_TICKERS` en [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
-- `AGGRESSIVE_TICKERS` en [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
 - heuristicas de bloque via [block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
 - taxonomia textual de consenso en [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+- preferencia explicita por `CAUCION` como fuente cuando se usa liquidez IOL en [sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
 - thresholds de bucket por beta en [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
 
 ## Principios
@@ -42,70 +40,49 @@ Siguen influyendo en la estrategia:
 ## Fase A. Inventario y aislamiento
 
 - Estado: `Hecho`
-- Objetivo: identificar todos los hardcodes que alteran la decision final o el sizing.
-
-### Criterio de cierre
-
-- existe un inventario completo con impacto por regla
 
 ### Cierre
 
-- Se relevo el inventario de hardcodes que afectan estrategia en:
-  - [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
-  - [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [src/decision/actions.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
-  - [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
-  - [data/mappings/block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json)
+- Se relevo el inventario de hardcodes que afectan estrategia.
 - Se creo [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md).
 
 ## Fase B. Parametrizacion externa
 
 - Estado: `Hecho`
-- Objetivo: mover thresholds y pesos de estrategia a configuracion externa.
-
-### Tareas cerradas
-
-- crear `data/strategy/`
-- extraer:
-  - umbrales de `score_refuerzo`
-  - umbrales de `score_reduccion`
-  - umbral de `score_despliegue_liquidez`
-  - pesos de momentum
-  - castigos por liquidez/core
-  - pesos y topes de sizing
-- cargar estas reglas desde config
-
-### Criterio de cierre
-
-- cambiar thresholds no requiere tocar codigo Python
 
 ### Cierre
 
-- Se creo `data/strategy/` con:
-  - [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
-  - [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
-  - [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
-- [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py) ahora carga `SCORING_RULES`, `ACTION_RULES` y `SIZING_RULES`.
+- Se creo `data/strategy/` con reglas externas de scoring, acciones y sizing.
 - El pipeline y los runners usan esas reglas externas.
-- La suite valida que thresholds externos cambian la accion sin tocar codigo.
+- Los thresholds y pesos operativos ya no viven embebidos en codigo.
 
 ## Fase C. Eliminacion de listas de tickers
 
-- Estado: `Pendiente`
+- Estado: `Hecho`
 - Objetivo: reemplazar `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS`.
 
-### Tareas
+### Tareas cerradas
 
 - derivar bucket de prudencia desde features:
   - `Beta`
   - tipo de activo
-  - volatilidad o proxy equivalente
-  - concentracion o peso en cartera
-- dejar listas manuales solo como fallback transitorio
+  - peso relativo en cartera
+- eliminar la dependencia efectiva de listas manuales en sizing
 
 ### Criterio de cierre
 
 - el bucket de prudencia no depende de ticker hardcodeado
+
+### Cierre
+
+- [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py) ya no usa listas de tickers para definir `Bucket_Prudencia`.
+- El bucket ahora se deriva desde:
+  - tipo de activo
+  - thresholds de beta
+  - peso relativo
+- [data/strategy/sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json) incorpora reglas de bucket por features.
+- [src/config.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py) dejo de exponer `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` al runtime.
+- El pipeline, el smoke run y el runner real quedaron desacoplados de esas listas.
 
 ## Fase D. Desacople de `BLOCK_MAP` en scoring
 
@@ -172,3 +149,4 @@ Siguen influyendo en la estrategia:
 - Se creo [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md) como documento base de inventario.
 - Se cerro la Fase B con la externalizacion de thresholds y pesos de estrategia a `data/strategy/`.
 - El pipeline ya toma reglas de scoring, acciones y sizing desde archivos configurables.
+- Se cerro la Fase C con la eliminacion de `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` del sizing.

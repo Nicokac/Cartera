@@ -249,8 +249,6 @@ def main() -> None:
     sizing_bundle = build_sizing_bundle(
         final_decision=decision_bundle["final_decision"],
         mep_real=mep_real,
-        defensive_tickers=project_config.DEFENSIVE_TICKERS,
-        aggressive_tickers=project_config.AGGRESSIVE_TICKERS,
         bucket_weights=project_config.BUCKET_WEIGHTS,
         usar_liquidez_iol=usar_liquidez_iol,
         aporte_externo_ars=aporte_externo_ars,

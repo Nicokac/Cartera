@@ -191,8 +191,6 @@ def run_smoke_pipeline() -> dict[str, object]:
     sizing_bundle = build_sizing_bundle(
         final_decision=final_decision,
         mep_real=mep_real,
-        defensive_tickers=project_config.DEFENSIVE_TICKERS,
-        aggressive_tickers=project_config.AGGRESSIVE_TICKERS,
         bucket_weights=project_config.BUCKET_WEIGHTS,
         action_rules=project_config.ACTION_RULES,
         sizing_rules=project_config.SIZING_RULES,

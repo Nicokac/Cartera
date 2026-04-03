@@ -119,8 +119,6 @@ class SizingTests(unittest.TestCase):
             monto_fondeo_ars=proposal_bundle["monto_fondeo_ars"],
             monto_fondeo_usd=proposal_bundle["monto_fondeo_usd"],
             mep_real=1000,
-            defensive_tickers={"T"},
-            aggressive_tickers={"VIST"},
             bucket_weights=self.bucket_weights,
         )
         dinamica = build_dynamic_allocation(
@@ -128,12 +126,12 @@ class SizingTests(unittest.TestCase):
             monto_fondeo_ars=proposal_bundle["monto_fondeo_ars"],
             monto_fondeo_usd=proposal_bundle["monto_fondeo_usd"],
             mep_real=1000,
-            defensive_tickers={"T"},
-            aggressive_tickers={"VIST"},
             bucket_weights=self.bucket_weights,
         )
 
         self.assertEqual(prudente.iloc[0]["Ticker_IOL"], "T")
+        self.assertEqual(prudente.iloc[0]["Bucket_Prudencia"], "Defensivo")
+        self.assertEqual(prudente.iloc[1]["Bucket_Prudencia"], "Agresivo")
         self.assertLessEqual(prudente["Asignacion_Final_ARS"].max(), 130000)
         self.assertTrue(math.isclose(prudente["Asignacion_Final_ARS"].sum(), 200000, rel_tol=0, abs_tol=1))
 

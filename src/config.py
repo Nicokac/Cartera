@@ -20,9 +20,6 @@ ALERTA_PERDIDA_MINIMA = -10000
 
 FCI_CASH_MANAGEMENT = {"ADBAICA", "IOLPORA", "PRPEDOB"}
 
-DEFENSIVE_TICKERS = {"KO", "XLU", "T", "MCD", "BRKB"}
-AGGRESSIVE_TICKERS = {"VIST", "AMD", "NVDA", "MELI"}
-
 
 def _load_json_mapping(filename: str) -> dict[str, Any]:
     path = MAPPINGS_DIR / filename
@@ -62,8 +59,6 @@ def load_runtime_config() -> dict[str, Any]:
         "ALERTA_MEP_DESVIO_PCT": ALERTA_MEP_DESVIO_PCT,
         "ALERTA_PERDIDA_MINIMA": ALERTA_PERDIDA_MINIMA,
         "FCI_CASH_MANAGEMENT": set(FCI_CASH_MANAGEMENT),
-        "DEFENSIVE_TICKERS": set(DEFENSIVE_TICKERS),
-        "AGGRESSIVE_TICKERS": set(AGGRESSIVE_TICKERS),
         "BUCKET_WEIGHTS": dict(BUCKET_WEIGHTS),
         "SCORING_RULES": dict(SCORING_RULES),
         "ACTION_RULES": dict(ACTION_RULES),

@@ -35,25 +35,31 @@ def _comentario_operativo(row: pd.Series) -> str:
 def _bucket_prudencia(
     row: pd.Series,
     *,
-    defensive_tickers: set[str],
-    aggressive_tickers: set[str],
     sizing_rules: dict[str, object] | None = None,
 ) -> str:
     sizing_rules = sizing_rules or {}
     bucket_beta_thresholds = sizing_rules.get("bucket_beta_thresholds", {}) or {}
+    bucket_type_defaults = sizing_rules.get("bucket_type_defaults", {}) or {}
+    bucket_weight_thresholds = sizing_rules.get("bucket_weight_thresholds", {}) or {}
     defensivo_max = float(bucket_beta_thresholds.get("defensivo_max", 0.8))
     agresivo_min = float(bucket_beta_thresholds.get("agresivo_min", 1.3))
+    agresivo_peso_min = float(bucket_weight_thresholds.get("agresivo_min_pct", 5.0))
 
-    ticker = row["Ticker_IOL"]
+    tipo = str(row.get("Tipo") or "").strip()
     beta = row.get("Beta")
-    if ticker in defensive_tickers:
-        return "Defensivo"
-    if ticker in aggressive_tickers:
-        return "Agresivo"
+    peso_pct = pd.to_numeric(row.get("Peso_%"), errors="coerce")
+    tipo_default = bucket_type_defaults.get(tipo)
+    if tipo_default in {"Defensivo", "Intermedio", "Agresivo"}:
+        if tipo in {"Liquidez", "Bono"}:
+            return str(tipo_default)
     if pd.notna(beta) and beta <= defensivo_max:
         return "Defensivo"
     if pd.notna(beta) and beta >= agresivo_min:
         return "Agresivo"
+    if tipo in {"CEDEAR", "Acción Local"} and pd.notna(peso_pct) and peso_pct >= agresivo_peso_min:
+        return "Agresivo"
+    if tipo_default in {"Defensivo", "Intermedio", "Agresivo"}:
+        return str(tipo_default)
     return "Intermedio"
 
 
@@ -213,8 +219,6 @@ def build_prudent_allocation(
     monto_fondeo_ars: float,
     monto_fondeo_usd: float,
     mep_real: float | None,
-    defensive_tickers: set[str],
-    aggressive_tickers: set[str],
     bucket_weights: dict[str, float],
     sizing_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
@@ -232,8 +236,6 @@ def build_prudent_allocation(
     candidatos_refuerzo["Bucket_Prudencia"] = candidatos_refuerzo.apply(
         lambda row: _bucket_prudencia(
             row,
-            defensive_tickers=defensive_tickers,
-            aggressive_tickers=aggressive_tickers,
             sizing_rules=sizing_rules,
         ),
         axis=1,
@@ -280,8 +282,6 @@ def build_dynamic_allocation(
     monto_fondeo_ars: float,
     monto_fondeo_usd: float,
     mep_real: float | None,
-    defensive_tickers: set[str],
-    aggressive_tickers: set[str],
     bucket_weights: dict[str, float],
     tope_pct: float = 65.0,
     sizing_rules: dict[str, object] | None = None,
@@ -300,8 +300,6 @@ def build_dynamic_allocation(
     asignacion_final["Bucket_Prudencia"] = asignacion_final.apply(
         lambda row: _bucket_prudencia(
             row,
-            defensive_tickers=defensive_tickers,
-            aggressive_tickers=aggressive_tickers,
             sizing_rules=sizing_rules,
         ),
         axis=1,
