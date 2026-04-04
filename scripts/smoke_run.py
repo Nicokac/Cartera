@@ -140,6 +140,8 @@ def enrich_mock_cedears(df_cedears: pd.DataFrame, *, mep_real: float) -> pd.Data
     out["Perf YTD"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("Perf YTD"))
     out["Beta"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("Beta"))
     out["P/E"] = out["Ticker_IOL"].map(lambda t: overlays.get(t, {}).get("P/E"))
+    out["ROE"] = out["Ticker_IOL"].map(lambda t: {"T": 18.0, "VIST": 24.0, "NVDA": 31.0}.get(t))
+    out["Profit Margin"] = out["Ticker_IOL"].map(lambda t: {"T": 15.0, "VIST": 19.0, "NVDA": 22.0}.get(t))
     out["MEP_Implicito"] = mep_real * pd.Series([0.995, 1.015, 1.055][: len(out)], index=out.index)
     return out
 
@@ -177,6 +179,16 @@ def run_smoke_pipeline() -> dict[str, object]:
     df_total = portfolio_bundle["df_total"]
     df_cedears = enrich_mock_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     df_ratings_res = build_mock_ratings()
+    finviz_stats = {
+        "cedears_total": int(len(df_cedears)),
+        "fundamentals_covered": int(df_cedears[["Perf Week", "Perf Month", "Perf YTD", "Beta", "P/E", "ROE", "Profit Margin"]].notna().any(axis=1).sum()),
+        "ratings_covered": int(len(df_ratings_res)),
+        "coverage_by_field": {
+            col: int(df_cedears[col].notna().sum())
+            for col in ["Perf Week", "Perf Month", "Perf YTD", "Beta", "P/E", "ROE", "Profit Margin"]
+        },
+        "errors": [],
+    }
 
     decision_bundle = build_decision_bundle(
         df_total=df_total,
@@ -204,6 +216,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         "dashboard_bundle": dashboard_bundle,
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
+        "finviz_stats": finviz_stats,
     }
 
 

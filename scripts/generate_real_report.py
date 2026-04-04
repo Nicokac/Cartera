@@ -136,12 +136,23 @@ def fetch_prices(
     return prices, current_token
 
 
-def enrich_real_cedears(df_cedears: pd.DataFrame, *, mep_real: float | None) -> tuple[pd.DataFrame, pd.DataFrame]:
+def enrich_real_cedears(
+    df_cedears: pd.DataFrame,
+    *,
+    mep_real: float | None,
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, object]]:
     if df_cedears.empty:
-        return df_cedears, pd.DataFrame()
+        return df_cedears, pd.DataFrame(), {
+            "cedears_total": 0,
+            "fundamentals_covered": 0,
+            "ratings_covered": 0,
+            "coverage_by_field": {},
+            "errors": [],
+        }
 
     out = df_cedears.copy()
     ratings_rows: list[dict[str, object]] = []
+    errors: list[str] = []
 
     defaults = {
         "Perf Week": np.nan,
@@ -164,7 +175,8 @@ def enrich_real_cedears(df_cedears: pd.DataFrame, *, mep_real: float | None) -> 
 
         try:
             bundle = fetch_finviz_bundle(str(ticker_finviz))
-        except Exception:
+        except Exception as exc:
+            errors.append(f"{ticker_finviz}: {exc}")
             continue
 
         fundamentals = bundle.get("fundamentals", {}) or {}
@@ -201,7 +213,17 @@ def enrich_real_cedears(df_cedears: pd.DataFrame, *, mep_real: float | None) -> 
     df_ratings_res = pd.DataFrame(ratings_rows)
     if not df_ratings_res.empty:
         df_ratings_res = df_ratings_res.drop_duplicates(subset=["Ticker_Finviz"]).set_index("Ticker_Finviz")
-    return out, df_ratings_res
+    coverage_fields = ["Perf Week", "Perf Month", "Perf YTD", "Beta", "P/E", "ROE", "Profit Margin"]
+    coverage_by_field = {col: int(out[col].notna().sum()) for col in coverage_fields if col in out.columns}
+    fundamentals_covered = int(out[coverage_fields].notna().any(axis=1).sum()) if coverage_fields else 0
+    stats = {
+        "cedears_total": int(len(out)),
+        "fundamentals_covered": fundamentals_covered,
+        "ratings_covered": int(len(df_ratings_res)),
+        "coverage_by_field": coverage_by_field,
+        "errors": errors[:10],
+    }
+    return out, df_ratings_res, stats
 
 
 def write_real_snapshots(
@@ -277,7 +299,7 @@ def main() -> None:
     )
 
     df_total = portfolio_bundle["df_total"]
-    df_cedears, df_ratings_res = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
+    df_cedears, df_ratings_res, finviz_stats = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     technical_overlay = build_technical_overlay(df_cedears, scoring_rules=project_config.SCORING_RULES)
     tech_metric_cols = [
         "Dist_SMA20_%",
@@ -294,6 +316,15 @@ def main() -> None:
     tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
     tech_total = int(len(df_cedears))
     print(f"Cobertura técnica: {tech_covered}/{tech_total}")
+    print(
+        "Cobertura Finviz: "
+        f"{finviz_stats.get('fundamentals_covered', 0)}/{finviz_stats.get('cedears_total', 0)}"
+        f" | Ratings: {finviz_stats.get('ratings_covered', 0)}/{finviz_stats.get('cedears_total', 0)}"
+    )
+    if finviz_stats.get("errors"):
+        print("Errores Finviz (muestra):")
+        for item in finviz_stats["errors"]:
+            print(f"  - {item}")
 
     decision_bundle = build_decision_bundle(
         df_total=df_total,
@@ -322,6 +353,7 @@ def main() -> None:
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
         "technical_overlay": technical_overlay,
+        "finviz_stats": finviz_stats,
     }
     html_body = render_report(
         report,

@@ -242,6 +242,7 @@ def render_report(
     decision_bundle = result["decision_bundle"]
     sizing_bundle = result["sizing_bundle"]
     technical_overlay = result.get("technical_overlay", pd.DataFrame())
+    finviz_stats = result.get("finviz_stats", {}) or {}
 
     df_total = portfolio_bundle["df_total"].copy()
     integrity_report = portfolio_bundle["integrity_report"].copy()
@@ -265,6 +266,9 @@ def render_report(
     tech_total = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
     tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
     tech_enabled = "Sí" if tech_covered > 0 else "No"
+    finviz_total = int(finviz_stats.get("cedears_total", tech_total))
+    finviz_fund_covered = int(finviz_stats.get("fundamentals_covered", 0))
+    finviz_ratings_covered = int(finviz_stats.get("ratings_covered", 0))
 
     if not propuesta.empty and "accion_operativa" in propuesta.columns:
         decision_view = propuesta
@@ -320,6 +324,8 @@ def render_report(
       <article class="card"><span class="label">Liquidez USD en ARS</span><strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></article>
       <article class="card"><span class="label">Overlay técnico</span><strong>{tech_enabled}</strong></article>
       <article class="card"><span class="label">Cobertura técnica</span><strong>{tech_covered}/{tech_total}</strong></article>
+      <article class="card"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
+      <article class="card"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
     </section>
     """
 
@@ -374,6 +380,8 @@ def render_report(
           <span>Total consolidado: <strong>{fmt_ars(kpis['total_ars'])}</strong></span>
           <span>Total estilo IOL: <strong>{fmt_ars(kpis['total_ars_iol'])}</strong></span>
           <span>Liquidez USD convertida: <strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></span>
+          <span>Finviz fundamentals: <strong>{finviz_fund_covered}/{finviz_total}</strong></span>
+          <span>Finviz ratings: <strong>{finviz_ratings_covered}/{finviz_total}</strong></span>
         </div>
         {build_table(
             resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]],
