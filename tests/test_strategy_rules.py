@@ -138,6 +138,53 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(blended.loc[0, "tech_refuerzo"], 0.5)
         self.assertGreater(blended.loc[0, "score_refuerzo_v2"], blended.loc[0, "score_refuerzo"])
 
+    def test_concentration_and_quality_change_base_scores(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "LOWW",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 1.5,
+                    "Perf Week": 3.0,
+                    "Perf Month": 5.0,
+                    "Perf YTD": 9.0,
+                    "Beta": 1.0,
+                    "P/E": 18.0,
+                    "ROE": 22.0,
+                    "Profit Margin": 18.0,
+                    "MEP_Premium_%": 0.5,
+                    "Consensus_Final": 0.6,
+                    "Ganancia_%": 8.0,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "HIGHW",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 6.5,
+                    "Perf Week": 3.0,
+                    "Perf Month": 5.0,
+                    "Perf YTD": 9.0,
+                    "Beta": 1.0,
+                    "P/E": 18.0,
+                    "ROE": 5.0,
+                    "Profit Margin": 3.0,
+                    "MEP_Premium_%": 0.5,
+                    "Consensus_Final": 0.6,
+                    "Ganancia_%": 8.0,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(df)
+
+        self.assertGreater(scored.loc[0, "s_concentration_room"], scored.loc[1, "s_concentration_room"])
+        self.assertGreater(scored.loc[0, "s_quality"], scored.loc[1, "s_quality"])
+        self.assertGreater(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+        self.assertLess(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
 
 if __name__ == "__main__":
     unittest.main()

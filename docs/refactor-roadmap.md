@@ -421,6 +421,15 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - se completó la trazabilidad funcional del notebook en [`notebook-feature-traceability.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\notebook-feature-traceability.md)
 - se identificó como brecha principal que el overlay técnico de las celdas 29 y 30 no estaba conectado al runner real
 - se inició la reintegración del overlay técnico al pipeline canónico y a [`generate_real_report.py`](C:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+- el runner real ahora expone cobertura técnica y guarda snapshot específico del overlay técnico
+- se validó una corrida real con overlay técnico activo y cobertura `24/24`
+- se inició la calibración v1.1 del score para:
+  - reducir doble conteo de momentum
+  - agregar concentración explícita
+  - agregar una señal mínima de calidad
+- la calibración v1.1 quedó validada localmente con:
+  - `python -m unittest discover -s tests -v`
+  - `python scripts\generate_smoke_report.py`
 
 ## Registro de avances
 
@@ -457,6 +466,9 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Se completó la trazabilidad funcional de las celdas relevantes de [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb).
 - Se detectó que el score base sobrevivió al refactor, pero el overlay técnico ampliado del notebook original había quedado fuera del runner real.
 - Se abrió la Fase 10 para reintegrar esa brecha funcional al pipeline canónico.
+- Se reintegró el overlay técnico ampliado al runner real y al reporte HTML, con cobertura visible por corrida y snapshot dedicado.
+- Se validó una corrida real con overlay técnico activo (`24/24`) que cambió materialmente la selección frente al score base puro.
+- Se inició y validó localmente una calibración incremental del score real para reducir doble conteo de momentum y sumar señales explícitas de concentración y calidad.
 
 ## Política de actualización
 

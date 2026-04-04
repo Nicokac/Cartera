@@ -76,9 +76,15 @@ def build_decision_base(
         "Perf YTD",
         "Beta",
         "P/E",
+        "ROE",
+        "Profit Margin",
         "MEP_Implicito",
     ]
-    ced_data = df_cedears[ced_cols].copy()
+    ced_data = df_cedears.copy()
+    for col in ced_cols:
+        if col not in ced_data.columns:
+            ced_data[col] = np.nan
+    ced_data = ced_data[ced_cols].copy()
 
     if not df_ratings_res.empty:
         ratings_map = df_ratings_res.reset_index()[
@@ -126,6 +132,7 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     score_refuerzo_weights = scoring_rules.get("score_refuerzo_weights", {}) or {}
     score_reduccion_weights = scoring_rules.get("score_reduccion_weights", {}) or {}
     score_despliegue_liquidez_weights = scoring_rules.get("score_despliegue_liquidez_weights", {}) or {}
+    concentration_rules = scoring_rules.get("concentration", {}) or {}
     penalties = scoring_rules.get("penalties", {}) or {}
     refuerzo_penalties = penalties.get("refuerzo", {}) or {}
     reduccion_penalties = penalties.get("reduccion", {}) or {}
@@ -135,8 +142,36 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     mom_week = float(momentum_weights.get("week", 0.2))
     mom_month = float(momentum_weights.get("month", 0.4))
     mom_ytd = float(momentum_weights.get("ytd", 0.4))
+    ref_soft_pct = float(concentration_rules.get("refuerzo_soft_pct", 3.0))
+    ref_hard_pct = float(concentration_rules.get("refuerzo_hard_pct", 5.0))
+    red_soft_pct = float(concentration_rules.get("reduccion_soft_pct", 3.5))
+    red_hard_pct = float(concentration_rules.get("reduccion_hard_pct", 6.0))
 
     out = decision.copy()
+    numeric_defaults = {
+        "Peso_%": np.nan,
+        "Perf Week": np.nan,
+        "Perf Month": np.nan,
+        "Perf YTD": np.nan,
+        "Beta": np.nan,
+        "P/E": np.nan,
+        "ROE": np.nan,
+        "Profit Margin": np.nan,
+        "MEP_Premium_%": np.nan,
+        "Consensus_Final": rank_neutral,
+        "Ganancia_%": np.nan,
+        "Ganancia_ARS": np.nan,
+    }
+    bool_defaults = {
+        "Es_Liquidez": False,
+        "Es_Bono": False,
+    }
+    for col, default in numeric_defaults.items():
+        if col not in out.columns:
+            out[col] = default
+    for col, default in bool_defaults.items():
+        if col not in out.columns:
+            out[col] = default
     out["s_low_weight"] = rank_score(out["Peso_%"], higher_is_better=False, neutral=rank_neutral)
     out["s_high_weight"] = rank_score(out["Peso_%"], higher_is_better=True, neutral=rank_neutral)
     out["s_mom_week"] = rank_score(out["Perf Week"], higher_is_better=True, neutral=rank_neutral)
@@ -149,6 +184,8 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     out["s_beta_risk"] = rank_score(out["Beta"], higher_is_better=True, neutral=rank_neutral)
     out["s_pe_ok"] = rank_score(out["P/E"], higher_is_better=False, neutral=rank_neutral)
     out["s_pe_expensive"] = rank_score(out["P/E"], higher_is_better=True, neutral=rank_neutral)
+    out["s_quality_roe"] = rank_score(out["ROE"], higher_is_better=True, neutral=rank_neutral)
+    out["s_quality_margin"] = rank_score(out["Profit Margin"], higher_is_better=True, neutral=rank_neutral)
     out["s_mep_ok"] = rank_score(out["MEP_Premium_%"], higher_is_better=False, neutral=rank_neutral)
     out["s_mep_premium"] = rank_score(out["MEP_Premium_%"], higher_is_better=True, neutral=rank_neutral)
     out["s_consensus_good"] = out["Consensus_Final"].fillna(0.5)
@@ -156,6 +193,35 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     out["Ganancia_%_Cap"] = out["Ganancia_%"].clip(lower=gain_clip_min, upper=gain_clip_max)
     out["s_big_gain"] = rank_score(out["Ganancia_%_Cap"], higher_is_better=True, neutral=rank_neutral)
     out["s_big_loss"] = rank_score(out["Ganancia_%_Cap"], higher_is_better=False, neutral=rank_neutral)
+    quality_parts = pd.concat([out["s_quality_roe"], out["s_quality_margin"]], axis=1)
+    out["s_quality"] = quality_parts.mean(axis=1).fillna(rank_neutral)
+    out["s_low_quality"] = 1 - out["s_quality"]
+    out["s_concentration_room"] = np.where(
+        out["Peso_%"].isna(),
+        rank_neutral,
+        np.where(
+            out["Peso_%"] <= ref_soft_pct,
+            1.0,
+            np.where(
+                out["Peso_%"] >= ref_hard_pct,
+                0.0,
+                1 - ((out["Peso_%"] - ref_soft_pct) / max(ref_hard_pct - ref_soft_pct, 1e-9)),
+            ),
+        ),
+    )
+    out["s_concentration_pressure"] = np.where(
+        out["Peso_%"].isna(),
+        rank_neutral,
+        np.where(
+            out["Peso_%"] <= red_soft_pct,
+            0.0,
+            np.where(
+                out["Peso_%"] >= red_hard_pct,
+                1.0,
+                (out["Peso_%"] - red_soft_pct) / max(red_hard_pct - red_soft_pct, 1e-9),
+            ),
+        ),
+    )
 
     out["Momentum_Refuerzo"] = mom_week * out["s_mom_week"] + mom_month * out["s_mom_month"] + mom_ytd * out["s_mom_ytd"]
     out["Momentum_Reduccion"] = (
@@ -170,6 +236,8 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         + float(score_refuerzo_weights.get("mep_ok", 0.10)) * out["s_mep_ok"]
         + float(score_refuerzo_weights.get("pe_ok", 0.10)) * out["s_pe_ok"]
         + float(score_refuerzo_weights.get("big_gain_inverse", 0.10)) * (1 - out["s_big_gain"])
+        + float(score_refuerzo_weights.get("concentration_room", 0.0)) * out["s_concentration_room"]
+        + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality"]
     )
     out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
     out["score_refuerzo"] -= np.where(out["Es_Bono"], float(refuerzo_penalties.get("bono", 0.08)), 0.00)
@@ -188,6 +256,8 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         + float(score_reduccion_weights.get("consensus_bad", 0.10)) * out["s_consensus_bad"]
         + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive"]
         + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
+        + float(score_reduccion_weights.get("concentration_pressure", 0.0)) * out["s_concentration_pressure"]
+        + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality"]
     )
     out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
     out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)

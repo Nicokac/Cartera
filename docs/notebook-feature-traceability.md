@@ -446,29 +446,48 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
 
 ### Celda 29. Overlay técnico ampliado para CEDEARs
 
-- Estado: `No se usa`
+- Estado: `Se usa parcialmente`
 - Motivo:
-  - hoy el runner real no construye este overlay técnico
-  - no se descarga `yfinance`
-  - no se calculan `RSI`, `SMA`, `EMA`, `Momentum_20d`, `Momentum_60d`, `Vol_20d`, `Drawdown_desde_Max3m`
-- Evidencia actual:
-  - [technical.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\analytics\technical.py) solo normaliza un DataFrame ya existente y no genera señales
-  - [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py) no llama a `yfinance` ni arma `df_tech`
-- Consecuencia:
-  - esta es una funcionalidad importante del notebook original que hoy quedó afuera del core
+  - el runner real sí construye hoy el overlay técnico
+  - pero no usa la implementación manual de la celda
+  - la lógica quedó refactorizada en módulos y runners canónicos
+- Qué sí se usa hoy:
+  - `RSI_14`
+  - distancias a `SMA` y `EMA`
+  - `Momentum_20d_%`
+  - `Momentum_60d_%`
+  - `Vol_20d_Anual_%`
+  - `Drawdown_desde_Max3m_%`
+  - `Tech_Trend`
+- Ruta canónica actual:
+  - [technical.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\analytics\technical.py)
+  - [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+  - [generate_smoke_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_smoke_report.py)
+- Observación:
+  - el cálculo sigue requiriendo `yfinance` en el entorno donde corre el runner real
+  - el HTML ahora expone `Overlay técnico: Sí/No` y `Cobertura técnica: X/Y`
 
 ### Celda 30. Integración del overlay técnico al score final
 
-- Estado: `No se usa`
+- Estado: `Se usa parcialmente`
 - Motivo:
-  - aunque existe soporte parcial en el core para mezclar un `tech_refuerzo` si aparece, el flujo real actual no genera ese insumo
-  - por eso `score_refuerzo_v2`, `score_reduccion_v2` y `score_unificado_v2` no están siendo impulsados por un overlay técnico real en el runner actual
-- Ruta actual relacionada:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) tiene `apply_technical_overlay_scores(...)`
-  - pero [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py) llama a `build_decision_bundle(...)` sin `decision_tech`
-- Consecuencia:
-  - esta es probablemente la mayor diferencia funcional detectada hasta ahora entre el notebook original y el sistema actual
-  - hoy la estrategia real corre esencialmente con score base, no con el overlay técnico ampliado del notebook
+  - el blend técnico sí está conectado hoy al flujo real
+  - pero no a través del código manual de la celda
+  - el scoring actual usa una versión refactorizada y parametrizada del blend
+- Qué sí se usa hoy:
+  - `tech_refuerzo`
+  - `tech_reduccion`
+  - `score_refuerzo_v2`
+  - `score_reduccion_v2`
+  - `score_unificado_v2`
+- Ruta canónica actual:
+  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [pipeline.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\pipeline.py)
+  - [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+  - [scoring_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+- Importante:
+  - esta brecha ya quedó cerrada
+  - una corrida real con cobertura técnica `24/24` mostró cambios materiales en refuerzos y reducciones frente al score base puro
 
 ### Celda 31. Lista final resumida
 
@@ -580,15 +599,15 @@ Con las primeras 34 celdas relevadas:
   - P/E
   y esas señales sí están, al menos en parte, presentes en el core actual
 - las celdas 23 y 24 confirman que noticias e insiders hoy no forman parte de la estrategia actual
-- las celdas 29 y 30 muestran la principal brecha funcional detectada hasta ahora:
-  - el overlay técnico ampliado del notebook original hoy no está conectado al runner real ni al score operativo final
+- las celdas 29 y 30 eran la principal brecha funcional detectada y ya fueron reintegradas:
+  - el overlay técnico ampliado del notebook original vuelve a estar conectado al runner real y al score operativo final
 - las celdas 31 a 34 muestran que la capa final de propuesta y sizing sí sobrevivió, pero hoy ya vive en `src/decision/sizing.py` y no en la lógica manual del notebook
 
 ## Próximo paso
 
 Con el relevamiento completo del notebook, el siguiente frente de trabajo es:
 - reintegrar al runner real el overlay técnico ampliado de las celdas 29 y 30
-- validar contra snapshots reales si esa reintegración cambia:
+- calibrar y validar contra snapshots reales si esa reintegración mejora:
   - top refuerzos
   - top reducciones
   - score unificado final

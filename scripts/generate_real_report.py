@@ -51,6 +51,38 @@ def prompt_money_ars(label: str) -> float:
     return max(float(normalized), 0.0)
 
 
+def parse_finviz_number(value: object) -> float:
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return np.nan
+    text = str(value).strip().replace(",", "")
+    if not text or text == "-":
+        return np.nan
+    suffixes = {"K": 1e3, "M": 1e6, "B": 1e9, "T": 1e12}
+    suffix = text[-1].upper()
+    if suffix in suffixes:
+        try:
+            return float(text[:-1]) * suffixes[suffix]
+        except Exception:
+            return np.nan
+    try:
+        return float(text)
+    except Exception:
+        return np.nan
+
+
+def parse_finviz_pct(value: object) -> float:
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return np.nan
+    text = str(value).strip().replace(",", "")
+    if not text or text == "-":
+        return np.nan
+    text = text.replace("%", "")
+    try:
+        return float(text)
+    except Exception:
+        return np.nan
+
+
 def extract_quote_tickers(activos: list[dict]) -> list[str]:
     tickers: set[str] = set()
     allowed_types = {"CEDEARS", "ACCIONES", "ACCION", "TITULOSPUBLICOS", "TITULOPUBLICO"}
@@ -117,6 +149,8 @@ def enrich_real_cedears(df_cedears: pd.DataFrame, *, mep_real: float | None) -> 
         "Perf YTD": np.nan,
         "Beta": np.nan,
         "P/E": np.nan,
+        "ROE": np.nan,
+        "Profit Margin": np.nan,
         "MEP_Implicito": np.nan,
     }
     for col, default in defaults.items():
@@ -134,11 +168,13 @@ def enrich_real_cedears(df_cedears: pd.DataFrame, *, mep_real: float | None) -> 
             continue
 
         fundamentals = bundle.get("fundamentals", {}) or {}
-        out.loc[idx, "Perf Week"] = fundamentals.get("Perf Week", out.loc[idx, "Perf Week"])
-        out.loc[idx, "Perf Month"] = fundamentals.get("Perf Month", out.loc[idx, "Perf Month"])
-        out.loc[idx, "Perf YTD"] = fundamentals.get("Perf YTD", out.loc[idx, "Perf YTD"])
-        out.loc[idx, "Beta"] = fundamentals.get("Beta", out.loc[idx, "Beta"])
-        out.loc[idx, "P/E"] = fundamentals.get("P/E", out.loc[idx, "P/E"])
+        out.loc[idx, "Perf Week"] = parse_finviz_pct(fundamentals.get("Perf Week", out.loc[idx, "Perf Week"]))
+        out.loc[idx, "Perf Month"] = parse_finviz_pct(fundamentals.get("Perf Month", out.loc[idx, "Perf Month"]))
+        out.loc[idx, "Perf YTD"] = parse_finviz_pct(fundamentals.get("Perf YTD", out.loc[idx, "Perf YTD"]))
+        out.loc[idx, "Beta"] = parse_finviz_number(fundamentals.get("Beta", out.loc[idx, "Beta"]))
+        out.loc[idx, "P/E"] = parse_finviz_number(fundamentals.get("P/E", out.loc[idx, "P/E"]))
+        out.loc[idx, "ROE"] = parse_finviz_pct(fundamentals.get("ROE", out.loc[idx, "ROE"]))
+        out.loc[idx, "Profit Margin"] = parse_finviz_pct(fundamentals.get("Profit Margin", out.loc[idx, "Profit Margin"]))
 
         if mep_real and pd.notna(row.get("Precio_ARS")):
             try:
