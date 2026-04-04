@@ -124,6 +124,7 @@ def render_report(
     dashboard_bundle = result["dashboard_bundle"]
     decision_bundle = result["decision_bundle"]
     sizing_bundle = result["sizing_bundle"]
+    technical_overlay = result.get("technical_overlay", pd.DataFrame())
 
     df_total = portfolio_bundle["df_total"].copy()
     integrity_report = portfolio_bundle["integrity_report"].copy()
@@ -132,6 +133,21 @@ def render_report(
     asignacion_final = sizing_bundle["asignacion_final"].copy()
     resumen_tipos = dashboard_bundle["resumen_tipos"].copy()
     kpis = dashboard_bundle["kpis"]
+    tech_metric_cols = [
+        "Dist_SMA20_%",
+        "Dist_SMA50_%",
+        "Dist_EMA20_%",
+        "Dist_EMA50_%",
+        "RSI_14",
+        "Momentum_20d_%",
+        "Momentum_60d_%",
+        "Vol_20d_Anual_%",
+        "Drawdown_desde_Max3m_%",
+    ]
+    tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
+    tech_total = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
+    tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
+    tech_enabled = "Sí" if tech_covered > 0 else "No"
 
     if not propuesta.empty and "accion_operativa" in propuesta.columns:
         decision_view = propuesta
@@ -160,6 +176,8 @@ def render_report(
       <article class="card"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
       <article class="card"><span class="label">Liquidez</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
       <article class="card"><span class="label">Liquidez USD en ARS</span><strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></article>
+      <article class="card"><span class="label">Overlay técnico</span><strong>{tech_enabled}</strong></article>
+      <article class="card"><span class="label">Cobertura técnica</span><strong>{tech_covered}/{tech_total}</strong></article>
     </section>
     """
 
@@ -194,6 +212,7 @@ def render_report(
       <a href="#integridad">Integridad</a>
       <a href="#resumen">Resumen</a>
       <a href="#decision">Decisión</a>
+      <a href="#tecnico">Técnico</a>
       <a href="#sizing">Sizing</a>
       <a href="#cartera">Cartera</a>
     </nav>
@@ -244,6 +263,33 @@ def render_report(
             },
         )}
       </section>
+    </section>
+
+    <section class="panel" id="tecnico">
+      <h2>Overlay técnico</h2>
+      <div class="meta">
+        <span>Activo: <strong>{tech_enabled}</strong></span>
+        <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
+      </div>
+      {build_table(
+          (
+              technical_overlay[
+                  [col for col in ["Ticker_IOL", "Tech_Trend", "RSI_14", "Momentum_20d_%", "Momentum_60d_%", "Dist_SMA20_%", "Dist_SMA50_%"] if col in technical_overlay.columns]
+              ].sort_values("Momentum_20d_%", ascending=False)
+              if isinstance(technical_overlay, pd.DataFrame) and not technical_overlay.empty and "Momentum_20d_%" in technical_overlay.columns
+              else technical_overlay[
+                  [col for col in ["Ticker_IOL", "Tech_Trend", "RSI_14", "Momentum_20d_%", "Momentum_60d_%", "Dist_SMA20_%", "Dist_SMA50_%"] if col in technical_overlay.columns]
+              ] if isinstance(technical_overlay, pd.DataFrame) and not technical_overlay.empty
+              else pd.DataFrame()
+          ),
+          formatters={
+              "RSI_14": lambda x: "-" if pd.isna(x) else f"{float(x):.1f}",
+              "Momentum_20d_%": fmt_pct,
+              "Momentum_60d_%": fmt_pct,
+              "Dist_SMA20_%": fmt_pct,
+              "Dist_SMA50_%": fmt_pct,
+          },
+      )}
     </section>
 
     <section class="panel" id="decision">

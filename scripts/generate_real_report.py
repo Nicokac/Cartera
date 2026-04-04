@@ -173,6 +173,7 @@ def write_real_snapshots(
     portfolio_bundle: dict[str, object],
     dashboard_bundle: dict[str, object],
     decision_bundle: dict[str, object],
+    technical_overlay: pd.DataFrame | None,
 ) -> list[Path]:
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     stamp = pd.Timestamp.now().strftime("%Y-%m-%d")
@@ -187,12 +188,15 @@ def write_real_snapshots(
         SNAPSHOTS_DIR / f"{stamp}_real_decision_table.csv",
         SNAPSHOTS_DIR / f"{stamp}_real_liquidity_contract.json",
         SNAPSHOTS_DIR / f"{stamp}_real_kpis.json",
+        SNAPSHOTS_DIR / f"{stamp}_real_technical_overlay.csv",
     ]
 
     df_total.sort_values("Valorizado_ARS", ascending=False).to_csv(paths[0], index=False, encoding="utf-8")
     final_decision.sort_values("score_unificado", ascending=False).to_csv(paths[1], index=False, encoding="utf-8")
     paths[2].write_text(json.dumps(liquidity_contract, ensure_ascii=False, indent=2), encoding="utf-8")
     paths[3].write_text(json.dumps(kpis, ensure_ascii=False, indent=2), encoding="utf-8")
+    technical_df = technical_overlay.copy() if isinstance(technical_overlay, pd.DataFrame) else pd.DataFrame()
+    technical_df.to_csv(paths[4], index=False, encoding="utf-8")
     return paths
 
 
@@ -239,6 +243,21 @@ def main() -> None:
     df_total = portfolio_bundle["df_total"]
     df_cedears, df_ratings_res = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     technical_overlay = build_technical_overlay(df_cedears, scoring_rules=project_config.SCORING_RULES)
+    tech_metric_cols = [
+        "Dist_SMA20_%",
+        "Dist_SMA50_%",
+        "Dist_EMA20_%",
+        "Dist_EMA50_%",
+        "RSI_14",
+        "Momentum_20d_%",
+        "Momentum_60d_%",
+        "Vol_20d_Anual_%",
+        "Drawdown_desde_Max3m_%",
+    ]
+    tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
+    tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
+    tech_total = int(len(df_cedears))
+    print(f"Cobertura técnica: {tech_covered}/{tech_total}")
 
     decision_bundle = build_decision_bundle(
         df_total=df_total,
@@ -266,6 +285,7 @@ def main() -> None:
         "dashboard_bundle": dashboard_bundle,
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
+        "technical_overlay": technical_overlay,
     }
     html_body = render_report(
         report,
@@ -278,6 +298,7 @@ def main() -> None:
         portfolio_bundle=portfolio_bundle,
         dashboard_bundle=dashboard_bundle,
         decision_bundle=decision_bundle,
+        technical_overlay=technical_overlay,
     )
     print(f"Reporte generado en: {HTML_PATH}")
     print("Snapshots generados:")

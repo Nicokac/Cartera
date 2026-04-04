@@ -224,8 +224,7 @@ def build_technical_overlay_scores(
     if tech_rules.get("enabled", True) is False:
         return out
 
-    merge_cols = [
-        "Ticker_IOL",
+    metric_cols = [
         "Dist_SMA20_%",
         "Dist_SMA50_%",
         "Dist_EMA20_%",
@@ -235,13 +234,21 @@ def build_technical_overlay_scores(
         "Momentum_60d_%",
         "Vol_20d_Anual_%",
         "Drawdown_desde_Max3m_%",
+    ]
+    merge_cols = [
+        "Ticker_IOL",
+        *metric_cols,
         "Tech_Trend",
     ]
     available_cols = [col for col in merge_cols if col in technical_overlay.columns]
-    if set(available_cols) <= {"Ticker_IOL"}:
+    available_metric_cols = [col for col in metric_cols if col in technical_overlay.columns]
+    if not available_metric_cols:
         return out
     overlay = technical_overlay[available_cols].copy()
     out = out.merge(overlay, on="Ticker_IOL", how="left")
+
+    if out[available_metric_cols].notna().sum().sum() == 0:
+        return decision.copy()
 
     subscores = tech_rules.get("subscores", {}) or {}
     out["ts_above_sma20"] = clamp01((out["Dist_SMA20_%"].fillna(0) + 10) / 20)

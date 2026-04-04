@@ -8,6 +8,7 @@ Convencion sugerida:
 - `YYYY-MM-DD_liquidity_contract.json`
 - `YYYY-MM-DD_real_portfolio_master.csv`
 - `YYYY-MM-DD_real_decision_table.csv`
+- `YYYY-MM-DD_real_technical_overlay.csv`
 - `YYYY-MM-DD_real_kpis.json`
 
 Objetivo:
