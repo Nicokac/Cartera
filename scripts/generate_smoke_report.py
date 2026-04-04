@@ -99,6 +99,7 @@ def build_decision_table(
             f"data-type=\"{tipo}\">"
             f"<td><strong>{ticker}</strong></td>"
             f"<td>{tipo}</td>"
+            f"<td>{fmt_pct(row.get('Peso_%'))}</td>"
             f"<td class=\"score\">{fmt_score(row['score_unificado'])}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
             f"<td>{motivo}</td>"
@@ -107,7 +108,7 @@ def build_decision_table(
 
     return (
         '<table id="decision-table">'
-        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead>"
+        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Peso_%</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
 
@@ -165,6 +166,27 @@ def render_report(
         + int(action_counts.get("Mantener liquidez", 0))
         + int(action_counts.get("Mantener liquidez bloqueada", 0))
     )
+
+    technical_cols = [
+        col
+        for col in [
+            "Ticker_IOL",
+            "Peso_%",
+            "Tech_Trend",
+            "RSI_14",
+            "Momentum_20d_%",
+            "Momentum_60d_%",
+            "Dist_SMA20_%",
+            "Dist_SMA50_%",
+        ]
+        if col in technical_overlay.columns
+    ]
+    if isinstance(technical_overlay, pd.DataFrame) and not technical_overlay.empty:
+        technical_view = technical_overlay[technical_cols].copy()
+        if "Momentum_20d_%" in technical_view.columns:
+            technical_view = technical_view.sort_values("Momentum_20d_%", ascending=False)
+    else:
+        technical_view = pd.DataFrame()
 
     summary_cards = f"""
     <section class="cards">
@@ -272,17 +294,9 @@ def render_report(
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
       {build_table(
-          (
-              technical_overlay[
-                  [col for col in ["Ticker_IOL", "Tech_Trend", "RSI_14", "Momentum_20d_%", "Momentum_60d_%", "Dist_SMA20_%", "Dist_SMA50_%"] if col in technical_overlay.columns]
-              ].sort_values("Momentum_20d_%", ascending=False)
-              if isinstance(technical_overlay, pd.DataFrame) and not technical_overlay.empty and "Momentum_20d_%" in technical_overlay.columns
-              else technical_overlay[
-                  [col for col in ["Ticker_IOL", "Tech_Trend", "RSI_14", "Momentum_20d_%", "Momentum_60d_%", "Dist_SMA20_%", "Dist_SMA50_%"] if col in technical_overlay.columns]
-              ] if isinstance(technical_overlay, pd.DataFrame) and not technical_overlay.empty
-              else pd.DataFrame()
-          ),
+          technical_view,
           formatters={
+              "Peso_%": fmt_pct,
               "RSI_14": lambda x: "-" if pd.isna(x) else f"{float(x):.1f}",
               "Momentum_20d_%": fmt_pct,
               "Momentum_60d_%": fmt_pct,
