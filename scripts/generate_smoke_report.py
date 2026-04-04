@@ -42,6 +42,81 @@ def fmt_score(value: object) -> str:
     return f"{float(value):+.3f}"
 
 
+def metric_class(column: str, value: object) -> str:
+    if pd.isna(value):
+        return "metric metric-neutral"
+
+    try:
+        num = float(value)
+    except Exception:
+        text = str(value).strip().lower()
+        if column == "Tech_Trend":
+            if "alcista fuerte" in text:
+                return "metric metric-strong"
+            if "alcista" in text:
+                return "metric metric-positive"
+            if "mixta" in text or "parcial" in text:
+                return "metric metric-warn"
+            if "bajista" in text or "error" in text:
+                return "metric metric-negative"
+        return "metric metric-neutral"
+
+    if column == "score_unificado":
+        if num >= 0.18:
+            return "metric metric-strong"
+        if num > 0.03:
+            return "metric metric-positive"
+        if num <= -0.12:
+            return "metric metric-negative"
+        return "metric metric-neutral"
+
+    if column == "Peso_%":
+        if num >= 5:
+            return "metric metric-negative"
+        if num >= 3:
+            return "metric metric-warn"
+        if num > 0:
+            return "metric metric-positive"
+        return "metric metric-neutral"
+
+    if column == "RSI_14":
+        if 45 <= num <= 65:
+            return "metric metric-positive"
+        if 30 <= num < 45 or 65 < num <= 75:
+            return "metric metric-warn"
+        return "metric metric-negative"
+
+    if column in {"Momentum_20d_%", "Momentum_60d_%", "Dist_SMA20_%", "Dist_SMA50_%", "Dist_EMA20_%", "Dist_EMA50_%"}:
+        if num > 1:
+            return "metric metric-positive"
+        if num < -1:
+            return "metric metric-negative"
+        return "metric metric-neutral"
+
+    if column == "Vol_20d_Anual_%":
+        if num <= 25:
+            return "metric metric-positive"
+        if num <= 40:
+            return "metric metric-warn"
+        return "metric metric-negative"
+
+    if column == "Drawdown_desde_Max3m_%":
+        if num >= -8:
+            return "metric metric-positive"
+        if num >= -18:
+            return "metric metric-warn"
+        return "metric metric-negative"
+
+    return "metric metric-neutral"
+
+
+def render_metric(column: str, value: object, formatter: callable | None = None) -> str:
+    formatter = formatter or (lambda x: "-" if pd.isna(x) else str(x))
+    rendered = formatter(value)
+    css_class = metric_class(column, value)
+    return f"<span class=\"{css_class}\">{html.escape(str(rendered))}</span>"
+
+
 def build_table(
     df: pd.DataFrame,
     *,
@@ -62,7 +137,48 @@ def build_table(
             rendered = formatter(value)
             cells.append(f"<td>{html.escape(str(rendered))}</td>")
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    return f'<table class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table>'
+    return f'<div class="table-wrap"><table class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+
+
+def build_technical_table(df: pd.DataFrame) -> str:
+    if df.empty:
+        return '<div class="empty">Sin datos para mostrar.</div>'
+
+    formatters = {
+        "Peso_%": fmt_pct,
+        "RSI_14": lambda x: "-" if pd.isna(x) else f"{float(x):.1f}",
+        "Momentum_20d_%": fmt_pct,
+        "Momentum_60d_%": fmt_pct,
+        "Dist_SMA20_%": fmt_pct,
+        "Dist_SMA50_%": fmt_pct,
+        "Dist_EMA20_%": fmt_pct,
+        "Dist_EMA50_%": fmt_pct,
+        "Vol_20d_Anual_%": fmt_pct,
+        "Drawdown_desde_Max3m_%": fmt_pct,
+    }
+    headers = "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
+    rows = []
+    for _, row in df.iterrows():
+        cells = []
+        for col in df.columns:
+            if col in formatters or col in {
+                "Tech_Trend",
+                "RSI_14",
+                "Momentum_20d_%",
+                "Momentum_60d_%",
+                "Dist_SMA20_%",
+                "Dist_SMA50_%",
+                "Dist_EMA20_%",
+                "Dist_EMA50_%",
+                "Vol_20d_Anual_%",
+                "Drawdown_desde_Max3m_%",
+                "Peso_%",
+            }:
+                cells.append(f"<td>{render_metric(col, row[col], formatters.get(col))}</td>")
+            else:
+                cells.append(f"<td>{html.escape('-' if pd.isna(row[col]) else str(row[col]))}</td>")
+        rows.append("<tr>" + "".join(cells) + "</tr>")
+    return f'<div class="table-wrap"><table class="technical-table"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
 
 
 def badge_class(action: object) -> str:
@@ -99,17 +215,17 @@ def build_decision_table(
             f"data-type=\"{tipo}\">"
             f"<td><strong>{ticker}</strong></td>"
             f"<td>{tipo}</td>"
-            f"<td>{fmt_pct(row.get('Peso_%'))}</td>"
-            f"<td class=\"score\">{fmt_score(row['score_unificado'])}</td>"
+            f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
+            f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
             f"<td>{motivo}</td>"
             "</tr>"
         )
 
     return (
-        '<table id="decision-table">'
+        '<div class="table-wrap"><table id="decision-table">'
         "<thead><tr><th>Ticker</th><th>Tipo</th><th>Peso_%</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
 
@@ -178,6 +294,10 @@ def render_report(
             "Momentum_60d_%",
             "Dist_SMA20_%",
             "Dist_SMA50_%",
+            "Dist_EMA20_%",
+            "Dist_EMA50_%",
+            "Vol_20d_Anual_%",
+            "Drawdown_desde_Max3m_%",
         ]
         if col in technical_overlay.columns
     ]
@@ -293,17 +413,7 @@ def render_report(
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
-      {build_table(
-          technical_view,
-          formatters={
-              "Peso_%": fmt_pct,
-              "RSI_14": lambda x: "-" if pd.isna(x) else f"{float(x):.1f}",
-              "Momentum_20d_%": fmt_pct,
-              "Momentum_60d_%": fmt_pct,
-              "Dist_SMA20_%": fmt_pct,
-              "Dist_SMA50_%": fmt_pct,
-          },
-      )}
+      {build_technical_table(technical_view)}
     </section>
 
     <section class="panel" id="decision">

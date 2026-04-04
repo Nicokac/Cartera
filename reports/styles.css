@@ -203,6 +203,14 @@ body {
   font-size: 14px;
 }
 
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 14px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -230,6 +238,46 @@ tbody tr:hover {
 
 .score {
   font-family: var(--mono);
+}
+
+.metric {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font: 700 12px/1 var(--mono);
+  white-space: nowrap;
+}
+
+.metric-strong {
+  background: rgba(18, 132, 94, 0.18);
+  color: #0c5e50;
+}
+
+.metric-positive {
+  background: rgba(18, 132, 94, 0.10);
+  color: #0f6c5c;
+}
+
+.metric-warn {
+  background: rgba(176, 126, 15, 0.14);
+  color: #8c640f;
+}
+
+.metric-negative {
+  background: rgba(177, 57, 45, 0.12);
+  color: #9f3a22;
+}
+
+.metric-neutral {
+  background: rgba(86, 98, 110, 0.10);
+  color: #51616c;
+}
+
+.technical-table th,
+.technical-table td {
+  white-space: nowrap;
 }
 
 .badge {
