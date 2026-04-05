@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import sys
@@ -212,6 +212,16 @@ def badge_class(action: object) -> str:
     return "badge badge-neutral"
 
 
+def build_driver_chips(row: pd.Series) -> str:
+    drivers = [row.get("driver_1"), row.get("driver_2"), row.get("driver_3")]
+    chips = []
+    for driver in drivers:
+        if pd.isna(driver) or driver in {None, ""}:
+            continue
+        chips.append(f'<span class="metric metric-neutral">{html.escape(str(driver))}</span>')
+    return "".join(chips) if chips else '<span class="muted-inline">-</span>'
+
+
 def build_decision_table(
     df: pd.DataFrame,
     *,
@@ -228,6 +238,8 @@ def build_decision_table(
         tipo = html.escape(str(row["Tipo"]))
         accion = str(row.get(action_col, ""))
         motivo = html.escape(str(row.get(motive_col, "")))
+        motivo_score = html.escape(str(row.get("motivo_score", "")))
+        driver_html = build_driver_chips(row)
         rows.append(
             "<tr "
             f"data-ticker=\"{ticker}\" "
@@ -240,13 +252,14 @@ def build_decision_table(
             f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
             f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
-            f"<td>{motivo}</td>"
+            f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
+            f"<td><div>{motivo}</div><div class=\"muted-inline\">{motivo_score}</div></td>"
             "</tr>"
         )
 
     return (
         '<div class="table-wrap"><table id="decision-table">'
-        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead>"
+        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Accion</th><th>Drivers</th><th>Motivo</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
@@ -287,7 +300,7 @@ def render_report(
     tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
     tech_total = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
     tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
-    tech_enabled = "Sí" if tech_covered > 0 else "No"
+    tech_enabled = "Si" if tech_covered > 0 else "No"
     finviz_total = int(finviz_stats.get("cedears_total", tech_total))
     finviz_fund_covered = int(finviz_stats.get("fundamentals_covered", 0))
     finviz_ratings_covered = int(finviz_stats.get("ratings_covered", 0))
@@ -361,8 +374,8 @@ def render_report(
       <article class="card"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
       <article class="card"><span class="label">Liquidez</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
       <article class="card"><span class="label">Liquidez USD en ARS</span><strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></article>
-      <article class="card"><span class="label">Overlay técnico</span><strong>{tech_enabled}</strong></article>
-      <article class="card"><span class="label">Cobertura técnica</span><strong>{tech_covered}/{tech_total}</strong></article>
+      <article class="card"><span class="label">Overlay tecnico</span><strong>{tech_enabled}</strong></article>
+      <article class="card"><span class="label">Cobertura tecnica</span><strong>{tech_covered}/{tech_total}</strong></article>
       <article class="card"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
       <article class="card"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
     </section>
@@ -398,8 +411,8 @@ def render_report(
     <nav class="quick-nav">
       <a href="#integridad">Integridad</a>
       <a href="#resumen">Resumen</a>
-      <a href="#decision">Decisión</a>
-      <a href="#tecnico">Técnico</a>
+      <a href="#decision">Decision</a>
+      <a href="#tecnico">Tecnico</a>
       <a href="#sizing">Sizing</a>
       <a href="#cartera">Cartera</a>
     </nav>
@@ -431,7 +444,7 @@ def render_report(
                 "Peso_%": fmt_pct,
             },
         )}
-        <h3>Taxonomía operativa</h3>
+        <h3>Taxonomia operativa</h3>
         {build_table(
             family_summary[["asset_family", "asset_subfamily", "Instrumentos", "Score_Promedio"]]
             if not family_summary.empty else family_summary,
@@ -445,7 +458,7 @@ def render_report(
         <h2>Sizing</h2>
         <div class="meta">
           <span>Fuente de fondeo: <strong>{html.escape(str(sizing_bundle['fuente_fondeo']))}</strong></span>
-          <span>Usa liquidez IOL: <strong>{"Sí" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
           <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
           <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
           <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
@@ -463,7 +476,7 @@ def render_report(
     </section>
 
     <section class="panel" id="tecnico">
-      <h2>Overlay técnico</h2>
+      <h2>Overlay tecnico</h2>
       <div class="meta">
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
@@ -473,7 +486,7 @@ def render_report(
 
     <section class="panel" id="decision">
       <div class="panel-head">
-        <h2>Decisión final</h2>
+      <h2>Decision final</h2>
         <div class="filters">
           <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
           <select id="action-filter">

@@ -197,6 +197,18 @@ class SizingTests(unittest.TestCase):
         self.assertIn("Soberano AR", gd30_comment)
         self.assertIn("CER", tzx26_comment)
 
+    def test_cedear_keeps_enriched_action_reason_in_operational_comment(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision.loc[final_decision["Ticker_IOL"] == "T", "motivo_accion"] = (
+            "Refuerzo por beta controlada y momentum fuerte."
+        )
+
+        result = build_operational_proposal(final_decision, mep_real=1000)
+        propuesta = result["propuesta"]
+        t_comment = propuesta.loc[propuesta["Ticker_IOL"] == "T", "comentario_operativo"].iloc[0]
+
+        self.assertEqual(t_comment, "Refuerzo por beta controlada y momentum fuerte.")
+
     def test_prudent_and_dynamic_allocation_apply_buckets_and_caps(self) -> None:
         proposal_bundle = build_operational_proposal(self.final_decision, mep_real=1000)
         propuesta = proposal_bundle["propuesta"]

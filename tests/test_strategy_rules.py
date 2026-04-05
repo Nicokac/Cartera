@@ -392,11 +392,76 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertEqual(spy["asset_family"], "etf")
         self.assertEqual(spy["asset_subfamily"], "etf_core")
         self.assertEqual(ko["asset_family"], "stock")
-        self.assertIsNone(ko["asset_subfamily"])
+        self.assertEqual(ko["asset_subfamily"], "stock_defensive_dividend")
         self.assertEqual(gd30["asset_family"], "bond")
         self.assertEqual(gd30["asset_subfamily"], "bond_sov_ar")
         self.assertEqual(caucion["asset_family"], "liquidity")
         self.assertEqual(caucion["asset_subfamily"], "liquidity_other")
+
+    def test_stock_taxonomy_assigns_subfamily_from_block(self) -> None:
+        df_total = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Growth",
+                    "Peso_%": 4.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "KO",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Dividendos",
+                    "Peso_%": 2.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "VIST",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Commodities",
+                    "Peso_%": 1.2,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "LOMA",
+                    "Tipo": "Acción Local",
+                    "Bloque": "Argentina",
+                    "Peso_%": 1.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+            ]
+        )
+        df_cedears = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "is_etf": False, "is_core_etf": False},
+                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "is_etf": False, "is_core_etf": False},
+                {"Ticker_IOL": "VIST", "Ticker_Finviz": "VIST", "is_etf": False, "is_core_etf": False},
+            ]
+        )
+
+        decision = build_decision_base(df_total, df_cedears, pd.DataFrame(), mep_real=1000.0)
+        mapping = dict(zip(decision["Ticker_IOL"], decision["asset_subfamily"]))
+
+        self.assertEqual(mapping["AAPL"], "stock_growth")
+        self.assertEqual(mapping["KO"], "stock_defensive_dividend")
+        self.assertEqual(mapping["VIST"], "stock_commodity")
+        self.assertEqual(mapping["LOMA"], "stock_argentina")
 
     def test_bond_taxonomy_assigns_subfamily_from_block(self) -> None:
         df_total = pd.DataFrame(
@@ -778,6 +843,49 @@ class StrategyRulesTests(unittest.TestCase):
         comment = explained.loc[0, "motivo_accion"]
 
         self.assertIn("soporte fundamental limitado", comment)
+
+    def test_growth_stock_neutral_comment_mentions_growth_context(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AMD",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "stock_growth",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "Peso_%": 0.2,
+                    "Beta": 1.9,
+                    "P/E": 80.0,
+                    "ROE": 7.0,
+                    "Profit Margin": 12.0,
+                    "Consensus_Final": 0.8,
+                    "Momentum_Refuerzo": 0.8,
+                    "Momentum_Reduccion_Effective": 0.4,
+                    "Ganancia_%_Cap": 30.0,
+                    "MEP_Premium_%": -98.0,
+                    "Tech_Trend": "Alcista",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.8,
+                    "s_consensus_bad": 0.2,
+                    "s_low_weight": 0.9,
+                    "s_high_weight": 0.1,
+                    "s_beta_ok": 0.1,
+                    "s_beta_risk": 0.9,
+                    "s_mep_ok": 0.9,
+                    "s_mep_premium": 0.1,
+                    "s_pe_ok": 0.0,
+                    "s_pe_expensive": 1.0,
+                }
+            ]
+        )
+
+        explained = enrich_decision_explanations(df)
+        comment = explained.loc[0, "motivo_accion"]
+        score_comment = explained.loc[0, "motivo_score"]
+
+        self.assertIn("Growth en monitoreo", comment)
+        self.assertIn("growth", score_comment.lower())
 
 
 if __name__ == "__main__":

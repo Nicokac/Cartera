@@ -89,6 +89,18 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
     def _is_core_etf(row: pd.Series) -> bool:
         return row.get("asset_subfamily") == "etf_core"
 
+    def _is_growth_stock(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "stock_growth"
+
+    def _is_defensive_dividend_stock(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "stock_defensive_dividend"
+
+    def _is_commodity_stock(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "stock_commodity"
+
+    def _is_argentina_stock(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "stock_argentina"
+
     def _metric_available(row: pd.Series, col: str) -> bool:
         return col in row.index and pd.notna(row.get(col))
 
@@ -171,6 +183,14 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
             return "Score de ETF sectorial ponderado por beta, momentum, MEP y soporte tactico."
         if _is_country_region_etf(row):
             return "Score de ETF pais o region ponderado por momentum, beta, MEP y soporte tactico prudente."
+        if _is_growth_stock(row):
+            return "Score de CEDEAR growth ponderado por momentum, valuacion, beta, consenso y calidad."
+        if _is_defensive_dividend_stock(row):
+            return "Score de CEDEAR defensivo o dividendos ponderado por beta, calidad, valuacion y MEP."
+        if _is_commodity_stock(row):
+            return "Score de CEDEAR de commodities ponderado por momentum, valuacion, beta y soporte tactico."
+        if _is_argentina_stock(row):
+            return "Score de accion local ponderado por peso, momentum, beta y prudencia de cartera."
         return "Score de CEDEAR compuesto por momentum, peso, consenso, beta, MEP, valuacion y calidad."
 
     def motivo_accion(row: pd.Series) -> str:
@@ -187,6 +207,12 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
                 return f"Refuerzo tactico de ETF core por {positive_summary}."
             if _is_country_region_etf(row):
                 return f"Refuerzo tactico de ETF pais o region por {positive_summary}."
+            if _is_defensive_dividend_stock(row):
+                return f"Refuerzo defensivo por {positive_summary}."
+            if _is_growth_stock(row):
+                return f"Refuerzo growth por {positive_summary}."
+            if _is_commodity_stock(row):
+                return f"Refuerzo ligado a commodities por {positive_summary}."
             return f"Refuerzo por {positive_summary}."
 
         if accion == "Reducir":
@@ -194,6 +220,10 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
                 return f"Reduccion de ETF core por {negative_summary}."
             if _is_country_region_etf(row):
                 return f"Reduccion de ETF pais o region por {negative_summary}."
+            if _is_growth_stock(row):
+                return f"Reduccion de growth por {negative_summary}."
+            if _is_commodity_stock(row):
+                return f"Reduccion ligada a commodities por {negative_summary}."
             return f"Reduccion por {negative_summary}."
 
         if accion == "Rebalancear / tomar ganancia":
@@ -216,6 +246,26 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
             if positive_signals and negative_signals:
                 return f"ETF sectorial en monitoreo: conviven {positive_summary} con {negative_summary}."
             return "ETF sectorial en monitoreo por falta de senal dominante."
+
+        if _is_growth_stock(row):
+            if positive_signals and negative_signals:
+                return f"Growth en monitoreo: conviven {positive_summary} con {negative_summary}."
+            return "Growth en monitoreo por equilibrio inestable entre potencial y riesgo."
+
+        if _is_defensive_dividend_stock(row):
+            if positive_signals and negative_signals:
+                return f"Defensivo o dividendos en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}."
+            return "Defensivo o dividendos en monitoreo por falta de senal dominante."
+
+        if _is_commodity_stock(row):
+            if positive_signals and negative_signals:
+                return f"Commodities en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}."
+            return "Commodities en monitoreo por senales ciclicas mixtas."
+
+        if _is_argentina_stock(row):
+            if positive_signals and negative_signals:
+                return f"Accion local en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}."
+            return "Accion local en monitoreo por senales locales aun mixtas."
 
         if positive_signals and negative_signals:
             return f"Mantener por senales mixtas: destacan {positive_summary}, pero pesan {negative_summary}."

@@ -127,6 +127,15 @@ def build_operational_proposal(
     ] = "Mantener / monitorear"
 
     propuesta["comentario_operativo"] = propuesta.apply(_comentario_operativo, axis=1)
+    mask_market_assets = ~propuesta["Tipo"].isin(["Bono", "Liquidez"])
+    if "motivo_accion" in propuesta.columns:
+        propuesta.loc[
+            mask_market_assets & propuesta["motivo_accion"].notna(),
+            "comentario_operativo",
+        ] = propuesta.loc[
+            mask_market_assets & propuesta["motivo_accion"].notna(),
+            "motivo_accion",
+        ]
 
     top_reforzar_final = (
         propuesta[propuesta["accion_operativa"] == "Refuerzo"]

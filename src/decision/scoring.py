@@ -124,6 +124,26 @@ def build_decision_base(
     decision.loc[decision["Es_ETF"] & decision["Es_Core_ETF"], "asset_subfamily"] = "etf_core"
     decision.loc[decision["Es_ETF"] & decision["asset_subfamily"].isna(), "asset_subfamily"] = "etf_other"
     decision.loc[
+        decision["asset_family"].eq("stock") & decision["Bloque"].isin(["Growth"]),
+        "asset_subfamily",
+    ] = "stock_growth"
+    decision.loc[
+        decision["asset_family"].eq("stock") & decision["Bloque"].isin(["Dividendos", "Defensivo"]),
+        "asset_subfamily",
+    ] = "stock_defensive_dividend"
+    decision.loc[
+        decision["asset_family"].eq("stock") & decision["Bloque"].isin(["Commodities"]),
+        "asset_subfamily",
+    ] = "stock_commodity"
+    decision.loc[
+        decision["asset_family"].eq("stock") & decision["Bloque"].isin(["Argentina"]),
+        "asset_subfamily",
+    ] = "stock_argentina"
+    decision.loc[
+        decision["asset_family"].eq("stock") & decision["asset_subfamily"].isna(),
+        "asset_subfamily",
+    ] = "stock_other"
+    decision.loc[
         decision["Es_Bono"] & decision["Bloque"].eq("Soberano AR"),
         "asset_subfamily",
     ] = "bond_sov_ar"
