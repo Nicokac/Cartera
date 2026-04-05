@@ -90,7 +90,9 @@ def enrich_bond_analytics(
     if mep_real and mep_real > 0:
         precio = pd.to_numeric(work.get("bonistas_precio"), errors="coerce")
         valor_tecnico = pd.to_numeric(work.get("bonistas_valor_tecnico"), errors="coerce")
-        hard_dollar_mask = work.get("asset_subfamily", pd.Series(index=work.index, dtype=object)).isin({"bond_sov_ar", "bond_hard_dollar"})
+        hard_dollar_mask = work.get("asset_subfamily", pd.Series(index=work.index, dtype=object)).isin(
+            {"bond_sov_ar", "bond_hard_dollar", "bond_bopreal"}
+        )
         parity_operativa = ((precio / float(mep_real)) / valor_tecnico) * 100.0
         parity_operativa = parity_operativa.where(hard_dollar_mask & valor_tecnico.gt(0))
         if parity_operativa.notna().any():

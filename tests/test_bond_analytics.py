@@ -112,6 +112,35 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertEqual(by_ticker["BPOC7"], "bond_bopreal")
         self.assertEqual(by_ticker["TZXD6"], "bond_other")
 
+    def test_enrich_bond_analytics_normalizes_bopreal_parity_with_mep(self) -> None:
+        df_bonds = pd.DataFrame(
+            [
+                {"Ticker_IOL": "BPOC7", "Tipo": "Bono", "Bloque": "Bopreal", "asset_subfamily": "bond_bopreal", "Peso_%": 3.33},
+            ]
+        )
+        df_bonistas = pd.DataFrame(
+            [
+                {
+                    "bonistas_ticker": "BPOC7",
+                    "bonistas_precio": 149600.0,
+                    "bonistas_paridad_pct": 146310.0,
+                    "bonistas_valor_tecnico": 102.167,
+                }
+            ]
+        )
+
+        enriched = enrich_bond_analytics(
+            df_bonds,
+            df_bonistas,
+            reference_date="2026-04-05",
+            mep_real=1434.0,
+        )
+
+        bpoc7 = enriched.iloc[0]
+        self.assertAlmostEqual(bpoc7["bonistas_paridad_bruta_pct"], 146310.0, places=2)
+        self.assertAlmostEqual(bpoc7["bonistas_paridad_pct"], 102.11, places=2)
+        self.assertAlmostEqual(bpoc7["bonistas_parity_gap_pct"], 2.11, places=2)
+
     def test_build_bond_subfamily_summary_aggregates_core_metrics(self) -> None:
         df = pd.DataFrame(
             [
