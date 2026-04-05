@@ -129,6 +129,7 @@ Lectura operativa actual:
 - `bond_cer` hoy queda en una lógica prudencial más neutra
 - `bond_bopreal` hoy queda en monitoreo prudente
 - `bond_other` ya fue endurecida para evitar falsos positivos de refuerzo en bonos sin clasificar
+- la explicabilidad operativa ya distingue comentarios por subfamilia de bono en el reporte final
 
 ### 6. `liquidity`
 
@@ -248,6 +249,13 @@ Resultado:
 - `TZXM7` y `TZXD6` bajaron a una zona más neutral
 - ambos quedaron en `Mantener / monitorear`
 - la subfamilia dejó de verse artificialmente fuerte solo por peso bajo y ausencia de datos
+
+Caso cerrado adicional:
+- explicabilidad de bonos por subfamilia
+
+Resultado:
+- `bond_sov_ar`, `bond_cer`, `bond_bopreal` y `bond_other` ya muestran comentarios operativos distintos
+- el reporte final ahora permite distinguir mejor entre rebalanceo por ganancia extendida y monitoreo prudente por subtipo de bono
 
 ## Próximo foco
 

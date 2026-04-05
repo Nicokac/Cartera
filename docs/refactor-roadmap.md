@@ -566,6 +566,12 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Con la corrida real actual no apareció evidencia suficiente para endurecer o relajar esas subfamilias:
   - `TZX26` y `BPOC7` ya quedan en monitoreo prudente
   - se mantiene la calibración vigente sin nuevos cambios de score
+- Se mejoró la explicabilidad operativa de bonos:
+  - comentarios específicos por `bond_sov_ar`
+  - comentarios específicos por `bond_cer`
+  - comentarios específicos por `bond_bopreal`
+  - comentarios específicos por `bond_other`
+- Esta mejora no cambia la baseline de score, pero sí hace más auditable la decisión final en el HTML
 
 ## Política de actualización
 
