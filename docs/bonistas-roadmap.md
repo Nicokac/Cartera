@@ -170,3 +170,36 @@ Proximo foco:
   - `bond_dollar_linked`
   - `bond_tamar`
 - despues recien evaluar uso gradual en scoring de bonos
+
+## Actualizacion 2026-04-05 - Explicabilidad pre-scoring
+
+Avance validado:
+
+- el bloque `Bonos Locales` ya muestra contexto macro adicional:
+  - `Riesgo pais`
+  - `REM inflacion`
+- los comentarios operativos ya usan contexto por taxonomia local:
+  - `bond_hard_dollar`
+  - `bond_cer`
+  - `bond_bopreal`
+
+Casos de referencia ya observados en corrida real:
+
+- `GD30`
+  - comentario con `paridad`, `TIR` y `riesgo pais`
+- `AL30`
+  - comentario con `paridad`, `TIR` y `riesgo pais`
+- `BPOC7`
+  - comentario con `paridad`, `PUT` y `riesgo pais`
+- `TZX26`
+  - comentario con `TIR real`, `paridad` y `REM`
+- `TZXD6`
+  - comentario CER usando taxonomia local ampliada
+- `TZXM7`
+  - comentario CER usando taxonomia local ampliada
+
+Conclusion de etapa:
+
+- la explicabilidad pre-scoring de bonos ya quedo estable;
+- el siguiente salto ya no es de renderer ni de taxonomia;
+- el siguiente salto logico es scoring de bonos usando este contexto.

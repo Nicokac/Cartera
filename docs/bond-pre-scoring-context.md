@@ -44,6 +44,13 @@ Se usa para:
 - mejor lectura del bloque `Bonos Locales`;
 - futura explicabilidad de comentarios operativos.
 
+Actualizacion validada en corrida real:
+
+- `bond_hard_dollar` ya incorpora `riesgo_pais_bps` en comentarios operativos;
+- `bond_cer` ya incorpora `REM inflacion mensual` en comentarios operativos;
+- `bond_bopreal` ya incorpora `riesgo_pais_bps` junto con `put_flag`;
+- `bond_other` puede seguir operativo como `bond_other`, pero explicarse con taxonomia local `bond_cer` cuando Bonistas lo sugiere.
+
 ## Qué domina el análisis por tipo de bono
 
 ### bond_hard_dollar
@@ -154,15 +161,23 @@ Uso esperado:
 - inflación para `bond_cer`;
 - letras para futura `letter_fixed_rate`.
 
+### BCRA
+
+La fuente oficial ya se usa para:
+
+- `REM inflacion mensual`
+
+Uso esperado:
+
+- enriquecer comentarios de `bond_cer`;
+- preparar contexto de scoring para bonos ajustables por inflacion.
+
 ## Datos externos faltantes o a buscar
 
 Estos datos todavía no están integrados y conviene considerarlos para futuras búsquedas o fuentes adicionales.
 
 ### Alta prioridad
 
-- `riesgo_pais_bps`
-  - contexto de spread soberano argentino
-  - fuente candidata: ArgentinaDatos
 - `ust_5y_pct`
   - referencia de tasa libre de riesgo
   - fuente faltante
@@ -170,8 +185,8 @@ Estos datos todavía no están integrados y conviene considerarlos para futuras 
   - referencia de tasa libre de riesgo
   - fuente faltante
 - `rem_inflacion_12m_pct`
-  - inflación esperada
-  - fuente faltante
+  - inflacion esperada a horizonte mas largo
+  - fuente todavia no integrada
 
 ### Prioridad media
 
@@ -203,6 +218,7 @@ Estos datos todavía no están integrados y conviene considerarlos para futuras 
 
 - Bonistas
 - ArgentinaDatos
+- BCRA
 
 ### A buscar o validar
 
@@ -221,6 +237,13 @@ El orden recomendado para la siguiente etapa es:
 3. evaluar luego `REM` y curva Treasury;
 4. recién después abrir scoring nuevo para bonos.
 
+Estado actual de ese orden:
+
+1. `Hecho`
+2. `Hecho`
+3. `Parcialmente hecho`
+4. `Pendiente`
+
 ## Decisión vigente
 
 Se deja asentado que:
@@ -228,8 +251,10 @@ Se deja asentado que:
 - la próxima etapa de bonos no empieza por scoring;
 - empieza por explicabilidad y contexto;
 - la taxonomía local ampliada ya es suficientemente estable como para usarse en comentarios operativos;
-- los datos externos prioritarios a buscar son:
-  - `riesgo país`
+- `riesgo país` ya quedó integrado para `bond_hard_dollar` y `bond_bopreal`;
+- `REM inflacion mensual` ya quedó integrado para `bond_cer`;
+- los siguientes datos externos prioritarios a buscar son:
   - `UST 5y / 10y`
-  - `REM inflación esperada`
+  - `REM inflacion esperada 12m`
   - `reservas BCRA`
+  - `tipo de cambio mayorista`

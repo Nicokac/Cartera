@@ -86,3 +86,19 @@ Notas:
   - `bond_tamar`
   - `bond_badlar`
   - `letter_fixed_rate`
+
+- Baseline vigente de explicabilidad pre-scoring en bonos:
+  - `Riesgo pais` visible en `Bonos Locales`
+  - `REM inflacion` visible en `Bonos Locales`
+  - `GD30` y `AL30` se explican como `bond_hard_dollar` con:
+    - `paridad`
+    - `TIR`
+    - `riesgo pais`
+  - `BPOC7` se explica como `bond_bopreal` con:
+    - `paridad`
+    - `PUT`
+    - `riesgo pais`
+  - `TZX26`, `TZXD6` y `TZXM7` se explican como lectura `CER` con:
+    - `TIR real`
+    - `paridad`
+    - `REM inflacion`
