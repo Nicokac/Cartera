@@ -344,6 +344,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         mep_real=mep_real,
     )
     return {
+        "bond_analytics": bond_analytics,
         "bond_monitor": build_bond_monitor_table(bond_analytics),
         "bond_subfamily_summary": build_bond_subfamily_summary(bond_analytics),
         "bond_local_subfamily_summary": build_bond_local_subfamily_summary(bond_analytics),
@@ -388,6 +389,7 @@ def main() -> None:
         ratios=project_config.RATIOS,
         fci_cash_management=project_config.FCI_CASH_MANAGEMENT,
     )
+    bonistas_bundle = build_real_bonistas_bundle(portfolio_bundle["df_bonos"], mep_real=mep_real)
 
     df_total = portfolio_bundle["df_total"]
     df_cedears, df_ratings_res, finviz_stats = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
@@ -426,6 +428,25 @@ def main() -> None:
         scoring_rules=project_config.SCORING_RULES,
         action_rules=project_config.ACTION_RULES,
     )
+    bond_analytics = bonistas_bundle.get("bond_analytics", pd.DataFrame())
+    if isinstance(bond_analytics, pd.DataFrame) and not bond_analytics.empty:
+        bond_context_cols = [
+            "Ticker_IOL",
+            "bonistas_local_subfamily",
+            "bonistas_tir_pct",
+            "bonistas_paridad_pct",
+            "bonistas_md",
+            "bonistas_days_to_maturity",
+            "bonistas_tir_vs_avg_365d_pct",
+            "bonistas_parity_gap_pct",
+            "bonistas_put_flag",
+        ]
+        bond_context = bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy()
+        decision_bundle["final_decision"] = decision_bundle["final_decision"].merge(
+            bond_context,
+            on="Ticker_IOL",
+            how="left",
+        )
     sizing_bundle = build_sizing_bundle(
         final_decision=decision_bundle["final_decision"],
         mep_real=mep_real,
@@ -436,7 +457,6 @@ def main() -> None:
         sizing_rules=project_config.SIZING_RULES,
     )
     dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
-    bonistas_bundle = build_real_bonistas_bundle(portfolio_bundle["df_bonos"], mep_real=mep_real)
 
     report = {
         "mep_real": mep_real or 0.0,

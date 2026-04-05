@@ -221,9 +221,23 @@ def run_smoke_pipeline() -> dict[str, object]:
             macro_variables=bonistas_macro,
             mep_real=mep_real,
         )
+        bond_context_cols = [
+            "Ticker_IOL",
+            "bonistas_local_subfamily",
+            "bonistas_tir_pct",
+            "bonistas_paridad_pct",
+            "bonistas_md",
+            "bonistas_days_to_maturity",
+            "bonistas_tir_vs_avg_365d_pct",
+            "bonistas_parity_gap_pct",
+            "bonistas_put_flag",
+        ]
+        bond_context = bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy()
         bond_monitor = build_bond_monitor_table(bond_analytics)
         bond_subfamily_summary = build_bond_subfamily_summary(bond_analytics)
         bond_local_subfamily_summary = build_bond_local_subfamily_summary(bond_analytics)
+    else:
+        bond_context = pd.DataFrame()
     df_cedears = enrich_mock_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     df_ratings_res = build_mock_ratings()
     finviz_stats = {
@@ -245,6 +259,12 @@ def run_smoke_pipeline() -> dict[str, object]:
         scoring_rules=project_config.SCORING_RULES,
         action_rules=project_config.ACTION_RULES,
     )
+    if not bond_context.empty:
+        decision_bundle["final_decision"] = decision_bundle["final_decision"].merge(
+            bond_context,
+            on="Ticker_IOL",
+            how="left",
+        )
     final_decision = decision_bundle["final_decision"]
 
     sizing_bundle = build_sizing_bundle(

@@ -166,6 +166,9 @@ class SizingTests(unittest.TestCase):
     def test_bond_subfamily_comments_are_more_specific(self) -> None:
         final_decision = self.final_decision.copy()
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "asset_subfamily"] = "bond_sov_ar"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_local_subfamily"] = "bond_hard_dollar"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_paridad_pct"] = 87.2
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_tir_pct"] = 7.8
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
 
         cer_row = pd.DataFrame(
@@ -175,6 +178,9 @@ class SizingTests(unittest.TestCase):
                     "Descripcion": "Bono CER",
                     "Tipo": "Bono",
                     "asset_subfamily": "bond_cer",
+                    "bonistas_local_subfamily": "bond_cer",
+                    "bonistas_tir_pct": -8.1,
+                    "bonistas_paridad_pct": 102.0,
                     "accion_sugerida_v2": "Mantener / Neutral",
                     "score_unificado": -0.01,
                     "score_despliegue_liquidez": 0.0,
@@ -194,8 +200,56 @@ class SizingTests(unittest.TestCase):
         gd30_comment = propuesta.loc[propuesta["Ticker_IOL"] == "GD30", "comentario_operativo"].iloc[0]
         tzx26_comment = propuesta.loc[propuesta["Ticker_IOL"] == "TZX26", "comentario_operativo"].iloc[0]
 
-        self.assertIn("Soberano AR", gd30_comment)
+        self.assertIn("Hard-dollar", gd30_comment)
         self.assertIn("CER", tzx26_comment)
+
+    def test_bond_local_subfamily_comments_use_bonistas_context_when_available(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision["bonistas_local_subfamily"] = None
+        final_decision["bonistas_tir_pct"] = None
+        final_decision["bonistas_paridad_pct"] = None
+        final_decision["bonistas_md"] = None
+        final_decision["bonistas_put_flag"] = None
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "asset_subfamily"] = "bond_sov_ar"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_local_subfamily"] = "bond_hard_dollar"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_paridad_pct"] = 87.2
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_tir_pct"] = 7.8
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_md"] = 2.05
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
+
+        bpoc7_row = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "BPOC7",
+                    "Descripcion": "Bopreal",
+                    "Tipo": "Bono",
+                    "asset_subfamily": "bond_bopreal",
+                    "bonistas_local_subfamily": "bond_bopreal",
+                    "bonistas_tir_pct": 3.4,
+                    "bonistas_paridad_pct": 102.0,
+                    "bonistas_put_flag": True,
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_unificado": -0.03,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                    "Tech_Trend": None,
+                    "Beta": None,
+                }
+            ]
+        )
+        bpoc7_row = bpoc7_row.reindex(columns=final_decision.columns, fill_value=None)
+        final_decision.loc[len(final_decision)] = bpoc7_row.iloc[0]
+
+        result = build_operational_proposal(final_decision, mep_real=1000)
+        propuesta = result["propuesta"]
+
+        gd30_comment = propuesta.loc[propuesta["Ticker_IOL"] == "GD30", "comentario_operativo"].iloc[0]
+        bpoc7_comment = propuesta.loc[propuesta["Ticker_IOL"] == "BPOC7", "comentario_operativo"].iloc[0]
+
+        self.assertIn("Hard-dollar", gd30_comment)
+        self.assertIn("paridad 87.2%", gd30_comment)
+        self.assertIn("PUT", bpoc7_comment)
 
     def test_cedear_keeps_enriched_action_reason_in_operational_comment(self) -> None:
         final_decision = self.final_decision.copy()

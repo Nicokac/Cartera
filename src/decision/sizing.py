@@ -4,11 +4,24 @@ import numpy as np
 import pandas as pd
 
 
+def _fmt_pct_short(value: object) -> str | None:
+    number = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    if pd.isna(number):
+        return None
+    return f"{float(number):.1f}%"
+
+
 def _comentario_operativo(row: pd.Series) -> str:
     accion = row["accion_operativa"]
     tech = row.get("Tech_Trend")
     beta = row.get("Beta")
     asset_subfamily = row.get("asset_subfamily")
+    local_subfamily = row.get("bonistas_local_subfamily")
+    parity = _fmt_pct_short(row.get("bonistas_paridad_pct"))
+    tir = _fmt_pct_short(row.get("bonistas_tir_pct"))
+    tir_gap = _fmt_pct_short(row.get("bonistas_tir_vs_avg_365d_pct"))
+    md = pd.to_numeric(pd.Series([row.get("bonistas_md")]), errors="coerce").iloc[0]
+    put_flag = bool(row.get("bonistas_put_flag")) if pd.notna(row.get("bonistas_put_flag")) else False
 
     if accion == "Desplegar liquidez":
         return "Liquidez disponible para fondear refuerzos sin vender posiciones de riesgo."
@@ -17,6 +30,20 @@ def _comentario_operativo(row: pd.Series) -> str:
     if accion == "Mantener liquidez bloqueada":
         return "Liquidez excluida del fondeo por politica explicita del analisis."
     if accion == "Rebalancear / tomar ganancia":
+        if local_subfamily == "bond_hard_dollar":
+            if parity and tir:
+                return (
+                    f"Hard-dollar soberano con paridad {parity} y TIR {tir}; "
+                    "priorizar rebalanceo o toma parcial de ganancia."
+                )
+            return "Hard-dollar soberano con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
+        if local_subfamily == "bond_bopreal":
+            if parity and put_flag:
+                return (
+                    f"Bopreal con paridad {parity} y opcionalidad PUT; "
+                    "priorizar rebalanceo o toma parcial de ganancia."
+                )
+            return "Bopreal con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
         if asset_subfamily == "bond_sov_ar":
             return "Soberano AR con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
         return "Bono con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
@@ -33,6 +60,40 @@ def _comentario_operativo(row: pd.Series) -> str:
             return "Reducir por beta alta y deterioro relativo."
         return "Reduccion o rebalanceo sugerido por score compuesto debil."
     if accion == "Mantener / monitorear":
+        if local_subfamily == "bond_hard_dollar":
+            details: list[str] = []
+            if parity:
+                details.append(f"paridad {parity}")
+            if tir:
+                details.append(f"TIR {tir}")
+            if pd.notna(md):
+                details.append(f"duration {float(md):.2f}")
+            if details:
+                return (
+                    "Hard-dollar soberano en monitoreo por "
+                    + ", ".join(details[:2])
+                    + "; seguir riesgo soberano y compresion de spread."
+                )
+            return "Hard-dollar soberano en monitoreo; seguir riesgo soberano y compresion de spread."
+        if local_subfamily == "bond_cer":
+            if tir and parity:
+                return (
+                    f"Bono CER en monitoreo con TIR real {tir} y paridad {parity}; "
+                    "seguir inflacion esperada y carry."
+                )
+            return "Bono CER en zona neutral; mantener y monitorear carry e inflacion."
+        if local_subfamily == "bond_bopreal":
+            if parity and put_flag:
+                return (
+                    f"Bopreal en monitoreo con paridad {parity} y PUT disponible; "
+                    "seguir compresion y liquidez."
+                )
+            if tir_gap:
+                return (
+                    f"Bopreal en monitoreo con TIR relativa {tir_gap}; "
+                    "seguir compresion y liquidez."
+                )
+            return "Bopreal en zona prudente; mantener y monitorear compresion y liquidez."
         if asset_subfamily == "bond_cer":
             return "Bono CER en zona neutral; mantener y monitorear carry e inflacion."
         if asset_subfamily == "bond_bopreal":
