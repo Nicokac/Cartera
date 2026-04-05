@@ -260,7 +260,7 @@ def write_real_snapshots(
     return paths
 
 
-def build_real_bonistas_bundle(df_bonos: pd.DataFrame) -> dict[str, object]:
+def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None = None) -> dict[str, object]:
     if df_bonos.empty:
         return {}
 
@@ -384,7 +384,7 @@ def main() -> None:
         sizing_rules=project_config.SIZING_RULES,
     )
     dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
-    bonistas_bundle = build_real_bonistas_bundle(portfolio_bundle["df_bonos"])
+    bonistas_bundle = build_real_bonistas_bundle(portfolio_bundle["df_bonos"], mep_real=mep_real)
 
     report = {
         "mep_real": mep_real or 0.0,
