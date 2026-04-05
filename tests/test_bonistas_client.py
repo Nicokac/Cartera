@@ -8,7 +8,12 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from clients.bonistas_client import get_bonds_for_portfolio, normalize_bonistas_ticker
+from clients.bonistas_client import (
+    _infer_bonistas_subfamily,
+    _parse_instrument_html,
+    get_bonds_for_portfolio,
+    normalize_bonistas_ticker,
+)
 
 
 class BonistasClientTests(unittest.TestCase):
@@ -66,6 +71,42 @@ class BonistasClientTests(unittest.TestCase):
         self.assertEqual(len(df), 2)
         self.assertTrue(expected.issubset(df.columns))
         self.assertSetEqual(set(df["bonistas_ticker"]), {"GD30", "BPOC7"})
+
+    def test_infer_bonistas_subfamily_from_ticker_prefix(self) -> None:
+        self.assertEqual(_infer_bonistas_subfamily("GD30"), "bond_hard_dollar")
+        self.assertEqual(_infer_bonistas_subfamily("AL30"), "bond_hard_dollar")
+        self.assertEqual(_infer_bonistas_subfamily("TZX26"), "bond_cer")
+        self.assertEqual(_infer_bonistas_subfamily("BPOC7"), "bond_bopreal")
+        self.assertEqual(_infer_bonistas_subfamily("TTM26"), "bond_dual")
+
+    def test_parse_instrument_html_extracts_priority_fields(self) -> None:
+        html = """
+        <h1>GD30C</h1>
+        <div>Precio</div><div>59.69</div>
+        <div>Variación diaria</div><div>-1.71%</div>
+        <div>TIR</div><div>10.36%</div>
+        <div>Paridad</div><div>82.77%</div>
+        <div>MD</div><div>2.02</div>
+        <div>Fecha Emisión</div><div>4/9/2020</div>
+        <div>Fecha Vencimiento</div><div>9/7/2030</div>
+        <div>Valor Técnico</div><div>72.11</div>
+        <div>TIR Promedio (en 365 días)</div><div>12.03%</div>
+        <div>TIR Min (en 365 días)</div><div>8.30%</div>
+        <div>TIR Max (en 365 días)</div><div>27.67%</div>
+        <div>TIR-1</div><div>+2.0%</div>
+        <div>TIR+1</div><div>-1.9%</div>
+        """
+
+        parsed = _parse_instrument_html("GD30", html)
+
+        self.assertEqual(parsed["bonistas_ticker"], "GD30")
+        self.assertEqual(parsed["bonistas_subfamily"], "bond_hard_dollar")
+        self.assertEqual(parsed["bonistas_parse_status"], "ok")
+        self.assertEqual(parsed["bonistas_tir_pct"], 10.36)
+        self.assertEqual(parsed["bonistas_paridad_pct"], 82.77)
+        self.assertEqual(parsed["bonistas_md"], 2.02)
+        self.assertEqual(parsed["bonistas_fecha_vencimiento"], "9/7/2030")
+        self.assertEqual(parsed["bonistas_valor_tecnico"], 72.11)
 
 
 if __name__ == "__main__":

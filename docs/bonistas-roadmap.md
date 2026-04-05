@@ -111,6 +111,13 @@ Primera implementación objetivo:
 - contrato de salida normalizado
 - tests de contrato básico sin red
 
+Avance concreto actual:
+- `bonistas_client.py` creado
+- contrato `bonistas_*` definido
+- mapping de tickers inicial creado
+- inferencia básica de subfamilia por ticker agregada
+- parser mínimo de página individual ya cubierto con tests sin red
+
 ## Criterio de cierre de la Etapa 1
 
 - existe `bonistas_client.py`

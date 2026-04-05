@@ -97,6 +97,23 @@ def _safe_date(value: Any) -> str | None:
     return text or None
 
 
+def _infer_bonistas_subfamily(ticker: str) -> str | None:
+    normalized = normalize_bonistas_ticker(ticker)
+    if normalized.startswith("BPO"):
+        return "bond_bopreal"
+    if normalized.startswith(("TZX", "TX", "TC")):
+        return "bond_cer"
+    if normalized.startswith(("AL", "GD", "AE")):
+        return "bond_hard_dollar"
+    if normalized.startswith(("TTM", "TDF")):
+        return "bond_dual"
+    if normalized.startswith(("TV", "D")):
+        return "bond_dollar_linked"
+    if normalized.startswith(("TM", "S")):
+        return "bond_fixed_rate"
+    return None
+
+
 def _extract_single(pattern: str, html: str) -> str | None:
     match = re.search(pattern, html, flags=re.IGNORECASE | re.DOTALL)
     if not match:
@@ -106,6 +123,7 @@ def _extract_single(pattern: str, html: str) -> str | None:
 
 def _parse_instrument_html(ticker: str, html: str) -> dict[str, Any]:
     normalized = normalize_bonistas_ticker(ticker)
+    put_flag = "opcionalidad de rescate" in html.lower() or "put" in html.lower()
     data: dict[str, Any] = {
         "bonistas_ticker": normalized,
         "bonistas_source_url": f"{BASE_URL}/bono-cotizacion-rendimiento-precio-hoy/{normalized}",
@@ -128,8 +146,8 @@ def _parse_instrument_html(ticker: str, html: str) -> dict[str, Any]:
         "bonistas_tir_max_365d_pct": _safe_float(_extract_single(r"TIR Max.*?>([^<]+)", html)),
         "bonistas_tir_sens_p1": _safe_float(_extract_single(r"TIR\+1\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
         "bonistas_tir_sens_m1": _safe_float(_extract_single(r"TIR-1\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_put_flag": "opcionalidad de rescate anticipado" in html.lower() or "put" in html.lower(),
-        "bonistas_subfamily": None,
+        "bonistas_put_flag": put_flag,
+        "bonistas_subfamily": _infer_bonistas_subfamily(normalized),
     }
     if any(value is not None for key, value in data.items() if key.startswith("bonistas_") and key not in {"bonistas_parse_status", "bonistas_source_url", "bonistas_source_section", "bonistas_fetched_at", "bonistas_ticker"}):
         data["bonistas_parse_status"] = "ok"
