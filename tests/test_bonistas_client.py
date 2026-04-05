@@ -128,6 +128,21 @@ class BonistasClientTests(unittest.TestCase):
         self.assertAlmostEqual(payload["tamar"], 26.31, places=2)
         self.assertAlmostEqual(payload["badlar"], 25.37, places=2)
 
+    def test_get_macro_variables_discards_implausible_badlar_value(self) -> None:
+        html = """
+        <h1>Variables de Referencia</h1>
+        <div>CER</div><div>738.0250</div>
+        <div>TAMAR</div><div>26.31%</div>
+        <div>BADLAR</div><div>1.00%</div>
+        """
+
+        with patch("clients.bonistas_client._fetch_html", return_value=html):
+            payload = get_macro_variables(use_cache=False)
+
+        self.assertAlmostEqual(payload["cer_diario"], 738.025, places=3)
+        self.assertAlmostEqual(payload["tamar"], 26.31, places=2)
+        self.assertIsNone(payload["badlar"])
+
 
 if __name__ == "__main__":
     unittest.main()

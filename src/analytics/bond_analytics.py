@@ -5,6 +5,19 @@ from datetime import datetime
 import pandas as pd
 
 
+def _infer_bond_subfamily_from_block(value: object) -> str | None:
+    text = str(value or "").strip().lower()
+    if not text:
+        return None
+    if text == "soberano ar":
+        return "bond_sov_ar"
+    if text == "cer":
+        return "bond_cer"
+    if text == "bopreal":
+        return "bond_bopreal"
+    return "bond_other"
+
+
 def _parse_date_ddmmyyyy(value: object) -> pd.Timestamp:
     text = str(value or "").strip()
     if not text:
@@ -40,6 +53,18 @@ def enrich_bond_analytics(
         if "bonistas_ticker" in bonistas.columns and "Ticker_IOL" not in bonistas.columns:
             bonistas = bonistas.rename(columns={"bonistas_ticker": "Ticker_IOL"})
         work = work.merge(bonistas, on="Ticker_IOL", how="left")
+
+    if "asset_subfamily" not in work.columns:
+        work["asset_subfamily"] = None
+    work["asset_subfamily"] = work["asset_subfamily"].astype("object")
+    work["asset_subfamily"] = work["asset_subfamily"].where(work["asset_subfamily"].notna(), None)
+
+    if "Bloque" in work.columns:
+        inferred_from_block = work["Bloque"].map(_infer_bond_subfamily_from_block)
+        work["asset_subfamily"] = work["asset_subfamily"].where(work["asset_subfamily"].notna(), inferred_from_block)
+
+    if "bonistas_subfamily" in work.columns:
+        work["asset_subfamily"] = work["asset_subfamily"].where(work["asset_subfamily"].notna(), work["bonistas_subfamily"])
 
     ref_ts = pd.Timestamp(reference_date) if reference_date else pd.Timestamp(datetime.now().date())
     work["bonistas_fecha_vencimiento_dt"] = work.get(

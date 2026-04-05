@@ -94,6 +94,24 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertAlmostEqual(gd30["bonistas_paridad_pct"], 87.25, places=2)
         self.assertAlmostEqual(gd30["bonistas_parity_gap_pct"], -12.75, places=2)
 
+    def test_enrich_bond_analytics_infers_asset_subfamily_from_block_when_missing(self) -> None:
+        df_bonds = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "Peso_%": 3.62},
+                {"Ticker_IOL": "TZX26", "Tipo": "Bono", "Bloque": "CER", "Peso_%": 2.84},
+                {"Ticker_IOL": "BPOC7", "Tipo": "Bono", "Bloque": "Bopreal", "Peso_%": 3.33},
+                {"Ticker_IOL": "TZXD6", "Tipo": "Bono", "Bloque": "Sin clasificar", "Peso_%": 0.60},
+            ]
+        )
+
+        enriched = enrich_bond_analytics(df_bonds, reference_date="2026-04-05")
+
+        by_ticker = enriched.set_index("Ticker_IOL")["asset_subfamily"].to_dict()
+        self.assertEqual(by_ticker["GD30"], "bond_sov_ar")
+        self.assertEqual(by_ticker["TZX26"], "bond_cer")
+        self.assertEqual(by_ticker["BPOC7"], "bond_bopreal")
+        self.assertEqual(by_ticker["TZXD6"], "bond_other")
+
     def test_build_bond_subfamily_summary_aggregates_core_metrics(self) -> None:
         df = pd.DataFrame(
             [

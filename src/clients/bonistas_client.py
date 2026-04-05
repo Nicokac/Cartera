@@ -98,6 +98,15 @@ def _safe_date(value: Any) -> str | None:
     return text or None
 
 
+def _safe_macro_rate(value: Any, *, min_value: float = 5.0, max_value: float = 200.0) -> float | None:
+    number = _safe_float(value)
+    if number is None:
+        return None
+    if number < min_value or number > max_value:
+        return None
+    return number
+
+
 def _infer_bonistas_subfamily(ticker: str) -> str | None:
     normalized = normalize_bonistas_ticker(ticker)
     if normalized.startswith("BPO"):
@@ -276,11 +285,11 @@ def get_macro_variables(*, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = Tru
         "bonistas_source_url": f"{BASE_URL}/variables",
         "bonistas_fetched_at": _utcnow().isoformat(),
         "cer_diario": _safe_float(_extract_value_after_label(raw_html, "CER")),
-        "tamar": _safe_float(_extract_value_after_label(raw_html, "TAMAR")),
-        "badlar": _safe_float(_extract_value_after_label(raw_html, "BADLAR")),
-        "inflacion_mensual": _safe_float(_extract_value_after_label(raw_html, "Inflacion Mensual")),
-        "inflacion_interanual": _safe_float(_extract_value_after_label(raw_html, "Inflacion Interanual")),
-        "rem_esperada": _safe_float(_extract_value_after_label(raw_html, "Inflacion Esperada (REM)")),
+        "tamar": _safe_macro_rate(_extract_value_after_label(raw_html, "TAMAR")),
+        "badlar": _safe_macro_rate(_extract_value_after_label(raw_html, "BADLAR")),
+        "inflacion_mensual": _safe_macro_rate(_extract_value_after_label(raw_html, "Inflacion Mensual"), min_value=-50.0, max_value=100.0),
+        "inflacion_interanual": _safe_macro_rate(_extract_value_after_label(raw_html, "Inflacion Interanual"), min_value=-50.0, max_value=500.0),
+        "rem_esperada": _safe_macro_rate(_extract_value_after_label(raw_html, "Inflacion Esperada (REM)"), min_value=-50.0, max_value=500.0),
     }
     informative_keys = {"bonistas_parse_status", "bonistas_source_url", "bonistas_fetched_at"}
     if any(value is not None for key_name, value in payload.items() if key_name not in informative_keys):
