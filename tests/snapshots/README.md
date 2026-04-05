@@ -41,7 +41,17 @@ Notas:
       - `etf_core`
       - `etf_sector`
       - `etf_country_region`
+      - `stock_growth`
+      - `stock_defensive_dividend`
+      - `stock_commodity`
+      - `stock_argentina`
       - `bond_sov_ar`
       - `bond_cer`
       - `bond_bopreal`
       - `bond_other`
+- Baseline candidata actual para CEDEARs tras calibracion por subfamilia de stock:
+  - refuerzos efectivos: `VIST`, `XLU`, `KO`, `NEM`
+  - reduccion efectiva: `MELI`
+  - `stock_growth` queda como grupo mas exigido
+  - `stock_defensive_dividend` y `stock_commodity` quedan relativamente favorecidos
+  - `NEM` queda aceptado como refuerzo borderline valido dentro de `stock_commodity`

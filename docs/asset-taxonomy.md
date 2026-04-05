@@ -163,6 +163,13 @@ Subfamilias ETF efectivas actuales:
 - `etf_sector`
 - `etf_country_region`
 
+Subfamilias stock efectivas actuales:
+- `stock_growth`
+- `stock_defensive_dividend`
+- `stock_commodity`
+- `stock_argentina`
+- `stock_other`
+
 Subfamilias bond efectivas actuales:
 - `bond_sov_ar`
 - `bond_cer`
@@ -174,6 +181,8 @@ Además:
 - la taxonomía ya se expone en el reporte HTML
 - ya existe un primer ajuste real por subfamilia en scoring
 - `etf_country_region` hoy exige más soporte para quedar en `Refuerzo` que un `etf_sector`
+- `stock_growth` hoy es más exigente para quedar en `Refuerzo`
+- `stock_defensive_dividend` y `stock_commodity` hoy tienen un sesgo algo más favorable si el resto de las señales acompaña
 
 ## Próxima implementación sugerida
 
@@ -195,6 +204,11 @@ Subfamilias:
 - `etf_core`
 - `etf_sector`
 - `etf_country_region`
+- `stock_growth`
+- `stock_defensive_dividend`
+- `stock_commodity`
+- `stock_argentina`
+- `stock_other`
 
 ### Etapa 2. Score con overlays por familia
 
@@ -257,9 +271,49 @@ Resultado:
 - `bond_sov_ar`, `bond_cer`, `bond_bopreal` y `bond_other` ya muestran comentarios operativos distintos
 - el reporte final ahora permite distinguir mejor entre rebalanceo por ganancia extendida y monitoreo prudente por subtipo de bono
 
+Caso cerrado adicional:
+- subtaxonomía operativa de `stock`
+
+Resultado:
+- `stock_growth` quedó diferenciado de `stock_defensive_dividend`
+- `stock_commodity` y `stock_argentina` ya se muestran explícitamente en el reporte
+- el scoring ya no trata igual a:
+  - `KO`
+  - `VIST`
+  - `MELI`
+  - `AAPL`
+  aunque todos sean CEDEARs o acciones individuales
+
+Lectura real actual:
+- `stock_growth` quedó con score promedio más exigente y levemente negativo
+- `stock_defensive_dividend` quedó con sesgo más favorable
+- `stock_commodity` quedó con sesgo de refuerzo moderado cuando hay soporte adicional
+
+Caso borderline vigente:
+- `NEM`
+
+Lectura:
+- quedó como `Refuerzo` dentro de `stock_commodity`
+- no aparece como falso positivo obvio, porque combina:
+  - beta baja
+  - valuación razonable
+  - calidad alta
+  - consenso favorable
+  - MEP muy favorable
+- sí merece seguimiento porque conviven:
+  - técnico mixto
+  - volatilidad relativamente alta
+  - ganancia acumulada extendida
+
+Interpretación operativa:
+- hoy se acepta como refuerzo borderline válido
+- si en una iteración futura se quiere endurecer commodities, `NEM` es el primer caso a reauditar
+
 ## Próximo foco
 
-Los siguientes frentes lógicos de calibración ya no están en ETFs, sino en bonos:
-- `bond_cer` hoy no muestra evidencia suficiente para una regla específica adicional; la neutralidad actual parece suficiente
-- `bond_bopreal` hoy tampoco justifica una regla propia más agresiva; el monitoreo prudente actual parece razonable
-- si se profundiza esta capa, el siguiente salto ya sería de explicabilidad o de nuevas señales de carry/duración, no de pesos genéricos
+Los siguientes frentes lógicos de calibración ya no están en ETFs ni en bonos, sino en CEDEARs:
+- decidir si `stock_commodity` necesita una regla adicional para casos con técnico mixto y ganancia muy extendida
+- usar `NEM` como primer caso testigo si se endurece commodities
+- evaluar si `stock_argentina` merece una calibración propia más explícita o si la prudencia actual alcanza
+- si se profundiza esta capa, el siguiente salto ya sería de calibración por subfamilia de `stock`, no de nuevas reglas genéricas
+

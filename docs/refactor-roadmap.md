@@ -573,6 +573,30 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - comentarios específicos por `bond_other`
 - Esta mejora no cambia la baseline de score, pero sí hace más auditable la decisión final en el HTML
 
+- Se mejoró la explicabilidad de CEDEARs en el reporte HTML:
+  - Drivers
+  - motivo_accion
+  - motivo_score
+- Se introdujo la subtaxonomía canónica de stock:
+  - stock_growth
+  - stock_defensive_dividend
+  - stock_commodity
+  - stock_argentina
+  - stock_other
+- Se aplicó la primera calibración de scoring por subfamilia de stock:
+  - stock_growth quedó más exigente para refuerzo y más sensible a reducción
+  - stock_defensive_dividend ganó un sesgo favorable moderado
+  - stock_commodity ganó un sesgo de refuerzo leve
+  - stock_argentina quedó algo más prudente
+- Resultado funcional de la corrida real posterior:
+  - refuerzos: VIST, XLU, KO, NEM
+  - reducción: MELI
+  - stock_growth pasó a score promedio negativo
+  - stock_defensive_dividend y stock_commodity quedaron relativamente favorecidos
+- Se auditó NEM como caso borderline de stock_commodity.
+- Conclusión:
+  - no aparece como falso positivo obvio
+  - queda aceptado como refuerzo borderline válido mientras no se endurezca más la capa de commodities
 ## Política de actualización
 
 Cada vez que avancemos una fase, este archivo debe actualizarse con:
@@ -582,3 +606,4 @@ Cada vez que avancemos una fase, este archivo debe actualizarse con:
 - tareas completadas;
 - desvíos respecto del plan;
 - próximos pasos concretos.
+
