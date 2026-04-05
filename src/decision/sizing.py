@@ -11,6 +11,15 @@ def _fmt_pct_short(value: object) -> str | None:
     return f"{float(number):.1f}%"
 
 
+def _join_with_y(parts: list[str]) -> str:
+    clean = [part for part in parts if part]
+    if not clean:
+        return ""
+    if len(clean) == 1:
+        return clean[0]
+    return ", ".join(clean[:-1]) + " y " + clean[-1]
+
+
 def _comentario_operativo(row: pd.Series) -> str:
     accion = row["accion_operativa"]
     tech = row.get("Tech_Trend")
@@ -23,6 +32,8 @@ def _comentario_operativo(row: pd.Series) -> str:
     md = pd.to_numeric(pd.Series([row.get("bonistas_md")]), errors="coerce").iloc[0]
     riesgo_pais = pd.to_numeric(pd.Series([row.get("bonistas_riesgo_pais_bps")]), errors="coerce").iloc[0]
     rem_inflacion = _fmt_pct_short(row.get("bonistas_rem_inflacion_mensual_pct"))
+    ust_10y = _fmt_pct_short(row.get("bonistas_ust_10y_pct"))
+    ust_spread = _fmt_pct_short(row.get("bonistas_spread_vs_ust_pct"))
     put_flag = bool(row.get("bonistas_put_flag")) if pd.notna(row.get("bonistas_put_flag")) else False
 
     if accion == "Desplegar liquidez":
@@ -35,16 +46,18 @@ def _comentario_operativo(row: pd.Series) -> str:
         if local_subfamily == "bond_hard_dollar":
             if parity and tir:
                 riesgo_txt = f" con riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
+                ust_txt = f" y spread {ust_spread} sobre UST" if ust_spread else ""
                 return (
-                    f"Hard-dollar soberano con paridad {parity} y TIR {tir}{riesgo_txt}; "
+                    f"Hard-dollar soberano con paridad {parity} y TIR {tir}{riesgo_txt}{ust_txt}; "
                     "priorizar rebalanceo o toma parcial de ganancia."
                 )
             return "Hard-dollar soberano con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
         if local_subfamily == "bond_bopreal":
             if parity and put_flag:
                 riesgo_txt = f" con riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
+                ust_txt = f" y spread {ust_spread} sobre UST" if ust_spread else ""
                 return (
-                    f"Bopreal con paridad {parity} y opcionalidad PUT{riesgo_txt}; "
+                    f"Bopreal con paridad {parity} y opcionalidad PUT{riesgo_txt}{ust_txt}; "
                     "priorizar rebalanceo o toma parcial de ganancia."
                 )
             return "Bopreal con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
@@ -72,13 +85,14 @@ def _comentario_operativo(row: pd.Series) -> str:
                 details.append(f"TIR {tir}")
             if pd.notna(riesgo_pais):
                 details.append(f"riesgo pais {int(riesgo_pais)} bps")
-            if pd.notna(md):
-                details.append(f"duration {float(md):.2f}")
+            if ust_spread:
+                details.append(f"spread {ust_spread} sobre UST")
+            elif ust_10y:
+                details.append(f"UST 10y {ust_10y}")
             if details:
                 return (
                     "Hard-dollar soberano en monitoreo por "
-                    + ", ".join(details[:2])
-                    + (" y " + details[2] if len(details) > 2 else "")
+                    + _join_with_y(details)
                     + "; seguir riesgo soberano y compresion de spread."
                 )
             return "Hard-dollar soberano en monitoreo; seguir riesgo soberano y compresion de spread."
@@ -97,8 +111,9 @@ def _comentario_operativo(row: pd.Series) -> str:
         if local_subfamily == "bond_bopreal":
             if parity and put_flag:
                 riesgo_txt = f" con riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
+                ust_txt = f" y spread {ust_spread} sobre UST" if ust_spread else ""
                 return (
-                    f"Bopreal en monitoreo con paridad {parity} y PUT disponible{riesgo_txt}; "
+                    f"Bopreal en monitoreo con paridad {parity} y PUT disponible{riesgo_txt}{ust_txt}; "
                     "seguir compresion y liquidez."
                 )
             if tir_gap:

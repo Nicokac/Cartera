@@ -30,6 +30,7 @@ from clients.argentinadatos import get_mep_real, get_riesgo_pais_latest
 from clients.bcra import get_rem_latest
 from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
 from clients.finviz_client import fetch_finviz_bundle
+from clients.fred_client import get_ust_latest
 from clients.iol import (
     iol_get_estado_cuenta,
     iol_get_portafolio,
@@ -356,6 +357,15 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         macro_variables["rem_periodo"] = rem_latest.get("periodo")
         macro_variables["rem_fecha_publicacion"] = rem_latest.get("fecha_publicacion")
 
+    try:
+        ust_latest = get_ust_latest()
+    except Exception as exc:
+        print(f"FRED UST no disponible: {exc}")
+        ust_latest = None
+    if ust_latest:
+        macro_variables = dict(macro_variables)
+        macro_variables.update(ust_latest)
+
     if df_bonistas.empty and not macro_variables:
         return {}
 
@@ -464,6 +474,9 @@ def main() -> None:
             "bonistas_put_flag",
             "bonistas_riesgo_pais_bps",
             "bonistas_rem_inflacion_mensual_pct",
+            "bonistas_ust_5y_pct",
+            "bonistas_ust_10y_pct",
+            "bonistas_spread_vs_ust_pct",
         ]
         bond_context = bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy()
         decision_bundle["final_decision"] = decision_bundle["final_decision"].merge(

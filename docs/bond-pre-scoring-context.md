@@ -258,3 +258,39 @@ Se deja asentado que:
   - `REM inflacion esperada 12m`
   - `reservas BCRA`
   - `tipo de cambio mayorista`
+
+## Actualizacion 2026-04-05 - Cierre UST Pre-Scoring
+
+Se deja asentado que la curva Treasury ya quedo integrada de forma opcional en esta etapa pre-scoring.
+
+Alcance actual:
+
+- el bloque `Bonos Locales` ya muestra:
+  - `UST 5y`
+  - `UST 10y`
+- la capa analitica ya deriva `spread_vs_ust` para:
+  - `bond_hard_dollar`
+  - `bond_bopreal`
+- los comentarios operativos ya usan esa referencia cuando la data esta disponible.
+
+Casos validados en corrida real:
+
+- `GD30`
+  - `TIR 7.8%`
+  - `spread 3.9% sobre UST`
+- `AL30`
+  - `TIR 9.1%`
+  - `spread 5.2% sobre UST`
+- `BPOC7`
+  - `TIR 3.4%`
+  - `spread -0.5% sobre UST`
+
+Criterio vigente:
+
+- `UST` ya no queda como dato faltante de primer nivel para explicabilidad;
+- sigue siendo una integracion opcional y con fallback limpio;
+- no modifica scoring;
+- el proximo faltante relevante para contexto previo al scoring pasa a ser:
+  - `REM inflacion esperada 12m`
+  - `reservas BCRA`
+  - `tipo de cambio mayorista`

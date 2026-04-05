@@ -216,6 +216,7 @@ class SizingTests(unittest.TestCase):
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_tir_pct"] = 7.8
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_md"] = 2.05
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_riesgo_pais_bps"] = 720.0
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_spread_vs_ust_pct"] = 3.8
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_rem_inflacion_mensual_pct"] = 2.7
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
 
@@ -253,6 +254,7 @@ class SizingTests(unittest.TestCase):
         self.assertIn("Hard-dollar", gd30_comment)
         self.assertIn("paridad 87.2%", gd30_comment)
         self.assertIn("720 bps", gd30_comment)
+        self.assertIn("spread 3.8% sobre UST", gd30_comment)
         self.assertIn("PUT", bpoc7_comment)
 
     def test_cer_comment_uses_rem_inflation_when_available(self) -> None:

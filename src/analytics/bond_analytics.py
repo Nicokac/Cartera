@@ -148,6 +148,35 @@ def enrich_bond_analytics(
     ).iloc[0]
     if pd.notna(rem_inflacion_value):
         work["bonistas_rem_inflacion_mensual_pct"] = rem_inflacion_value
+    ust_5y_value = pd.to_numeric(pd.Series([macro_variables.get("ust_5y_pct")]), errors="coerce").iloc[0]
+    if pd.notna(ust_5y_value):
+        work["bonistas_ust_5y_pct"] = ust_5y_value
+    ust_10y_value = pd.to_numeric(pd.Series([macro_variables.get("ust_10y_pct")]), errors="coerce").iloc[0]
+    if pd.notna(ust_10y_value):
+        work["bonistas_ust_10y_pct"] = ust_10y_value
+    ust_curve_spread_value = pd.to_numeric(
+        pd.Series([macro_variables.get("ust_spread_10y_5y_pct")]),
+        errors="coerce",
+    ).iloc[0]
+    if pd.notna(ust_curve_spread_value):
+        work["bonistas_ust_spread_10y_5y_pct"] = ust_curve_spread_value
+    ust_date = macro_variables.get("ust_date")
+    if ust_date:
+        work["bonistas_ust_date"] = ust_date
+
+    if pd.notna(ust_5y_value) or pd.notna(ust_10y_value):
+        tir_value = pd.to_numeric(work.get("bonistas_tir_pct"), errors="coerce")
+        md_value = pd.to_numeric(work.get("bonistas_md"), errors="coerce")
+        local_subfamily = work.get("bonistas_local_subfamily", pd.Series(index=work.index, dtype=object))
+        uses_ust_context = local_subfamily.isin({"bond_hard_dollar", "bond_bopreal"})
+        ust_reference = pd.Series(index=work.index, dtype=float)
+        ust_reference.loc[uses_ust_context & md_value.ge(3)] = ust_10y_value
+        ust_reference.loc[uses_ust_context & ~md_value.ge(3)] = ust_5y_value
+        if pd.notna(ust_10y_value):
+            ust_reference.loc[uses_ust_context & ust_reference.isna()] = ust_10y_value
+        elif pd.notna(ust_5y_value):
+            ust_reference.loc[uses_ust_context & ust_reference.isna()] = ust_5y_value
+        work["bonistas_spread_vs_ust_pct"] = tir_value - ust_reference
 
     return work
 

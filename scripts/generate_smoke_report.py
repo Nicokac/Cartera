@@ -413,6 +413,8 @@ def render_report(
         <span>BADLAR: <strong>{fmt_label(bonistas_macro.get('badlar'))}</strong></span>
         <span>Riesgo pais: <strong>{fmt_label(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
         <span>REM inflacion: <strong>{fmt_label(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
+        <span>UST 5y: <strong>{fmt_label(bonistas_macro.get('ust_5y_pct'))}</strong></span>
+        <span>UST 10y: <strong>{fmt_label(bonistas_macro.get('ust_10y_pct'))}</strong></span>
       </div>
       <h3>Resumen por subfamilia</h3>
       {build_table(

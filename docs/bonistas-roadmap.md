@@ -203,3 +203,34 @@ Conclusion de etapa:
 - la explicabilidad pre-scoring de bonos ya quedo estable;
 - el siguiente salto ya no es de renderer ni de taxonomia;
 - el siguiente salto logico es scoring de bonos usando este contexto.
+
+## Actualizacion 2026-04-05 - Cierre UST Pre-Scoring
+
+Avance validado:
+
+- el reporte HTML ya puede mostrar:
+  - `UST 5y`
+  - `UST 10y`
+- la capa analitica ya deriva `spread_vs_ust` para:
+  - `bond_hard_dollar`
+  - `bond_bopreal`
+- los comentarios operativos ya usan esa lectura relativa cuando FRED esta disponible.
+
+Casos observados en corrida real:
+
+- `GD30`
+  - `spread 3.9% sobre UST`
+- `AL30`
+  - `spread 5.2% sobre UST`
+- `BPOC7`
+  - `spread -0.5% sobre UST`
+
+Estado de la etapa:
+
+- explicabilidad pre-scoring con:
+  - `riesgo pais`
+  - `REM`
+  - `UST`
+  - `Hecho`
+- scoring de bonos:
+  - `Pendiente`
