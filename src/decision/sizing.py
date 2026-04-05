@@ -8,28 +8,40 @@ def _comentario_operativo(row: pd.Series) -> str:
     accion = row["accion_operativa"]
     tech = row.get("Tech_Trend")
     beta = row.get("Beta")
+    asset_subfamily = row.get("asset_subfamily")
 
     if accion == "Desplegar liquidez":
         return "Liquidez disponible para fondear refuerzos sin vender posiciones de riesgo."
     if accion == "Mantener liquidez":
-        return "Liquidez conservada como reserva táctica."
+        return "Liquidez conservada como reserva tactica."
     if accion == "Mantener liquidez bloqueada":
-        return "Liquidez excluida del fondeo por política explícita del análisis."
+        return "Liquidez excluida del fondeo por politica explicita del analisis."
     if accion == "Rebalancear / tomar ganancia":
-        return "Bono con señal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
+        if asset_subfamily == "bond_sov_ar":
+            return "Soberano AR con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
+        return "Bono con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
     if accion == "Refuerzo":
         if tech == "Alcista fuerte":
-            return "Refuerzo favorecido por score alto y soporte técnico alcista."
+            return "Refuerzo favorecido por score alto y soporte tecnico alcista."
         if pd.notna(beta) and beta < 0.8:
             return "Refuerzo defensivo con beta controlada."
         return "Refuerzo razonable por score compuesto favorable."
     if accion == "Reducir":
         if tech == "Bajista":
-            return "Reducción favorecida por score débil y técnico bajista."
+            return "Reduccion favorecida por score debil y tecnico bajista."
         if pd.notna(beta) and beta > 1.5:
             return "Reducir por beta alta y deterioro relativo."
-        return "Reducción o rebalanceo sugerido por score compuesto débil."
-    return "Mantener y monitorear evolución."
+        return "Reduccion o rebalanceo sugerido por score compuesto debil."
+    if accion == "Mantener / monitorear":
+        if asset_subfamily == "bond_cer":
+            return "Bono CER en zona neutral; mantener y monitorear carry e inflacion."
+        if asset_subfamily == "bond_bopreal":
+            return "Bopreal en zona prudente; mantener y monitorear compresion y liquidez."
+        if asset_subfamily == "bond_other":
+            return "Bono sin clasificar en zona prudente; mantener y revisar clasificacion si suma relevancia."
+        if asset_subfamily == "bond_sov_ar":
+            return "Soberano AR sin senal extrema; mantener y monitorear riesgo y ganancias acumuladas."
+    return "Mantener y monitorear evolucion."
 
 
 def _bucket_prudencia(
@@ -56,7 +68,7 @@ def _bucket_prudencia(
         return "Defensivo"
     if pd.notna(beta) and beta >= agresivo_min:
         return "Agresivo"
-    if tipo in {"CEDEAR", "Acción Local"} and pd.notna(peso_pct) and peso_pct >= agresivo_peso_min:
+    if tipo in {"CEDEAR", "Accion Local", "Acción Local"} and pd.notna(peso_pct) and peso_pct >= agresivo_peso_min:
         return "Agresivo"
     if tipo_default in {"Defensivo", "Intermedio", "Agresivo"}:
         return str(tipo_default)
@@ -82,7 +94,6 @@ def build_operational_proposal(
     pct_fondeo_1_plus = float(pct_fondeo_rules.get("strong_refuerzo_1_plus", 0.20))
     pct_fondeo_default = float(pct_fondeo_rules.get("default", 0.10))
     bono_rebalance_threshold = float(action_rules.get("bono_rebalance_threshold", -0.20))
-    bono_monitor_min = float(action_rules.get("bono_monitor_min", -0.20))
     bono_monitor_max = float(action_rules.get("bono_monitor_max", 0.08))
     bond_subfamily_thresholds = action_rules.get("bond_subfamily_thresholds", {}) or {}
 
@@ -101,7 +112,9 @@ def build_operational_proposal(
 
     mask_bonos = propuesta["Tipo"] == "Bono"
     bond_rebalance_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
-        lambda subfamily: float((bond_subfamily_thresholds.get(subfamily, {}) or {}).get("rebalance_threshold", bono_rebalance_threshold))
+        lambda subfamily: float(
+            (bond_subfamily_thresholds.get(subfamily, {}) or {}).get("rebalance_threshold", bono_rebalance_threshold)
+        )
     )
     propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
         "Rebalancear / tomar ganancia"
@@ -233,16 +246,16 @@ def build_prudent_allocation(
         return candidatos_refuerzo
 
     candidatos_refuerzo["Bucket_Prudencia"] = candidatos_refuerzo.apply(
-        lambda row: _bucket_prudencia(
-            row,
-            sizing_rules=sizing_rules,
-        ),
+        lambda row: _bucket_prudencia(row, sizing_rules=sizing_rules),
         axis=1,
     )
-    candidatos_refuerzo["Peso_Base"] = candidatos_refuerzo["Bucket_Prudencia"].map(bucket_weights).fillna(bucket_fallback_weight)
+    candidatos_refuerzo["Peso_Base"] = candidatos_refuerzo["Bucket_Prudencia"].map(bucket_weights).fillna(
+        bucket_fallback_weight
+    )
     candidatos_refuerzo["Score_Ajustado"] = candidatos_refuerzo["score_unificado"].clip(lower=0)
     candidatos_refuerzo["Peso_Asignacion"] = (
-        peso_base_weight * candidatos_refuerzo["Peso_Base"] + score_ajustado_weight * candidatos_refuerzo["Score_Ajustado"]
+        peso_base_weight * candidatos_refuerzo["Peso_Base"]
+        + score_ajustado_weight * candidatos_refuerzo["Score_Ajustado"]
     )
 
     pesos = candidatos_refuerzo["Peso_Asignacion"] / candidatos_refuerzo["Peso_Asignacion"].sum()
@@ -268,7 +281,7 @@ def build_prudent_allocation(
         if row["Bucket_Prudencia"] == "Defensivo":
             return "Mayor peso por perfil defensivo/dividendos."
         if row["Bucket_Prudencia"] == "Agresivo":
-            return "Peso limitado por perfil más agresivo."
+            return "Peso limitado por perfil mas agresivo."
         return "Peso intermedio por perfil balanceado."
 
     candidatos_refuerzo["Comentario_Asignacion"] = candidatos_refuerzo.apply(comentario_sizing, axis=1)
@@ -297,24 +310,22 @@ def build_dynamic_allocation(
         return asignacion_final
 
     asignacion_final["Bucket_Prudencia"] = asignacion_final.apply(
-        lambda row: _bucket_prudencia(
-            row,
-            sizing_rules=sizing_rules,
-        ),
+        lambda row: _bucket_prudencia(row, sizing_rules=sizing_rules),
         axis=1,
     )
-    asignacion_final["Peso_Base"] = asignacion_final["Bucket_Prudencia"].map(bucket_weights).fillna(bucket_fallback_weight)
+    asignacion_final["Peso_Base"] = asignacion_final["Bucket_Prudencia"].map(bucket_weights).fillna(
+        bucket_fallback_weight
+    )
     asignacion_final["Score_Ajustado"] = asignacion_final["score_unificado"].clip(lower=0)
     asignacion_final["Peso_Asignacion"] = (
-        peso_base_weight * asignacion_final["Peso_Base"] + score_ajustado_weight * asignacion_final["Score_Ajustado"]
+        peso_base_weight * asignacion_final["Peso_Base"]
+        + score_ajustado_weight * asignacion_final["Score_Ajustado"]
     )
 
     pesos = asignacion_final["Peso_Asignacion"] / asignacion_final["Peso_Asignacion"].sum()
     asignacion_final["Peso_Fondeo_%"] = (pesos * 100).round(2)
     asignacion_final["Monto_ARS"] = (pesos * monto_fondeo_ars).round(0)
-    asignacion_final["Monto_USD"] = (
-        asignacion_final["Monto_ARS"] / mep_real
-    ).round(2) if mep_real else np.nan
+    asignacion_final["Monto_USD"] = (asignacion_final["Monto_ARS"] / mep_real).round(2) if mep_real else np.nan
 
     mask_tope = asignacion_final["Peso_Fondeo_%"] > tope_pct
     if mask_tope.any():
@@ -332,10 +343,10 @@ def build_dynamic_allocation(
 
     def comentario_final(row: pd.Series) -> str:
         if row["Bucket_Prudencia"] == "Defensivo":
-            return "Mayor asignación por perfil defensivo y mejor encastre prudencial."
+            return "Mayor asignacion por perfil defensivo y mejor encastre prudencial."
         if row["Bucket_Prudencia"] == "Agresivo":
-            return "Asignación limitada por perfil táctico / más agresivo."
-        return "Asignación intermedia por perfil balanceado."
+            return "Asignacion limitada por perfil tactico / mas agresivo."
+        return "Asignacion intermedia por perfil balanceado."
 
     asignacion_final["Comentario_Asignacion"] = asignacion_final.apply(comentario_final, axis=1)
     return asignacion_final.sort_values("Monto_ARS", ascending=False)

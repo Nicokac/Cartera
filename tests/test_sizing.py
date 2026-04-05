@@ -163,6 +163,40 @@ class SizingTests(unittest.TestCase):
             "Rebalancear / tomar ganancia",
         )
 
+    def test_bond_subfamily_comments_are_more_specific(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "asset_subfamily"] = "bond_sov_ar"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
+
+        cer_row = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "TZX26",
+                    "Descripcion": "Bono CER",
+                    "Tipo": "Bono",
+                    "asset_subfamily": "bond_cer",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_unificado": -0.01,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                    "Tech_Trend": None,
+                    "Beta": None,
+                }
+            ]
+        )
+        cer_row = cer_row.astype(final_decision.dtypes.to_dict())
+        final_decision = pd.concat([final_decision, cer_row], ignore_index=True)
+
+        result = build_operational_proposal(final_decision, mep_real=1000)
+        propuesta = result["propuesta"]
+
+        gd30_comment = propuesta.loc[propuesta["Ticker_IOL"] == "GD30", "comentario_operativo"].iloc[0]
+        tzx26_comment = propuesta.loc[propuesta["Ticker_IOL"] == "TZX26", "comentario_operativo"].iloc[0]
+
+        self.assertIn("Soberano AR", gd30_comment)
+        self.assertIn("CER", tzx26_comment)
+
     def test_prudent_and_dynamic_allocation_apply_buckets_and_caps(self) -> None:
         proposal_bundle = build_operational_proposal(self.final_decision, mep_real=1000)
         propuesta = proposal_bundle["propuesta"]

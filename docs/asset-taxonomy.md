@@ -252,5 +252,6 @@ Resultado:
 ## Próximo foco
 
 Los siguientes frentes lógicos de calibración ya no están en ETFs, sino en bonos:
-- decidir si `bond_cer` necesita una lógica propia adicional o si la neutralidad actual es suficiente
-- revisar si `bond_bopreal` merece una protección o castigo específico frente a `bond_sov_ar`
+- `bond_cer` hoy no muestra evidencia suficiente para una regla específica adicional; la neutralidad actual parece suficiente
+- `bond_bopreal` hoy tampoco justifica una regla propia más agresiva; el monitoreo prudente actual parece razonable
+- si se profundiza esta capa, el siguiente salto ya sería de explicabilidad o de nuevas señales de carry/duración, no de pesos genéricos

@@ -560,6 +560,12 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - `GD30` pasó a `Rebalancear / tomar ganancia`
   - `AL30`, `TZX26` y `BPOC7` quedaron en `Mantener / monitorear`
   - `TZXM7` y `TZXD6` quedaron en `Mantener / monitorear` con score más neutral
+- Se revisó la necesidad de reglas adicionales para:
+  - `bond_cer`
+  - `bond_bopreal`
+- Con la corrida real actual no apareció evidencia suficiente para endurecer o relajar esas subfamilias:
+  - `TZX26` y `BPOC7` ya quedan en monitoreo prudente
+  - se mantiene la calibración vigente sin nuevos cambios de score
 
 ## Política de actualización
 
