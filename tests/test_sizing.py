@@ -215,6 +215,7 @@ class SizingTests(unittest.TestCase):
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_paridad_pct"] = 87.2
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_tir_pct"] = 7.8
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_md"] = 2.05
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_riesgo_pais_bps"] = 720.0
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
 
         bpoc7_row = pd.DataFrame(
@@ -249,6 +250,7 @@ class SizingTests(unittest.TestCase):
 
         self.assertIn("Hard-dollar", gd30_comment)
         self.assertIn("paridad 87.2%", gd30_comment)
+        self.assertIn("720 bps", gd30_comment)
         self.assertIn("PUT", bpoc7_comment)
 
     def test_cedear_keeps_enriched_action_reason_in_operational_comment(self) -> None:

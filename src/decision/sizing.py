@@ -21,6 +21,7 @@ def _comentario_operativo(row: pd.Series) -> str:
     tir = _fmt_pct_short(row.get("bonistas_tir_pct"))
     tir_gap = _fmt_pct_short(row.get("bonistas_tir_vs_avg_365d_pct"))
     md = pd.to_numeric(pd.Series([row.get("bonistas_md")]), errors="coerce").iloc[0]
+    riesgo_pais = pd.to_numeric(pd.Series([row.get("bonistas_riesgo_pais_bps")]), errors="coerce").iloc[0]
     put_flag = bool(row.get("bonistas_put_flag")) if pd.notna(row.get("bonistas_put_flag")) else False
 
     if accion == "Desplegar liquidez":
@@ -32,15 +33,17 @@ def _comentario_operativo(row: pd.Series) -> str:
     if accion == "Rebalancear / tomar ganancia":
         if local_subfamily == "bond_hard_dollar":
             if parity and tir:
+                riesgo_txt = f" con riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
                 return (
-                    f"Hard-dollar soberano con paridad {parity} y TIR {tir}; "
+                    f"Hard-dollar soberano con paridad {parity} y TIR {tir}{riesgo_txt}; "
                     "priorizar rebalanceo o toma parcial de ganancia."
                 )
             return "Hard-dollar soberano con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
         if local_subfamily == "bond_bopreal":
             if parity and put_flag:
+                riesgo_txt = f" con riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
                 return (
-                    f"Bopreal con paridad {parity} y opcionalidad PUT; "
+                    f"Bopreal con paridad {parity} y opcionalidad PUT{riesgo_txt}; "
                     "priorizar rebalanceo o toma parcial de ganancia."
                 )
             return "Bopreal con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
@@ -66,12 +69,15 @@ def _comentario_operativo(row: pd.Series) -> str:
                 details.append(f"paridad {parity}")
             if tir:
                 details.append(f"TIR {tir}")
+            if pd.notna(riesgo_pais):
+                details.append(f"riesgo pais {int(riesgo_pais)} bps")
             if pd.notna(md):
                 details.append(f"duration {float(md):.2f}")
             if details:
                 return (
                     "Hard-dollar soberano en monitoreo por "
                     + ", ".join(details[:2])
+                    + (" y " + details[2] if len(details) > 2 else "")
                     + "; seguir riesgo soberano y compresion de spread."
                 )
             return "Hard-dollar soberano en monitoreo; seguir riesgo soberano y compresion de spread."
@@ -84,13 +90,15 @@ def _comentario_operativo(row: pd.Series) -> str:
             return "Bono CER en zona neutral; mantener y monitorear carry e inflacion."
         if local_subfamily == "bond_bopreal":
             if parity and put_flag:
+                riesgo_txt = f" con riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
                 return (
-                    f"Bopreal en monitoreo con paridad {parity} y PUT disponible; "
+                    f"Bopreal en monitoreo con paridad {parity} y PUT disponible{riesgo_txt}; "
                     "seguir compresion y liquidez."
                 )
             if tir_gap:
+                riesgo_txt = f" y riesgo pais {int(riesgo_pais)} bps" if pd.notna(riesgo_pais) else ""
                 return (
-                    f"Bopreal en monitoreo con TIR relativa {tir_gap}; "
+                    f"Bopreal en monitoreo con TIR relativa {tir_gap}{riesgo_txt}; "
                     "seguir compresion y liquidez."
                 )
             return "Bopreal en zona prudente; mantener y monitorear compresion y liquidez."

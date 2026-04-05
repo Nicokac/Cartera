@@ -139,6 +139,9 @@ def enrich_bond_analytics(
     badlar_value = pd.to_numeric(pd.Series([macro_variables.get("badlar")]), errors="coerce").iloc[0]
     if pd.notna(badlar_value):
         work["bonistas_badlar_reference"] = badlar_value
+    riesgo_pais_value = pd.to_numeric(pd.Series([macro_variables.get("riesgo_pais_bps")]), errors="coerce").iloc[0]
+    if pd.notna(riesgo_pais_value):
+        work["bonistas_riesgo_pais_bps"] = riesgo_pais_value
 
     return work
 

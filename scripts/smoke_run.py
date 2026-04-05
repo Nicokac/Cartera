@@ -183,7 +183,7 @@ def build_mock_bonistas(df_bonds: pd.DataFrame) -> tuple[pd.DataFrame, dict[str,
                     "bonistas_subfamily": "bond_hard_dollar",
                 }
             )
-    macro = {"cer_diario": 1.2, "tamar": 31.5, "badlar": 29.1}
+    macro = {"cer_diario": 1.2, "tamar": 31.5, "badlar": 29.1, "riesgo_pais_bps": 720.0}
     return pd.DataFrame(rows), macro
 
 
@@ -231,6 +231,7 @@ def run_smoke_pipeline() -> dict[str, object]:
             "bonistas_tir_vs_avg_365d_pct",
             "bonistas_parity_gap_pct",
             "bonistas_put_flag",
+            "bonistas_riesgo_pais_bps",
         ]
         bond_context = bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy()
         bond_monitor = build_bond_monitor_table(bond_analytics)

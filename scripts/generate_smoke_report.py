@@ -411,6 +411,7 @@ def render_report(
         <span>CER: <strong>{fmt_label(bonistas_macro.get('cer_diario'))}</strong></span>
         <span>TAMAR: <strong>{fmt_label(bonistas_macro.get('tamar'))}</strong></span>
         <span>BADLAR: <strong>{fmt_label(bonistas_macro.get('badlar'))}</strong></span>
+        <span>Riesgo pais: <strong>{fmt_label(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
       </div>
       <h3>Resumen por subfamilia</h3>
       {build_table(

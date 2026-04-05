@@ -48,11 +48,16 @@ class GenerateRealReportTests(unittest.TestCase):
 
         with patch("generate_real_report.get_bonds_for_portfolio", return_value=pd.DataFrame([{"bonistas_ticker": "GD30"}])), patch(
             "generate_real_report.get_macro_variables", return_value={"cer_diario": 738.025}
+        ), patch(
+            "generate_real_report.get_riesgo_pais_latest", return_value={"valor": 765.0, "fecha": "2026-04-05"}
         ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()) as enrich_mock, patch(
             "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame([{"Ticker_IOL": "GD30"}])
         ), patch(
             "generate_real_report.build_bond_subfamily_summary",
             return_value=pd.DataFrame([{"asset_subfamily": "bond_sov_ar", "Instrumentos": 1}]),
+        ), patch(
+            "generate_real_report.build_bond_local_subfamily_summary",
+            return_value=pd.DataFrame([{"bonistas_local_subfamily": "bond_hard_dollar", "Instrumentos": 1}]),
         ):
             bundle = build_real_bonistas_bundle(df_bonos, mep_real=1434.0)
 
@@ -61,6 +66,7 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertIn("bond_local_subfamily_summary", bundle)
         self.assertIn("macro_variables", bundle)
         self.assertEqual(bundle["macro_variables"]["cer_diario"], 738.025)
+        self.assertEqual(bundle["macro_variables"]["riesgo_pais_bps"], 765.0)
         enrich_mock.assert_called_once()
         self.assertEqual(enrich_mock.call_args.kwargs["mep_real"], 1434.0)
 

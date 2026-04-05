@@ -13,6 +13,8 @@ IOL_BASE_URL = "https://api.invertironline.com"
 MARKET = "BCBA"
 
 ARGENTINADATOS_URL = "https://api.argentinadatos.com/v1/cotizaciones/dolares/{casa}"
+ARGENTINADATOS_RIESGO_PAIS_URL = "https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais"
+ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL = "https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo"
 MEP_CASA = "bolsa"
 
 ALERTA_MEP_DESVIO_PCT = 5
@@ -56,6 +58,8 @@ def load_runtime_config() -> dict[str, Any]:
         "IOL_BASE_URL": IOL_BASE_URL,
         "MARKET": MARKET,
         "ARGENTINADATOS_URL": ARGENTINADATOS_URL,
+        "ARGENTINADATOS_RIESGO_PAIS_URL": ARGENTINADATOS_RIESGO_PAIS_URL,
+        "ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL": ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL,
         "MEP_CASA": MEP_CASA,
         "ALERTA_MEP_DESVIO_PCT": ALERTA_MEP_DESVIO_PCT,
         "ALERTA_PERDIDA_MINIMA": ALERTA_PERDIDA_MINIMA,

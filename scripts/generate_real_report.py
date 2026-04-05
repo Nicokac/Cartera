@@ -26,7 +26,7 @@ from analytics.bond_analytics import (
     enrich_bond_analytics,
 )
 from analytics.technical import build_technical_overlay
-from clients.argentinadatos import get_mep_real
+from clients.argentinadatos import get_mep_real, get_riesgo_pais_latest
 from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
 from clients.finviz_client import fetch_finviz_bundle
 from clients.iol import (
@@ -334,6 +334,16 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         print(f"Bonistas variables no disponible: {exc}")
         macro_variables = {}
 
+    try:
+        riesgo_pais = get_riesgo_pais_latest(base_url=project_config.ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL)
+    except Exception as exc:
+        print(f"ArgentinaDatos riesgo pais no disponible: {exc}")
+        riesgo_pais = None
+    if riesgo_pais:
+        macro_variables = dict(macro_variables)
+        macro_variables["riesgo_pais_bps"] = float(riesgo_pais["valor"])
+        macro_variables["riesgo_pais_fecha"] = riesgo_pais.get("fecha")
+
     if df_bonistas.empty and not macro_variables:
         return {}
 
@@ -440,6 +450,7 @@ def main() -> None:
             "bonistas_tir_vs_avg_365d_pct",
             "bonistas_parity_gap_pct",
             "bonistas_put_flag",
+            "bonistas_riesgo_pais_bps",
         ]
         bond_context = bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy()
         decision_bundle["final_decision"] = decision_bundle["final_decision"].merge(
