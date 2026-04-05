@@ -22,6 +22,7 @@ def _comentario_operativo(row: pd.Series) -> str:
     tir_gap = _fmt_pct_short(row.get("bonistas_tir_vs_avg_365d_pct"))
     md = pd.to_numeric(pd.Series([row.get("bonistas_md")]), errors="coerce").iloc[0]
     riesgo_pais = pd.to_numeric(pd.Series([row.get("bonistas_riesgo_pais_bps")]), errors="coerce").iloc[0]
+    rem_inflacion = _fmt_pct_short(row.get("bonistas_rem_inflacion_mensual_pct"))
     put_flag = bool(row.get("bonistas_put_flag")) if pd.notna(row.get("bonistas_put_flag")) else False
 
     if accion == "Desplegar liquidez":
@@ -82,6 +83,11 @@ def _comentario_operativo(row: pd.Series) -> str:
                 )
             return "Hard-dollar soberano en monitoreo; seguir riesgo soberano y compresion de spread."
         if local_subfamily == "bond_cer":
+            if tir and parity and rem_inflacion:
+                return (
+                    f"Bono CER en monitoreo con TIR real {tir}, paridad {parity} y REM {rem_inflacion}; "
+                    "seguir inflacion esperada y carry."
+                )
             if tir and parity:
                 return (
                     f"Bono CER en monitoreo con TIR real {tir} y paridad {parity}; "

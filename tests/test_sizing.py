@@ -216,6 +216,7 @@ class SizingTests(unittest.TestCase):
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_tir_pct"] = 7.8
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_md"] = 2.05
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_riesgo_pais_bps"] = 720.0
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_rem_inflacion_mensual_pct"] = 2.7
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
 
         bpoc7_row = pd.DataFrame(
@@ -229,6 +230,7 @@ class SizingTests(unittest.TestCase):
                     "bonistas_tir_pct": 3.4,
                     "bonistas_paridad_pct": 102.0,
                     "bonistas_put_flag": True,
+                    "bonistas_rem_inflacion_mensual_pct": 2.7,
                     "accion_sugerida_v2": "Mantener / Neutral",
                     "score_unificado": -0.03,
                     "score_despliegue_liquidez": 0.0,
@@ -252,6 +254,40 @@ class SizingTests(unittest.TestCase):
         self.assertIn("paridad 87.2%", gd30_comment)
         self.assertIn("720 bps", gd30_comment)
         self.assertIn("PUT", bpoc7_comment)
+
+    def test_cer_comment_uses_rem_inflation_when_available(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision["bonistas_local_subfamily"] = None
+        final_decision["bonistas_tir_pct"] = None
+        final_decision["bonistas_paridad_pct"] = None
+        final_decision["bonistas_rem_inflacion_mensual_pct"] = None
+
+        cer_row = {
+            "Ticker_IOL": "TZX26",
+            "Descripcion": "Bono CER",
+            "Tipo": "Bono",
+            "asset_subfamily": "bond_cer",
+            "bonistas_local_subfamily": "bond_cer",
+            "bonistas_tir_pct": -8.1,
+            "bonistas_paridad_pct": 102.0,
+            "bonistas_rem_inflacion_mensual_pct": 2.7,
+            "accion_sugerida_v2": "Mantener / Neutral",
+            "score_unificado": -0.01,
+            "score_despliegue_liquidez": 0.0,
+            "Valorizado_ARS": 0.0,
+            "Valor_USD": 0.0,
+            "Tech_Trend": None,
+            "Beta": None,
+        }
+        for col in final_decision.columns:
+            cer_row.setdefault(col, None)
+        final_decision.loc[len(final_decision)] = cer_row
+
+        result = build_operational_proposal(final_decision, mep_real=1000)
+        propuesta = result["propuesta"]
+        tzx26_comment = propuesta.loc[propuesta["Ticker_IOL"] == "TZX26", "comentario_operativo"].iloc[0]
+
+        self.assertIn("REM 2.7%", tzx26_comment)
 
     def test_cedear_keeps_enriched_action_reason_in_operational_comment(self) -> None:
         final_decision = self.final_decision.copy()

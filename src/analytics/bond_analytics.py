@@ -142,6 +142,12 @@ def enrich_bond_analytics(
     riesgo_pais_value = pd.to_numeric(pd.Series([macro_variables.get("riesgo_pais_bps")]), errors="coerce").iloc[0]
     if pd.notna(riesgo_pais_value):
         work["bonistas_riesgo_pais_bps"] = riesgo_pais_value
+    rem_inflacion_value = pd.to_numeric(
+        pd.Series([macro_variables.get("rem_inflacion_mensual_pct")]),
+        errors="coerce",
+    ).iloc[0]
+    if pd.notna(rem_inflacion_value):
+        work["bonistas_rem_inflacion_mensual_pct"] = rem_inflacion_value
 
     return work
 

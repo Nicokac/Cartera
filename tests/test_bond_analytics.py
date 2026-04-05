@@ -53,7 +53,13 @@ class BondAnalyticsTests(unittest.TestCase):
             df_bonds,
             df_bonistas,
             reference_date="2026-04-05",
-            macro_variables={"cer_diario": 1.23, "tamar": 32.0, "badlar": 28.0, "riesgo_pais_bps": 710.0},
+            macro_variables={
+                "cer_diario": 1.23,
+                "tamar": 32.0,
+                "badlar": 28.0,
+                "riesgo_pais_bps": 710.0,
+                "rem_inflacion_mensual_pct": 2.7,
+            },
         )
 
         gd30 = enriched.loc[enriched["Ticker_IOL"] == "GD30"].iloc[0]
@@ -65,6 +71,7 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertAlmostEqual(gd30["bonistas_tir_vs_avg_365d_pct"], -1.5, places=2)
         self.assertAlmostEqual(gd30["bonistas_parity_gap_pct"], -22.0, places=2)
         self.assertEqual(gd30["bonistas_riesgo_pais_bps"], 710.0)
+        self.assertEqual(gd30["bonistas_rem_inflacion_mensual_pct"], 2.7)
         self.assertTrue(bpoc7["bonistas_put_flag"])
 
     def test_enrich_bond_analytics_normalizes_hard_dollar_parity_with_mep(self) -> None:

@@ -27,6 +27,7 @@ from analytics.bond_analytics import (
 )
 from analytics.technical import build_technical_overlay
 from clients.argentinadatos import get_mep_real, get_riesgo_pais_latest
+from clients.bcra import get_rem_latest
 from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
 from clients.finviz_client import fetch_finviz_bundle
 from clients.iol import (
@@ -344,6 +345,17 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         macro_variables["riesgo_pais_bps"] = float(riesgo_pais["valor"])
         macro_variables["riesgo_pais_fecha"] = riesgo_pais.get("fecha")
 
+    try:
+        rem_latest = get_rem_latest(base_url=project_config.BCRA_REM_URL)
+    except Exception as exc:
+        print(f"BCRA REM no disponible: {exc}")
+        rem_latest = None
+    if rem_latest:
+        macro_variables = dict(macro_variables)
+        macro_variables["rem_inflacion_mensual_pct"] = float(rem_latest["inflacion_mensual_pct"])
+        macro_variables["rem_periodo"] = rem_latest.get("periodo")
+        macro_variables["rem_fecha_publicacion"] = rem_latest.get("fecha_publicacion")
+
     if df_bonistas.empty and not macro_variables:
         return {}
 
@@ -451,6 +463,7 @@ def main() -> None:
             "bonistas_parity_gap_pct",
             "bonistas_put_flag",
             "bonistas_riesgo_pais_bps",
+            "bonistas_rem_inflacion_mensual_pct",
         ]
         bond_context = bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy()
         decision_bundle["final_decision"] = decision_bundle["final_decision"].merge(

@@ -15,6 +15,7 @@ MARKET = "BCBA"
 ARGENTINADATOS_URL = "https://api.argentinadatos.com/v1/cotizaciones/dolares/{casa}"
 ARGENTINADATOS_RIESGO_PAIS_URL = "https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais"
 ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL = "https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo"
+BCRA_REM_URL = "https://www.bcra.gob.ar/relevamiento-expectativas-mercado-rem/"
 MEP_CASA = "bolsa"
 
 ALERTA_MEP_DESVIO_PCT = 5
@@ -60,6 +61,7 @@ def load_runtime_config() -> dict[str, Any]:
         "ARGENTINADATOS_URL": ARGENTINADATOS_URL,
         "ARGENTINADATOS_RIESGO_PAIS_URL": ARGENTINADATOS_RIESGO_PAIS_URL,
         "ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL": ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL,
+        "BCRA_REM_URL": BCRA_REM_URL,
         "MEP_CASA": MEP_CASA,
         "ALERTA_MEP_DESVIO_PCT": ALERTA_MEP_DESVIO_PCT,
         "ALERTA_PERDIDA_MINIMA": ALERTA_PERDIDA_MINIMA,
