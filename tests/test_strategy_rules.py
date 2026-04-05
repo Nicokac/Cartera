@@ -581,13 +581,18 @@ class StrategyRulesTests(unittest.TestCase):
             df,
             scoring_rules={
                 "asset_subfamily_adjustments": {
-                    "bond_other": {"refuerzo_penalty": 0.04},
+                    "bond_other": {
+                        "refuerzo_penalty": 0.07,
+                        "sparse_data_penalty": 0.02,
+                        "reduccion_boost": 0.02,
+                    },
                     "bond_sov_ar": {"refuerzo_penalty": 0.0},
                 }
             },
         )
 
         self.assertLess(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+        self.assertGreater(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
 
     def test_sov_bond_with_extended_gain_gets_extra_reduction_pressure(self) -> None:
         df = pd.DataFrame(
