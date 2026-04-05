@@ -50,12 +50,13 @@ Notas:
       - `bond_bopreal`
       - `bond_other`
 - Baseline vigente actual para CEDEARs tras calibracion por subfamilia de stock:
-  - refuerzos efectivos: `VIST`, `XLU`, `KO`, `NEM`
+  - refuerzos efectivos: `VIST`, `XLU`, `KO`
   - reduccion efectiva: `MELI`
   - `stock_growth` queda como grupo mas exigido
   - `stock_defensive_dividend` y `stock_commodity` quedan relativamente favorecidos
-  - `NEM` queda aceptado como refuerzo borderline valido dentro de `stock_commodity`
+  - `NEM` vuelve a `Mantener / Neutral` por filtro prudente en `stock_commodity`
   - auditoria puntual de `NEM`:
     - `2026-04-04`: `+0.183`, `Mantener / Neutral`
     - `2026-04-05`: `+0.190`, `Refuerzo`
-    - el cambio responde al sesgo de subfamilia y no a una alteracion brusca del resto de las senales
+    - baseline actual: `+0.160`, `Mantener / Neutral`
+    - el ultimo cambio responde al filtro tecnico prudente y no a una alteracion brusca del resto de las senales

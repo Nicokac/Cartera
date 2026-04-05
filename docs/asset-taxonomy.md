@@ -293,31 +293,30 @@ Caso borderline vigente:
 - `NEM`
 
 Lectura:
-- quedó como `Refuerzo` dentro de `stock_commodity`
-- no aparece como falso positivo obvio, porque combina:
+- había quedado como `Refuerzo` dentro de `stock_commodity`
+- el caso no era un falso positivo obvio, porque combinaba:
   - beta baja
   - valuación razonable
   - calidad alta
   - consenso favorable
   - MEP muy favorable
-- sí merece seguimiento porque conviven:
+- pero convivían señales que justificaban prudencia:
   - técnico mixto
   - volatilidad relativamente alta
   - ganancia acumulada extendida
-- contra la snapshot previa el movimiento fue acotado:
+- la corrección posterior fue deliberada y acotada:
   - `2026-04-04`: `+0.183`, `Mantener / Neutral`
   - `2026-04-05`: `+0.190`, `Refuerzo`
-- eso sugiere que el cambio vino por el sesgo nuevo de `stock_commodity`, no por una distorsión grande del score base
+  - baseline actual: `+0.160`, `Mantener / Neutral`
 
 Interpretación operativa:
-- hoy se acepta como refuerzo borderline válido
-- si en una iteración futura se quiere endurecer commodities, `NEM` es el primer caso a reauditar
+- `NEM` volvió a neutral por un filtro prudente de `stock_commodity`
+- el filtro actúa cuando coinciden técnico mixto y ganancia extendida
+- `NEM` queda como caso testigo ya resuelto de esa lógica
 
 ## Próximo foco
 
 Los siguientes frentes lógicos de calibración ya no están en ETFs ni en bonos, sino en CEDEARs:
-- decidir si `stock_commodity` necesita una regla adicional para casos con técnico mixto y ganancia muy extendida
-- usar `NEM` como primer caso testigo si se endurece commodities
 - evaluar si `stock_argentina` merece una calibración propia más explícita o si la prudencia actual alcanza
 - si se profundiza esta capa, el siguiente salto ya sería de calibración por subfamilia de `stock`, no de nuevas reglas genéricas
 

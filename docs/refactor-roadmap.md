@@ -597,7 +597,16 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Conclusión:
   - no aparece como falso positivo obvio
   - queda aceptado como refuerzo borderline válido mientras no se endurezca más la capa de commodities
-- La baseline vigente de CEDEARs dentro del ciclo actual pasa a ser la corrida real `2026-04-05`.
+- Se agregó luego un freno técnico prudente para `stock_commodity` cuando coinciden:
+  - `Tech_Trend = Mixta`
+  - ganancia acumulada extendida
+- Resultado funcional de ese ajuste:
+  - `NEM` volvió de `Refuerzo` a `Mantener / Neutral`
+  - `VIST` se sostuvo como refuerzo
+  - el sizing no cambió materialmente
+- La baseline vigente de CEDEARs dentro del ciclo actual pasa a ser la corrida real `2026-04-05` posterior a ese filtro, con:
+  - refuerzos: `VIST`, `XLU`, `KO`
+  - reducción: `MELI`
 ## Política de actualización
 
 Cada vez que avancemos una fase, este archivo debe actualizarse con:
