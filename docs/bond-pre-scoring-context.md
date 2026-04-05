@@ -1,0 +1,235 @@
+# Bond Pre-Scoring Context
+
+## Objetivo
+
+Documentar la etapa previa a incorporar nuevas reglas de scoring para bonos locales.
+
+La idea de esta fase es:
+
+- mejorar explicabilidad y comentarios operativos;
+- usar la taxonomía local ampliada de Bonistas como capa analítica;
+- definir qué contexto macro y de mercado hace falta para interpretar mejor bonos soberanos y ajustables;
+- dejar explícito qué datos externos ya existen y cuáles todavía faltan.
+
+## Estado actual
+
+Hoy el proyecto ya cuenta con:
+
+- taxonomía operativa estable:
+  - `bond_sov_ar`
+  - `bond_cer`
+  - `bond_bopreal`
+  - `bond_other`
+- taxonomía local ampliada analítica:
+  - `bond_hard_dollar`
+  - `bond_cer`
+  - `bond_bopreal`
+  - `bond_dual`
+  - `bond_dollar_linked`
+  - `bond_fixed_rate`
+  - `bond_tamar`
+  - `bond_badlar`
+  - `letter_fixed_rate`
+- integración visible de Bonistas en el reporte HTML:
+  - `Resumen por subfamilia`
+  - `Resumen por taxonomia local`
+  - `Monitoreo de bonos`
+
+En esta etapa, la taxonomía local ampliada no cambia todavía el scoring.
+
+Se usa para:
+
+- monitoreo;
+- auditoría;
+- mejor lectura del bloque `Bonos Locales`;
+- futura explicabilidad de comentarios operativos.
+
+## Qué domina el análisis por tipo de bono
+
+### bond_hard_dollar
+
+Predominan:
+
+- `TIR`
+- `paridad`
+- `duration / MD`
+- `days_to_maturity`
+- contexto de spread soberano
+
+La lectura económica principal es:
+
+- cuánto carry paga el bono;
+- cuánta compresión de spread podría capturar;
+- cuánto riesgo de duración asume;
+- si la paridad deja margen o ya está exigida.
+
+### bond_cer
+
+Predominan:
+
+- `TIR real`
+- inflación observada
+- inflación esperada
+- `duration / MD`
+- cercanía al vencimiento
+
+La lectura principal es:
+
+- si la tasa real es suficientemente atractiva;
+- cuánto duration está comprando el inversor;
+- si el bono ya cotiza muy arriba de par.
+
+### bond_bopreal
+
+Predominan:
+
+- `TIR`
+- `paridad`
+- `duration / MD`
+- `put_flag`
+- liquidez y opcionalidad
+
+La lectura principal es:
+
+- carry en dólares;
+- protección o flexibilidad por opcionalidad;
+- si la paridad sigue razonable para el riesgo que asume.
+
+### bond_other
+
+Hoy esta categoría todavía se mantiene operativamente por prudencia, pero Bonistas ya ayuda a reclasificar analíticamente algunos casos.
+
+Ejemplo actual:
+
+- `TZXD6` y `TZXM7` siguen como `bond_other` en la taxonomía operativa;
+- analíticamente ya aparecen como `bond_cer` en `bonistas_local_subfamily`.
+
+## Qué vamos a usar antes del scoring
+
+Antes de tocar reglas de scoring, la siguiente funcionalidad va a usar:
+
+- `bonistas_local_subfamily`
+- `bonistas_tir_pct`
+- `bonistas_paridad_pct`
+- `bonistas_md`
+- `bonistas_days_to_maturity`
+- `bonistas_tir_vs_avg_365d_pct`
+- `bonistas_parity_gap_pct`
+- `bonistas_put_flag`
+
+Objetivos concretos:
+
+- comentarios operativos más específicos por taxonomía local;
+- mejor explicación en `Decisión final` y en `Bonos Locales`;
+- preparación de una capa de contexto para scoring futuro.
+
+## Datos externos ya disponibles o relativamente resueltos
+
+### Bonistas
+
+Sirve para:
+
+- `TIR`
+- `paridad`
+- `MD`
+- `valor técnico`
+- fechas de emisión y vencimiento
+- `put_flag`
+- lectura por familia local
+
+### ArgentinaDatos
+
+La documentación pública muestra datos útiles para contexto macro y de régimen:
+
+- `riesgo país`
+- `inflacion mensual`
+- `inflacion interanual`
+- `indices UVA`
+- `dolares`
+- `letras capitalizables`
+
+Uso esperado:
+
+- `riesgo país` para `bond_hard_dollar` y `bond_bopreal`;
+- inflación para `bond_cer`;
+- letras para futura `letter_fixed_rate`.
+
+## Datos externos faltantes o a buscar
+
+Estos datos todavía no están integrados y conviene considerarlos para futuras búsquedas o fuentes adicionales.
+
+### Alta prioridad
+
+- `riesgo_pais_bps`
+  - contexto de spread soberano argentino
+  - fuente candidata: ArgentinaDatos
+- `ust_5y_pct`
+  - referencia de tasa libre de riesgo
+  - fuente faltante
+- `ust_10y_pct`
+  - referencia de tasa libre de riesgo
+  - fuente faltante
+- `rem_inflacion_12m_pct`
+  - inflación esperada
+  - fuente faltante
+
+### Prioridad media
+
+- `reservas_bcra_usd`
+  - contexto de fragilidad o fortaleza externa
+  - fuente faltante
+- `tipo_cambio_mayorista`
+  - contexto cambiario para soberanos y dollar-linked
+  - fuente faltante
+- `badlar`
+  - benchmark para instrumentos tasa variable
+  - fuente aún no resuelta de forma robusta
+- `tamar`
+  - benchmark para instrumentos tasa TAMAR
+  - fuente aún no resuelta de forma robusta fuera del scraping puntual
+
+### Prioridad específica por taxonomía futura
+
+- `dual_reference_context`
+  - para `bond_dual`
+- `dollar_linked_reference_context`
+  - para `bond_dollar_linked`
+- `fixed_rate_curve_context`
+  - para `bond_fixed_rate` y `letter_fixed_rate`
+
+## Fuentes candidatas por dato
+
+### Ya identificadas
+
+- Bonistas
+- ArgentinaDatos
+
+### A buscar o validar
+
+- curva Treasury de EE.UU.
+- REM de BCRA
+- reservas internacionales BCRA
+- tipo de cambio mayorista BCRA
+- series BADLAR/TAMAR robustas y consistentes
+
+## Criterio de implementación
+
+El orden recomendado para la siguiente etapa es:
+
+1. usar `bonistas_local_subfamily` para comentarios y explicabilidad;
+2. integrar un primer dato externo de contexto, idealmente `riesgo país`;
+3. evaluar luego `REM` y curva Treasury;
+4. recién después abrir scoring nuevo para bonos.
+
+## Decisión vigente
+
+Se deja asentado que:
+
+- la próxima etapa de bonos no empieza por scoring;
+- empieza por explicabilidad y contexto;
+- la taxonomía local ampliada ya es suficientemente estable como para usarse en comentarios operativos;
+- los datos externos prioritarios a buscar son:
+  - `riesgo país`
+  - `UST 5y / 10y`
+  - `REM inflación esperada`
+  - `reservas BCRA`
