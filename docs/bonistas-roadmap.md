@@ -234,3 +234,24 @@ Estado de la etapa:
   - `Hecho`
 - scoring de bonos:
   - `Pendiente`
+
+## Actualizacion 2026-04-05 - REM 12m via Excel BCRA
+
+Avance validado:
+
+- la fuente oficial elegida para `REM 12m` es el Excel del BCRA;
+- el pipeline ya puede propagar:
+  - `rem_inflacion_mensual_pct`
+  - `rem_inflacion_12m_pct`
+- el renderer de `Bonos Locales` ya puede exponer ambas referencias;
+- los comentarios operativos de `bond_cer` ya pueden usar:
+  - `TIR real`
+  - `paridad`
+  - `REM 12m`
+  - `REM mensual`
+
+Criterio de esta subetapa:
+
+- no se toca scoring;
+- se mejora la lectura estrategica de bonos CER;
+- se consolida la fuente oficial del BCRA como referencia para expectativas de inflacion.

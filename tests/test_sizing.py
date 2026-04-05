@@ -263,6 +263,7 @@ class SizingTests(unittest.TestCase):
         final_decision["bonistas_tir_pct"] = None
         final_decision["bonistas_paridad_pct"] = None
         final_decision["bonistas_rem_inflacion_mensual_pct"] = None
+        final_decision["bonistas_rem_inflacion_12m_pct"] = None
 
         cer_row = {
             "Ticker_IOL": "TZX26",
@@ -273,6 +274,7 @@ class SizingTests(unittest.TestCase):
             "bonistas_tir_pct": -8.1,
             "bonistas_paridad_pct": 102.0,
             "bonistas_rem_inflacion_mensual_pct": 2.7,
+            "bonistas_rem_inflacion_12m_pct": 24.6,
             "accion_sugerida_v2": "Mantener / Neutral",
             "score_unificado": -0.01,
             "score_despliegue_liquidez": 0.0,
@@ -289,7 +291,8 @@ class SizingTests(unittest.TestCase):
         propuesta = result["propuesta"]
         tzx26_comment = propuesta.loc[propuesta["Ticker_IOL"] == "TZX26", "comentario_operativo"].iloc[0]
 
-        self.assertIn("REM 2.7%", tzx26_comment)
+        self.assertIn("REM 12m 24.6%", tzx26_comment)
+        self.assertIn("REM mensual 2.7%", tzx26_comment)
 
     def test_cedear_keeps_enriched_action_reason_in_operational_comment(self) -> None:
         final_decision = self.final_decision.copy()

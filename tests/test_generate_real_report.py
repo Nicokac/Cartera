@@ -52,7 +52,12 @@ class GenerateRealReportTests(unittest.TestCase):
             "generate_real_report.get_riesgo_pais_latest", return_value={"valor": 765.0, "fecha": "2026-04-05"}
         ), patch(
             "generate_real_report.get_rem_latest",
-            return_value={"inflacion_mensual_pct": 2.7, "periodo": "Febrero De 2026", "fecha_publicacion": "5 de marzo de 2026"},
+            return_value={
+                "inflacion_mensual_pct": 2.7,
+                "inflacion_12m_pct": 24.6,
+                "periodo": "Febrero De 2026",
+                "fecha_publicacion": "5 de marzo de 2026",
+            },
         ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()) as enrich_mock, patch(
             "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame([{"Ticker_IOL": "GD30"}])
         ), patch(
@@ -71,6 +76,7 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(bundle["macro_variables"]["cer_diario"], 738.025)
         self.assertEqual(bundle["macro_variables"]["riesgo_pais_bps"], 765.0)
         self.assertEqual(bundle["macro_variables"]["rem_inflacion_mensual_pct"], 2.7)
+        self.assertEqual(bundle["macro_variables"]["rem_inflacion_12m_pct"], 24.6)
         enrich_mock.assert_called_once()
         self.assertEqual(enrich_mock.call_args.kwargs["mep_real"], 1434.0)
 

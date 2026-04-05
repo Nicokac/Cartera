@@ -90,6 +90,7 @@ Notas:
 - Baseline vigente de explicabilidad pre-scoring en bonos:
   - `Riesgo pais` visible en `Bonos Locales`
   - `REM inflacion` visible en `Bonos Locales`
+  - `REM 12m` visible en `Bonos Locales` cuando el Excel del BCRA esta disponible
   - `UST 5y` y `UST 10y` visibles en `Bonos Locales` cuando FRED esta disponible
   - `GD30` y `AL30` se explican como `bond_hard_dollar` con:
     - `paridad`
@@ -104,4 +105,5 @@ Notas:
   - `TZX26`, `TZXD6` y `TZXM7` se explican como lectura `CER` con:
     - `TIR real`
     - `paridad`
+    - `REM 12m`
     - `REM inflacion`

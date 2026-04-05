@@ -32,6 +32,7 @@ def _comentario_operativo(row: pd.Series) -> str:
     md = pd.to_numeric(pd.Series([row.get("bonistas_md")]), errors="coerce").iloc[0]
     riesgo_pais = pd.to_numeric(pd.Series([row.get("bonistas_riesgo_pais_bps")]), errors="coerce").iloc[0]
     rem_inflacion = _fmt_pct_short(row.get("bonistas_rem_inflacion_mensual_pct"))
+    rem_inflacion_12m = _fmt_pct_short(row.get("bonistas_rem_inflacion_12m_pct"))
     ust_10y = _fmt_pct_short(row.get("bonistas_ust_10y_pct"))
     ust_spread = _fmt_pct_short(row.get("bonistas_spread_vs_ust_pct"))
     put_flag = bool(row.get("bonistas_put_flag")) if pd.notna(row.get("bonistas_put_flag")) else False
@@ -97,6 +98,17 @@ def _comentario_operativo(row: pd.Series) -> str:
                 )
             return "Hard-dollar soberano en monitoreo; seguir riesgo soberano y compresion de spread."
         if local_subfamily == "bond_cer":
+            if tir and parity and rem_inflacion_12m and rem_inflacion:
+                return (
+                    f"Bono CER en monitoreo con TIR real {tir}, paridad {parity}, "
+                    f"REM 12m {rem_inflacion_12m} y REM mensual {rem_inflacion}; "
+                    "seguir inflacion esperada y carry."
+                )
+            if tir and parity and rem_inflacion_12m:
+                return (
+                    f"Bono CER en monitoreo con TIR real {tir}, paridad {parity} y REM 12m {rem_inflacion_12m}; "
+                    "seguir inflacion esperada y carry."
+                )
             if tir and parity and rem_inflacion:
                 return (
                     f"Bono CER en monitoreo con TIR real {tir}, paridad {parity} y REM {rem_inflacion}; "

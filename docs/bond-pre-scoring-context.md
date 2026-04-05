@@ -294,3 +294,33 @@ Criterio vigente:
   - `REM inflacion esperada 12m`
   - `reservas BCRA`
   - `tipo de cambio mayorista`
+
+## Actualizacion 2026-04-05 - REM 12m via Excel BCRA
+
+Se deja asentado que `REM inflacion esperada 12m` pasa a quedar integrado desde la fuente oficial del BCRA.
+
+Fuente primaria:
+
+- `Base de Resultados del REM web.xlsx`
+- publicada por BCRA
+- consumida con `pandas.read_excel()`
+
+Alcance actual:
+
+- el bloque `Bonos Locales` ya puede mostrar:
+  - `REM inflacion`
+  - `REM 12m`
+- la capa analitica ya propaga:
+  - `bonistas_rem_inflacion_mensual_pct`
+  - `bonistas_rem_inflacion_12m_pct`
+- los comentarios de `bond_cer` ya pueden usar ambas referencias cuando estan disponibles.
+
+Criterio vigente:
+
+- `REM 12m` deja de ser un faltante de primer nivel para explicabilidad;
+- la fuente elegida es oficial y no depende de API no documentada;
+- no modifica scoring;
+- los siguientes faltantes relevantes pasan a ser:
+  - `reservas BCRA`
+  - `tipo de cambio mayorista`
+  - `BADLAR/TAMAR` robustas

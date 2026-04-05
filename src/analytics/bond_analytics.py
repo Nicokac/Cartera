@@ -148,6 +148,12 @@ def enrich_bond_analytics(
     ).iloc[0]
     if pd.notna(rem_inflacion_value):
         work["bonistas_rem_inflacion_mensual_pct"] = rem_inflacion_value
+    rem_inflacion_12m_value = pd.to_numeric(
+        pd.Series([macro_variables.get("rem_inflacion_12m_pct")]),
+        errors="coerce",
+    ).iloc[0]
+    if pd.notna(rem_inflacion_12m_value):
+        work["bonistas_rem_inflacion_12m_pct"] = rem_inflacion_12m_value
     ust_5y_value = pd.to_numeric(pd.Series([macro_variables.get("ust_5y_pct")]), errors="coerce").iloc[0]
     if pd.notna(ust_5y_value):
         work["bonistas_ust_5y_pct"] = ust_5y_value

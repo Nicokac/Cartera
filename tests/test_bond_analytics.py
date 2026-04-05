@@ -59,6 +59,7 @@ class BondAnalyticsTests(unittest.TestCase):
                 "badlar": 28.0,
                 "riesgo_pais_bps": 710.0,
                 "rem_inflacion_mensual_pct": 2.7,
+                "rem_inflacion_12m_pct": 24.6,
                 "ust_5y_pct": 4.05,
                 "ust_10y_pct": 4.25,
                 "ust_spread_10y_5y_pct": 0.20,
@@ -76,6 +77,7 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertAlmostEqual(gd30["bonistas_parity_gap_pct"], -22.0, places=2)
         self.assertEqual(gd30["bonistas_riesgo_pais_bps"], 710.0)
         self.assertEqual(gd30["bonistas_rem_inflacion_mensual_pct"], 2.7)
+        self.assertEqual(gd30["bonistas_rem_inflacion_12m_pct"], 24.6)
         self.assertEqual(gd30["bonistas_ust_date"], "2026-04-04")
         self.assertAlmostEqual(gd30["bonistas_ust_10y_pct"], 4.25, places=2)
         self.assertAlmostEqual(gd30["bonistas_spread_vs_ust_pct"], 8.25, places=2)

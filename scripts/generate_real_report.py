@@ -347,13 +347,18 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         macro_variables["riesgo_pais_fecha"] = riesgo_pais.get("fecha")
 
     try:
-        rem_latest = get_rem_latest(base_url=project_config.BCRA_REM_URL)
+        rem_latest = get_rem_latest(
+            base_url=project_config.BCRA_REM_URL,
+            xlsx_url=project_config.BCRA_REM_XLS_URL,
+        )
     except Exception as exc:
         print(f"BCRA REM no disponible: {exc}")
         rem_latest = None
     if rem_latest:
         macro_variables = dict(macro_variables)
         macro_variables["rem_inflacion_mensual_pct"] = float(rem_latest["inflacion_mensual_pct"])
+        if rem_latest.get("inflacion_12m_pct") is not None:
+            macro_variables["rem_inflacion_12m_pct"] = float(rem_latest["inflacion_12m_pct"])
         macro_variables["rem_periodo"] = rem_latest.get("periodo")
         macro_variables["rem_fecha_publicacion"] = rem_latest.get("fecha_publicacion")
 
@@ -474,6 +479,7 @@ def main() -> None:
             "bonistas_put_flag",
             "bonistas_riesgo_pais_bps",
             "bonistas_rem_inflacion_mensual_pct",
+            "bonistas_rem_inflacion_12m_pct",
             "bonistas_ust_5y_pct",
             "bonistas_ust_10y_pct",
             "bonistas_spread_vs_ust_pct",
