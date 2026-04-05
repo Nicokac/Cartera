@@ -72,6 +72,8 @@ def build_decision_base(
         "Ticker_IOL",
         "Ticker_Finviz",
         "instrument_class",
+        "asset_family",
+        "asset_subfamily",
         "is_etf",
         "is_core_etf",
         "Perf Week",
@@ -109,6 +111,16 @@ def build_decision_base(
     decision["Es_Core_ETF"] = (
         decision["is_core_etf"].fillna(False).astype(bool) if "is_core_etf" in decision.columns else False
     )
+    decision["asset_family"] = decision.get("asset_family")
+    decision["asset_subfamily"] = decision.get("asset_subfamily")
+    decision["asset_family"] = decision["asset_family"].where(decision["asset_family"].notna(), None)
+    decision["asset_subfamily"] = decision["asset_subfamily"].where(decision["asset_subfamily"].notna(), None)
+    decision.loc[decision["Es_Liquidez"], "asset_family"] = "liquidity"
+    decision.loc[decision["Es_Bono"], "asset_family"] = "bond"
+    decision.loc[decision["Es_Accion_Local"], "asset_family"] = "stock"
+    decision.loc[decision["Es_Cedear"] & ~decision["Es_ETF"], "asset_family"] = "stock"
+    decision.loc[decision["Es_ETF"] & decision["Es_Core_ETF"], "asset_subfamily"] = "etf_core"
+    decision.loc[decision["Es_ETF"] & decision["asset_subfamily"].isna(), "asset_subfamily"] = "etf_other"
     decision["MEP_Premium_%"] = np.where(
         decision["MEP_Implicito"].notna() & bool(mep_real),
         (decision["MEP_Implicito"] / mep_real - 1) * 100,
@@ -182,6 +194,10 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     for col, default in bool_defaults.items():
         if col not in out.columns:
             out[col] = default
+    if "asset_family" not in out.columns:
+        out["asset_family"] = None
+    if "asset_subfamily" not in out.columns:
+        out["asset_subfamily"] = None
     out["s_low_weight"] = rank_score(out["Peso_%"], higher_is_better=False, neutral=rank_neutral)
     out["s_high_weight"] = rank_score(out["Peso_%"], higher_is_better=True, neutral=rank_neutral)
     out["s_mom_week"] = rank_score(out["Perf Week"], higher_is_better=True, neutral=rank_neutral)

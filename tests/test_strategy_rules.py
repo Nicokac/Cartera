@@ -10,7 +10,13 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from decision.actions import assign_action_v2
-from decision.scoring import apply_base_scores, apply_technical_overlay_scores, build_technical_overlay_scores, consensus_to_score
+from decision.scoring import (
+    apply_base_scores,
+    apply_technical_overlay_scores,
+    build_decision_base,
+    build_technical_overlay_scores,
+    consensus_to_score,
+)
 
 
 class StrategyRulesTests(unittest.TestCase):
@@ -305,6 +311,90 @@ class StrategyRulesTests(unittest.TestCase):
             scored.loc[1, "s_concentration_pressure_effective"],
         )
         self.assertLess(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
+    def test_asset_taxonomy_is_propagated_to_decision_base(self) -> None:
+        df_total = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "SPY",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Core",
+                    "Peso_%": 4.8,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "KO",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Dividendos",
+                    "Peso_%": 2.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "GD30",
+                    "Tipo": "Bono",
+                    "Bloque": "Soberano AR",
+                    "Peso_%": 3.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "CAUCION",
+                    "Tipo": "Liquidez",
+                    "Bloque": "Liquidez",
+                    "Peso_%": 10.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 0.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 1.0,
+                },
+            ]
+        )
+        df_cedears = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "SPY",
+                    "Ticker_Finviz": "SPY",
+                    "asset_family": "etf",
+                    "asset_subfamily": "etf_core",
+                    "is_etf": True,
+                    "is_core_etf": True,
+                },
+                {
+                    "Ticker_IOL": "KO",
+                    "Ticker_Finviz": "KO",
+                    "asset_family": None,
+                    "asset_subfamily": None,
+                    "is_etf": False,
+                    "is_core_etf": False,
+                },
+            ]
+        )
+
+        decision = build_decision_base(df_total, df_cedears, pd.DataFrame(), mep_real=1000.0)
+
+        spy = decision.loc[decision["Ticker_IOL"] == "SPY"].iloc[0]
+        ko = decision.loc[decision["Ticker_IOL"] == "KO"].iloc[0]
+        gd30 = decision.loc[decision["Ticker_IOL"] == "GD30"].iloc[0]
+        caucion = decision.loc[decision["Ticker_IOL"] == "CAUCION"].iloc[0]
+
+        self.assertEqual(spy["asset_family"], "etf")
+        self.assertEqual(spy["asset_subfamily"], "etf_core")
+        self.assertEqual(ko["asset_family"], "stock")
+        self.assertIsNone(ko["asset_subfamily"])
+        self.assertEqual(gd30["asset_family"], "bond")
+        self.assertEqual(caucion["asset_family"], "liquidity")
 
 
 if __name__ == "__main__":

@@ -66,6 +66,10 @@ def build_portfolio_bundle(
         profiles = pd.DataFrame.from_dict(instrument_profile_map, orient="index").reset_index()
         profiles = profiles.rename(columns={"index": "Ticker_IOL"})
         df_cedears = df_cedears.merge(profiles, on="Ticker_IOL", how="left")
+        if "asset_family" not in df_cedears.columns:
+            df_cedears["asset_family"] = None
+        if "asset_subfamily" not in df_cedears.columns:
+            df_cedears["asset_subfamily"] = None
         df_cedears["is_etf"] = df_cedears.get("is_etf", False).fillna(False).astype(bool)
         df_cedears["is_core_etf"] = df_cedears.get("is_core_etf", False).fillna(False).astype(bool)
     df_local = build_local_df(clasificado["ACCIONES_LOCALES"], precios_iol)
