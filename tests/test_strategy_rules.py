@@ -887,6 +887,67 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertIn("Growth en monitoreo", comment)
         self.assertIn("growth", score_comment.lower())
 
+    def test_stock_subfamily_adjustments_make_growth_more_demanding_than_defensive(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AMD",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_ETF": False,
+                    "Es_Core_ETF": False,
+                    "asset_subfamily": "stock_growth",
+                    "Peso_%": 1.0,
+                    "Perf Week": 3.0,
+                    "Perf Month": 5.0,
+                    "Perf YTD": 8.0,
+                    "Beta": 0.75,
+                    "P/E": 18.0,
+                    "ROE": 20.0,
+                    "Profit Margin": 18.0,
+                    "MEP_Premium_%": -98.0,
+                    "Consensus_Final": 0.7,
+                    "Ganancia_%": 20.0,
+                    "Ganancia_ARS": 100.0,
+                    "total_ratings": 10.0,
+                },
+                {
+                    "Ticker_IOL": "KO",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_ETF": False,
+                    "Es_Core_ETF": False,
+                    "asset_subfamily": "stock_defensive_dividend",
+                    "Peso_%": 1.0,
+                    "Perf Week": 3.0,
+                    "Perf Month": 5.0,
+                    "Perf YTD": 8.0,
+                    "Beta": 0.75,
+                    "P/E": 18.0,
+                    "ROE": 20.0,
+                    "Profit Margin": 18.0,
+                    "MEP_Premium_%": -98.0,
+                    "Consensus_Final": 0.7,
+                    "Ganancia_%": 20.0,
+                    "Ganancia_ARS": 100.0,
+                    "total_ratings": 10.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "asset_subfamily_adjustments": {
+                    "stock_growth": {"refuerzo_penalty": 0.02, "reduccion_boost": 0.02},
+                    "stock_defensive_dividend": {"refuerzo_boost": 0.02, "reduccion_boost": -0.02},
+                }
+            },
+        )
+
+        self.assertLess(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+        self.assertGreater(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
 
 if __name__ == "__main__":
     unittest.main()

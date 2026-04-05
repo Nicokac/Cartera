@@ -359,9 +359,12 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     for subfamily, rules in asset_subfamily_adjustments.items():
         mask = out["asset_subfamily"].eq(subfamily)
         refuerzo_penalty = float((rules or {}).get("refuerzo_penalty", 0.0))
+        refuerzo_boost = float((rules or {}).get("refuerzo_boost", 0.0))
         sparse_data_penalty = float((rules or {}).get("sparse_data_penalty", 0.0))
         if refuerzo_penalty:
             out["score_refuerzo"] -= np.where(mask, refuerzo_penalty, 0.0)
+        if refuerzo_boost:
+            out["score_refuerzo"] += np.where(mask, refuerzo_boost, 0.0)
         if sparse_data_penalty:
             out["score_refuerzo"] -= np.where(mask & ~out["has_fundamental_support"], sparse_data_penalty, 0.0)
     out["score_refuerzo"] = out["score_refuerzo"].clip(0, 1)
