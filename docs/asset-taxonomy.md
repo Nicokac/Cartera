@@ -304,6 +304,10 @@ Lectura:
   - técnico mixto
   - volatilidad relativamente alta
   - ganancia acumulada extendida
+- contra la snapshot previa el movimiento fue acotado:
+  - `2026-04-04`: `+0.183`, `Mantener / Neutral`
+  - `2026-04-05`: `+0.190`, `Refuerzo`
+- eso sugiere que el cambio vino por el sesgo nuevo de `stock_commodity`, no por una distorsión grande del score base
 
 Interpretación operativa:
 - hoy se acepta como refuerzo borderline válido

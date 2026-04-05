@@ -597,6 +597,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Conclusión:
   - no aparece como falso positivo obvio
   - queda aceptado como refuerzo borderline válido mientras no se endurezca más la capa de commodities
+- La baseline vigente de CEDEARs dentro del ciclo actual pasa a ser la corrida real `2026-04-05`.
 ## Política de actualización
 
 Cada vez que avancemos una fase, este archivo debe actualizarse con:
