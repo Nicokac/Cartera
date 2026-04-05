@@ -11,6 +11,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 import config as project_config
+from analytics.bond_analytics import build_bond_monitor_table, build_bond_subfamily_summary, enrich_bond_analytics
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
 
 
@@ -156,6 +157,31 @@ def build_mock_ratings() -> pd.DataFrame:
     ).set_index("Ticker_Finviz")
 
 
+def build_mock_bonistas(df_bonds: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, object]]:
+    if df_bonds.empty:
+        return pd.DataFrame(), {}
+
+    rows = []
+    for ticker in df_bonds["Ticker_IOL"].tolist():
+        if ticker == "GD30":
+            rows.append(
+                {
+                    "bonistas_ticker": "GD30",
+                    "bonistas_tir_pct": 12.4,
+                    "bonistas_paridad_pct": 77.8,
+                    "bonistas_md": 3.2,
+                    "bonistas_fecha_vencimiento": "09/07/2030",
+                    "bonistas_fecha_emision": "04/09/2020",
+                    "bonistas_valor_tecnico": 72.1,
+                    "bonistas_tir_avg_365d_pct": 13.8,
+                    "bonistas_put_flag": False,
+                    "bonistas_subfamily": "bond_hard_dollar",
+                }
+            )
+    macro = {"cer_diario": 1.2, "tamar": 31.5, "badlar": 29.1}
+    return pd.DataFrame(rows), macro
+
+
 def print_section(title: str) -> None:
     print(f"\n{title}")
     print("-" * len(title))
@@ -178,6 +204,18 @@ def run_smoke_pipeline() -> dict[str, object]:
     )
 
     df_total = portfolio_bundle["df_total"]
+    df_bonistas, bonistas_macro = build_mock_bonistas(portfolio_bundle["df_bonos"])
+    bond_monitor = pd.DataFrame()
+    bond_subfamily_summary = pd.DataFrame()
+    if not portfolio_bundle["df_bonos"].empty:
+        bond_analytics = enrich_bond_analytics(
+            portfolio_bundle["df_bonos"],
+            df_bonistas,
+            reference_date="2026-04-05",
+            macro_variables=bonistas_macro,
+        )
+        bond_monitor = build_bond_monitor_table(bond_analytics)
+        bond_subfamily_summary = build_bond_subfamily_summary(bond_analytics)
     df_cedears = enrich_mock_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     df_ratings_res = build_mock_ratings()
     finviz_stats = {
@@ -218,6 +256,11 @@ def run_smoke_pipeline() -> dict[str, object]:
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
         "finviz_stats": finviz_stats,
+        "bonistas_bundle": {
+            "bond_monitor": bond_monitor,
+            "bond_subfamily_summary": bond_subfamily_summary,
+            "macro_variables": bonistas_macro,
+        },
     }
 
 

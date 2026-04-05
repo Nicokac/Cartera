@@ -18,8 +18,10 @@ if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
 import config as project_config
+from analytics.bond_analytics import build_bond_monitor_table, build_bond_subfamily_summary, enrich_bond_analytics
 from analytics.technical import build_technical_overlay
 from clients.argentinadatos import get_mep_real
+from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
 from clients.finviz_client import fetch_finviz_bundle
 from clients.iol import (
     iol_get_estado_cuenta,
@@ -258,6 +260,41 @@ def write_real_snapshots(
     return paths
 
 
+def build_real_bonistas_bundle(df_bonos: pd.DataFrame) -> dict[str, object]:
+    if df_bonos.empty:
+        return {}
+
+    tickers = sorted({str(ticker).strip().upper() for ticker in df_bonos["Ticker_IOL"].dropna().tolist() if str(ticker).strip()})
+    if not tickers:
+        return {}
+
+    try:
+        df_bonistas = get_bonds_for_portfolio(tickers)
+    except Exception as exc:
+        print(f"Bonistas instrumentos no disponible: {exc}")
+        df_bonistas = pd.DataFrame()
+
+    try:
+        macro_variables = get_macro_variables()
+    except Exception as exc:
+        print(f"Bonistas variables no disponible: {exc}")
+        macro_variables = {}
+
+    if df_bonistas.empty and not macro_variables:
+        return {}
+
+    bond_analytics = enrich_bond_analytics(
+        df_bonos,
+        df_bonistas,
+        macro_variables=macro_variables,
+    )
+    return {
+        "bond_monitor": build_bond_monitor_table(bond_analytics),
+        "bond_subfamily_summary": build_bond_subfamily_summary(bond_analytics),
+        "macro_variables": macro_variables,
+    }
+
+
 def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -346,6 +383,7 @@ def main() -> None:
         sizing_rules=project_config.SIZING_RULES,
     )
     dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
+    bonistas_bundle = build_real_bonistas_bundle(portfolio_bundle["df_bonos"])
 
     report = {
         "mep_real": mep_real or 0.0,
@@ -355,6 +393,7 @@ def main() -> None:
         "sizing_bundle": sizing_bundle,
         "technical_overlay": technical_overlay,
         "finviz_stats": finviz_stats,
+        "bonistas_bundle": bonistas_bundle,
     }
     html_body = render_report(
         report,

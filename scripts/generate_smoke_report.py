@@ -278,6 +278,7 @@ def render_report(
     sizing_bundle = result["sizing_bundle"]
     technical_overlay = result.get("technical_overlay", pd.DataFrame())
     finviz_stats = result.get("finviz_stats", {}) or {}
+    bonistas_bundle = result.get("bonistas_bundle", {}) or {}
 
     df_total = portfolio_bundle["df_total"].copy()
     integrity_report = portfolio_bundle["integrity_report"].copy()
@@ -286,6 +287,14 @@ def render_report(
     asignacion_final = sizing_bundle["asignacion_final"].copy()
     resumen_tipos = dashboard_bundle["resumen_tipos"].copy()
     kpis = dashboard_bundle["kpis"]
+    bond_monitor = bonistas_bundle.get("bond_monitor", pd.DataFrame())
+    bond_subfamily_summary = bonistas_bundle.get("bond_subfamily_summary", pd.DataFrame())
+    bonistas_macro = bonistas_bundle.get("macro_variables", {}) or {}
+    show_bonistas = (
+        (isinstance(bond_monitor, pd.DataFrame) and not bond_monitor.empty)
+        or (isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty)
+        or bool(bonistas_macro)
+    )
     tech_metric_cols = [
         "Dist_SMA20_%",
         "Dist_SMA50_%",
@@ -390,6 +399,37 @@ def render_report(
     </section>
     """
 
+    bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
+    bonistas_section = ""
+    if show_bonistas:
+        bonistas_section = f"""
+    <section class="panel" id="bonistas">
+      <h2>Bonos Locales</h2>
+      <div class="meta">
+        <span>CER: <strong>{fmt_label(bonistas_macro.get('cer_diario'))}</strong></span>
+        <span>TAMAR: <strong>{fmt_label(bonistas_macro.get('tamar'))}</strong></span>
+        <span>BADLAR: <strong>{fmt_label(bonistas_macro.get('badlar'))}</strong></span>
+      </div>
+      <h3>Resumen por subfamilia</h3>
+      {build_table(
+          bond_subfamily_summary,
+          formatters={},
+      )}
+      <h3>Monitoreo de bonos</h3>
+      {build_table(
+          bond_monitor,
+          formatters={
+              "Peso_%": fmt_pct,
+              "bonistas_tir_pct": fmt_pct,
+              "bonistas_paridad_pct": fmt_pct,
+              "bonistas_md": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
+              "bonistas_tir_vs_avg_365d_pct": fmt_pct,
+              "bonistas_parity_gap_pct": fmt_pct,
+          },
+      )}
+    </section>
+    """
+
     html_body = f"""<!doctype html>
 <html lang="es">
 <head>
@@ -413,6 +453,7 @@ def render_report(
       <a href="#resumen">Resumen</a>
       <a href="#decision">Decision</a>
       <a href="#tecnico">Tecnico</a>
+      {bonistas_nav}
       <a href="#sizing">Sizing</a>
       <a href="#cartera">Cartera</a>
     </nav>
@@ -483,6 +524,8 @@ def render_report(
       </div>
       {build_technical_table(technical_view)}
     </section>
+
+    {bonistas_section}
 
     <section class="panel" id="decision">
       <div class="panel-head">
