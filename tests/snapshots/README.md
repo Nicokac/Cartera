@@ -34,3 +34,11 @@ Notas:
     - `SPY` quedó neutral por ajuste `etf_core`
     - `EWZ` quedó neutral por ajuste `etf_country_region`
     - refuerzos efectivos: `VIST`, `XLU`, `KO`
+    - taxonomía visible en reporte:
+      - `etf_core`
+      - `etf_sector`
+      - `etf_country_region`
+      - `bond_sov_ar`
+      - `bond_cer`
+      - `bond_bopreal`
+      - `bond_other`

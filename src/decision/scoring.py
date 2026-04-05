@@ -113,6 +113,8 @@ def build_decision_base(
     )
     decision["asset_family"] = decision.get("asset_family")
     decision["asset_subfamily"] = decision.get("asset_subfamily")
+    decision["asset_family"] = decision["asset_family"].astype("object")
+    decision["asset_subfamily"] = decision["asset_subfamily"].astype("object")
     decision["asset_family"] = decision["asset_family"].where(decision["asset_family"].notna(), None)
     decision["asset_subfamily"] = decision["asset_subfamily"].where(decision["asset_subfamily"].notna(), None)
     decision.loc[decision["Es_Liquidez"], "asset_family"] = "liquidity"
@@ -121,6 +123,26 @@ def build_decision_base(
     decision.loc[decision["Es_Cedear"] & ~decision["Es_ETF"], "asset_family"] = "stock"
     decision.loc[decision["Es_ETF"] & decision["Es_Core_ETF"], "asset_subfamily"] = "etf_core"
     decision.loc[decision["Es_ETF"] & decision["asset_subfamily"].isna(), "asset_subfamily"] = "etf_other"
+    decision.loc[
+        decision["Es_Bono"] & decision["Bloque"].eq("Soberano AR"),
+        "asset_subfamily",
+    ] = "bond_sov_ar"
+    decision.loc[
+        decision["Es_Bono"] & decision["Bloque"].eq("CER"),
+        "asset_subfamily",
+    ] = "bond_cer"
+    decision.loc[
+        decision["Es_Bono"] & decision["Bloque"].eq("Bopreal"),
+        "asset_subfamily",
+    ] = "bond_bopreal"
+    decision.loc[
+        decision["Es_Bono"] & decision["asset_subfamily"].isna(),
+        "asset_subfamily",
+    ] = "bond_other"
+    decision.loc[
+        decision["Es_Liquidez"] & decision["asset_subfamily"].isna(),
+        "asset_subfamily",
+    ] = "liquidity_other"
     decision["MEP_Premium_%"] = np.where(
         decision["MEP_Implicito"].notna() & bool(mep_real),
         (decision["MEP_Implicito"] / mep_real - 1) * 100,

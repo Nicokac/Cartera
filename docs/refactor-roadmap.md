@@ -23,7 +23,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Fecha base del roadmap: `2026-03-31`
 - Estado global: `Fase 10 en progreso`
-- Última actualización: `2026-04-04`
+- Última actualización: `2026-04-05`
 
 ## Fase 0. Línea base y resguardo
 
@@ -533,7 +533,26 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - `1` reducción
   - `EWZ` neutral
 - Próximo foco propuesto:
-  - extender la calibración taxonómica a `IEUR` y `EEM`
+  - empezar calibración específica por subfamilia de bono
+  - auditar `GD30`, `AL30`, `TZX26` y `BPOC7`
+
+### 2026-04-05
+
+- Se expuso la taxonomía operativa en el reporte HTML, agregando `Familia`, `Subfamilia` y una tabla resumen por taxonomía.
+- Se confirmó en corrida real que:
+  - `etf_country_region` quedó neutral (`EWZ`, `EEM`, `IEUR`)
+  - `etf_sector` conserva convicción de refuerzo en `XLU`
+  - `etf_core` queda neutral (`SPY`, `DIA`)
+- Se introdujo la primera subclasificación canónica de bonos:
+  - `bond_sov_ar`
+  - `bond_cer`
+  - `bond_bopreal`
+  - `bond_other`
+- Esa taxonomía de bonos ya quedó visible en el reporte real y no alteró la baseline operativa vigente:
+  - refuerzos: `VIST`, `XLU`, `KO`
+  - reducción: `MELI`
+  - `SPY` neutral
+  - `EWZ` neutral
 
 ## Política de actualización
 

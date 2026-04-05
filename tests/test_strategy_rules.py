@@ -394,7 +394,67 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertEqual(ko["asset_family"], "stock")
         self.assertIsNone(ko["asset_subfamily"])
         self.assertEqual(gd30["asset_family"], "bond")
+        self.assertEqual(gd30["asset_subfamily"], "bond_sov_ar")
         self.assertEqual(caucion["asset_family"], "liquidity")
+        self.assertEqual(caucion["asset_subfamily"], "liquidity_other")
+
+    def test_bond_taxonomy_assigns_subfamily_from_block(self) -> None:
+        df_total = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "GD30",
+                    "Tipo": "Bono",
+                    "Bloque": "Soberano AR",
+                    "Peso_%": 3.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "TZX26",
+                    "Tipo": "Bono",
+                    "Bloque": "CER",
+                    "Peso_%": 3.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "BPOC7",
+                    "Tipo": "Bono",
+                    "Bloque": "Bopreal",
+                    "Peso_%": 3.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+                {
+                    "Ticker_IOL": "TZXM7",
+                    "Tipo": "Bono",
+                    "Bloque": "Sin clasificar",
+                    "Peso_%": 3.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
+            ]
+        )
+
+        decision = build_decision_base(df_total, pd.DataFrame(), pd.DataFrame(), mep_real=1000.0)
+
+        mapping = dict(zip(decision["Ticker_IOL"], decision["asset_subfamily"]))
+        self.assertEqual(mapping["GD30"], "bond_sov_ar")
+        self.assertEqual(mapping["TZX26"], "bond_cer")
+        self.assertEqual(mapping["BPOC7"], "bond_bopreal")
+        self.assertEqual(mapping["TZXM7"], "bond_other")
 
     def test_country_region_etf_needs_more_support_for_refuerzo(self) -> None:
         df = pd.DataFrame(

@@ -118,6 +118,12 @@ Señales relevantes:
 - rebalanceo
 - carry / compresión / duración si se agregan a futuro
 
+Subfamilias efectivas actuales:
+- `bond_sov_ar`
+- `bond_cer`
+- `bond_bopreal`
+- `bond_other`
+
 ### 6. `liquidity`
 
 Caja, caución, FCI cash management u otras posiciones de liquidez.
@@ -150,8 +156,15 @@ Subfamilias ETF efectivas actuales:
 - `etf_sector`
 - `etf_country_region`
 
+Subfamilias bond efectivas actuales:
+- `bond_sov_ar`
+- `bond_cer`
+- `bond_bopreal`
+- `bond_other`
+
 Además:
 - la taxonomía ya llega a `decision`
+- la taxonomía ya se expone en el reporte HTML
 - ya existe un primer ajuste real por subfamilia en scoring
 - `etf_country_region` hoy exige más soporte para quedar en `Refuerzo` que un `etf_sector`
 
@@ -195,11 +208,18 @@ Avance actual:
 
 ### Etapa 3. Presentación
 
+Estado: `Hecho`
+
 Exponer en reporte:
 - `asset_family`
 - `asset_subfamily`
 
 Esto debería permitir leer rápido por qué dos ETFs no reciben el mismo tratamiento.
+
+Avance actual:
+- `Decisión final` ya muestra `Familia` y `Subfamilia`
+- el resumen ejecutivo ya muestra `Taxonomía operativa`
+- la taxonomía de bonos también quedó visible en la lectura real
 
 ## Caso cerrado inmediato
 
@@ -217,7 +237,11 @@ Interpretación:
 
 ## Próximo foco
 
-Los siguientes frentes lógicos de calibración son:
-- revisar si `IEUR` y `EEM` deben compartir exactamente la misma lógica que `EWZ`
-- decidir si `etf_sector` necesita una penalización propia cuando no trae soporte fundamental
-- exponer `asset_family` y `asset_subfamily` en el reporte HTML
+Los siguientes frentes lógicos de calibración ya no están en ETFs, sino en bonos:
+- revisar si `bond_sov_ar` necesita una lógica más explícita de rebalanceo cuando la ganancia acumulada es alta
+- revisar por qué `bond_other` hoy queda con score promedio materialmente mejor que otras subfamilias de bono
+- auditar específicamente:
+  - `GD30`
+  - `AL30`
+  - `TZX26`
+  - `BPOC7`
