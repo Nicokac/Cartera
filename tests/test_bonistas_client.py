@@ -11,6 +11,7 @@ if str(SRC) not in sys.path:
 from clients.bonistas_client import (
     _infer_bonistas_subfamily,
     _parse_instrument_html,
+    get_macro_variables,
     get_bonds_for_portfolio,
     normalize_bonistas_ticker,
 )
@@ -107,6 +108,25 @@ class BonistasClientTests(unittest.TestCase):
         self.assertEqual(parsed["bonistas_md"], 2.02)
         self.assertEqual(parsed["bonistas_fecha_vencimiento"], "9/7/2030")
         self.assertEqual(parsed["bonistas_valor_tecnico"], 72.11)
+
+    def test_get_macro_variables_parses_reference_values_from_variables_page(self) -> None:
+        html = """
+        <h1>Variables de Referencia</h1>
+        <div>CER</div><div>738.0250</div>
+        <div>TAMAR</div><div>26.31%</div>
+        <div>BADLAR</div><div>25.37%</div>
+        <div>Inflacion Mensual</div><div>2.90%</div>
+        <div>Inflacion Interanual</div><div>33.10%</div>
+        <div>Inflacion Esperada (REM)</div><div>22.30%</div>
+        """
+
+        with patch("clients.bonistas_client._fetch_html", return_value=html):
+            payload = get_macro_variables(use_cache=False)
+
+        self.assertEqual(payload["bonistas_parse_status"], "ok")
+        self.assertAlmostEqual(payload["cer_diario"], 738.025, places=3)
+        self.assertAlmostEqual(payload["tamar"], 26.31, places=2)
+        self.assertAlmostEqual(payload["badlar"], 25.37, places=2)
 
 
 if __name__ == "__main__":

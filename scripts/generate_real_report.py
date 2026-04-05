@@ -287,6 +287,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame) -> dict[str, object]:
         df_bonos,
         df_bonistas,
         macro_variables=macro_variables,
+        mep_real=mep_real,
     )
     return {
         "bond_monitor": build_bond_monitor_table(bond_analytics),

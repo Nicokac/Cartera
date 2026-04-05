@@ -213,6 +213,7 @@ def run_smoke_pipeline() -> dict[str, object]:
             df_bonistas,
             reference_date="2026-04-05",
             macro_variables=bonistas_macro,
+            mep_real=mep_real,
         )
         bond_monitor = build_bond_monitor_table(bond_analytics)
         bond_subfamily_summary = build_bond_subfamily_summary(bond_analytics)

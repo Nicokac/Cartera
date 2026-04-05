@@ -29,6 +29,7 @@ def enrich_bond_analytics(
     *,
     reference_date: str | None = None,
     macro_variables: dict[str, object] | None = None,
+    mep_real: float | None = None,
 ) -> pd.DataFrame:
     work = df_bonds.copy()
     if work.empty:
@@ -58,6 +59,18 @@ def enrich_bond_analytics(
         pd.to_numeric(work.get("bonistas_tir_pct"), errors="coerce")
         - pd.to_numeric(work.get("bonistas_tir_avg_365d_pct"), errors="coerce")
     )
+    raw_parity = pd.to_numeric(work.get("bonistas_paridad_pct"), errors="coerce")
+    work["bonistas_paridad_bruta_pct"] = raw_parity
+
+    if mep_real and mep_real > 0:
+        precio = pd.to_numeric(work.get("bonistas_precio"), errors="coerce")
+        valor_tecnico = pd.to_numeric(work.get("bonistas_valor_tecnico"), errors="coerce")
+        hard_dollar_mask = work.get("asset_subfamily", pd.Series(index=work.index, dtype=object)).isin({"bond_sov_ar", "bond_hard_dollar"})
+        parity_operativa = ((precio / float(mep_real)) / valor_tecnico) * 100.0
+        parity_operativa = parity_operativa.where(hard_dollar_mask & valor_tecnico.gt(0))
+        if parity_operativa.notna().any():
+            work["bonistas_paridad_pct"] = raw_parity.where(parity_operativa.isna(), parity_operativa)
+
     work["bonistas_parity_gap_pct"] = pd.to_numeric(work.get("bonistas_paridad_pct"), errors="coerce") - 100.0
 
     macro_variables = macro_variables or {}

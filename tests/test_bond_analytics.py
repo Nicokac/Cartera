@@ -65,6 +65,35 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertAlmostEqual(gd30["bonistas_parity_gap_pct"], -22.0, places=2)
         self.assertTrue(bpoc7["bonistas_put_flag"])
 
+    def test_enrich_bond_analytics_normalizes_hard_dollar_parity_with_mep(self) -> None:
+        df_bonds = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar", "Peso_%": 3.62},
+            ]
+        )
+        df_bonistas = pd.DataFrame(
+            [
+                {
+                    "bonistas_ticker": "GD30",
+                    "bonistas_precio": 90250.0,
+                    "bonistas_paridad_pct": 125120.44,
+                    "bonistas_valor_tecnico": 72.13,
+                }
+            ]
+        )
+
+        enriched = enrich_bond_analytics(
+            df_bonds,
+            df_bonistas,
+            reference_date="2026-04-05",
+            mep_real=1434.0,
+        )
+
+        gd30 = enriched.iloc[0]
+        self.assertAlmostEqual(gd30["bonistas_paridad_bruta_pct"], 125120.44, places=2)
+        self.assertAlmostEqual(gd30["bonistas_paridad_pct"], 87.25, places=2)
+        self.assertAlmostEqual(gd30["bonistas_parity_gap_pct"], -12.75, places=2)
+
     def test_build_bond_subfamily_summary_aggregates_core_metrics(self) -> None:
         df = pd.DataFrame(
             [

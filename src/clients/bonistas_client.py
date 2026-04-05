@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+import html
 from io import StringIO
 import json
 from pathlib import Path
@@ -114,42 +115,90 @@ def _infer_bonistas_subfamily(ticker: str) -> str | None:
     return None
 
 
-def _extract_single(pattern: str, html: str) -> str | None:
-    match = re.search(pattern, html, flags=re.IGNORECASE | re.DOTALL)
+def _extract_single(pattern: str, raw_html: str) -> str | None:
+    match = re.search(pattern, raw_html, flags=re.IGNORECASE | re.DOTALL)
     if not match:
         return None
     return re.sub(r"\s+", " ", match.group(1)).strip()
 
 
-def _parse_instrument_html(ticker: str, html: str) -> dict[str, Any]:
+def _normalize_label_text(value: str) -> str:
+    text = str(value or "")
+    replacements = {
+        "Ã³": "ó",
+        "Ã©": "é",
+        "Ã­": "í",
+        "Ã¡": "á",
+        "Ãº": "ú",
+        "VariaciÃ³n": "Variación",
+        "EmisiÃ³n": "Emisión",
+        "TÃ©cnico": "Técnico",
+        "InflaciÃ³n": "Inflación",
+    }
+    for source, target in replacements.items():
+        text = text.replace(source, target)
+    text = html.unescape(text)
+    text = text.strip().lower()
+    text = text.replace("ó", "o").replace("é", "e").replace("í", "i").replace("á", "a").replace("ú", "u")
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def _html_text_lines(raw_html: str) -> list[str]:
+    text = re.sub(r"<[^>]+>", "\n", raw_html)
+    text = html.unescape(text)
+    lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
+    return [line for line in lines if line]
+
+
+def _extract_value_after_label(raw_html: str, label: str, *, max_lookahead: int = 6) -> str | None:
+    lines = _html_text_lines(raw_html)
+    target = _normalize_label_text(label)
+    for idx, line in enumerate(lines):
+        if _normalize_label_text(line) != target:
+            continue
+        for candidate in lines[idx + 1 : idx + 1 + max_lookahead]:
+            if _safe_float(candidate) is not None or re.search(r"\d+/\d+/\d+|\d{4}-\d{2}-\d{2}", candidate):
+                return candidate.strip()
+    return None
+
+
+def _parse_instrument_html(ticker: str, raw_html: str) -> dict[str, Any]:
     normalized = normalize_bonistas_ticker(ticker)
-    put_flag = "opcionalidad de rescate" in html.lower() or "put" in html.lower()
+    put_flag = "opcionalidad de rescate" in raw_html.lower() or "put" in raw_html.lower()
     data: dict[str, Any] = {
         "bonistas_ticker": normalized,
         "bonistas_source_url": f"{BASE_URL}/bono-cotizacion-rendimiento-precio-hoy/{normalized}",
         "bonistas_source_section": "instrument",
         "bonistas_parse_status": "partial",
         "bonistas_fetched_at": _utcnow().isoformat(),
-        "bonistas_precio": _safe_float(_extract_single(r"Precio\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_variacion_diaria_pct": _safe_float(_extract_single(r"Variaci[oó]n diaria\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_tir_pct": _safe_float(_extract_single(r"TIR\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_paridad_pct": _safe_float(_extract_single(r"Paridad\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_md": _safe_float(_extract_single(r"MD\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_fecha_emision": _safe_date(_extract_single(r"Fecha Emisi[oó]n\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_fecha_vencimiento": _safe_date(_extract_single(r"Fecha Vencimiento\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_valor_tecnico": _safe_float(_extract_single(r"Valor T[eé]cnico\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
+        "bonistas_precio": _safe_float(_extract_value_after_label(raw_html, "Precio")),
+        "bonistas_variacion_diaria_pct": _safe_float(_extract_value_after_label(raw_html, "Variación diaria")),
+        "bonistas_tir_pct": _safe_float(_extract_value_after_label(raw_html, "TIR")),
+        "bonistas_paridad_pct": _safe_float(_extract_value_after_label(raw_html, "Paridad")),
+        "bonistas_md": _safe_float(_extract_value_after_label(raw_html, "MD")),
+        "bonistas_fecha_emision": _safe_date(_extract_value_after_label(raw_html, "Fecha Emisión")),
+        "bonistas_fecha_vencimiento": _safe_date(_extract_value_after_label(raw_html, "Fecha Vencimiento")),
+        "bonistas_valor_tecnico": _safe_float(_extract_value_after_label(raw_html, "Valor Técnico")),
         "bonistas_precio_clean": None,
         "bonistas_precio_dirty": None,
         "bonistas_cupon_corrido": None,
-        "bonistas_tir_avg_365d_pct": _safe_float(_extract_single(r"TIR Promedio.*?>([^<]+)", html)),
-        "bonistas_tir_min_365d_pct": _safe_float(_extract_single(r"TIR Min.*?>([^<]+)", html)),
-        "bonistas_tir_max_365d_pct": _safe_float(_extract_single(r"TIR Max.*?>([^<]+)", html)),
-        "bonistas_tir_sens_p1": _safe_float(_extract_single(r"TIR\+1\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
-        "bonistas_tir_sens_m1": _safe_float(_extract_single(r"TIR-1\s*</[^>]+>\s*<[^>]+>([^<]+)", html)),
+        "bonistas_tir_avg_365d_pct": _safe_float(_extract_value_after_label(raw_html, "TIR Promedio (en 365 días)")),
+        "bonistas_tir_min_365d_pct": _safe_float(_extract_value_after_label(raw_html, "TIR Min (en 365 días)")),
+        "bonistas_tir_max_365d_pct": _safe_float(_extract_value_after_label(raw_html, "TIR Max (en 365 días)")),
+        "bonistas_tir_sens_p1": _safe_float(_extract_value_after_label(raw_html, "TIR+1")),
+        "bonistas_tir_sens_m1": _safe_float(_extract_value_after_label(raw_html, "TIR-1")),
         "bonistas_put_flag": put_flag,
         "bonistas_subfamily": _infer_bonistas_subfamily(normalized),
     }
-    if any(value is not None for key, value in data.items() if key.startswith("bonistas_") and key not in {"bonistas_parse_status", "bonistas_source_url", "bonistas_source_section", "bonistas_fetched_at", "bonistas_ticker"}):
+    informative_keys = {
+        "bonistas_parse_status",
+        "bonistas_source_url",
+        "bonistas_source_section",
+        "bonistas_fetched_at",
+        "bonistas_ticker",
+    }
+    if any(value is not None for key, value in data.items() if key.startswith("bonistas_") and key not in informative_keys):
         data["bonistas_parse_status"] = "ok"
     return data
 
@@ -163,8 +212,8 @@ def get_instrument_data(ticker: str, *, timeout: int = DEFAULT_TIMEOUT, use_cach
             return cached
 
     try:
-        html = _fetch_html(f"/bono-cotizacion-rendimiento-precio-hoy/{normalized}", timeout=timeout)
-        payload = _parse_instrument_html(normalized, html)
+        raw_html = _fetch_html(f"/bono-cotizacion-rendimiento-precio-hoy/{normalized}", timeout=timeout)
+        payload = _parse_instrument_html(normalized, raw_html)
     except Exception:
         payload = {
             "bonistas_ticker": normalized,
@@ -195,8 +244,8 @@ def get_listing(family: str, *, timeout: int = DEFAULT_TIMEOUT, use_cache: bool 
         if cached is not None:
             return cached.copy()
 
-    html = _fetch_html(_listing_path(family), timeout=timeout)
-    tables = pd.read_html(StringIO(html))
+    raw_html = _fetch_html(_listing_path(family), timeout=timeout)
+    tables = pd.read_html(StringIO(raw_html))
     listing = tables[0].copy() if tables else pd.DataFrame()
     if not listing.empty:
         listing.columns = [str(col).strip() for col in listing.columns]
@@ -213,7 +262,7 @@ def get_macro_variables(*, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = Tru
             return dict(cached)
 
     try:
-        html = _fetch_html("/variables", timeout=timeout)
+        raw_html = _fetch_html("/variables", timeout=timeout)
     except Exception:
         payload = {
             "bonistas_parse_status": "error",
@@ -226,14 +275,15 @@ def get_macro_variables(*, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = Tru
         "bonistas_parse_status": "partial",
         "bonistas_source_url": f"{BASE_URL}/variables",
         "bonistas_fetched_at": _utcnow().isoformat(),
-        "cer_diario": _safe_float(_extract_single(r"CER.*?>([^<]+)", html)),
-        "tamar": _safe_float(_extract_single(r"TAMAR.*?>([^<]+)", html)),
-        "badlar": _safe_float(_extract_single(r"BADLAR.*?>([^<]+)", html)),
-        "inflacion_mensual": _safe_float(_extract_single(r"Inflaci[oó]n mensual.*?>([^<]+)", html)),
-        "inflacion_interanual": _safe_float(_extract_single(r"Inflaci[oó]n interanual.*?>([^<]+)", html)),
-        "rem_esperada": _safe_float(_extract_single(r"REM.*?>([^<]+)", html)),
+        "cer_diario": _safe_float(_extract_value_after_label(raw_html, "CER")),
+        "tamar": _safe_float(_extract_value_after_label(raw_html, "TAMAR")),
+        "badlar": _safe_float(_extract_value_after_label(raw_html, "BADLAR")),
+        "inflacion_mensual": _safe_float(_extract_value_after_label(raw_html, "Inflacion Mensual")),
+        "inflacion_interanual": _safe_float(_extract_value_after_label(raw_html, "Inflacion Interanual")),
+        "rem_esperada": _safe_float(_extract_value_after_label(raw_html, "Inflacion Esperada (REM)")),
     }
-    if any(value is not None for key_name, value in payload.items() if key_name not in {"bonistas_parse_status", "bonistas_source_url", "bonistas_fetched_at"}):
+    informative_keys = {"bonistas_parse_status", "bonistas_source_url", "bonistas_fetched_at"}
+    if any(value is not None for key_name, value in payload.items() if key_name not in informative_keys):
         payload["bonistas_parse_status"] = "ok"
     return _set_cached(key, payload)
 
