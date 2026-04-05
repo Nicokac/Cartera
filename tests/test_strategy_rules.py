@@ -396,6 +396,85 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertEqual(gd30["asset_family"], "bond")
         self.assertEqual(caucion["asset_family"], "liquidity")
 
+    def test_country_region_etf_needs_more_support_for_refuerzo(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "EWZ",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_ETF": True,
+                    "Es_Core_ETF": False,
+                    "asset_subfamily": "etf_country_region",
+                    "Peso_%": 1.9,
+                    "Perf Week": 4.0,
+                    "Perf Month": 2.0,
+                    "Perf YTD": 20.0,
+                    "Beta": 0.7,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": -98.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 30.0,
+                    "Ganancia_ARS": 100.0,
+                    "total_ratings": 0.0,
+                },
+                {
+                    "Ticker_IOL": "XLU",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_ETF": True,
+                    "Es_Core_ETF": False,
+                    "asset_subfamily": "etf_sector",
+                    "Peso_%": 1.9,
+                    "Perf Week": 4.0,
+                    "Perf Month": 2.0,
+                    "Perf YTD": 20.0,
+                    "Beta": 0.7,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": -98.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 30.0,
+                    "Ganancia_ARS": 100.0,
+                    "total_ratings": 0.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "score_refuerzo_weights": {
+                    "low_weight": 0.16,
+                    "momentum": 0.18,
+                    "consensus_good": 0.14,
+                    "beta_ok": 0.08,
+                    "mep_ok": 0.08,
+                    "pe_ok": 0.08,
+                    "big_gain_inverse": 0.08,
+                    "concentration_room": 0.1,
+                    "quality": 0.1,
+                },
+                "etf_adjustments": {
+                    "quality_floor": 0.55,
+                    "pe_expensive_discount": 0.4,
+                    "low_quality_discount": 0.35,
+                    "concentration_pressure_discount": 0.85,
+                    "core_concentration_pressure_discount": 0.65,
+                    "core_momentum_reduccion_discount": 0.85,
+                },
+                "asset_subfamily_adjustments": {
+                    "etf_country_region": {"refuerzo_penalty": 0.03, "sparse_data_penalty": 0.03},
+                    "etf_sector": {"refuerzo_penalty": 0.0, "sparse_data_penalty": 0.0},
+                },
+            },
+        )
+
+        self.assertLess(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -153,6 +153,7 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     score_despliegue_liquidez_weights = scoring_rules.get("score_despliegue_liquidez_weights", {}) or {}
     concentration_rules = scoring_rules.get("concentration", {}) or {}
     etf_adjustments = scoring_rules.get("etf_adjustments", {}) or {}
+    asset_subfamily_adjustments = scoring_rules.get("asset_subfamily_adjustments", {}) or {}
     penalties = scoring_rules.get("penalties", {}) or {}
     refuerzo_penalties = penalties.get("refuerzo", {}) or {}
     reduccion_penalties = penalties.get("reduccion", {}) or {}
@@ -264,6 +265,10 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         np.maximum(out["s_quality"], etf_quality_floor),
         out["s_quality"],
     )
+    out["has_quality_data"] = out[["ROE", "Profit Margin"]].notna().any(axis=1)
+    out["has_valuation_data"] = out["P/E"].notna()
+    out["has_ratings_data"] = out.get("total_ratings", pd.Series(index=out.index, dtype=float)).fillna(0) > 0
+    out["has_fundamental_support"] = out["has_quality_data"] | out["has_valuation_data"] | out["has_ratings_data"]
     out["s_low_quality_effective"] = 1 - out["s_quality_effective"]
     out["s_pe_expensive_effective"] = np.where(
         out["Es_ETF"],
@@ -309,6 +314,14 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         float(refuerzo_penalties.get("beta_high", 0.08)),
         0.00,
     )
+    for subfamily, rules in asset_subfamily_adjustments.items():
+        mask = out["asset_subfamily"].eq(subfamily)
+        refuerzo_penalty = float((rules or {}).get("refuerzo_penalty", 0.0))
+        sparse_data_penalty = float((rules or {}).get("sparse_data_penalty", 0.0))
+        if refuerzo_penalty:
+            out["score_refuerzo"] -= np.where(mask, refuerzo_penalty, 0.0)
+        if sparse_data_penalty:
+            out["score_refuerzo"] -= np.where(mask & ~out["has_fundamental_support"], sparse_data_penalty, 0.0)
     out["score_refuerzo"] = out["score_refuerzo"].clip(0, 1)
 
     out["score_reduccion"] = (
