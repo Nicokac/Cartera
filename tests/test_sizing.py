@@ -140,6 +140,29 @@ class SizingTests(unittest.TestCase):
 
         self.assertEqual(result["fuente_fondeo"], "ADBAICA")
 
+    def test_bond_subfamily_rebalance_threshold_is_not_overwritten_by_monitor_rule(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "asset_subfamily"] = "bond_sov_ar"
+
+        result = build_operational_proposal(
+            final_decision,
+            mep_real=1000,
+            action_rules={
+                "bono_rebalance_threshold": -0.20,
+                "bono_monitor_min": -0.20,
+                "bono_monitor_max": 0.08,
+                "bond_subfamily_thresholds": {
+                    "bond_sov_ar": {"rebalance_threshold": -0.12}
+                },
+            },
+        )
+
+        self.assertEqual(
+            result["propuesta"].loc[result["propuesta"]["Ticker_IOL"] == "GD30", "accion_operativa"].iloc[0],
+            "Rebalancear / tomar ganancia",
+        )
+
     def test_prudent_and_dynamic_allocation_apply_buckets_and_caps(self) -> None:
         proposal_bundle = build_operational_proposal(self.final_decision, mep_real=1000)
         propuesta = proposal_bundle["propuesta"]

@@ -84,6 +84,7 @@ def build_operational_proposal(
     bono_rebalance_threshold = float(action_rules.get("bono_rebalance_threshold", -0.20))
     bono_monitor_min = float(action_rules.get("bono_monitor_min", -0.20))
     bono_monitor_max = float(action_rules.get("bono_monitor_max", 0.08))
+    bond_subfamily_thresholds = action_rules.get("bond_subfamily_thresholds", {}) or {}
 
     propuesta = final_decision.copy()
     propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
@@ -99,11 +100,16 @@ def build_operational_proposal(
         propuesta.loc[mask_liq, "accion_operativa"] = "Mantener liquidez bloqueada"
 
     mask_bonos = propuesta["Tipo"] == "Bono"
-    propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bono_rebalance_threshold), "accion_operativa"] = (
+    bond_rebalance_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
+        lambda subfamily: float((bond_subfamily_thresholds.get(subfamily, {}) or {}).get("rebalance_threshold", bono_rebalance_threshold))
+    )
+    propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
         "Rebalancear / tomar ganancia"
     )
     propuesta.loc[
-        mask_bonos & (propuesta["score_unificado"] > bono_monitor_min) & (propuesta["score_unificado"] < bono_monitor_max),
+        mask_bonos
+        & (propuesta["score_unificado"] > bond_rebalance_threshold)
+        & (propuesta["score_unificado"] < bono_monitor_max),
         "accion_operativa",
     ] = "Mantener / monitorear"
 

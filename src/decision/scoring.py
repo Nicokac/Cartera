@@ -359,6 +359,19 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     )
     out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
     out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
+    for subfamily, rules in asset_subfamily_adjustments.items():
+        mask = out["asset_subfamily"].eq(subfamily)
+        reduccion_boost = float((rules or {}).get("reduccion_boost", 0.0))
+        high_gain_reduccion_boost = float((rules or {}).get("high_gain_reduccion_boost", 0.0))
+        high_gain_threshold_pct = float((rules or {}).get("high_gain_threshold_pct", gain_clip_max))
+        if reduccion_boost:
+            out["score_reduccion"] += np.where(mask, reduccion_boost, 0.0)
+        if high_gain_reduccion_boost:
+            out["score_reduccion"] += np.where(
+                mask & (out["Ganancia_%_Cap"].fillna(gain_clip_min) >= high_gain_threshold_pct),
+                high_gain_reduccion_boost,
+                0.0,
+            )
     out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
 
     out["score_despliegue_liquidez"] = 0.0

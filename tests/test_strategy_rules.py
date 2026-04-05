@@ -535,6 +535,117 @@ class StrategyRulesTests(unittest.TestCase):
 
         self.assertLess(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
 
+    def test_bond_other_gets_less_refuerzo_than_similar_sov_bond(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "TZXM7",
+                    "Es_Liquidez": False,
+                    "Es_Bono": True,
+                    "asset_subfamily": "bond_other",
+                    "Peso_%": 0.6,
+                    "Perf Week": None,
+                    "Perf Month": None,
+                    "Perf YTD": None,
+                    "Beta": None,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": None,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 0.2,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "GD35",
+                    "Es_Liquidez": False,
+                    "Es_Bono": True,
+                    "asset_subfamily": "bond_sov_ar",
+                    "Peso_%": 0.6,
+                    "Perf Week": None,
+                    "Perf Month": None,
+                    "Perf YTD": None,
+                    "Beta": None,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": None,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 0.2,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "asset_subfamily_adjustments": {
+                    "bond_other": {"refuerzo_penalty": 0.04},
+                    "bond_sov_ar": {"refuerzo_penalty": 0.0},
+                }
+            },
+        )
+
+        self.assertLess(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+
+    def test_sov_bond_with_extended_gain_gets_extra_reduction_pressure(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "GD30",
+                    "Es_Liquidez": False,
+                    "Es_Bono": True,
+                    "asset_subfamily": "bond_sov_ar",
+                    "Peso_%": 3.6,
+                    "Perf Week": None,
+                    "Perf Month": None,
+                    "Perf YTD": None,
+                    "Beta": None,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": None,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 150.0,
+                    "Ganancia_ARS": 1000.0,
+                },
+                {
+                    "Ticker_IOL": "AL30",
+                    "Es_Liquidez": False,
+                    "Es_Bono": True,
+                    "asset_subfamily": "bond_sov_ar",
+                    "Peso_%": 3.6,
+                    "Perf Week": None,
+                    "Perf Month": None,
+                    "Perf YTD": None,
+                    "Beta": None,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": None,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 20.0,
+                    "Ganancia_ARS": 1000.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "asset_subfamily_adjustments": {
+                    "bond_sov_ar": {
+                        "reduccion_boost": 0.02,
+                        "high_gain_reduccion_boost": 0.05,
+                        "high_gain_threshold_pct": 80.0,
+                    }
+                }
+            },
+        )
+
+        self.assertGreater(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
 
 if __name__ == "__main__":
     unittest.main()
