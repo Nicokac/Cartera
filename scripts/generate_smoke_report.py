@@ -42,6 +42,12 @@ def fmt_score(value: object) -> str:
     return f"{float(value):+.3f}"
 
 
+def fmt_label(value: object) -> str:
+    if pd.isna(value) or value in {None, ""}:
+        return "-"
+    return str(value)
+
+
 def metric_class(column: str, value: object) -> str:
     if pd.isna(value):
         return "metric metric-neutral"
@@ -50,6 +56,20 @@ def metric_class(column: str, value: object) -> str:
         num = float(value)
     except Exception:
         text = str(value).strip().lower()
+        if column == "asset_family":
+            if text == "stock":
+                return "metric metric-positive"
+            if text == "etf":
+                return "metric metric-warn"
+            if text in {"bond", "liquidity"}:
+                return "metric metric-neutral"
+        if column == "asset_subfamily":
+            if text == "etf_sector":
+                return "metric metric-positive"
+            if text == "etf_country_region":
+                return "metric metric-warn"
+            if text in {"etf_core", "etf_other"}:
+                return "metric metric-neutral"
         if column == "Tech_Trend":
             if "alcista fuerte" in text:
                 return "metric metric-strong"
@@ -215,6 +235,8 @@ def build_decision_table(
             f"data-type=\"{tipo}\">"
             f"<td><strong>{ticker}</strong></td>"
             f"<td>{tipo}</td>"
+            f"<td>{render_metric('asset_family', row.get('asset_family'), fmt_label)}</td>"
+            f"<td>{render_metric('asset_subfamily', row.get('asset_subfamily'), fmt_label)}</td>"
             f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
             f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
@@ -224,7 +246,7 @@ def build_decision_table(
 
     return (
         '<div class="table-wrap"><table id="decision-table">'
-        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Peso_%</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead>"
+        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Acción</th><th>Motivo</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
@@ -312,6 +334,23 @@ def render_report(
     else:
         technical_view = pd.DataFrame()
 
+    family_summary = pd.DataFrame()
+    if isinstance(decision_view, pd.DataFrame) and not decision_view.empty:
+        family_base = decision_view.copy()
+        if "asset_family" not in family_base.columns:
+            family_base["asset_family"] = None
+        if "asset_subfamily" not in family_base.columns:
+            family_base["asset_subfamily"] = None
+        family_summary = (
+            family_base.groupby(["asset_family", "asset_subfamily"], dropna=False)
+            .agg(
+                Instrumentos=("Ticker_IOL", "count"),
+                Score_Promedio=("score_unificado", "mean"),
+            )
+            .reset_index()
+            .sort_values(["asset_family", "asset_subfamily"], na_position="last")
+        )
+
     summary_cards = f"""
     <section class="cards">
       <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
@@ -390,6 +429,14 @@ def render_report(
                 "Valor_USD": fmt_usd,
                 "Ganancia_ARS": fmt_ars,
                 "Peso_%": fmt_pct,
+            },
+        )}
+        <h3>Taxonomía operativa</h3>
+        {build_table(
+            family_summary[["asset_family", "asset_subfamily", "Instrumentos", "Score_Promedio"]]
+            if not family_summary.empty else family_summary,
+            formatters={
+                "Score_Promedio": fmt_score,
             },
         )}
       </section>
