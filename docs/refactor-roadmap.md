@@ -23,7 +23,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Fecha base del roadmap: `2026-03-31`
 - Estado global: `Fase 10 en progreso`
-- Última actualización: `2026-04-03`
+- Última actualización: `2026-04-04`
 
 ## Fase 0. Línea base y resguardo
 
@@ -430,6 +430,25 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - la calibración v1.1 quedó validada localmente con:
   - `python -m unittest discover -s tests -v`
   - `python scripts\generate_smoke_report.py`
+- se recuperó la cobertura real de Finviz:
+  - fundamentals `24/24`
+  - ratings `17/24`
+- se definió como baseline funcional estable la corrida real del `2026-04-04`, con:
+  - overlay técnico activo `24/24`
+  - Finviz fundamentals `24/24`
+  - Finviz ratings `17/24`
+  - `4` refuerzos
+  - `1` reducción
+- se aplicó un ajuste fino explícito para ETFs/core:
+  - nuevo mapping de perfiles de instrumento
+  - alivio moderado de reducción para ETFs
+  - alivio adicional para ETFs `core` amplios como `SPY` y `DIA`
+- tras ese ajuste:
+  - `SPY` salió de `Reducir` y volvió a `Mantener / Neutral`
+  - `MELI` quedó como la reducción principal
+  - se preservó el sesgo de refuerzo defensivo en `VIST`, `XLU`, `KO` y `EWZ`
+- se definió la necesidad de pasar del esquema actual de “score casi universal con ajustes” a una taxonomía explícita por familia de activo:
+  - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
 
 ## Registro de avances
 
@@ -469,6 +488,28 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Se reintegró el overlay técnico ampliado al runner real y al reporte HTML, con cobertura visible por corrida y snapshot dedicado.
 - Se validó una corrida real con overlay técnico activo (`24/24`) que cambió materialmente la selección frente al score base puro.
 - Se inició y validó localmente una calibración incremental del score real para reducir doble conteo de momentum y sumar señales explícitas de concentración y calidad.
+
+### 2026-04-04
+
+- Se recuperó la integración real con Finviz y el pipeline volvió a operar con fundamentals (`24/24`) y ratings (`17/24`).
+- Se validó la primera corrida completa del modelo con:
+  - score base
+  - overlay técnico
+  - fundamentals
+  - ratings
+- Se fijó como baseline vigente la corrida real `2026-04-04` guardada en `tests/snapshots/`.
+- Se agregó un ajuste fino explícito para ETFs/core, desacoplado en mappings y reglas:
+  - `instrument_profile_map.json`
+  - `scoring_rules.json`
+- Se redujo la sobrepenalización de ETFs/core amplios en reducción, sin relajar la convicción sobre acciones individuales con score débil.
+- Resultado funcional del ajuste:
+  - `SPY` pasó de `Reducir` a `Mantener / Neutral`
+  - `MELI` quedó como única reducción
+  - `VIST`, `XLU`, `KO` y `EWZ` se mantuvieron como refuerzos
+- Se documentó el siguiente salto de arquitectura:
+  - pasar a una taxonomía canónica por familia de activo en [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
+- Próximo foco propuesto:
+  - auditar `EWZ` como caso testigo de `etf_country_region`
 
 ## Política de actualización
 

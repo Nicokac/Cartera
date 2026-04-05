@@ -293,6 +293,7 @@ def main() -> None:
         mep_real=mep_real,
         finviz_map=project_config.FINVIZ_MAP,
         block_map=project_config.BLOCK_MAP,
+        instrument_profile_map=project_config.INSTRUMENT_PROFILE_MAP,
         vn_factor_map=project_config.VN_FACTOR_MAP,
         ratios=project_config.RATIOS,
         fci_cash_management=project_config.FCI_CASH_MANAGEMENT,

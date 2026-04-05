@@ -612,3 +612,21 @@ Con el relevamiento completo del notebook, el siguiente frente de trabajo es:
   - top reducciones
   - score unificado final
   - sizing resultante
+
+## Estado posterior al relevamiento
+
+Desde este relevamiento ya se cerró la brecha funcional principal detectada:
+- el overlay técnico ampliado de las celdas 29 y 30 fue reincorporado al runner real
+- la cobertura técnica pasó a verse explícitamente en el reporte HTML
+- luego también se recuperó la capa real de Finviz en el runner:
+  - fundamentals `24/24`
+  - ratings `17/24`
+
+La baseline operativa vigente quedó fijada en la corrida real del `2026-04-04`, con:
+- `4` refuerzos
+- `1` reducción
+- `0` despliegues
+- ajuste fino adicional para no sobrepenalizar ETFs/core amplios como `SPY`
+
+El próximo punto abierto ya no es de trazabilidad, sino de calibración fina:
+- revisar si `EWZ` debe seguir como `Refuerzo` o pasar a `Mantener`

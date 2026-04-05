@@ -18,3 +18,13 @@ Objetivo:
 Notas:
 - Los snapshots `real_*` salen desde `scripts/generate_real_report.py`.
 - Guardan datos ya normalizados; no deben incluir credenciales ni payloads crudos sensibles.
+- Baseline funcional estable vigente:
+  - `2026-04-04_real_decision_table.csv`
+  - `2026-04-04_real_portfolio_master.csv`
+  - `2026-04-04_real_technical_overlay.csv`
+  - `2026-04-04_real_kpis.json`
+- Esa baseline corresponde al primer estado completo del modelo con:
+  - overlay técnico activo
+  - Finviz fundamentals activos
+  - ratings activos en cobertura parcial real
+  - ajuste fino de reducción para ETFs/core

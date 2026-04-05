@@ -41,6 +41,7 @@ def _load_strategy_rules(filename: str) -> dict[str, Any]:
 
 FINVIZ_MAP = _load_json_mapping("finviz_map.json")
 BLOCK_MAP = _load_json_mapping("block_map.json")
+INSTRUMENT_PROFILE_MAP = _load_json_mapping("instrument_profile_map.json")
 RATIOS = _load_json_mapping("ratios.json")
 VN_FACTOR_MAP = _load_json_mapping("vn_factor_map.json")
 
@@ -70,6 +71,7 @@ def load_portfolio_mappings() -> dict[str, dict[str, Any]]:
     return {
         "FINVIZ_MAP": dict(FINVIZ_MAP),
         "BLOCK_MAP": dict(BLOCK_MAP),
+        "INSTRUMENT_PROFILE_MAP": dict(INSTRUMENT_PROFILE_MAP),
         "RATIOS": dict(RATIOS),
         "VN_FACTOR_MAP": dict(VN_FACTOR_MAP),
     }

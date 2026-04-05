@@ -96,7 +96,30 @@ class StrategyRulesTests(unittest.TestCase):
             ]
         )
 
-        scored = apply_base_scores(df)
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "score_reduccion_weights": {
+                    "high_weight": 0.2,
+                    "momentum": 0.14,
+                    "beta_risk": 0.14,
+                    "mep_premium": 0.08,
+                    "consensus_bad": 0.08,
+                    "pe_expensive": 0.08,
+                    "big_gain": 0.08,
+                    "concentration_pressure": 0.1,
+                    "low_quality": 0.1,
+                },
+                "etf_adjustments": {
+                    "quality_floor": 0.55,
+                    "pe_expensive_discount": 0.4,
+                    "low_quality_discount": 0.35,
+                    "concentration_pressure_discount": 0.85,
+                    "core_concentration_pressure_discount": 0.65,
+                    "core_momentum_reduccion_discount": 0.85,
+                },
+            },
+        )
 
         self.assertEqual(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
         self.assertEqual(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
@@ -178,11 +201,109 @@ class StrategyRulesTests(unittest.TestCase):
             ]
         )
 
-        scored = apply_base_scores(df)
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "score_reduccion_weights": {
+                    "high_weight": 0.2,
+                    "momentum": 0.14,
+                    "beta_risk": 0.14,
+                    "mep_premium": 0.08,
+                    "consensus_bad": 0.08,
+                    "pe_expensive": 0.08,
+                    "big_gain": 0.08,
+                    "concentration_pressure": 0.1,
+                    "low_quality": 0.1,
+                },
+                "etf_adjustments": {
+                    "quality_floor": 0.55,
+                    "pe_expensive_discount": 0.4,
+                    "low_quality_discount": 0.35,
+                    "concentration_pressure_discount": 0.85,
+                    "core_concentration_pressure_discount": 0.65,
+                    "core_momentum_reduccion_discount": 0.85,
+                },
+            },
+        )
 
         self.assertGreater(scored.loc[0, "s_concentration_room"], scored.loc[1, "s_concentration_room"])
         self.assertGreater(scored.loc[0, "s_quality"], scored.loc[1, "s_quality"])
         self.assertGreater(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
+        self.assertLess(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
+    def test_core_etf_gets_softer_reduction_pressure_than_stock(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "SPY",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_ETF": True,
+                    "Es_Core_ETF": True,
+                    "Peso_%": 4.8,
+                    "Perf Week": -2.0,
+                    "Perf Month": -3.0,
+                    "Perf YTD": -4.0,
+                    "Beta": 1.0,
+                    "P/E": 22.0,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": 3.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 12.0,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_ETF": False,
+                    "Es_Core_ETF": False,
+                    "Peso_%": 4.8,
+                    "Perf Week": -2.0,
+                    "Perf Month": -3.0,
+                    "Perf YTD": -4.0,
+                    "Beta": 1.0,
+                    "P/E": 22.0,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "MEP_Premium_%": 3.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 12.0,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        scored = apply_base_scores(
+            df,
+            scoring_rules={
+                "score_reduccion_weights": {
+                    "high_weight": 0.2,
+                    "momentum": 0.14,
+                    "beta_risk": 0.14,
+                    "mep_premium": 0.08,
+                    "consensus_bad": 0.08,
+                    "pe_expensive": 0.08,
+                    "big_gain": 0.08,
+                    "concentration_pressure": 0.1,
+                    "low_quality": 0.1,
+                },
+                "etf_adjustments": {
+                    "quality_floor": 0.55,
+                    "pe_expensive_discount": 0.4,
+                    "low_quality_discount": 0.35,
+                    "concentration_pressure_discount": 0.85,
+                    "core_concentration_pressure_discount": 0.65,
+                    "core_momentum_reduccion_discount": 0.85,
+                },
+            },
+        )
+
+        self.assertLess(
+            scored.loc[0, "s_concentration_pressure_effective"],
+            scored.loc[1, "s_concentration_pressure_effective"],
+        )
         self.assertLess(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
 
 

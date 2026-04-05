@@ -44,6 +44,7 @@ def build_portfolio_bundle(
     mep_real: float | None,
     finviz_map: dict[str, str],
     block_map: dict[str, str],
+    instrument_profile_map: dict[str, dict[str, Any]],
     vn_factor_map: dict[str, float | int],
     ratios: dict[str, float | int],
     fci_cash_management: set[str],
@@ -61,6 +62,12 @@ def build_portfolio_bundle(
         fci_cash_management=fci_cash_management,
     )
     df_cedears = build_cedears_df(clasificado["PORTAFOLIO"], precios_iol, ratios=ratios)
+    if not df_cedears.empty and instrument_profile_map:
+        profiles = pd.DataFrame.from_dict(instrument_profile_map, orient="index").reset_index()
+        profiles = profiles.rename(columns={"index": "Ticker_IOL"})
+        df_cedears = df_cedears.merge(profiles, on="Ticker_IOL", how="left")
+        df_cedears["is_etf"] = df_cedears.get("is_etf", False).fillna(False).astype(bool)
+        df_cedears["is_core_etf"] = df_cedears.get("is_core_etf", False).fillna(False).astype(bool)
     df_local = build_local_df(clasificado["ACCIONES_LOCALES"], precios_iol)
     df_bonos = build_bonos_df(clasificado["BONOS"], precios_iol)
     df_total = build_portfolio_master(df_cedears, df_local, df_bonos, df_liquidez, mep_real=mep_real)

@@ -71,6 +71,9 @@ def build_decision_base(
     ced_cols = [
         "Ticker_IOL",
         "Ticker_Finviz",
+        "instrument_class",
+        "is_etf",
+        "is_core_etf",
         "Perf Week",
         "Perf Month",
         "Perf YTD",
@@ -102,6 +105,10 @@ def build_decision_base(
     decision["Es_Cedear"] = decision["Tipo"].eq("CEDEAR")
     decision["Es_Bono"] = decision["Tipo"].eq("Bono")
     decision["Es_Accion_Local"] = decision["Tipo"].eq("Acción Local")
+    decision["Es_ETF"] = decision["is_etf"].fillna(False).astype(bool) if "is_etf" in decision.columns else False
+    decision["Es_Core_ETF"] = (
+        decision["is_core_etf"].fillna(False).astype(bool) if "is_core_etf" in decision.columns else False
+    )
     decision["MEP_Premium_%"] = np.where(
         decision["MEP_Implicito"].notna() & bool(mep_real),
         (decision["MEP_Implicito"] / mep_real - 1) * 100,
@@ -133,6 +140,7 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     score_reduccion_weights = scoring_rules.get("score_reduccion_weights", {}) or {}
     score_despliegue_liquidez_weights = scoring_rules.get("score_despliegue_liquidez_weights", {}) or {}
     concentration_rules = scoring_rules.get("concentration", {}) or {}
+    etf_adjustments = scoring_rules.get("etf_adjustments", {}) or {}
     penalties = scoring_rules.get("penalties", {}) or {}
     refuerzo_penalties = penalties.get("refuerzo", {}) or {}
     reduccion_penalties = penalties.get("reduccion", {}) or {}
@@ -165,6 +173,8 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     bool_defaults = {
         "Es_Liquidez": False,
         "Es_Bono": False,
+        "Es_ETF": False,
+        "Es_Core_ETF": False,
     }
     for col, default in numeric_defaults.items():
         if col not in out.columns:
@@ -227,6 +237,43 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     out["Momentum_Reduccion"] = (
         mom_week * out["s_weak_mom_week"] + mom_month * out["s_weak_mom_month"] + mom_ytd * out["s_weak_mom_ytd"]
     )
+    etf_quality_floor = float(etf_adjustments.get("quality_floor", rank_neutral))
+    etf_pe_discount = float(etf_adjustments.get("pe_expensive_discount", 1.0))
+    etf_low_quality_discount = float(etf_adjustments.get("low_quality_discount", 1.0))
+    etf_concentration_discount = float(etf_adjustments.get("concentration_pressure_discount", 1.0))
+    core_concentration_discount = float(etf_adjustments.get("core_concentration_pressure_discount", 1.0))
+    core_momentum_discount = float(etf_adjustments.get("core_momentum_reduccion_discount", 1.0))
+    out["s_quality_effective"] = np.where(
+        out["Es_ETF"],
+        np.maximum(out["s_quality"], etf_quality_floor),
+        out["s_quality"],
+    )
+    out["s_low_quality_effective"] = 1 - out["s_quality_effective"]
+    out["s_pe_expensive_effective"] = np.where(
+        out["Es_ETF"],
+        rank_neutral + (out["s_pe_expensive"] - rank_neutral) * etf_pe_discount,
+        out["s_pe_expensive"],
+    )
+    out["s_low_quality_effective"] = np.where(
+        out["Es_ETF"],
+        rank_neutral + (out["s_low_quality_effective"] - rank_neutral) * etf_low_quality_discount,
+        out["s_low_quality_effective"],
+    )
+    out["s_concentration_pressure_effective"] = np.where(
+        out["Es_ETF"],
+        out["s_concentration_pressure"] * etf_concentration_discount,
+        out["s_concentration_pressure"],
+    )
+    out["s_concentration_pressure_effective"] = np.where(
+        out["Es_Core_ETF"],
+        out["s_concentration_pressure_effective"] * core_concentration_discount,
+        out["s_concentration_pressure_effective"],
+    )
+    out["Momentum_Reduccion_Effective"] = np.where(
+        out["Es_Core_ETF"],
+        out["Momentum_Reduccion"] * core_momentum_discount,
+        out["Momentum_Reduccion"],
+    )
 
     out["score_refuerzo"] = (
         float(score_refuerzo_weights.get("low_weight", 0.20)) * out["s_low_weight"]
@@ -237,7 +284,7 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
         + float(score_refuerzo_weights.get("pe_ok", 0.10)) * out["s_pe_ok"]
         + float(score_refuerzo_weights.get("big_gain_inverse", 0.10)) * (1 - out["s_big_gain"])
         + float(score_refuerzo_weights.get("concentration_room", 0.0)) * out["s_concentration_room"]
-        + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality"]
+        + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality_effective"]
     )
     out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
     out["score_refuerzo"] -= np.where(out["Es_Bono"], float(refuerzo_penalties.get("bono", 0.08)), 0.00)
@@ -250,14 +297,14 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
 
     out["score_reduccion"] = (
         float(score_reduccion_weights.get("high_weight", 0.25)) * out["s_high_weight"]
-        + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion"]
+        + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion_Effective"]
         + float(score_reduccion_weights.get("beta_risk", 0.15)) * out["s_beta_risk"]
         + float(score_reduccion_weights.get("mep_premium", 0.10)) * out["s_mep_premium"]
         + float(score_reduccion_weights.get("consensus_bad", 0.10)) * out["s_consensus_bad"]
-        + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive"]
+        + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive_effective"]
         + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
-        + float(score_reduccion_weights.get("concentration_pressure", 0.0)) * out["s_concentration_pressure"]
-        + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality"]
+        + float(score_reduccion_weights.get("concentration_pressure", 0.0)) * out["s_concentration_pressure_effective"]
+        + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality_effective"]
     )
     out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
     out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
