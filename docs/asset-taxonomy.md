@@ -124,6 +124,12 @@ Subfamilias efectivas actuales:
 - `bond_bopreal`
 - `bond_other`
 
+Lectura operativa actual:
+- `bond_sov_ar` ya tiene una lógica más sensible de rebalanceo cuando la ganancia acumulada queda muy extendida
+- `bond_cer` hoy queda en una lógica prudencial más neutra
+- `bond_bopreal` hoy queda en monitoreo prudente
+- `bond_other` sigue siendo la subfamilia más abierta y todavía requiere calibración adicional
+
 ### 6. `liquidity`
 
 Caja, caución, FCI cash management u otras posiciones de liquidez.
@@ -238,10 +244,7 @@ Interpretación:
 ## Próximo foco
 
 Los siguientes frentes lógicos de calibración ya no están en ETFs, sino en bonos:
-- revisar si `bond_sov_ar` necesita una lógica más explícita de rebalanceo cuando la ganancia acumulada es alta
 - revisar por qué `bond_other` hoy queda con score promedio materialmente mejor que otras subfamilias de bono
 - auditar específicamente:
-  - `GD30`
-  - `AL30`
-  - `TZX26`
-  - `BPOC7`
+  - `TZXM7`
+  - `TZXD6`

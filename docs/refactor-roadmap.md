@@ -533,8 +533,8 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - `1` reducción
   - `EWZ` neutral
 - Próximo foco propuesto:
-  - empezar calibración específica por subfamilia de bono
-  - auditar `GD30`, `AL30`, `TZX26` y `BPOC7`
+  - seguir calibración específica por subfamilia de bono
+  - auditar `TZXM7` y `TZXD6` como `bond_other`
 
 ### 2026-04-05
 
@@ -553,6 +553,12 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - reducción: `MELI`
   - `SPY` neutral
   - `EWZ` neutral
+- Se aplicó la primera calibración operativa por subfamilia de bono:
+  - `bond_other` recibió un castigo leve de refuerzo
+  - `bond_sov_ar` ganó sensibilidad extra de rebalanceo con ganancia extendida
+- Resultado funcional:
+  - `GD30` pasó a `Rebalancear / tomar ganancia`
+  - `AL30`, `TZX26` y `BPOC7` quedaron en `Mantener / monitorear`
 
 ## Política de actualización
 

@@ -24,17 +24,18 @@ Notas:
   - `2026-04-04_real_technical_overlay.csv`
   - `2026-04-04_real_kpis.json`
 - Esa baseline corresponde al primer estado completo del modelo con:
-  - overlay técnico activo
+  - overlay tecnico activo
   - Finviz fundamentals activos
   - ratings activos en cobertura parcial real
-  - ajuste fino de reducción para ETFs/core
+  - ajuste fino de reduccion para ETFs/core
 - Baseline efectiva posterior dentro del mismo ciclo:
   - mantener la referencia `2026-04-04_*`
   - pero interpretar como estado vigente la corrida donde:
-    - `SPY` quedó neutral por ajuste `etf_core`
-    - `EWZ` quedó neutral por ajuste `etf_country_region`
+    - `SPY` quedo neutral por ajuste `etf_core`
+    - `EWZ` quedo neutral por ajuste `etf_country_region`
+    - `GD30` quedo en `Rebalancear / tomar ganancia` por ajuste `bond_sov_ar`
     - refuerzos efectivos: `VIST`, `XLU`, `KO`
-    - taxonomía visible en reporte:
+    - taxonomia visible en reporte:
       - `etf_core`
       - `etf_sector`
       - `etf_country_region`
