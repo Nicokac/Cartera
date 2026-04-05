@@ -449,6 +449,19 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - se preservó el sesgo de refuerzo defensivo en `VIST`, `XLU`, `KO` y `EWZ`
 - se definió la necesidad de pasar del esquema actual de “score casi universal con ajustes” a una taxonomía explícita por familia de activo:
   - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
+- ya se implementó la primera etapa de esa taxonomía:
+  - `asset_family`
+  - `asset_subfamily`
+  - propagadas a pipeline y scoring
+- ya existe un primer ajuste real por subfamilia:
+  - `etf_country_region` requiere más soporte para quedar en `Refuerzo`
+- la nueva baseline efectiva posterior a esa iteración mantiene:
+  - `VIST`
+  - `XLU`
+  - `KO`
+  como refuerzos
+- y mueve:
+  - `EWZ` a `Mantener / Neutral`
 
 ## Registro de avances
 
@@ -508,8 +521,19 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - `VIST`, `XLU`, `KO` y `EWZ` se mantuvieron como refuerzos
 - Se documentó el siguiente salto de arquitectura:
   - pasar a una taxonomía canónica por familia de activo en [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
+- Se implementó la primera etapa de esa taxonomía:
+  - `asset_family`
+  - `asset_subfamily`
+  - integración efectiva en pipeline y scoring
+- Se validó el primer ajuste por subfamilia:
+  - `EWZ` dejó de salir como `Refuerzo`
+  - `EWZ` pasó a `Mantener / Neutral` como `etf_country_region`
+- Nueva baseline efectiva dentro del mismo ciclo:
+  - `3` refuerzos
+  - `1` reducción
+  - `EWZ` neutral
 - Próximo foco propuesto:
-  - auditar `EWZ` como caso testigo de `etf_country_region`
+  - extender la calibración taxonómica a `IEUR` y `EEM`
 
 ## Política de actualización
 

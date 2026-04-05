@@ -28,3 +28,9 @@ Notas:
   - Finviz fundamentals activos
   - ratings activos en cobertura parcial real
   - ajuste fino de reducción para ETFs/core
+- Baseline efectiva posterior dentro del mismo ciclo:
+  - mantener la referencia `2026-04-04_*`
+  - pero interpretar como estado vigente la corrida donde:
+    - `SPY` quedó neutral por ajuste `etf_core`
+    - `EWZ` quedó neutral por ajuste `etf_country_region`
+    - refuerzos efectivos: `VIST`, `XLU`, `KO`

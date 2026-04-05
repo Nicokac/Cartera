@@ -135,22 +135,31 @@ Señales relevantes:
 
 ## Estado actual del proyecto
 
-Hoy el proyecto ya distingue parcialmente:
-- `Bono`
-- `Liquidez`
-- `CEDEAR`
-- `Acción Local`
-- ETFs vía `instrument_profile_map.json`
+Hoy el proyecto ya distingue y propaga en el pipeline:
+- `asset_family`
+- `asset_subfamily`
 
-Pero todavía no existe una taxonomía funcional completa usada de extremo a extremo en:
-- scoring
-- acción
-- sizing
-- reporte HTML
+Familias efectivas actuales:
+- `stock`
+- `etf`
+- `bond`
+- `liquidity`
+
+Subfamilias ETF efectivas actuales:
+- `etf_core`
+- `etf_sector`
+- `etf_country_region`
+
+Además:
+- la taxonomía ya llega a `decision`
+- ya existe un primer ajuste real por subfamilia en scoring
+- `etf_country_region` hoy exige más soporte para quedar en `Refuerzo` que un `etf_sector`
 
 ## Próxima implementación sugerida
 
 ### Etapa 1. Clasificación canónica
+
+- Estado: `Hecho`
 
 - agregar `asset_family`
 - agregar `asset_subfamily`
@@ -169,6 +178,8 @@ Subfamilias:
 
 ### Etapa 2. Score con overlays por familia
 
+- Estado: `En progreso`
+
 Mantener una base común, pero con ajustes explícitos por familia:
 - `stock`: modelo completo actual
 - `etf_core`: reducción más suave
@@ -176,6 +187,11 @@ Mantener una base común, pero con ajustes explícitos por familia:
 - `etf_country_region`: momentum/técnico/macrorégimen
 - `bond`: lógica propia
 - `liquidity`: lógica propia
+
+Avance actual:
+- `etf_core` ya tiene alivio específico en reducción
+- `etf_country_region` ya tiene una penalización leve de refuerzo cuando no trae soporte fundamental/rating
+- esto ya movió `EWZ` de `Refuerzo` a `Mantener / Neutral`
 
 ### Etapa 3. Presentación
 
@@ -185,13 +201,23 @@ Exponer en reporte:
 
 Esto debería permitir leer rápido por qué dos ETFs no reciben el mismo tratamiento.
 
-## Caso abierto inmediato
+## Caso cerrado inmediato
 
-El próximo caso a auditar bajo esta taxonomía es:
+Primer caso auditado bajo esta taxonomía:
 - `EWZ`
 
-Hipótesis actual:
-- hoy `EWZ` entra como `Refuerzo` por momentum + técnico + beta + peso bajo
-- antes de cambiarlo, conviene decidir si debe tratarse como:
-  - `etf_country_region` táctico válido
-  - o como una exposición que requiere umbral de refuerzo más exigente que un `stock`
+Resultado:
+- dejó de ser `Refuerzo`
+- pasó a `Mantener / Neutral`
+- se mantuvieron como `Refuerzo` los ETFs sectoriales/defensivos mejor sostenidos (`XLU`)
+
+Interpretación:
+- el modelo dejó de tratar igual a un ETF país/región y a un ETF sectorial
+- la taxonomía ya empezó a impactar la decisión operativa real
+
+## Próximo foco
+
+Los siguientes frentes lógicos de calibración son:
+- revisar si `IEUR` y `EEM` deben compartir exactamente la misma lógica que `EWZ`
+- decidir si `etf_sector` necesita una penalización propia cuando no trae soporte fundamental
+- exponer `asset_family` y `asset_subfamily` en el reporte HTML
