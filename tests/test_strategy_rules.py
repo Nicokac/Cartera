@@ -9,7 +9,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from decision.actions import assign_action_v2
+from decision.actions import assign_action_v2, enrich_decision_explanations
 from decision.scoring import (
     apply_base_scores,
     apply_technical_overlay_scores,
@@ -650,6 +650,134 @@ class StrategyRulesTests(unittest.TestCase):
         )
 
         self.assertGreater(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
+
+    def test_stock_refuerzo_comment_mentions_quality_or_beta_support(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "VIST",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": None,
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 1.2,
+                    "Beta": 0.75,
+                    "P/E": 11.0,
+                    "ROE": 30.0,
+                    "Profit Margin": 25.0,
+                    "Consensus_Final": 0.8,
+                    "Momentum_Refuerzo": 0.8,
+                    "Momentum_Reduccion_Effective": 0.2,
+                    "Ganancia_%_Cap": 50.0,
+                    "MEP_Premium_%": -98.0,
+                    "Tech_Trend": "Alcista",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.8,
+                    "s_consensus_bad": 0.2,
+                    "s_low_weight": 0.9,
+                    "s_high_weight": 0.1,
+                    "s_beta_ok": 0.8,
+                    "s_beta_risk": 0.2,
+                    "s_mep_ok": 0.9,
+                    "s_mep_premium": 0.1,
+                    "s_pe_ok": 0.8,
+                    "s_pe_expensive": 0.2,
+                }
+            ]
+        )
+
+        explained = enrich_decision_explanations(df)
+        comment = explained.loc[0, "motivo_accion"]
+        score_comment = explained.loc[0, "motivo_score"]
+
+        self.assertIn("Refuerzo por", comment)
+        self.assertTrue(("beta controlada" in comment) or ("ROE alto" in comment) or ("margen alto" in comment))
+        self.assertIn("calidad", score_comment)
+
+    def test_stock_reduction_comment_mentions_pressure_sources(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "MELI",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": None,
+                    "accion_sugerida_v2": "Reducir",
+                    "Peso_%": 4.5,
+                    "Beta": 1.5,
+                    "P/E": 44.0,
+                    "ROE": 12.0,
+                    "Profit Margin": 7.0,
+                    "Consensus_Final": 0.5,
+                    "Momentum_Refuerzo": 0.3,
+                    "Momentum_Reduccion_Effective": 0.75,
+                    "Ganancia_%_Cap": 20.0,
+                    "MEP_Premium_%": -95.0,
+                    "Tech_Trend": "Bajista",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.5,
+                    "s_consensus_bad": 0.5,
+                    "s_low_weight": 0.2,
+                    "s_high_weight": 0.8,
+                    "s_beta_ok": 0.2,
+                    "s_beta_risk": 0.8,
+                    "s_mep_ok": 0.8,
+                    "s_mep_premium": 0.2,
+                    "s_pe_ok": 0.1,
+                    "s_pe_expensive": 0.9,
+                }
+            ]
+        )
+
+        explained = enrich_decision_explanations(df)
+        comment = explained.loc[0, "motivo_accion"]
+
+        self.assertIn("Reduccion por", comment)
+        self.assertTrue(("valuacion exigente" in comment) or ("momentum debil" in comment) or ("beta alta" in comment))
+
+    def test_country_region_etf_neutral_comment_mentions_limited_support(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "EWZ",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "etf_country_region",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "Peso_%": 1.9,
+                    "Beta": 0.7,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "Consensus_Final": 0.5,
+                    "Momentum_Refuerzo": 0.9,
+                    "Momentum_Reduccion_Effective": 0.2,
+                    "Ganancia_%_Cap": 35.0,
+                    "MEP_Premium_%": -98.0,
+                    "Tech_Trend": "Alcista",
+                    "has_fundamental_support": False,
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.5,
+                    "s_consensus_bad": 0.5,
+                    "s_low_weight": 0.8,
+                    "s_high_weight": 0.2,
+                    "s_beta_ok": 0.8,
+                    "s_beta_risk": 0.2,
+                    "s_mep_ok": 0.9,
+                    "s_mep_premium": 0.1,
+                    "s_pe_ok": 0.5,
+                    "s_pe_expensive": 0.5,
+                }
+            ]
+        )
+
+        explained = enrich_decision_explanations(df)
+        comment = explained.loc[0, "motivo_accion"]
+
+        self.assertIn("soporte fundamental limitado", comment)
 
 
 if __name__ == "__main__":

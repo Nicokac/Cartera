@@ -33,9 +33,10 @@ def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object
     out.loc[(out["Es_Bono"]) & (out["score_reduccion"] >= bono_reduccion_threshold), "accion_sugerida"] = (
         "Rebalancear / tomar ganancia"
     )
-    out.loc[(out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold), "accion_sugerida"] = (
-        "Desplegar liquidez"
-    )
+    out.loc[
+        (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
+        "accion_sugerida",
+    ] = "Desplegar liquidez"
     return out
 
 
@@ -69,14 +70,82 @@ def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: dict[str, obj
     out.loc[(out["Es_Bono"]) & (out["score_reduccion_v2"] >= bono_reduccion_threshold), "accion_sugerida_v2"] = (
         "Rebalancear / tomar ganancia"
     )
-    out.loc[(out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold), "accion_sugerida_v2"] = (
-        "Desplegar liquidez"
-    )
+    out.loc[
+        (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
+        "accion_sugerida_v2",
+    ] = "Desplegar liquidez"
     return out
 
 
 def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
+
+    def _is_country_region_etf(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "etf_country_region"
+
+    def _is_sector_etf(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "etf_sector"
+
+    def _is_core_etf(row: pd.Series) -> bool:
+        return row.get("asset_subfamily") == "etf_core"
+
+    def _metric_available(row: pd.Series, col: str) -> bool:
+        return col in row.index and pd.notna(row.get(col))
+
+    def _join_reasons(reasons: list[str], fallback: str) -> str:
+        clean: list[str] = []
+        for reason in reasons:
+            if reason and reason not in clean:
+                clean.append(reason)
+        if not clean:
+            return fallback
+        if len(clean) == 1:
+            return clean[0]
+        return f"{clean[0]} y {clean[1]}"
+
+    def _positive_signals(row: pd.Series) -> list[str]:
+        signals: list[str] = []
+        if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) <= 2.0:
+            signals.append("peso bajo")
+        if _metric_available(row, "Beta") and float(row.get("Beta", 0)) <= 0.8:
+            signals.append("beta controlada")
+        if _metric_available(row, "P/E") and float(row.get("P/E", 0)) <= 18:
+            signals.append("valuacion razonable")
+        if _metric_available(row, "ROE") and float(row.get("ROE", 0)) >= 20:
+            signals.append("ROE alto")
+        if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 0)) >= 20:
+            signals.append("margen alto")
+        if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) >= 0.70:
+            signals.append("consenso favorable")
+        if _metric_available(row, "Momentum_Refuerzo") and float(row.get("Momentum_Refuerzo", 0.5)) >= 0.65:
+            signals.append("momentum fuerte")
+        if row.get("Tech_Trend") == "Alcista":
+            signals.append("tecnico alcista")
+        if row.get("Tech_Trend") == "Alcista fuerte":
+            signals.append("tecnico alcista fuerte")
+        if _metric_available(row, "MEP_Premium_%") and float(row.get("MEP_Premium_%", 0)) <= -90:
+            signals.append("MEP favorable")
+        return signals
+
+    def _negative_signals(row: pd.Series) -> list[str]:
+        signals: list[str] = []
+        if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) >= 4.0:
+            signals.append("peso alto")
+        if _metric_available(row, "Beta") and float(row.get("Beta", 0)) >= 1.3:
+            signals.append("beta alta")
+        if _metric_available(row, "P/E") and float(row.get("P/E", 0)) >= 30:
+            signals.append("valuacion exigente")
+        if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 100)) <= 10:
+            signals.append("margen bajo")
+        if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) <= 0.35:
+            signals.append("consenso debil")
+        if _metric_available(row, "Momentum_Reduccion_Effective") and float(row.get("Momentum_Reduccion_Effective", 0.5)) >= 0.60:
+            signals.append("momentum debil")
+        if row.get("Tech_Trend") == "Bajista":
+            signals.append("tecnico bajista")
+        if _metric_available(row, "Ganancia_%_Cap") and float(row.get("Ganancia_%_Cap", 0)) >= 80:
+            signals.append("ganancia extendida")
+        return signals
 
     def top_drivers(row: pd.Series) -> list[str]:
         candidates = [
@@ -88,27 +157,70 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
             ("valuacion", row.get("s_pe_ok", 0) - row.get("s_pe_expensive", 0)),
             ("liquidez", row.get("score_despliegue_liquidez", 0)),
         ]
-        ordered = [name for name, _ in sorted(candidates, key=lambda x: abs(x[1]), reverse=True)]
+        ordered = [name for name, _ in sorted(candidates, key=lambda item: abs(item[1]), reverse=True)]
         return ordered[:3]
 
     def motivo_score(row: pd.Series) -> str:
         if row.get("Es_Liquidez"):
-            return "Score de liquidez calculado por peso y pérdida relativa."
+            return "Score de liquidez calculado por peso y perdida relativa."
         if row.get("Es_Bono"):
             return "Score de bono calculado con sesgo prudencial y control de rebalanceo."
-        return "Score compuesto por momentum, peso, consenso, beta, MEP y valuación."
+        if _is_core_etf(row):
+            return "Score de ETF core balanceado entre regimen, concentracion, beta, MEP y rol de cartera."
+        if _is_sector_etf(row):
+            return "Score de ETF sectorial ponderado por beta, momentum, MEP y soporte tactico."
+        if _is_country_region_etf(row):
+            return "Score de ETF pais o region ponderado por momentum, beta, MEP y soporte tactico prudente."
+        return "Score de CEDEAR compuesto por momentum, peso, consenso, beta, MEP, valuacion y calidad."
 
     def motivo_accion(row: pd.Series) -> str:
         accion = row.get("accion_sugerida_v2", row.get("accion_sugerida", "Mantener / Neutral"))
+        positive_signals = _positive_signals(row)
+        negative_signals = _negative_signals(row)
+        positive_summary = _join_reasons(positive_signals, "senales favorables")
+        negative_summary = _join_reasons(negative_signals, "senales mixtas")
+
         if accion == "Refuerzo":
-            return "Refuerzo por score favorable y diferencia positiva frente a reducción."
+            if _is_sector_etf(row):
+                return f"Refuerzo sectorial por {positive_summary}."
+            if _is_core_etf(row):
+                return f"Refuerzo tactico de ETF core por {positive_summary}."
+            if _is_country_region_etf(row):
+                return f"Refuerzo tactico de ETF pais o region por {positive_summary}."
+            return f"Refuerzo por {positive_summary}."
+
         if accion == "Reducir":
-            return "Reducción por score débil y mayor presión de riesgo/valuación."
+            if _is_core_etf(row):
+                return f"Reduccion de ETF core por {negative_summary}."
+            if _is_country_region_etf(row):
+                return f"Reduccion de ETF pais o region por {negative_summary}."
+            return f"Reduccion por {negative_summary}."
+
         if accion == "Rebalancear / tomar ganancia":
-            return "Bono con señal de salida parcial o toma de ganancia."
+            return "Bono con senal de salida parcial o toma de ganancia."
+
         if accion == "Desplegar liquidez":
             return "Liquidez identificada como fuente potencial de fondeo."
-        return "Sin señal dominante; mantener y monitorear."
+
+        if _is_core_etf(row):
+            if negative_signals:
+                return f"ETF core en monitoreo: pesan {negative_summary}, pero se preserva su rol de cartera."
+            return "ETF core en monitoreo por rol estructural dentro de la cartera."
+
+        if _is_country_region_etf(row):
+            if positive_signals and not row.get("has_fundamental_support", False):
+                return f"ETF pais o region con {positive_summary}, pero con soporte fundamental limitado."
+            return "ETF pais o region en monitoreo por senales tacticas mixtas."
+
+        if _is_sector_etf(row):
+            if positive_signals and negative_signals:
+                return f"ETF sectorial en monitoreo: conviven {positive_summary} con {negative_summary}."
+            return "ETF sectorial en monitoreo por falta de senal dominante."
+
+        if positive_signals and negative_signals:
+            return f"Mantener por senales mixtas: destacan {positive_summary}, pero pesan {negative_summary}."
+
+        return "Sin senal dominante; mantener y monitorear."
 
     drivers = out.apply(top_drivers, axis=1)
     out["driver_1"] = drivers.apply(lambda x: x[0] if len(x) > 0 else None)
