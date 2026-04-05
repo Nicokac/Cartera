@@ -18,6 +18,33 @@ def _infer_bond_subfamily_from_block(value: object) -> str | None:
     return "bond_other"
 
 
+def _infer_bonistas_local_subfamily(row: pd.Series) -> str | None:
+    explicit = str(row.get("bonistas_subfamily") or "").strip()
+    if explicit:
+        return explicit
+
+    ticker = str(row.get("Ticker_IOL") or "").strip().upper()
+    block = str(row.get("Bloque") or "").strip().lower()
+
+    if ticker.startswith(("GD", "AL", "AE", "AO", "AN")):
+        return "bond_hard_dollar"
+    if ticker.startswith("BPO") or "bopreal" in block:
+        return "bond_bopreal"
+    if ticker.startswith(("TZX", "TX", "TC", "CUAP", "DICP", "DIP0", "PARP", "PAP0", "X")) or block == "cer":
+        return "bond_cer"
+    if ticker.startswith("TT"):
+        return "bond_dual"
+    if ticker.startswith(("TV", "D30", "TZV")):
+        return "bond_dollar_linked"
+    if ticker.startswith("TMF"):
+        return "bond_tamar"
+    if ticker.startswith(("M", "TM")):
+        return "bond_tamar"
+    if ticker.startswith(("S", "T")):
+        return "bond_fixed_rate"
+    return None
+
+
 def _parse_date_ddmmyyyy(value: object) -> pd.Timestamp:
     text = str(value or "").strip()
     if not text:
@@ -65,6 +92,8 @@ def enrich_bond_analytics(
 
     if "bonistas_subfamily" in work.columns:
         work["asset_subfamily"] = work["asset_subfamily"].where(work["asset_subfamily"].notna(), work["bonistas_subfamily"])
+
+    work["bonistas_local_subfamily"] = work.apply(_infer_bonistas_local_subfamily, axis=1)
 
     ref_ts = pd.Timestamp(reference_date) if reference_date else pd.Timestamp(datetime.now().date())
     work["bonistas_fecha_vencimiento_dt"] = work.get(
@@ -120,6 +149,7 @@ def build_bond_monitor_table(df: pd.DataFrame) -> pd.DataFrame:
         "Tipo",
         "Bloque",
         "asset_subfamily",
+        "bonistas_local_subfamily",
         "Peso_%",
         "bonistas_tir_pct",
         "bonistas_paridad_pct",
@@ -156,6 +186,32 @@ def build_bond_subfamily_summary(df: pd.DataFrame) -> pd.DataFrame:
 
     summary = df.groupby("asset_subfamily", dropna=False).agg(**metrics).reset_index()
     numeric_cols = [col for col in summary.columns if col not in {"asset_subfamily", "Instrumentos"}]
+    for col in numeric_cols:
+        summary[col] = pd.to_numeric(summary[col], errors="coerce").round(2)
+    return summary.sort_values("Instrumentos", ascending=False).reset_index(drop=True)
+
+
+def build_bond_local_subfamily_summary(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty or "bonistas_local_subfamily" not in df.columns:
+        return pd.DataFrame()
+
+    metrics: dict[str, tuple[str, str]] = {
+        "Instrumentos": ("Ticker_IOL", "count"),
+    }
+    if "bonistas_tir_pct" in df.columns:
+        metrics["TIR_Promedio"] = ("bonistas_tir_pct", "mean")
+    if "bonistas_paridad_pct" in df.columns:
+        metrics["Paridad_Promedio"] = ("bonistas_paridad_pct", "mean")
+    if "bonistas_md" in df.columns:
+        metrics["MD_Promedio"] = ("bonistas_md", "mean")
+
+    summary = (
+        df.dropna(subset=["bonistas_local_subfamily"])
+        .groupby("bonistas_local_subfamily", dropna=False)
+        .agg(**metrics)
+        .reset_index()
+    )
+    numeric_cols = [col for col in summary.columns if col not in {"bonistas_local_subfamily", "Instrumentos"}]
     for col in numeric_cols:
         summary[col] = pd.to_numeric(summary[col], errors="coerce").round(2)
     return summary.sort_values("Instrumentos", ascending=False).reset_index(drop=True)

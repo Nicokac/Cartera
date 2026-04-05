@@ -320,3 +320,42 @@ Los siguientes frentes lógicos de calibración ya no están en ETFs ni en bonos
 - evaluar si `stock_argentina` merece una calibración propia más explícita o si la prudencia actual alcanza
 - si se profundiza esta capa, el siguiente salto ya sería de calibración por subfamilia de `stock`, no de nuevas reglas genéricas
 
+
+## Actualizacion 2026-04-05: Taxonomia local ampliada para Bonistas
+
+La taxonomia operativa vigente del modelo sigue siendo:
+- `bond_sov_ar`
+- `bond_cer`
+- `bond_bopreal`
+- `bond_other`
+
+Esa capa se mantiene estable porque hoy impacta scoring, accion y sizing.
+
+En paralelo, Bonistas ya habilita una taxonomia local mas fina para monitoreo y reclasificacion futura:
+- `bond_hard_dollar`
+- `bond_cer`
+- `bond_bopreal`
+- `bond_dual`
+- `bond_dollar_linked`
+- `bond_fixed_rate`
+- `bond_tamar`
+- `bond_badlar`
+- `letter_fixed_rate`
+
+Criterio vigente:
+- no reemplazar automaticamente `asset_subfamily` del modelo
+- usar la taxonomia local detallada como capa analitica complementaria
+- recien promoverla al scoring cuando haya cobertura consistente y validacion real
+
+Baseline visible actual del bloque Bonistas:
+- `bond_sov_ar`
+  - `GD30`: `87.24%`
+  - `AL30`: `85.11%`
+  - `GD35`: `75.64%`
+- `bond_bopreal`
+  - `BPOC7`: `102.00%`
+- `bond_cer`
+  - `TZX26`: `102.00%`
+- `bond_other`
+  - `TZXD6`: `100.30%`
+  - `TZXM7`: `99.30%`

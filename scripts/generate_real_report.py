@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from getpass import getpass
 from pathlib import Path
@@ -18,7 +19,12 @@ if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
 import config as project_config
-from analytics.bond_analytics import build_bond_monitor_table, build_bond_subfamily_summary, enrich_bond_analytics
+from analytics.bond_analytics import (
+    build_bond_local_subfamily_summary,
+    build_bond_monitor_table,
+    build_bond_subfamily_summary,
+    enrich_bond_analytics,
+)
 from analytics.technical import build_technical_overlay
 from clients.argentinadatos import get_mep_real
 from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
@@ -35,6 +41,54 @@ from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfo
 
 HTML_PATH = REPORTS_DIR / "real-report.html"
 SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
+ENV_PATH = ROOT / ".env"
+
+
+def load_local_env(path: Path = ENV_PATH) -> dict[str, str]:
+    if not path.exists():
+        return {}
+
+    loaded: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.lower().startswith("export "):
+            line = line[7:].strip()
+        if "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip("'").strip('"')
+        if not key:
+            continue
+        loaded[key] = value
+        os.environ.setdefault(key, value)
+
+    return loaded
+
+
+def resolve_iol_credentials() -> tuple[str, str]:
+    load_local_env()
+
+    username = os.environ.get("IOL_USERNAME", "").strip()
+    password = os.environ.get("IOL_PASSWORD", "").strip()
+
+    if not username:
+        username = input("Usuario IOL: ").strip()
+    else:
+        print("Usuario IOL: cargado desde entorno")
+
+    if not password:
+        password = getpass("Password IOL: ").strip()
+    else:
+        print("Password IOL: cargado desde entorno")
+
+    if not username or not password:
+        raise ValueError("Usuario y password son obligatorios.")
+
+    return username, password
 
 
 def prompt_yes_no(label: str, *, default: bool = False) -> bool:
@@ -292,6 +346,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
     return {
         "bond_monitor": build_bond_monitor_table(bond_analytics),
         "bond_subfamily_summary": build_bond_subfamily_summary(bond_analytics),
+        "bond_local_subfamily_summary": build_bond_local_subfamily_summary(bond_analytics),
         "macro_variables": macro_variables,
     }
 
@@ -300,10 +355,7 @@ def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    username = input("Usuario IOL: ").strip()
-    password = getpass("Password IOL: ").strip()
-    if not username or not password:
-        raise ValueError("Usuario y password son obligatorios.")
+    username, password = resolve_iol_credentials()
 
     print("Login IOL...")
     token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)

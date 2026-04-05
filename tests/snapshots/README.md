@@ -60,3 +60,29 @@ Notas:
     - `2026-04-05`: `+0.190`, `Refuerzo`
     - baseline actual: `+0.160`, `Mantener / Neutral`
     - el ultimo cambio responde al filtro tecnico prudente y no a una alteracion brusca del resto de las senales
+
+- Baseline vigente Bonistas v1 para monitoreo de bonos locales:
+  - bloque `Bonos Locales` visible en el HTML real
+  - `bond_sov_ar` con paridades operativas coherentes:
+    - `GD30`: `87.24%`
+    - `AL30`: `85.11%`
+    - `GD35`: `75.64%`
+  - `bond_bopreal` estabilizado:
+    - `BPOC7`: `102.00%`
+  - `bond_cer` visible y coherente:
+    - `TZX26`: `102.00%`
+  - `bond_other` neutralizado y auditable:
+    - `TZXD6`: `100.30%`
+    - `TZXM7`: `99.30%`
+  - referencias macro visibles:
+    - `CER`: `738.7059`
+    - `TAMAR`: `26.31`
+    - `BADLAR`: filtrada por plausibilidad cuando corresponda
+- Taxonomia local ampliada disponible para siguiente iteracion de Bonistas:
+  - `bond_hard_dollar`
+  - `bond_dual`
+  - `bond_dollar_linked`
+  - `bond_fixed_rate`
+  - `bond_tamar`
+  - `bond_badlar`
+  - `letter_fixed_rate`

@@ -124,3 +124,49 @@ Avance concreto actual:
 - el cliente devuelve columnas `bonistas_*` consistentes
 - la normalización de tickers está desacoplada en mappings
 - hay tests mínimos de contrato
+
+## Actualizacion 2026-04-05
+
+Estado revisado:
+- Etapa 1: `Hecho`
+- Etapa 2: `Hecho`
+- Etapa 4: `En progreso`
+
+Avance validado en corrida real:
+- el reporte HTML ya expone un bloque `Bonos Locales`
+- el monitor de bonos ya muestra:
+  - `bonistas_tir_pct`
+  - `bonistas_paridad_pct`
+  - `bonistas_md`
+  - `bonistas_duration_bucket`
+  - `bonistas_days_to_maturity`
+  - `bonistas_tir_vs_avg_365d_pct`
+  - `bonistas_parity_gap_pct`
+  - `bonistas_put_flag`
+- la capa analitica ya infiere `asset_subfamily` de bonos cuando no viene propagada desde valuacion
+- la normalizacion de paridad operativa ya funciona para:
+  - `bond_sov_ar`
+  - `bond_bopreal`
+- las variables macro ya filtran tasas implausibles, por lo que `BADLAR` puede quedar en `-` antes de mostrar un valor basura
+
+Baseline Bonistas v1:
+- `bond_sov_ar`
+  - `GD30`: `87.24%`
+  - `AL30`: `85.11%`
+  - `GD35`: `75.64%`
+- `bond_bopreal`
+  - `BPOC7`: `102.00%`
+- `bond_cer`
+  - `TZX26`: `102.00%`
+- `bond_other`
+  - `TZXD6`: `100.30%`
+  - `TZXM7`: `99.30%`
+
+Proximo foco:
+- ampliar taxonomia local detallada sin romper `asset_subfamily`
+- usar taxonomia local detallada para reclasificar mejor:
+  - `bond_dual`
+  - `bond_fixed_rate`
+  - `bond_dollar_linked`
+  - `bond_tamar`
+- despues recien evaluar uso gradual en scoring de bonos

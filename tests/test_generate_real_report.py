@@ -10,10 +10,35 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
-from generate_real_report import build_real_bonistas_bundle
+from generate_real_report import build_real_bonistas_bundle, load_local_env, resolve_iol_credentials
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_load_local_env_parses_simple_env_file_without_overriding_existing_env(self) -> None:
+        env_path = ROOT / "tests" / "snapshots" / "tmp_test.env"
+        env_path.write_text(
+            "# comment\n"
+            "IOL_USERNAME=usuario@example.com\n"
+            "IOL_PASSWORD='secret-pass'\n",
+            encoding="utf-8",
+        )
+        self.addCleanup(lambda: env_path.unlink(missing_ok=True))
+
+        with patch.dict("os.environ", {"IOL_USERNAME": "prioridad@env.com"}, clear=False):
+            loaded = load_local_env(env_path)
+            self.assertEqual(loaded["IOL_USERNAME"], "usuario@example.com")
+            self.assertEqual(loaded["IOL_PASSWORD"], "secret-pass")
+            self.assertEqual(resolve_iol_credentials()[0], "prioridad@env.com")
+
+    def test_resolve_iol_credentials_uses_prompt_as_fallback(self) -> None:
+        with patch("generate_real_report.load_local_env", return_value={}), patch.dict("os.environ", {}, clear=True), patch(
+            "builtins.input", return_value="prompt-user@example.com"
+        ), patch("generate_real_report.getpass", return_value="prompt-pass"):
+            username, password = resolve_iol_credentials()
+
+        self.assertEqual(username, "prompt-user@example.com")
+        self.assertEqual(password, "prompt-pass")
+
     def test_build_real_bonistas_bundle_accepts_mep_real_and_returns_bundle(self) -> None:
         df_bonos = pd.DataFrame(
             [
@@ -33,6 +58,7 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertIn("bond_monitor", bundle)
         self.assertIn("bond_subfamily_summary", bundle)
+        self.assertIn("bond_local_subfamily_summary", bundle)
         self.assertIn("macro_variables", bundle)
         self.assertEqual(bundle["macro_variables"]["cer_diario"], 738.025)
         enrich_mock.assert_called_once()

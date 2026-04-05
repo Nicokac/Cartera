@@ -10,6 +10,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from analytics.bond_analytics import (
+    build_bond_local_subfamily_summary,
     build_bond_monitor_table,
     build_bond_subfamily_summary,
     enrich_bond_analytics,
@@ -157,6 +158,47 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertEqual(sov["Instrumentos"], 2)
         self.assertAlmostEqual(sov["TIR_Promedio"], 12.5, places=2)
 
+    def test_enrich_bond_analytics_infers_local_subfamily_without_touching_operational_taxonomy(self) -> None:
+        df_bonds = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar"},
+                {"Ticker_IOL": "BPOC7", "Tipo": "Bono", "Bloque": "Bopreal", "asset_subfamily": "bond_bopreal"},
+                {"Ticker_IOL": "TZX26", "Tipo": "Bono", "Bloque": "CER", "asset_subfamily": "bond_cer"},
+                {"Ticker_IOL": "TTJ26", "Tipo": "Bono", "Bloque": "Sin clasificar", "asset_subfamily": "bond_other"},
+                {"Ticker_IOL": "TZV26", "Tipo": "Bono", "Bloque": "Sin clasificar", "asset_subfamily": "bond_other"},
+                {"Ticker_IOL": "TMF27", "Tipo": "Bono", "Bloque": "Sin clasificar", "asset_subfamily": "bond_other"},
+            ]
+        )
+
+        enriched = enrich_bond_analytics(df_bonds, reference_date="2026-04-05")
+        local_map = enriched.set_index("Ticker_IOL")["bonistas_local_subfamily"].to_dict()
+        operational_map = enriched.set_index("Ticker_IOL")["asset_subfamily"].to_dict()
+
+        self.assertEqual(local_map["GD30"], "bond_hard_dollar")
+        self.assertEqual(local_map["BPOC7"], "bond_bopreal")
+        self.assertEqual(local_map["TZX26"], "bond_cer")
+        self.assertEqual(local_map["TTJ26"], "bond_dual")
+        self.assertEqual(local_map["TZV26"], "bond_dollar_linked")
+        self.assertEqual(local_map["TMF27"], "bond_tamar")
+        self.assertEqual(operational_map["TTJ26"], "bond_other")
+
+    def test_build_bond_local_subfamily_summary_aggregates_local_taxonomy(self) -> None:
+        df = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "bonistas_local_subfamily": "bond_hard_dollar", "bonistas_tir_pct": 9.0, "bonistas_paridad_pct": 87.0, "bonistas_md": 2.0},
+                {"Ticker_IOL": "AL30", "bonistas_local_subfamily": "bond_hard_dollar", "bonistas_tir_pct": 10.0, "bonistas_paridad_pct": 85.0, "bonistas_md": 2.2},
+                {"Ticker_IOL": "BPOC7", "bonistas_local_subfamily": "bond_bopreal", "bonistas_tir_pct": 3.4, "bonistas_paridad_pct": 102.0, "bonistas_md": 1.2},
+            ]
+        )
+
+        summary = build_bond_local_subfamily_summary(df)
+
+        self.assertEqual(len(summary), 2)
+        hard_dollar = summary.loc[summary["bonistas_local_subfamily"] == "bond_hard_dollar"].iloc[0]
+        self.assertEqual(hard_dollar["Instrumentos"], 2)
+        self.assertAlmostEqual(hard_dollar["TIR_Promedio"], 9.5, places=2)
+        self.assertAlmostEqual(hard_dollar["Paridad_Promedio"], 86.0, places=2)
+
     def test_build_bond_monitor_table_returns_relevant_columns(self) -> None:
         df = pd.DataFrame(
             [
@@ -165,6 +207,7 @@ class BondAnalyticsTests(unittest.TestCase):
                     "Tipo": "Bono",
                     "Bloque": "Soberano AR",
                     "asset_subfamily": "bond_sov_ar",
+                    "bonistas_local_subfamily": "bond_hard_dollar",
                     "Peso_%": 3.62,
                     "bonistas_tir_pct": 12.5,
                     "bonistas_paridad_pct": 78.0,
@@ -183,6 +226,7 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertEqual(len(monitor), 1)
         self.assertIn("bonistas_duration_bucket", monitor.columns)
         self.assertIn("bonistas_tir_pct", monitor.columns)
+        self.assertIn("bonistas_local_subfamily", monitor.columns)
 
 
 if __name__ == "__main__":

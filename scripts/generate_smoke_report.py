@@ -289,10 +289,12 @@ def render_report(
     kpis = dashboard_bundle["kpis"]
     bond_monitor = bonistas_bundle.get("bond_monitor", pd.DataFrame())
     bond_subfamily_summary = bonistas_bundle.get("bond_subfamily_summary", pd.DataFrame())
+    bond_local_subfamily_summary = bonistas_bundle.get("bond_local_subfamily_summary", pd.DataFrame())
     bonistas_macro = bonistas_bundle.get("macro_variables", {}) or {}
     show_bonistas = (
         (isinstance(bond_monitor, pd.DataFrame) and not bond_monitor.empty)
         or (isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty)
+        or (isinstance(bond_local_subfamily_summary, pd.DataFrame) and not bond_local_subfamily_summary.empty)
         or bool(bonistas_macro)
     )
     tech_metric_cols = [
@@ -413,6 +415,11 @@ def render_report(
       <h3>Resumen por subfamilia</h3>
       {build_table(
           bond_subfamily_summary,
+          formatters={},
+      )}
+      <h3>Resumen por taxonomia local</h3>
+      {build_table(
+          bond_local_subfamily_summary,
           formatters={},
       )}
       <h3>Monitoreo de bonos</h3>

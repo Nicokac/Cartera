@@ -222,3 +222,58 @@ y pasar a una lógica más propia de renta fija, apoyada en:
 - https://bonistas.com/variables
 - https://bonistas.com/bonos-cer-hoy
 - https://bonistas.com/bonos-bopreal-hoy
+
+## Actualizacion 2026-04-05
+
+### Baseline operativa Bonistas v1
+
+Bloque validado en reporte real:
+- `CER`: `738.7059`
+- `TAMAR`: `26.31`
+- `BADLAR`: `-` cuando el parser detecta un valor implausible
+
+Resumen por subfamilia validado:
+- `bond_sov_ar`: `3` instrumentos, `TIR_Promedio 8.97`, `Paridad_Promedio 82.66`
+- `bond_bopreal`: `1` instrumento, `TIR_Promedio 3.40`, `Paridad_Promedio 102.00`
+- `bond_cer`: `1` instrumento, `TIR_Promedio -8.10`, `Paridad_Promedio 102.00`
+- `bond_other`: `2` instrumentos, `TIR_Promedio 0.15`, `Paridad_Promedio 99.80`
+
+### Taxonomia local ampliada
+
+Ademas de la taxonomia operativa actual del scoring:
+- `bond_sov_ar`
+- `bond_cer`
+- `bond_bopreal`
+- `bond_other`
+
+Bonistas ya permite una taxonomia local mas fina para instrumentos locales:
+- `bond_hard_dollar`
+- `bond_cer`
+- `bond_bopreal`
+- `bond_dual`
+- `bond_dollar_linked`
+- `bond_fixed_rate`
+- `bond_tamar`
+- `bond_badlar`
+- `letter_fixed_rate`
+
+Criterio recomendado:
+- mantener `asset_subfamily` estable para scoring actual
+- usar una capa local detallada separada para analitica y monitoreo
+- promover tickers desde `bond_other` solo cuando la nueva clasificacion este validada
+
+### Mapeo recomendado entre capas
+
+Taxonomia operativa actual:
+- `bond_sov_ar` -> soberanos AL/GD visibles hoy en cartera
+- `bond_cer` -> instrumentos CER
+- `bond_bopreal` -> BOPREAL
+- `bond_other` -> residual prudente
+
+Taxonomia local detallada propuesta:
+- `bond_sov_ar` puede convivir con `bond_hard_dollar` como lectura de mercado local
+- `bond_other` deberia reducirse a medida que Bonistas permita identificar:
+  - `bond_dual`
+  - `bond_fixed_rate`
+  - `bond_dollar_linked`
+  - `bond_tamar`

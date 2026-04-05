@@ -11,7 +11,12 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 import config as project_config
-from analytics.bond_analytics import build_bond_monitor_table, build_bond_subfamily_summary, enrich_bond_analytics
+from analytics.bond_analytics import (
+    build_bond_local_subfamily_summary,
+    build_bond_monitor_table,
+    build_bond_subfamily_summary,
+    enrich_bond_analytics,
+)
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
 
 
@@ -207,6 +212,7 @@ def run_smoke_pipeline() -> dict[str, object]:
     df_bonistas, bonistas_macro = build_mock_bonistas(portfolio_bundle["df_bonos"])
     bond_monitor = pd.DataFrame()
     bond_subfamily_summary = pd.DataFrame()
+    bond_local_subfamily_summary = pd.DataFrame()
     if not portfolio_bundle["df_bonos"].empty:
         bond_analytics = enrich_bond_analytics(
             portfolio_bundle["df_bonos"],
@@ -217,6 +223,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         )
         bond_monitor = build_bond_monitor_table(bond_analytics)
         bond_subfamily_summary = build_bond_subfamily_summary(bond_analytics)
+        bond_local_subfamily_summary = build_bond_local_subfamily_summary(bond_analytics)
     df_cedears = enrich_mock_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     df_ratings_res = build_mock_ratings()
     finviz_stats = {
@@ -260,6 +267,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         "bonistas_bundle": {
             "bond_monitor": bond_monitor,
             "bond_subfamily_summary": bond_subfamily_summary,
+            "bond_local_subfamily_summary": bond_local_subfamily_summary,
             "macro_variables": bonistas_macro,
         },
     }
