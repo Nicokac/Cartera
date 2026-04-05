@@ -559,6 +559,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Resultado funcional:
   - `GD30` pasó a `Rebalancear / tomar ganancia`
   - `AL30`, `TZX26` y `BPOC7` quedaron en `Mantener / monitorear`
+  - `TZXM7` y `TZXD6` quedaron en `Mantener / monitorear` con score más neutral
 
 ## Política de actualización
 

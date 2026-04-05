@@ -128,7 +128,7 @@ Lectura operativa actual:
 - `bond_sov_ar` ya tiene una lógica más sensible de rebalanceo cuando la ganancia acumulada queda muy extendida
 - `bond_cer` hoy queda en una lógica prudencial más neutra
 - `bond_bopreal` hoy queda en monitoreo prudente
-- `bond_other` sigue siendo la subfamilia más abierta y todavía requiere calibración adicional
+- `bond_other` ya fue endurecida para evitar falsos positivos de refuerzo en bonos sin clasificar
 
 ### 6. `liquidity`
 
@@ -241,10 +241,16 @@ Interpretación:
 - el modelo dejó de tratar igual a un ETF país/región y a un ETF sectorial
 - la taxonomía ya empezó a impactar la decisión operativa real
 
+Caso cerrado posterior:
+- `bond_other`
+
+Resultado:
+- `TZXM7` y `TZXD6` bajaron a una zona más neutral
+- ambos quedaron en `Mantener / monitorear`
+- la subfamilia dejó de verse artificialmente fuerte solo por peso bajo y ausencia de datos
+
 ## Próximo foco
 
 Los siguientes frentes lógicos de calibración ya no están en ETFs, sino en bonos:
-- revisar por qué `bond_other` hoy queda con score promedio materialmente mejor que otras subfamilias de bono
-- auditar específicamente:
-  - `TZXM7`
-  - `TZXD6`
+- decidir si `bond_cer` necesita una lógica propia adicional o si la neutralidad actual es suficiente
+- revisar si `bond_bopreal` merece una protección o castigo específico frente a `bond_sov_ar`

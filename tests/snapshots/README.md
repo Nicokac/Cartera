@@ -34,6 +34,7 @@ Notas:
     - `SPY` quedo neutral por ajuste `etf_core`
     - `EWZ` quedo neutral por ajuste `etf_country_region`
     - `GD30` quedo en `Rebalancear / tomar ganancia` por ajuste `bond_sov_ar`
+    - `TZXM7` y `TZXD6` quedaron en `Mantener / monitorear` por endurecimiento de `bond_other`
     - refuerzos efectivos: `VIST`, `XLU`, `KO`
     - taxonomia visible en reporte:
       - `etf_core`
