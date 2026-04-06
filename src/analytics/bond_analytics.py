@@ -154,6 +154,18 @@ def enrich_bond_analytics(
     ).iloc[0]
     if pd.notna(rem_inflacion_12m_value):
         work["bonistas_rem_inflacion_12m_pct"] = rem_inflacion_12m_value
+    reservas_bcra_value = pd.to_numeric(pd.Series([macro_variables.get("reservas_bcra_musd")]), errors="coerce").iloc[0]
+    if pd.notna(reservas_bcra_value):
+        work["bonistas_reservas_bcra_musd"] = reservas_bcra_value
+    a3500_value = pd.to_numeric(pd.Series([macro_variables.get("a3500_mayorista")]), errors="coerce").iloc[0]
+    if pd.notna(a3500_value):
+        work["bonistas_a3500_mayorista"] = a3500_value
+    badlar_tea_value = pd.to_numeric(pd.Series([macro_variables.get("badlar_tea")]), errors="coerce").iloc[0]
+    if pd.notna(badlar_tea_value):
+        work["bonistas_badlar_tea_reference"] = badlar_tea_value
+    tamar_tea_value = pd.to_numeric(pd.Series([macro_variables.get("tamar_tea")]), errors="coerce").iloc[0]
+    if pd.notna(tamar_tea_value):
+        work["bonistas_tamar_tea_reference"] = tamar_tea_value
     ust_5y_value = pd.to_numeric(pd.Series([macro_variables.get("ust_5y_pct")]), errors="coerce").iloc[0]
     if pd.notna(ust_5y_value):
         work["bonistas_ust_5y_pct"] = ust_5y_value

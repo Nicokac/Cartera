@@ -17,6 +17,11 @@ ARGENTINADATOS_RIESGO_PAIS_URL = "https://api.argentinadatos.com/v1/finanzas/ind
 ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL = "https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais/ultimo"
 BCRA_REM_URL = "https://www.bcra.gob.ar/relevamiento-expectativas-mercado-rem/"
 BCRA_REM_XLS_URL = "https://www.bcra.gob.ar/archivos/Pdfs/Estadisticas/Base%20de%20Resultados%20del%20REM%20web.xlsx"
+BCRA_MONETARIAS_API_URL = "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias"
+BCRA_RESERVAS_ID = 1
+BCRA_A3500_ID = 55
+BCRA_BADLAR_PRIV_TNA_ID = 77
+BCRA_BADLAR_PRIV_TEA_ID = 3535
 MEP_CASA = "bolsa"
 
 ALERTA_MEP_DESVIO_PCT = 5
@@ -64,6 +69,11 @@ def load_runtime_config() -> dict[str, Any]:
         "ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL": ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL,
         "BCRA_REM_URL": BCRA_REM_URL,
         "BCRA_REM_XLS_URL": BCRA_REM_XLS_URL,
+        "BCRA_MONETARIAS_API_URL": BCRA_MONETARIAS_API_URL,
+        "BCRA_RESERVAS_ID": BCRA_RESERVAS_ID,
+        "BCRA_A3500_ID": BCRA_A3500_ID,
+        "BCRA_BADLAR_PRIV_TNA_ID": BCRA_BADLAR_PRIV_TNA_ID,
+        "BCRA_BADLAR_PRIV_TEA_ID": BCRA_BADLAR_PRIV_TEA_ID,
         "MEP_CASA": MEP_CASA,
         "ALERTA_MEP_DESVIO_PCT": ALERTA_MEP_DESVIO_PCT,
         "ALERTA_PERDIDA_MINIMA": ALERTA_PERDIDA_MINIMA,

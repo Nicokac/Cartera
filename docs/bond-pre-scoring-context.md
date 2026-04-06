@@ -166,6 +166,11 @@ Uso esperado:
 La fuente oficial ya se usa para:
 
 - `REM inflacion mensual`
+- `REM 12m`
+- `reservas_bcra_musd`
+- `a3500_mayorista`
+- `badlar`
+- `tamar`
 
 Uso esperado:
 
@@ -321,6 +326,30 @@ Criterio vigente:
 - la fuente elegida es oficial y no depende de API no documentada;
 - no modifica scoring;
 - los siguientes faltantes relevantes pasan a ser:
-  - `reservas BCRA`
-  - `tipo de cambio mayorista`
-  - `BADLAR/TAMAR` robustas
+  - series historicas para tendencia
+  - contexto de liquidez de mercado
+
+## Actualizacion 2026-04-05 - BCRA API v4.0 monetarias
+
+Se deja asentado que la API oficial del BCRA ya queda integrada para referencias monetarias y cambiarias basicas.
+
+Alcance actual:
+
+- el bloque `Bonos Locales` ya puede mostrar:
+  - `Reservas BCRA`
+  - `A3500`
+  - `BADLAR`
+  - `TAMAR`
+- `BADLAR` y `TAMAR` oficiales pasan a tener prioridad sobre el scraping puntual cuando la API responde;
+- la fuente elegida es publica, sin autenticacion y oficial.
+
+Criterio vigente:
+
+- no modifica scoring;
+- reduce dependencia operativa del scraping de Bonistas para tasas de referencia;
+- deja mejor preparado el contexto previo a scoring para:
+  - `bond_hard_dollar`
+  - `bond_bopreal`
+  - `bond_tamar`
+  - `bond_badlar`
+  - futura lectura de `bond_dollar_linked`

@@ -255,3 +255,26 @@ Criterio de esta subetapa:
 - no se toca scoring;
 - se mejora la lectura estrategica de bonos CER;
 - se consolida la fuente oficial del BCRA como referencia para expectativas de inflacion.
+
+## Actualizacion 2026-04-05 - BCRA monetarias v4.0
+
+Avance validado a nivel de implementacion:
+
+- el pipeline ya puede consumir desde la API oficial del BCRA:
+  - `reservas_bcra_musd`
+  - `a3500_mayorista`
+  - `badlar`
+  - `badlar_tea`
+  - `tamar`
+  - `tamar_tea`
+- `TAMAR` se descubre desde el catalogo oficial de variables y no queda hardcodeada;
+- `BADLAR` y `TAMAR` oficiales pueden sobreescribir el dato puntual de Bonistas cuando la API esta disponible;
+- el renderer de `Bonos Locales` ya queda preparado para exponer:
+  - `Reservas BCRA`
+  - `A3500`
+
+Criterio de esta subetapa:
+
+- sigue siendo contexto pre-scoring;
+- se prioriza fuente oficial sobre scraping cuando hay superposicion;
+- el siguiente paso natural pasa a ser decidir si estas referencias se usan solo en monitoreo o tambien en comentarios operativos.

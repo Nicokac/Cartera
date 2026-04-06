@@ -94,7 +94,7 @@ class ReportRenderTests(unittest.TestCase):
                 bonistas_bundle={
                     "bond_monitor": pd.DataFrame([{"Ticker_IOL": "GD30"}]),
                     "bond_subfamily_summary": pd.DataFrame([{"asset_subfamily": "bond_sov_ar", "Instrumentos": 1}]),
-                    "macro_variables": {"cer_diario": 1.2},
+                    "macro_variables": {"cer_diario": 1.2, "reservas_bcra_musd": 28384.0, "a3500_mayorista": 1387.72},
                 }
             )
         )
@@ -102,6 +102,8 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn('href="#bonistas"', html)
         self.assertIn('<section class="panel" id="bonistas">', html)
         self.assertIn("Bonos Locales", html)
+        self.assertIn("Reservas BCRA", html)
+        self.assertIn("A3500", html)
 
 
 if __name__ == "__main__":

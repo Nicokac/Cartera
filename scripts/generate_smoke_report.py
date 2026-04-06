@@ -411,6 +411,8 @@ def render_report(
         <span>CER: <strong>{fmt_label(bonistas_macro.get('cer_diario'))}</strong></span>
         <span>TAMAR: <strong>{fmt_label(bonistas_macro.get('tamar'))}</strong></span>
         <span>BADLAR: <strong>{fmt_label(bonistas_macro.get('badlar'))}</strong></span>
+        <span>Reservas BCRA: <strong>{fmt_label(bonistas_macro.get('reservas_bcra_musd'))}</strong></span>
+        <span>A3500: <strong>{fmt_label(bonistas_macro.get('a3500_mayorista'))}</strong></span>
         <span>Riesgo pais: <strong>{fmt_label(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
         <span>REM inflacion: <strong>{fmt_label(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
         <span>REM 12m: <strong>{fmt_label(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>

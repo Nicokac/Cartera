@@ -56,7 +56,11 @@ class BondAnalyticsTests(unittest.TestCase):
             macro_variables={
                 "cer_diario": 1.23,
                 "tamar": 32.0,
+                "tamar_tea": 37.8,
                 "badlar": 28.0,
+                "badlar_tea": 33.4,
+                "reservas_bcra_musd": 28000.0,
+                "a3500_mayorista": 1387.72,
                 "riesgo_pais_bps": 710.0,
                 "rem_inflacion_mensual_pct": 2.7,
                 "rem_inflacion_12m_pct": 24.6,
@@ -78,6 +82,10 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertEqual(gd30["bonistas_riesgo_pais_bps"], 710.0)
         self.assertEqual(gd30["bonistas_rem_inflacion_mensual_pct"], 2.7)
         self.assertEqual(gd30["bonistas_rem_inflacion_12m_pct"], 24.6)
+        self.assertEqual(gd30["bonistas_reservas_bcra_musd"], 28000.0)
+        self.assertAlmostEqual(gd30["bonistas_a3500_mayorista"], 1387.72, places=2)
+        self.assertAlmostEqual(gd30["bonistas_badlar_tea_reference"], 33.4, places=2)
+        self.assertAlmostEqual(gd30["bonistas_tamar_tea_reference"], 37.8, places=2)
         self.assertEqual(gd30["bonistas_ust_date"], "2026-04-04")
         self.assertAlmostEqual(gd30["bonistas_ust_10y_pct"], 4.25, places=2)
         self.assertAlmostEqual(gd30["bonistas_spread_vs_ust_pct"], 8.25, places=2)

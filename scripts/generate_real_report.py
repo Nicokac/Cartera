@@ -27,7 +27,7 @@ from analytics.bond_analytics import (
 )
 from analytics.technical import build_technical_overlay
 from clients.argentinadatos import get_mep_real, get_riesgo_pais_latest
-from clients.bcra import get_rem_latest
+from clients.bcra import get_bcra_monetary_context, get_rem_latest
 from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
 from clients.finviz_client import fetch_finviz_bundle
 from clients.fred_client import get_ust_latest
@@ -361,6 +361,21 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
             macro_variables["rem_inflacion_12m_pct"] = float(rem_latest["inflacion_12m_pct"])
         macro_variables["rem_periodo"] = rem_latest.get("periodo")
         macro_variables["rem_fecha_publicacion"] = rem_latest.get("fecha_publicacion")
+
+    try:
+        bcra_monetary = get_bcra_monetary_context(
+            base_url=project_config.BCRA_MONETARIAS_API_URL,
+            reservas_id=project_config.BCRA_RESERVAS_ID,
+            a3500_id=project_config.BCRA_A3500_ID,
+            badlar_tna_id=project_config.BCRA_BADLAR_PRIV_TNA_ID,
+            badlar_tea_id=project_config.BCRA_BADLAR_PRIV_TEA_ID,
+        )
+    except Exception as exc:
+        print(f"BCRA monetarias no disponible: {exc}")
+        bcra_monetary = {}
+    if bcra_monetary:
+        macro_variables = dict(macro_variables)
+        macro_variables.update(bcra_monetary)
 
     try:
         ust_latest = get_ust_latest()

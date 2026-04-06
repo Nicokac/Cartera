@@ -58,6 +58,14 @@ class GenerateRealReportTests(unittest.TestCase):
                 "periodo": "Febrero De 2026",
                 "fecha_publicacion": "5 de marzo de 2026",
             },
+        ), patch(
+            "generate_real_report.get_bcra_monetary_context",
+            return_value={
+                "reservas_bcra_musd": 28384.0,
+                "a3500_mayorista": 1387.72,
+                "badlar": 28.31,
+                "tamar": 26.31,
+            },
         ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()) as enrich_mock, patch(
             "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame([{"Ticker_IOL": "GD30"}])
         ), patch(
@@ -77,6 +85,10 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(bundle["macro_variables"]["riesgo_pais_bps"], 765.0)
         self.assertEqual(bundle["macro_variables"]["rem_inflacion_mensual_pct"], 2.7)
         self.assertEqual(bundle["macro_variables"]["rem_inflacion_12m_pct"], 24.6)
+        self.assertEqual(bundle["macro_variables"]["reservas_bcra_musd"], 28384.0)
+        self.assertEqual(bundle["macro_variables"]["a3500_mayorista"], 1387.72)
+        self.assertEqual(bundle["macro_variables"]["badlar"], 28.31)
+        self.assertEqual(bundle["macro_variables"]["tamar"], 26.31)
         enrich_mock.assert_called_once()
         self.assertEqual(enrich_mock.call_args.kwargs["mep_real"], 1434.0)
 

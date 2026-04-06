@@ -10,7 +10,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from clients.bcra import get_rem_latest
+from clients.bcra import discover_tamar_variable_ids, get_bcra_monetary_context, get_rem_latest
 
 
 class BcraClientTests(unittest.TestCase):
@@ -82,6 +82,62 @@ class BcraClientTests(unittest.TestCase):
 
         self.assertIsNotNone(payload)
         self.assertAlmostEqual(payload["inflacion_12m_pct"], 24.6, places=2)
+
+    def test_discover_tamar_variable_ids_finds_private_bank_tna_and_tea(self) -> None:
+        catalog = {
+            "results": [
+                {"idVariable": 1500, "descripcion": "TAMAR en pesos de bancos privados (en % n.a.)"},
+                {"idVariable": 1501, "descripcion": "TAMAR en pesos de bancos privados (en % e.a.)"},
+                {"idVariable": 77, "descripcion": "BADLAR en pesos de bancos privados (en % n.a.)"},
+            ]
+        }
+
+        with patch("clients.bcra._fetch_json", return_value=catalog):
+            payload = discover_tamar_variable_ids(base_url="https://api.bcra.gob.ar/estadisticas/v4.0/monetarias")
+
+        self.assertEqual(payload["tamar_tna_id"], 1500)
+        self.assertEqual(payload["tamar_tea_id"], 1501)
+
+    def test_get_bcra_monetary_context_returns_reservas_a3500_badlar_and_tamar(self) -> None:
+        def fake_fetch_json(url: str, *, timeout: int = 10):
+            if "limit=3000" in url:
+                return {
+                    "results": [
+                        {"idVariable": 1500, "descripcion": "TAMAR en pesos de bancos privados (en % n.a.)"},
+                        {"idVariable": 1501, "descripcion": "TAMAR en pesos de bancos privados (en % e.a.)"},
+                    ]
+                }
+            if url.endswith("/1"):
+                return {"results": [{"idVariable": 1, "fecha": "2026-04-04", "valor": 28384}]}
+            if url.endswith("/55"):
+                return {"results": [{"idVariable": 55, "fecha": "2026-04-04", "valor": 1387.72}]}
+            if url.endswith("/77"):
+                return {"results": [{"idVariable": 77, "fecha": "2026-04-04", "valor": 28.31}]}
+            if url.endswith("/3535"):
+                return {"results": [{"idVariable": 3535, "fecha": "2026-04-04", "valor": 32.44}]}
+            if url.endswith("/1500"):
+                return {"results": [{"idVariable": 1500, "fecha": "2026-04-04", "valor": 26.31}]}
+            if url.endswith("/1501"):
+                return {"results": [{"idVariable": 1501, "fecha": "2026-04-04", "valor": 30.11}]}
+            raise AssertionError(f"URL inesperada: {url}")
+
+        with patch("clients.bcra._fetch_json", side_effect=fake_fetch_json):
+            payload = get_bcra_monetary_context(
+                base_url="https://api.bcra.gob.ar/estadisticas/v4.0/monetarias",
+                reservas_id=1,
+                a3500_id=55,
+                badlar_tna_id=77,
+                badlar_tea_id=3535,
+            )
+
+        self.assertAlmostEqual(payload["reservas_bcra_musd"], 28384.0, places=2)
+        self.assertAlmostEqual(payload["a3500_mayorista"], 1387.72, places=2)
+        self.assertAlmostEqual(payload["badlar"], 28.31, places=2)
+        self.assertAlmostEqual(payload["badlar_tea"], 32.44, places=2)
+        self.assertAlmostEqual(payload["tamar"], 26.31, places=2)
+        self.assertAlmostEqual(payload["tamar_tea"], 30.11, places=2)
+        self.assertEqual(payload["tamar_tna_id"], 1500)
+        self.assertEqual(payload["tamar_tea_id"], 1501)
 
 
 if __name__ == "__main__":
