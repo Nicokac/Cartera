@@ -32,6 +32,10 @@ class BondAnalyticsTests(unittest.TestCase):
                     "bonistas_tir_pct": 12.5,
                     "bonistas_paridad_pct": 78.0,
                     "bonistas_md": 3.4,
+                    "bonistas_volume_last": 1500000.0,
+                    "bonistas_volume_avg_20d": 1200000.0,
+                    "bonistas_volume_ratio": 1.25,
+                    "bonistas_liquidity_bucket": "alta",
                     "bonistas_fecha_vencimiento": "09/07/2030",
                     "bonistas_fecha_emision": "04/09/2020",
                     "bonistas_tir_avg_365d_pct": 14.0,
@@ -86,6 +90,8 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertAlmostEqual(gd30["bonistas_a3500_mayorista"], 1387.72, places=2)
         self.assertAlmostEqual(gd30["bonistas_badlar_tea_reference"], 33.4, places=2)
         self.assertAlmostEqual(gd30["bonistas_tamar_tea_reference"], 37.8, places=2)
+        self.assertAlmostEqual(gd30["bonistas_volume_last"], 1500000.0, places=2)
+        self.assertEqual(gd30["bonistas_liquidity_bucket"], "alta")
         self.assertEqual(gd30["bonistas_ust_date"], "2026-04-04")
         self.assertAlmostEqual(gd30["bonistas_ust_10y_pct"], 4.25, places=2)
         self.assertAlmostEqual(gd30["bonistas_spread_vs_ust_pct"], 8.25, places=2)
@@ -237,6 +243,10 @@ class BondAnalyticsTests(unittest.TestCase):
                     "bonistas_tir_pct": 12.5,
                     "bonistas_paridad_pct": 78.0,
                     "bonistas_md": 3.4,
+                    "bonistas_volume_last": 1500000.0,
+                    "bonistas_volume_avg_20d": 1200000.0,
+                    "bonistas_volume_ratio": 1.25,
+                    "bonistas_liquidity_bucket": "alta",
                     "bonistas_duration_bucket": "larga",
                     "bonistas_days_to_maturity": 1500,
                     "bonistas_tir_vs_avg_365d_pct": -1.5,
@@ -252,6 +262,8 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertIn("bonistas_duration_bucket", monitor.columns)
         self.assertIn("bonistas_tir_pct", monitor.columns)
         self.assertIn("bonistas_local_subfamily", monitor.columns)
+        self.assertIn("bonistas_volume_last", monitor.columns)
+        self.assertIn("bonistas_liquidity_bucket", monitor.columns)
 
 
 if __name__ == "__main__":

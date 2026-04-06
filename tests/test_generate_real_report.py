@@ -66,6 +66,19 @@ class GenerateRealReportTests(unittest.TestCase):
                 "badlar": 28.31,
                 "tamar": 26.31,
             },
+        ), patch(
+            "generate_real_report.get_bond_volume_context",
+            return_value=pd.DataFrame(
+                [
+                    {
+                        "Ticker_IOL": "GD30",
+                        "bonistas_volume_last": 1500000.0,
+                        "bonistas_volume_avg_20d": 1200000.0,
+                        "bonistas_volume_ratio": 1.25,
+                        "bonistas_liquidity_bucket": "alta",
+                    }
+                ]
+            ),
         ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()) as enrich_mock, patch(
             "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame([{"Ticker_IOL": "GD30"}])
         ), patch(

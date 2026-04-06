@@ -37,6 +37,7 @@ from clients.iol import (
     iol_get_quote_with_reauth,
     iol_login,
 )
+from clients.pyobd_client import get_bond_volume_context
 from generate_smoke_report import REPORTS_DIR, render_report
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
 
@@ -329,6 +330,19 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
     except Exception as exc:
         print(f"Bonistas instrumentos no disponible: {exc}")
         df_bonistas = pd.DataFrame()
+    if not df_bonistas.empty and "bonistas_ticker" in df_bonistas.columns and "Ticker_IOL" not in df_bonistas.columns:
+        df_bonistas = df_bonistas.rename(columns={"bonistas_ticker": "Ticker_IOL"})
+
+    try:
+        df_bond_volume = get_bond_volume_context(tickers)
+    except Exception as exc:
+        print(f"PyOBD volumen no disponible: {exc}")
+        df_bond_volume = pd.DataFrame()
+    if not df_bond_volume.empty:
+        if df_bonistas.empty:
+            df_bonistas = df_bond_volume.copy()
+        else:
+            df_bonistas = df_bonistas.merge(df_bond_volume, on="Ticker_IOL", how="left")
 
     try:
         macro_variables = get_macro_variables()
@@ -488,6 +502,10 @@ def main() -> None:
             "bonistas_tir_pct",
             "bonistas_paridad_pct",
             "bonistas_md",
+            "bonistas_volume_last",
+            "bonistas_volume_avg_20d",
+            "bonistas_volume_ratio",
+            "bonistas_liquidity_bucket",
             "bonistas_days_to_maturity",
             "bonistas_tir_vs_avg_365d_pct",
             "bonistas_parity_gap_pct",
