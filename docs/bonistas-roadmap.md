@@ -278,3 +278,10 @@ Criterio de esta subetapa:
 - sigue siendo contexto pre-scoring;
 - se prioriza fuente oficial sobre scraping cuando hay superposicion;
 - el siguiente paso natural pasa a ser decidir si estas referencias se usan solo en monitoreo o tambien en comentarios operativos.
+
+Corrida real validada:
+
+- `TAMAR`: `26.31`
+- `BADLAR`: `25.375`
+- `Reservas BCRA`: `43381.0`
+- `A3500`: `1387.72`

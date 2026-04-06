@@ -217,6 +217,8 @@ class SizingTests(unittest.TestCase):
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_md"] = 2.05
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_riesgo_pais_bps"] = 720.0
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_spread_vs_ust_pct"] = 3.8
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_reservas_bcra_musd"] = 43381.0
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_a3500_mayorista"] = 1387.72
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_rem_inflacion_mensual_pct"] = 2.7
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18
 
@@ -232,6 +234,10 @@ class SizingTests(unittest.TestCase):
                     "bonistas_paridad_pct": 102.0,
                     "bonistas_put_flag": True,
                     "bonistas_rem_inflacion_mensual_pct": 2.7,
+                    "bonistas_riesgo_pais_bps": 720.0,
+                    "bonistas_spread_vs_ust_pct": -0.5,
+                    "bonistas_reservas_bcra_musd": 43381.0,
+                    "bonistas_a3500_mayorista": 1387.72,
                     "accion_sugerida_v2": "Mantener / Neutral",
                     "score_unificado": -0.03,
                     "score_despliegue_liquidez": 0.0,
@@ -255,7 +261,11 @@ class SizingTests(unittest.TestCase):
         self.assertIn("paridad 87.2%", gd30_comment)
         self.assertIn("720 bps", gd30_comment)
         self.assertIn("spread 3.8% sobre UST", gd30_comment)
+        self.assertIn("reservas 43381 MUSD", gd30_comment)
+        self.assertIn("A3500 1387.72", gd30_comment)
         self.assertIn("PUT", bpoc7_comment)
+        self.assertIn("reservas 43381 MUSD", bpoc7_comment)
+        self.assertIn("A3500 1387.72", bpoc7_comment)
 
     def test_cer_comment_uses_rem_inflation_when_available(self) -> None:
         final_decision = self.final_decision.copy()

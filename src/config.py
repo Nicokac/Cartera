@@ -19,9 +19,9 @@ BCRA_REM_URL = "https://www.bcra.gob.ar/relevamiento-expectativas-mercado-rem/"
 BCRA_REM_XLS_URL = "https://www.bcra.gob.ar/archivos/Pdfs/Estadisticas/Base%20de%20Resultados%20del%20REM%20web.xlsx"
 BCRA_MONETARIAS_API_URL = "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias"
 BCRA_RESERVAS_ID = 1
-BCRA_A3500_ID = 55
-BCRA_BADLAR_PRIV_TNA_ID = 77
-BCRA_BADLAR_PRIV_TEA_ID = 3535
+BCRA_A3500_ID = 5
+BCRA_BADLAR_PRIV_TNA_ID = 7
+BCRA_BADLAR_PRIV_TEA_ID = 35
 MEP_CASA = "bolsa"
 
 ALERTA_MEP_DESVIO_PCT = 5

@@ -148,7 +148,9 @@ def _find_catalog_variable_id(
     *,
     include_terms: tuple[str, ...],
     exclude_terms: tuple[str, ...] = (),
+    preferred_category: str | None = None,
 ) -> int | None:
+    matches: list[tuple[int, int]] = []
     for item in catalog:
         description = _normalize_text(item.get("descripcion") or item.get("detalle") or item.get("nombre"))
         if not description:
@@ -158,10 +160,16 @@ def _find_catalog_variable_id(
         if any(term in description for term in exclude_terms):
             continue
         try:
-            return int(item.get("idVariable"))
+            item_id = int(item.get("idVariable"))
         except Exception:
             continue
-    return None
+        category = _normalize_text(item.get("categoria"))
+        rank = 0 if preferred_category and preferred_category in category else 1
+        matches.append((rank, item_id))
+    if not matches:
+        return None
+    matches.sort()
+    return matches[0][1]
 
 
 def discover_tamar_variable_ids(
@@ -176,13 +184,38 @@ def discover_tamar_variable_ids(
             catalog,
             include_terms=("tamar", "bancos privados", "% n.a"),
             exclude_terms=("badlar",),
+            preferred_category="principales variables",
         ),
         "tamar_tea_id": _find_catalog_variable_id(
             catalog,
             include_terms=("tamar", "bancos privados", "% e.a"),
             exclude_terms=("badlar",),
+            preferred_category="principales variables",
         ),
     }
+
+
+def _safe_float(value: object) -> float | None:
+    try:
+        number = float(str(value).replace(",", "."))
+    except Exception:
+        return None
+    return number
+
+
+def _is_plausible_rate(value: object) -> bool:
+    number = _safe_float(value)
+    return number is not None and 1.0 <= number <= 100.0
+
+
+def _is_plausible_a3500(value: object) -> bool:
+    number = _safe_float(value)
+    return number is not None and number > 100.0
+
+
+def _is_plausible_reservas(value: object) -> bool:
+    number = _safe_float(value)
+    return number is not None and number > 1000.0
 
 
 def get_bcra_monetary_context(
@@ -200,7 +233,7 @@ def get_bcra_monetary_context(
     catalog = get_monetary_variables_catalog(base_url=base_url, timeout=timeout)
 
     reservas_entry = _get_catalog_entry(catalog, reservas_id)
-    if reservas_entry:
+    if reservas_entry and _is_plausible_reservas(reservas_entry.get("ultValorInformado")):
         payload["reservas_bcra_musd"] = float(reservas_entry.get("ultValorInformado"))
         payload["reservas_bcra_fecha"] = reservas_entry.get("ultFechaInformada")
     else:
@@ -211,12 +244,12 @@ def get_bcra_monetary_context(
             desde=desde,
             hasta=hasta,
         )
-        if reservas:
+        if reservas and _is_plausible_reservas(reservas.get("valor")):
             payload["reservas_bcra_musd"] = reservas["valor"]
             payload["reservas_bcra_fecha"] = reservas.get("fecha")
 
     a3500_entry = _get_catalog_entry(catalog, a3500_id)
-    if a3500_entry:
+    if a3500_entry and _is_plausible_a3500(a3500_entry.get("ultValorInformado")):
         payload["a3500_mayorista"] = float(a3500_entry.get("ultValorInformado"))
         payload["a3500_fecha"] = a3500_entry.get("ultFechaInformada")
     else:
@@ -227,12 +260,12 @@ def get_bcra_monetary_context(
             desde=desde,
             hasta=hasta,
         )
-        if a3500:
+        if a3500 and _is_plausible_a3500(a3500.get("valor")):
             payload["a3500_mayorista"] = a3500["valor"]
             payload["a3500_fecha"] = a3500.get("fecha")
 
     badlar_tna_entry = _get_catalog_entry(catalog, badlar_tna_id)
-    if badlar_tna_entry:
+    if badlar_tna_entry and _is_plausible_rate(badlar_tna_entry.get("ultValorInformado")):
         payload["badlar"] = float(badlar_tna_entry.get("ultValorInformado"))
         payload["badlar_fecha"] = badlar_tna_entry.get("ultFechaInformada")
     else:
@@ -243,13 +276,13 @@ def get_bcra_monetary_context(
             desde=desde,
             hasta=hasta,
         )
-        if badlar_tna:
+        if badlar_tna and _is_plausible_rate(badlar_tna.get("valor")):
             payload["badlar"] = badlar_tna["valor"]
             payload["badlar_fecha"] = badlar_tna.get("fecha")
 
     if badlar_tea_id is not None:
         badlar_tea_entry = _get_catalog_entry(catalog, badlar_tea_id)
-        if badlar_tea_entry and badlar_tea_entry.get("ultValorInformado") is not None:
+        if badlar_tea_entry and _is_plausible_rate(badlar_tea_entry.get("ultValorInformado")):
             payload["badlar_tea"] = float(badlar_tea_entry.get("ultValorInformado"))
         else:
             try:
@@ -262,7 +295,7 @@ def get_bcra_monetary_context(
                 )
             except Exception:
                 badlar_tea = None
-            if badlar_tea:
+            if badlar_tea and _is_plausible_rate(badlar_tea.get("valor")):
                 payload["badlar_tea"] = badlar_tea["valor"]
 
     tamar_ids = discover_tamar_variable_ids(base_url=base_url, timeout=timeout)
@@ -271,7 +304,7 @@ def get_bcra_monetary_context(
 
     if tamar_tna_id is not None:
         tamar_tna_entry = _get_catalog_entry(catalog, int(tamar_tna_id))
-        if tamar_tna_entry and tamar_tna_entry.get("ultValorInformado") is not None:
+        if tamar_tna_entry and _is_plausible_rate(tamar_tna_entry.get("ultValorInformado")):
             payload["tamar"] = float(tamar_tna_entry.get("ultValorInformado"))
             payload["tamar_fecha"] = tamar_tna_entry.get("ultFechaInformada")
             payload["tamar_tna_id"] = int(tamar_tna_id)
@@ -283,14 +316,14 @@ def get_bcra_monetary_context(
                 desde=desde,
                 hasta=hasta,
             )
-            if tamar_tna:
+            if tamar_tna and _is_plausible_rate(tamar_tna.get("valor")):
                 payload["tamar"] = tamar_tna["valor"]
                 payload["tamar_fecha"] = tamar_tna.get("fecha")
                 payload["tamar_tna_id"] = int(tamar_tna_id)
 
     if tamar_tea_id is not None:
         tamar_tea_entry = _get_catalog_entry(catalog, int(tamar_tea_id))
-        if tamar_tea_entry and tamar_tea_entry.get("ultValorInformado") is not None:
+        if tamar_tea_entry and _is_plausible_rate(tamar_tea_entry.get("ultValorInformado")):
             payload["tamar_tea"] = float(tamar_tea_entry.get("ultValorInformado"))
             payload["tamar_tea_id"] = int(tamar_tea_id)
         else:
@@ -301,7 +334,7 @@ def get_bcra_monetary_context(
                 desde=desde,
                 hasta=hasta,
             )
-            if tamar_tea:
+            if tamar_tea and _is_plausible_rate(tamar_tea.get("valor")):
                 payload["tamar_tea"] = tamar_tea["valor"]
                 payload["tamar_tea_id"] = int(tamar_tea_id)
 

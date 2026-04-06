@@ -353,3 +353,10 @@ Criterio vigente:
   - `bond_tamar`
   - `bond_badlar`
   - futura lectura de `bond_dollar_linked`
+
+Corrida real validada:
+
+- `TAMAR`: `26.31`
+- `BADLAR`: `25.375`
+- `Reservas BCRA`: `43381.0`
+- `A3500`: `1387.72`

@@ -92,6 +92,60 @@ class GenerateRealReportTests(unittest.TestCase):
         enrich_mock.assert_called_once()
         self.assertEqual(enrich_mock.call_args.kwargs["mep_real"], 1434.0)
 
+    def test_real_report_bond_context_columns_include_bcra_macro_fields(self) -> None:
+        bond_analytics = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "GD30",
+                    "bonistas_local_subfamily": "bond_hard_dollar",
+                    "bonistas_tir_pct": 7.8,
+                    "bonistas_paridad_pct": 87.2,
+                    "bonistas_md": 2.05,
+                    "bonistas_days_to_maturity": 1556,
+                    "bonistas_tir_vs_avg_365d_pct": -2.7,
+                    "bonistas_parity_gap_pct": -12.8,
+                    "bonistas_put_flag": False,
+                    "bonistas_riesgo_pais_bps": 609.0,
+                    "bonistas_reservas_bcra_musd": 43381.0,
+                    "bonistas_a3500_mayorista": 1387.72,
+                    "bonistas_rem_inflacion_mensual_pct": 2.7,
+                    "bonistas_rem_inflacion_12m_pct": 22.2,
+                    "bonistas_ust_5y_pct": 3.94,
+                    "bonistas_ust_10y_pct": 4.31,
+                    "bonistas_spread_vs_ust_pct": 3.9,
+                }
+            ]
+        )
+        final_decision = pd.DataFrame([{"Ticker_IOL": "GD30"}])
+        bond_context_cols = [
+            "Ticker_IOL",
+            "bonistas_local_subfamily",
+            "bonistas_tir_pct",
+            "bonistas_paridad_pct",
+            "bonistas_md",
+            "bonistas_days_to_maturity",
+            "bonistas_tir_vs_avg_365d_pct",
+            "bonistas_parity_gap_pct",
+            "bonistas_put_flag",
+            "bonistas_riesgo_pais_bps",
+            "bonistas_reservas_bcra_musd",
+            "bonistas_a3500_mayorista",
+            "bonistas_rem_inflacion_mensual_pct",
+            "bonistas_rem_inflacion_12m_pct",
+            "bonistas_ust_5y_pct",
+            "bonistas_ust_10y_pct",
+            "bonistas_spread_vs_ust_pct",
+        ]
+
+        merged = final_decision.merge(
+            bond_analytics[[col for col in bond_context_cols if col in bond_analytics.columns]].copy(),
+            on="Ticker_IOL",
+            how="left",
+        )
+
+        self.assertEqual(merged.loc[0, "bonistas_reservas_bcra_musd"], 43381.0)
+        self.assertAlmostEqual(merged.loc[0, "bonistas_a3500_mayorista"], 1387.72, places=2)
+
 
 if __name__ == "__main__":
     unittest.main()

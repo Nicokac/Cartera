@@ -247,6 +247,8 @@ def run_smoke_pipeline() -> dict[str, object]:
             "bonistas_parity_gap_pct",
             "bonistas_put_flag",
             "bonistas_riesgo_pais_bps",
+            "bonistas_reservas_bcra_musd",
+            "bonistas_a3500_mayorista",
             "bonistas_rem_inflacion_mensual_pct",
             "bonistas_rem_inflacion_12m_pct",
             "bonistas_ust_5y_pct",

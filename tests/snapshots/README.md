@@ -78,6 +78,8 @@ Notas:
     - `CER`: `738.7059`
     - `TAMAR`: `26.31`
     - `BADLAR`: filtrada por plausibilidad cuando corresponda
+    - `Reservas BCRA`: `43381.0`
+    - `A3500`: `1387.72`
 - Taxonomia local ampliada disponible para siguiente iteracion de Bonistas:
   - `bond_hard_dollar`
   - `bond_dual`
@@ -93,6 +95,7 @@ Notas:
   - `REM 12m` visible en `Bonos Locales` cuando el Excel del BCRA esta disponible
   - `Reservas BCRA` visibles en `Bonos Locales` cuando responde la API oficial
   - `A3500` visible en `Bonos Locales` cuando responde la API oficial
+  - `BADLAR` y `TAMAR` oficiales visibles cuando responde la API oficial del BCRA
   - `UST 5y` y `UST 10y` visibles en `Bonos Locales` cuando FRED esta disponible
   - `GD30` y `AL30` se explican como `bond_hard_dollar` con:
     - `paridad`
