@@ -102,11 +102,15 @@ Notas:
     - `TIR`
     - `riesgo pais`
     - `spread_vs_ust`
+    - `reservas_bcra_musd`
+    - `a3500_mayorista`
   - `BPOC7` se explica como `bond_bopreal` con:
     - `paridad`
     - `PUT`
     - `riesgo pais`
     - `spread_vs_ust`
+    - `reservas_bcra_musd`
+    - `a3500_mayorista`
   - `TZX26`, `TZXD6` y `TZXM7` se explican como lectura `CER` con:
     - `TIR real`
     - `paridad`

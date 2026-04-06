@@ -285,3 +285,12 @@ Corrida real validada:
 - `BADLAR`: `25.375`
 - `Reservas BCRA`: `43381.0`
 - `A3500`: `1387.72`
+
+Efecto visible en explicabilidad:
+
+- `AL30`
+  - comentario con `paridad`, `TIR`, `riesgo pais`, `spread_vs_ust`, `reservas` y `A3500`
+- `GD30`
+  - comentario con `paridad`, `TIR`, `riesgo pais`, `spread_vs_ust`, `reservas` y `A3500`
+- `BPOC7`
+  - comentario con `paridad`, `PUT`, `riesgo pais`, `spread_vs_ust`, `reservas` y `A3500`

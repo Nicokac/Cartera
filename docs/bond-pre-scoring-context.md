@@ -360,3 +360,20 @@ Corrida real validada:
 - `BADLAR`: `25.375`
 - `Reservas BCRA`: `43381.0`
 - `A3500`: `1387.72`
+
+Uso actual en comentarios operativos:
+
+- `bond_hard_dollar`
+  - `paridad`
+  - `TIR`
+  - `riesgo pais`
+  - `spread_vs_ust`
+  - `reservas_bcra_musd`
+  - `a3500_mayorista`
+- `bond_bopreal`
+  - `paridad`
+  - `put_flag`
+  - `riesgo pais`
+  - `spread_vs_ust`
+  - `reservas_bcra_musd`
+  - `a3500_mayorista`
