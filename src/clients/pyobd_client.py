@@ -35,18 +35,28 @@ def _coerce_history_frame(payload: object) -> pd.DataFrame:
 
 def _find_volume_column(df: pd.DataFrame) -> str | None:
     normalized = {str(col).strip().lower(): col for col in df.columns}
-    for candidate in ("volume", "volumen", "vol"):
+    for candidate in ("volume", "volumen", "vol", "tradevolume"):
         if candidate in normalized:
             return normalized[candidate]
     return None
 
 
-def _liquidity_bucket(avg_volume_20d: float | None) -> str | None:
-    if avg_volume_20d is None or pd.isna(avg_volume_20d):
+def _coerce_quote_frame(payload: object) -> pd.DataFrame:
+    if isinstance(payload, pd.DataFrame):
+        return payload.copy()
+    if isinstance(payload, list):
+        return pd.DataFrame(payload)
+    if isinstance(payload, dict):
+        return pd.DataFrame([payload])
+    return pd.DataFrame()
+
+
+def _liquidity_bucket(volume_reference: float | None) -> str | None:
+    if volume_reference is None or pd.isna(volume_reference):
         return None
-    if avg_volume_20d >= 1_000_000:
+    if volume_reference >= 1_000_000:
         return "alta"
-    if avg_volume_20d >= 100_000:
+    if volume_reference >= 100_000:
         return "media"
     return "baja"
 
@@ -67,37 +77,52 @@ def get_bond_volume_context(
     rows: list[dict[str, object]] = []
 
     for ticker in clean_tickers:
+        latest_volume: float | None = None
+        avg_volume_20d: float | None = None
+        volume_ratio: float | None = None
+
+        try:
+            quote_raw = client.get_current_quote(ticker)
+            quote = _coerce_quote_frame(quote_raw)
+            quote_volume_col = _find_volume_column(quote)
+            if quote_volume_col:
+                quote_volume = pd.to_numeric(quote[quote_volume_col], errors="coerce").dropna()
+                if not quote_volume.empty:
+                    latest_volume = float(quote_volume.iloc[-1])
+        except Exception:
+            quote = pd.DataFrame()
+
         try:
             history_raw = client.get_daily_history(
                 ticker,
                 start_date.isoformat(),
                 end_date.isoformat(),
             )
+            history = _coerce_history_frame(history_raw)
         except Exception:
+            history = pd.DataFrame()
+
+        if not history.empty:
+            volume_col = _find_volume_column(history)
+            if volume_col:
+                volume_series = pd.to_numeric(history[volume_col], errors="coerce").dropna()
+                if not volume_series.empty:
+                    if latest_volume is None:
+                        latest_volume = float(volume_series.iloc[-1])
+                    avg_volume_20d = float(volume_series.tail(20).mean())
+                    volume_ratio = latest_volume / avg_volume_20d if latest_volume is not None and avg_volume_20d > 0 else None
+
+        if latest_volume is None and avg_volume_20d is None:
             continue
 
-        history = _coerce_history_frame(history_raw)
-        if history.empty:
-            continue
-
-        volume_col = _find_volume_column(history)
-        if not volume_col:
-            continue
-
-        volume_series = pd.to_numeric(history[volume_col], errors="coerce").dropna()
-        if volume_series.empty:
-            continue
-
-        latest_volume = float(volume_series.iloc[-1])
-        avg_volume_20d = float(volume_series.tail(20).mean())
-        volume_ratio = latest_volume / avg_volume_20d if avg_volume_20d > 0 else None
+        liquidity_reference = avg_volume_20d if avg_volume_20d is not None else latest_volume
         rows.append(
             {
                 "Ticker_IOL": ticker,
                 "bonistas_volume_last": latest_volume,
                 "bonistas_volume_avg_20d": avg_volume_20d,
                 "bonistas_volume_ratio": float(volume_ratio) if volume_ratio is not None else None,
-                "bonistas_liquidity_bucket": _liquidity_bucket(avg_volume_20d),
+                "bonistas_liquidity_bucket": _liquidity_bucket(liquidity_reference),
             }
         )
 
