@@ -413,6 +413,17 @@ def clamp01(value: pd.Series | float) -> pd.Series | float:
     return np.clip(value, 0, 1)
 
 
+def _scaled_centered(series: pd.Series, *, floor: float, ceiling: float, fill: float = 0.5) -> pd.Series:
+    spread = max(float(ceiling) - float(floor), 1e-9)
+    return clamp01((pd.to_numeric(series, errors="coerce").fillna(0) - float(floor)) / spread).fillna(fill)
+
+
+def _series_or_default(df: pd.DataFrame, column: str, default: float = 0.5) -> pd.Series:
+    if column in df.columns:
+        return pd.to_numeric(df[column], errors="coerce").fillna(default)
+    return pd.Series(default, index=df.index, dtype=float)
+
+
 def build_technical_overlay_scores(
     decision: pd.DataFrame,
     technical_overlay: pd.DataFrame | None,
@@ -455,36 +466,98 @@ def build_technical_overlay_scores(
         return decision.copy()
 
     subscores = tech_rules.get("subscores", {}) or {}
-    out["ts_above_sma20"] = clamp01((out["Dist_SMA20_%"].fillna(0) + 10) / 20)
-    out["ts_above_sma50"] = clamp01((out["Dist_SMA50_%"].fillna(0) + 15) / 30)
-    out["ts_above_ema20"] = clamp01((out["Dist_EMA20_%"].fillna(0) + 10) / 20)
-    out["ts_above_ema50"] = clamp01((out["Dist_EMA50_%"].fillna(0) + 15) / 30)
+    ranges = tech_rules.get("ranges", {}) or {}
+    dist_sma20 = ranges.get("dist_sma20_pct", {}) or {}
+    dist_sma50 = ranges.get("dist_sma50_pct", {}) or {}
+    dist_ema20 = ranges.get("dist_ema20_pct", {}) or {}
+    dist_ema50 = ranges.get("dist_ema50_pct", {}) or {}
+    mom20 = ranges.get("momentum_20d_pct", {}) or {}
+    mom60 = ranges.get("momentum_60d_pct", {}) or {}
+    drawdown = ranges.get("drawdown_desde_max3m_pct", {}) or {}
+    volatility = ranges.get("vol_20d_anual_pct", {}) or {}
+    rsi_rules = ranges.get("rsi_14", {}) or {}
+
+    out["ts_above_sma20"] = _scaled_centered(
+        out["Dist_SMA20_%"],
+        floor=float(dist_sma20.get("min", -10.0)),
+        ceiling=float(dist_sma20.get("max", 10.0)),
+    )
+    out["ts_above_sma50"] = _scaled_centered(
+        out["Dist_SMA50_%"],
+        floor=float(dist_sma50.get("min", -15.0)),
+        ceiling=float(dist_sma50.get("max", 15.0)),
+    )
+    out["ts_above_ema20"] = _scaled_centered(
+        out["Dist_EMA20_%"],
+        floor=float(dist_ema20.get("min", -10.0)),
+        ceiling=float(dist_ema20.get("max", 10.0)),
+    )
+    out["ts_above_ema50"] = _scaled_centered(
+        out["Dist_EMA50_%"],
+        floor=float(dist_ema50.get("min", -15.0)),
+        ceiling=float(dist_ema50.get("max", 15.0)),
+    )
     out["ts_rsi"] = np.where(
         out["RSI_14"].isna(),
         0.5,
         np.select(
             [
-                out["RSI_14"] < 30,
-                (out["RSI_14"] >= 30) & (out["RSI_14"] < 45),
-                (out["RSI_14"] >= 45) & (out["RSI_14"] <= 65),
-                (out["RSI_14"] > 65) & (out["RSI_14"] <= 75),
-                out["RSI_14"] > 75,
+                out["RSI_14"] < float(rsi_rules.get("oversold_max", 30.0)),
+                (
+                    out["RSI_14"] >= float(rsi_rules.get("oversold_max", 30.0))
+                ) & (
+                    out["RSI_14"] < float(rsi_rules.get("weak_max", 45.0))
+                ),
+                (
+                    out["RSI_14"] >= float(rsi_rules.get("weak_max", 45.0))
+                ) & (
+                    out["RSI_14"] <= float(rsi_rules.get("strong_max", 65.0))
+                ),
+                (
+                    out["RSI_14"] > float(rsi_rules.get("strong_max", 65.0))
+                ) & (
+                    out["RSI_14"] <= float(rsi_rules.get("overbought_max", 75.0))
+                ),
+                out["RSI_14"] > float(rsi_rules.get("overbought_max", 75.0)),
             ],
-            [0.35, 0.60, 1.00, 0.65, 0.30],
+            [
+                float(rsi_rules.get("oversold_score", 0.35)),
+                float(rsi_rules.get("weak_score", 0.60)),
+                float(rsi_rules.get("strong_score", 1.00)),
+                float(rsi_rules.get("late_score", 0.65)),
+                float(rsi_rules.get("overbought_score", 0.30)),
+            ],
             default=0.5,
         ),
     )
-    out["ts_mom20"] = clamp01((out["Momentum_20d_%"].fillna(0) + 15) / 30)
-    out["ts_mom60"] = clamp01((out["Momentum_60d_%"].fillna(0) + 25) / 50)
+    out["ts_mom20"] = _scaled_centered(
+        out["Momentum_20d_%"],
+        floor=float(mom20.get("min", -15.0)),
+        ceiling=float(mom20.get("max", 15.0)),
+    )
+    out["ts_mom60"] = _scaled_centered(
+        out["Momentum_60d_%"],
+        floor=float(mom60.get("min", -25.0)),
+        ceiling=float(mom60.get("max", 25.0)),
+    )
     out["ts_drawdown"] = np.where(
         out["Drawdown_desde_Max3m_%"].isna(),
         0.5,
-        clamp01((out["Drawdown_desde_Max3m_%"].fillna(-20) + 25) / 25),
+        _scaled_centered(
+            out["Drawdown_desde_Max3m_%"],
+            floor=float(drawdown.get("min", -25.0)),
+            ceiling=float(drawdown.get("max", 0.0)),
+        ),
     )
     out["ts_volatility"] = np.where(
         out["Vol_20d_Anual_%"].isna(),
         0.5,
-        1 - clamp01((out["Vol_20d_Anual_%"] - 15) / 45),
+        1
+        - _scaled_centered(
+            out["Vol_20d_Anual_%"],
+            floor=float(volatility.get("min", 15.0)),
+            ceiling=float(volatility.get("max", 60.0)),
+        ),
     )
     out["tech_refuerzo"] = (
         float(subscores.get("above_sma20", 0.15)) * out["ts_above_sma20"]
@@ -513,7 +586,18 @@ def apply_technical_overlay_scores(
     asset_subfamily_adjustments = scoring_rules.get("asset_subfamily_adjustments", {}) or {}
     blend_base = float(tech_rules.get("blend_base", 0.75))
     blend_tech = float(tech_rules.get("blend_tech", 0.25))
-    out["tech_reduccion"] = 1 - out["tech_refuerzo"]
+    reduction_subscores = tech_rules.get("reduction_subscores", {}) or {}
+    out["tech_reduccion"] = (
+        float(reduction_subscores.get("below_sma20", 0.15)) * (1 - _series_or_default(out, "ts_above_sma20"))
+        + float(reduction_subscores.get("below_sma50", 0.15)) * (1 - _series_or_default(out, "ts_above_sma50"))
+        + float(reduction_subscores.get("below_ema20", 0.10)) * (1 - _series_or_default(out, "ts_above_ema20"))
+        + float(reduction_subscores.get("below_ema50", 0.10)) * (1 - _series_or_default(out, "ts_above_ema50"))
+        + float(reduction_subscores.get("rsi", 0.10)) * (1 - _series_or_default(out, "ts_rsi"))
+        + float(reduction_subscores.get("mom20", 0.15)) * (1 - _series_or_default(out, "ts_mom20"))
+        + float(reduction_subscores.get("mom60", 0.15)) * (1 - _series_or_default(out, "ts_mom60"))
+        + float(reduction_subscores.get("drawdown", 0.05)) * (1 - _series_or_default(out, "ts_drawdown"))
+        + float(reduction_subscores.get("volatility", 0.05)) * (1 - _series_or_default(out, "ts_volatility"))
+    ).clip(0, 1)
     out["score_refuerzo_v2"] = (blend_base * out["score_refuerzo"] + blend_tech * out["tech_refuerzo"]).clip(0, 1)
     out["score_reduccion_v2"] = (blend_base * out["score_reduccion"] + blend_tech * out["tech_reduccion"]).clip(0, 1)
     for subfamily, rules in asset_subfamily_adjustments.items():

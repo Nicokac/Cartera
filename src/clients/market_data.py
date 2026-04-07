@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 
 
@@ -42,6 +44,14 @@ def fetch_price_history(
     auto_adjust: bool = True,
 ) -> pd.DataFrame:
     import yfinance as yf
+
+    cache_dir = Path(__file__).resolve().parents[2] / "data" / "cache" / "yfinance"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    if hasattr(yf, "set_tz_cache_location"):
+        try:
+            yf.set_tz_cache_location(str(cache_dir))
+        except Exception:
+            pass
 
     attempts = [
         lambda: yf.download(

@@ -138,7 +138,9 @@ class SizingTests(unittest.TestCase):
 
         result = build_operational_proposal(final_decision, mep_real=1000)
 
-        self.assertEqual(result["fuente_fondeo"], "ADBAICA")
+        self.assertEqual(result["fuente_fondeo"], "Fuentes multiples: ADBAICA, CAUCION")
+        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_ars"], 440000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_usd"], 440.0, rel_tol=0, abs_tol=0.01))
 
     def test_bond_subfamily_rebalance_threshold_is_not_overwritten_by_monitor_rule(self) -> None:
         final_decision = self.final_decision.copy()

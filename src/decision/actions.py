@@ -30,9 +30,6 @@ def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object
         "accion_sugerida",
     ] = "Reducir"
 
-    out.loc[(out["Es_Bono"]) & (out["score_reduccion"] >= bono_reduccion_threshold), "accion_sugerida"] = (
-        "Rebalancear / tomar ganancia"
-    )
     out.loc[
         (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
         "accion_sugerida",
@@ -67,9 +64,6 @@ def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: dict[str, obj
         "accion_sugerida_v2",
     ] = "Reducir"
 
-    out.loc[(out["Es_Bono"]) & (out["score_reduccion_v2"] >= bono_reduccion_threshold), "accion_sugerida_v2"] = (
-        "Rebalancear / tomar ganancia"
-    )
     out.loc[
         (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
         "accion_sugerida_v2",

@@ -20,6 +20,15 @@ def _join_with_y(parts: list[str]) -> str:
     return ", ".join(clean[:-1]) + " y " + clean[-1]
 
 
+def _format_funding_sources(tickers: list[str]) -> str | None:
+    clean = [str(ticker).strip() for ticker in tickers if str(ticker).strip()]
+    if not clean:
+        return None
+    if len(clean) == 1:
+        return clean[0]
+    return "Fuentes multiples: " + ", ".join(clean)
+
+
 def _comentario_operativo(row: pd.Series) -> str:
     accion = row["accion_operativa"]
     tech = row.get("Tech_Trend")
@@ -231,7 +240,7 @@ def build_operational_proposal(
     pct_fondeo_3_plus = float(pct_fondeo_rules.get("strong_refuerzo_3_plus", 0.30))
     pct_fondeo_1_plus = float(pct_fondeo_rules.get("strong_refuerzo_1_plus", 0.20))
     pct_fondeo_default = float(pct_fondeo_rules.get("default", 0.10))
-    bono_rebalance_threshold = float(action_rules.get("bono_rebalance_threshold", -0.20))
+    default_bond_rebalance_threshold = float(action_rules.get("bono_rebalance_threshold", -0.20))
     bono_monitor_max = float(action_rules.get("bono_monitor_max", 0.08))
     bond_subfamily_thresholds = action_rules.get("bond_subfamily_thresholds", {}) or {}
 
@@ -251,7 +260,9 @@ def build_operational_proposal(
     mask_bonos = propuesta["Tipo"] == "Bono"
     bond_rebalance_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
         lambda subfamily: float(
-            (bond_subfamily_thresholds.get(subfamily, {}) or {}).get("rebalance_threshold", bono_rebalance_threshold)
+            (bond_subfamily_thresholds.get(subfamily, {}) or {}).get(
+                "rebalance_threshold", default_bond_rebalance_threshold
+            )
         )
     )
     propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
@@ -299,16 +310,15 @@ def build_operational_proposal(
         .head(top_candidates)
         .copy()
     )
-    source_row = top_fondeo.head(1).copy()
 
     monto_fondeo_liquidez_ars = 0.0
     monto_fondeo_liquidez_usd = 0.0
     fuente_liquidez = None
 
-    if usar_liquidez_iol and not source_row.empty:
-        fuente_fondeo = str(source_row["Ticker_IOL"].iloc[0])
-        liquidez_ars = float(source_row["Valorizado_ARS"].iloc[0])
-        liquidez_usd = float(source_row["Valor_USD"].iloc[0])
+    if usar_liquidez_iol and not top_fondeo.empty:
+        funding_sources = top_fondeo["Ticker_IOL"].astype(str).tolist()
+        liquidez_ars = float(pd.to_numeric(top_fondeo["Valorizado_ARS"], errors="coerce").fillna(0).sum())
+        liquidez_usd = float(pd.to_numeric(top_fondeo["Valor_USD"], errors="coerce").fillna(0).sum())
         n_refuerzo_fuerte = int((propuesta["score_unificado"] >= strong_refuerzo_threshold).sum())
         if n_refuerzo_fuerte >= 3:
             pct_fondeo = pct_fondeo_3_plus
@@ -318,7 +328,7 @@ def build_operational_proposal(
             pct_fondeo = pct_fondeo_default
         monto_fondeo_liquidez_ars = liquidez_ars * pct_fondeo
         monto_fondeo_liquidez_usd = liquidez_usd * pct_fondeo
-        fuente_liquidez = fuente_fondeo
+        fuente_liquidez = _format_funding_sources(funding_sources)
     else:
         pct_fondeo = 0.0
 

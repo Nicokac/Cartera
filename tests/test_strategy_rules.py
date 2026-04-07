@@ -167,6 +167,76 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(blended.loc[0, "tech_refuerzo"], 0.5)
         self.assertGreater(blended.loc[0, "score_refuerzo_v2"], blended.loc[0, "score_refuerzo"])
 
+    def test_technical_reduction_is_not_mechanical_inverse_of_refuerzo(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CRM",
+                    "score_refuerzo": 0.40,
+                    "score_reduccion": 0.30,
+                    "tech_refuerzo": 0.45,
+                    "ts_above_sma20": 0.45,
+                    "ts_above_sma50": 0.55,
+                    "ts_above_ema20": 0.50,
+                    "ts_above_ema50": 0.60,
+                    "ts_rsi": 0.50,
+                    "ts_mom20": 0.40,
+                    "ts_mom60": 0.35,
+                    "ts_drawdown": 0.70,
+                    "ts_volatility": 0.80,
+                }
+            ]
+        )
+
+        blended = apply_technical_overlay_scores(df)
+
+        self.assertNotAlmostEqual(blended.loc[0, "tech_reduccion"], 1 - blended.loc[0, "tech_refuerzo"], places=6)
+
+    def test_technical_ranges_can_be_overridden_from_external_rules(self) -> None:
+        decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CRM",
+                    "score_refuerzo": 0.40,
+                    "score_reduccion": 0.30,
+                }
+            ]
+        )
+        technical_overlay = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CRM",
+                    "Dist_SMA20_%": 8.0,
+                    "Dist_SMA50_%": 10.0,
+                    "Dist_EMA20_%": 7.0,
+                    "Dist_EMA50_%": 9.0,
+                    "RSI_14": 55.0,
+                    "Momentum_20d_%": 12.0,
+                    "Momentum_60d_%": 18.0,
+                    "Vol_20d_Anual_%": 18.0,
+                    "Drawdown_desde_Max3m_%": -4.0,
+                    "Tech_Trend": "Alcista fuerte",
+                }
+            ]
+        )
+
+        default_overlay = build_technical_overlay_scores(decision, technical_overlay)
+        custom_overlay = build_technical_overlay_scores(
+            decision,
+            technical_overlay,
+            scoring_rules={
+                "technical_overlay": {
+                    "ranges": {
+                        "dist_sma20_pct": {"min": -20.0, "max": 20.0},
+                        "momentum_20d_pct": {"min": -30.0, "max": 30.0},
+                    }
+                }
+            },
+        )
+
+        self.assertLess(custom_overlay.loc[0, "ts_above_sma20"], default_overlay.loc[0, "ts_above_sma20"])
+        self.assertLess(custom_overlay.loc[0, "ts_mom20"], default_overlay.loc[0, "ts_mom20"])
+
     def test_concentration_and_quality_change_base_scores(self) -> None:
         df = pd.DataFrame(
             [
