@@ -13,6 +13,7 @@ from decision.actions import assign_action_v2, assign_base_action, enrich_decisi
 from decision.scoring import (
     apply_base_scores,
     apply_technical_overlay_scores,
+    build_market_regime_summary,
     build_decision_base,
     build_technical_overlay_scores,
     consensus_to_score,
@@ -1455,6 +1456,62 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertLess(regime.loc[0, "score_refuerzo"], base.loc[0, "score_refuerzo"])
         self.assertGreater(regime.loc[0, "score_reduccion"], base.loc[0, "score_reduccion"])
         self.assertGreater(regime.loc[1, "score_refuerzo"], base.loc[1, "score_refuerzo"])
+
+    def test_market_regime_summary_stays_inactive_with_current_real_macro_baseline(self) -> None:
+        summary = build_market_regime_summary(
+            {
+                "riesgo_pais_bps": 609.0,
+                "rem_inflacion_mensual_pct": 2.7,
+                "rem_inflacion_12m_pct": 22.2,
+                "ust_5y_pct": 3.99,
+                "ust_10y_pct": 4.35,
+            },
+            scoring_rules={
+                "market_regime": {
+                    "enabled": True,
+                    "flags": {
+                        "stress_soberano_local": {"riesgo_pais_bps_min": 800.0},
+                        "inflacion_local_alta": {
+                            "rem_inflacion_12m_pct_min": 30.0,
+                            "rem_inflacion_mensual_pct_min": 3.0,
+                        },
+                        "tasas_ust_altas": {"ust_10y_pct_min": 4.5, "ust_5y_pct_min": 4.25},
+                    },
+                }
+            },
+        )
+
+        self.assertFalse(summary["any_active"])
+        self.assertEqual(summary["active_flags"], [])
+
+    def test_market_regime_summary_can_be_forced_for_calibration_by_lowering_thresholds(self) -> None:
+        summary = build_market_regime_summary(
+            {
+                "riesgo_pais_bps": 609.0,
+                "rem_inflacion_mensual_pct": 2.7,
+                "rem_inflacion_12m_pct": 22.2,
+                "ust_5y_pct": 3.99,
+                "ust_10y_pct": 4.35,
+            },
+            scoring_rules={
+                "market_regime": {
+                    "enabled": True,
+                    "flags": {
+                        "stress_soberano_local": {"riesgo_pais_bps_min": 600.0},
+                        "inflacion_local_alta": {
+                            "rem_inflacion_12m_pct_min": 22.0,
+                            "rem_inflacion_mensual_pct_min": 2.5,
+                        },
+                        "tasas_ust_altas": {"ust_10y_pct_min": 4.3, "ust_5y_pct_min": 3.95},
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(summary["any_active"])
+        self.assertIn("stress_soberano_local", summary["active_flags"])
+        self.assertIn("inflacion_local_alta", summary["active_flags"])
+        self.assertIn("tasas_ust_altas", summary["active_flags"])
 
 
 if __name__ == "__main__":

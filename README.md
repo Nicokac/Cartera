@@ -19,6 +19,7 @@ Baseline operativa vigente al `2026-04-07`:
 - `4` refuerzos: `VIST`, `KO`, `XLU`, `XLV`
 - `1` reducción: `MELI`
 - scoring absoluto conservador activo (`0.9` relativo / `0.1` absoluto)
+- régimen de mercado configurado pero sin flags activos en la macro vigente
 - monitoreo de bonos con contexto macro ampliado y volumen spot vía `PyOBD`
 
 ## Estructura
@@ -101,9 +102,14 @@ python -m unittest tests.test_pyobd_client tests.test_generate_real_report -v
 - la configuración estratégica vive fuera del código en `data\strategy\`
 - el notebook `Cartera.ipynb` quedó como interfaz histórica; la lógica viva está en `src\`
 - `build_decision_bundle(...)` y `build_sizing_bundle(...)` son la ruta canónica del motor
+- el scoring ya incorpora una capa conservadora de régimen de mercado:
+  - `stress_soberano_local`
+  - `inflacion_local_alta`
+  - `tasas_ust_altas`
 - bonos usan una capa prudente:
   - `bond_sov_ar` solo monitoreo/rebalanceo
   - `bond_cer`, `bond_bopreal` y `bond_other` pueden emitir `Refuerzo` si cruzan thresholds conservadores
+- existe test de calibración para verificar que los flags de régimen responden si se bajan thresholds de forma controlada
 
 ## Documentación recomendada
 

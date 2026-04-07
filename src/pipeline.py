@@ -10,6 +10,7 @@ try:
     from .decision.scoring import (
         apply_base_scores,
         apply_technical_overlay_scores,
+        build_market_regime_summary,
         build_technical_overlay_scores,
         build_decision_base,
         finalize_unified_score,
@@ -25,6 +26,7 @@ except ImportError:
     from decision.scoring import (
         apply_base_scores,
         apply_technical_overlay_scores,
+        build_market_regime_summary,
         build_technical_overlay_scores,
         build_decision_base,
         finalize_unified_score,
@@ -133,11 +135,13 @@ def build_decision_bundle(
     decision_tech = assign_action_v2(decision_tech, action_rules=action_rules)
     final_decision = finalize_unified_score(decision_tech)
     final_decision = enrich_decision_explanations(final_decision, scoring_rules=scoring_rules)
+    regime_summary = build_market_regime_summary(market_context, scoring_rules=scoring_rules)
 
     return {
         "decision": decision,
         "decision_tech": decision_tech,
         "final_decision": final_decision,
+        "market_regime": regime_summary,
     }
 
 

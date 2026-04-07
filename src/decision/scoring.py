@@ -140,6 +140,19 @@ def apply_market_regime_adjustments(
     return out
 
 
+def build_market_regime_summary(
+    market_context: dict[str, object] | None,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+) -> dict[str, object]:
+    flags = detect_market_regime_flags(market_context, scoring_rules=scoring_rules)
+    return {
+        "flags": flags,
+        "active_flags": [name for name, active in flags.items() if active],
+        "any_active": any(flags.values()) if flags else False,
+    }
+
+
 DEFAULT_CONSENSUS_TAXONOMY = {
     "positive_terms": ["buy", "outperform", "overweight", "upgrade", "positive", "strong buy", "initiated"],
     "negative_terms": ["sell", "underperform", "underweight", "downgrade", "negative", "reduce"],

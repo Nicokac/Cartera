@@ -27,12 +27,14 @@ Notas:
   - reintegracion y hardening del overlay tecnico
   - recuperacion de Finviz real
   - activacion conservadora de scoring absoluto (`0.9 / 0.1`)
+  - incorporacion de una capa conservadora de regimen de mercado
   - alineacion de narrativa con thresholds configurables
   - refuerzo conservador para bonos sin disparos espurios en la corrida vigente
 - Lectura operativa de esa baseline:
   - overlay tecnico activo `24/24`
   - Finviz fundamentals `24/24`
   - Finviz ratings `17/24`
+  - regimen de mercado configurado pero sin flags activos en la macro vigente
   - refuerzos efectivos: `VIST`, `KO`, `XLU`, `XLV`
   - reduccion efectiva: `MELI`
   - `SPY` y `AAPL` quedan en `Mantener / Neutral`
