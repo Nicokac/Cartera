@@ -662,3 +662,16 @@ Cada vez que avancemos una fase, este archivo debe actualizarse con:
 - desvíos respecto del plan;
 - próximos pasos concretos.
 
+## Nota de memoria temporal
+
+- La memoria temporal diaria ya quedó implementada en modo observacional.
+- El historial se persiste en `data/runtime/decision_history.csv`.
+- La unidad canónica es `ticker + fecha`.
+- Si se ejecuta el runner varias veces en el mismo día, se reemplaza la observación diaria y no se suma persistencia artificial.
+- La primera corrida real con esta capa activa quedó con:
+  - `Senales nuevas: 0`
+  - `Refuerzos persistentes: 0`
+  - `Reducciones persistentes: 0`
+  - `Sin historial: 39`
+- Esta capa todavía no modifica score ni acción; solo agrega contexto temporal para la siguiente etapa.
+

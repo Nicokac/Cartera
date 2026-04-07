@@ -117,3 +117,14 @@ python -m unittest tests.test_pyobd_client tests.test_generate_real_report -v
 - [Roadmap de deshardcodeo](c:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-roadmap.md)
 - [Roadmap Bonistas](c:\Users\kachu\Python user\Colab\Cartera de Activos\docs\bonistas-roadmap.md)
 - [Snapshots](c:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
+
+## Memoria temporal
+
+- El runner real persiste historial diario en `data\runtime\decision_history.csv`.
+- La unidad de memoria es `ticker + fecha`.
+- Si corrÃ©s varias veces el mismo dÃ­a, se reemplaza la observaciÃ³n de ese dÃ­a en lugar de sumar persistencia artificial.
+- La versiÃ³n actual es observacional:
+  - agrega `accion_previa`
+  - agrega `score_delta_vs_dia_anterior`
+  - agrega rachas diarias por estado
+  - no altera score ni acciÃ³n sugerida

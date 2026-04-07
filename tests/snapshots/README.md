@@ -46,6 +46,11 @@ Notas:
   - una sola observacion canonica por `ticker + fecha`
   - si hay reruns del mismo dia, se reemplaza el snapshot diario
   - la primera version es observacional y no altera score ni accion
+  - primera corrida real con memoria activa:
+    - `Senales nuevas: 0`
+    - `Refuerzos persistentes: 0`
+    - `Reducciones persistentes: 0`
+    - `Sin historial: 39`
 
 - Baseline vigente Bonistas v1 para monitoreo de bonos locales:
   - bloque `Bonos Locales` visible en el HTML real

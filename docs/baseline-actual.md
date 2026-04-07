@@ -17,6 +17,12 @@ Estado real vigente al `2026-04-07`:
 - `4` refuerzos: `VIST`, `KO`, `XLU`, `XLV`
 - `1` reducción: `MELI`
 - scoring absoluto conservador activo
+- régimen de mercado configurado y sin flags activos en la macro vigente
+- memoria temporal diaria observacional activa:
+  - `Senales nuevas: 0`
+  - `Refuerzos persistentes: 0`
+  - `Reducciones persistentes: 0`
+  - `Sin historial: 39`
 - monitoreo de bonos con volumen spot y contexto macro ampliado
 
 ## Fecha

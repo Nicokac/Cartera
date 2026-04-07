@@ -633,3 +633,15 @@ El próximo punto abierto ya no es de trazabilidad, sino de evolución de produc
 - incorporar sensibilidad a régimen de mercado;
 - evaluar memoria temporal de decisiones;
 - seguir endureciendo bonos solo si el histórico real lo justifica.
+
+## Actualización posterior
+
+Desde esta evaluación ya se implementó una primera capa de memoria temporal diaria:
+- persiste historial en `data/runtime/decision_history.csv`
+- usa una sola observación canónica por `ticker + fecha`
+- reemplaza reruns del mismo día en lugar de sumar persistencia artificial
+- expone contexto temporal en el runner real:
+  - `accion_previa`
+  - `score_delta_vs_dia_anterior`
+  - rachas consecutivas por estado
+- la versión actual sigue siendo observacional y no altera score ni acción

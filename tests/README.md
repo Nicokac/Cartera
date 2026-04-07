@@ -19,3 +19,7 @@ Snapshots:
 - guardar corridas de referencia en `tests/snapshots/`
 - preferir `json` o `csv` chicos, derivados de datos ya normalizados
 - no guardar credenciales ni payloads crudos sensibles de IOL
+
+Memoria temporal:
+- el historial diario observacional del runner real vive en `data/runtime/decision_history.csv`
+- una misma fecha no debe contar múltiples veces para persistencia
