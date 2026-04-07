@@ -287,6 +287,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         df_cedears=df_cedears,
         df_ratings_res=df_ratings_res,
         mep_real=mep_real,
+        market_context=bonistas_macro,
         scoring_rules=project_config.SCORING_RULES,
         action_rules=project_config.ACTION_RULES,
     )

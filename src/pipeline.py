@@ -104,6 +104,7 @@ def build_decision_bundle(
     df_ratings_res: pd.DataFrame,
     decision_tech: pd.DataFrame | None = None,
     mep_real: float | None,
+    market_context: dict[str, Any] | None = None,
     scoring_rules: dict[str, Any] | None = None,
     action_rules: dict[str, Any] | None = None,
 ) -> dict[str, pd.DataFrame]:
@@ -114,7 +115,7 @@ def build_decision_bundle(
         mep_real=mep_real,
         scoring_rules=scoring_rules,
     )
-    decision = apply_base_scores(decision, scoring_rules=scoring_rules)
+    decision = apply_base_scores(decision, scoring_rules=scoring_rules, market_context=market_context)
     decision = assign_base_action(decision, action_rules=action_rules)
 
     if decision_tech is None:

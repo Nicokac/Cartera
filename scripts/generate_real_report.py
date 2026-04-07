@@ -491,6 +491,7 @@ def main() -> None:
         df_ratings_res=df_ratings_res,
         decision_tech=technical_overlay,
         mep_real=mep_real,
+        market_context=bonistas_bundle.get("macro_variables", {}),
         scoring_rules=project_config.SCORING_RULES,
         action_rules=project_config.ACTION_RULES,
     )
