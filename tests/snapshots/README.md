@@ -35,11 +35,17 @@ Notas:
   - Finviz fundamentals `24/24`
   - Finviz ratings `17/24`
   - regimen de mercado configurado pero sin flags activos en la macro vigente
+  - memoria temporal diaria habilitada con historial en `data/runtime/decision_history.csv`
   - refuerzos efectivos: `VIST`, `KO`, `XLU`, `XLV`
   - reduccion efectiva: `MELI`
   - `SPY` y `AAPL` quedan en `Mantener / Neutral`
   - `GD30` sigue en `Rebalancear / tomar ganancia`
   - ningun bono dispara `Refuerzo`
+
+- Contrato de memoria temporal:
+  - una sola observacion canonica por `ticker + fecha`
+  - si hay reruns del mismo dia, se reemplaza el snapshot diario
+  - la primera version es observacional y no altera score ni accion
 
 - Baseline vigente Bonistas v1 para monitoreo de bonos locales:
   - bloque `Bonos Locales` visible en el HTML real

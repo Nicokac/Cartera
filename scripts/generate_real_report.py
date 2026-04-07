@@ -38,6 +38,14 @@ from clients.iol import (
     iol_login,
 )
 from clients.pyobd_client import get_bond_volume_context
+from decision.history import (
+    build_decision_history_observation,
+    build_temporal_memory_summary,
+    enrich_with_temporal_memory,
+    load_decision_history,
+    save_decision_history,
+    upsert_daily_decision_history,
+)
 from generate_smoke_report import REPORTS_DIR, render_report
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
 
@@ -421,6 +429,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
 def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
+    run_date = pd.Timestamp.now().strftime("%Y-%m-%d")
 
     username, password = resolve_iol_credentials()
 
@@ -526,6 +535,20 @@ def main() -> None:
             on="Ticker_IOL",
             how="left",
         )
+    history = load_decision_history()
+    current_observation = build_decision_history_observation(
+        decision_bundle["final_decision"],
+        run_date=run_date,
+        market_regime=decision_bundle.get("market_regime"),
+    )
+    history = upsert_daily_decision_history(history, current_observation)
+    decision_bundle["final_decision"] = enrich_with_temporal_memory(
+        decision_bundle["final_decision"],
+        history,
+        run_date=run_date,
+    )
+    decision_bundle["decision_memory"] = build_temporal_memory_summary(decision_bundle["final_decision"])
+    save_decision_history(history)
     sizing_bundle = build_sizing_bundle(
         final_decision=decision_bundle["final_decision"],
         mep_real=mep_real,

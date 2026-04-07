@@ -279,6 +279,7 @@ def render_report(
     technical_overlay = result.get("technical_overlay", pd.DataFrame())
     finviz_stats = result.get("finviz_stats", {}) or {}
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
+    decision_memory = decision_bundle.get("decision_memory", {}) or {}
 
     df_total = portfolio_bundle["df_total"].copy()
     integrity_report = portfolio_bundle["integrity_report"].copy()
@@ -400,6 +401,16 @@ def render_report(
       <article class="action-card neutral"><span>Neutrales</span><strong>{neutrales}</strong></article>
     </section>
     """
+    memory_summary = ""
+    if decision_memory:
+        memory_summary = f"""
+    <section class="action-strip">
+      <article class="action-card neutral"><span>Senales nuevas</span><strong>{int(decision_memory.get('senales_nuevas', 0))}</strong></article>
+      <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
+      <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
+      <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
+    </section>
+    """
 
     bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
     bonistas_section = ""
@@ -477,6 +488,7 @@ def render_report(
 
     {summary_cards}
     {action_summary}
+    {memory_summary}
 
     <section class="panel" id="integridad">
       <h2>Integridad</h2>

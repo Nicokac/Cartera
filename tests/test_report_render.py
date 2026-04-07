@@ -12,7 +12,11 @@ if str(SCRIPTS) not in sys.path:
 from generate_smoke_report import render_report
 
 
-def _build_minimal_result(*, bonistas_bundle: dict[str, object] | None = None) -> dict[str, object]:
+def _build_minimal_result(
+    *,
+    bonistas_bundle: dict[str, object] | None = None,
+    decision_memory: dict[str, int] | None = None,
+) -> dict[str, object]:
     df_total = pd.DataFrame(
         [
             {
@@ -65,7 +69,7 @@ def _build_minimal_result(*, bonistas_bundle: dict[str, object] | None = None) -
                 "liquidez_usd_ars": 0.0,
             },
         },
-        "decision_bundle": {"final_decision": final_decision},
+        "decision_bundle": {"final_decision": final_decision, "decision_memory": decision_memory or {}},
         "sizing_bundle": {
             "propuesta": pd.DataFrame(),
             "asignacion_final": pd.DataFrame(),
@@ -104,6 +108,22 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Bonos Locales", html)
         self.assertIn("Reservas BCRA", html)
         self.assertIn("A3500", html)
+
+    def test_render_report_shows_temporal_memory_strip_when_available(self) -> None:
+        html = render_report(
+            _build_minimal_result(
+                decision_memory={
+                    "senales_nuevas": 2,
+                    "persistentes_refuerzo": 1,
+                    "persistentes_reduccion": 0,
+                    "sin_historial": 3,
+                }
+            )
+        )
+
+        self.assertIn("Senales nuevas", html)
+        self.assertIn("Refuerzos persistentes", html)
+        self.assertIn("Sin historial", html)
 
 
 if __name__ == "__main__":
