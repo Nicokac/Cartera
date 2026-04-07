@@ -165,6 +165,35 @@ class SizingTests(unittest.TestCase):
             "Rebalancear / tomar ganancia",
         )
 
+    def test_bond_subfamily_can_emit_refuerzo_when_threshold_is_met(self) -> None:
+        final_decision = self.final_decision.copy()
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "asset_subfamily"] = "bond_other"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_local_subfamily"] = "bond_cer"
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_tir_pct"] = -0.5
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_paridad_pct"] = 99.5
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_rem_inflacion_mensual_pct"] = 2.7
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "bonistas_rem_inflacion_12m_pct"] = 22.2
+        final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = 0.16
+
+        result = build_operational_proposal(
+            final_decision,
+            mep_real=1000,
+            action_rules={
+                "bono_rebalance_threshold": -0.20,
+                "bono_monitor_max": 0.08,
+                "bond_subfamily_thresholds": {
+                    "bond_other": {"refuerzo_threshold": 0.15}
+                },
+            },
+        )
+
+        accion = result["propuesta"].loc[result["propuesta"]["Ticker_IOL"] == "GD30", "accion_operativa"].iloc[0]
+        comentario = result["propuesta"].loc[result["propuesta"]["Ticker_IOL"] == "GD30", "comentario_operativo"].iloc[0]
+
+        self.assertEqual(accion, "Refuerzo")
+        self.assertIn("Refuerzo CER", comentario)
+        self.assertIn("REM 12m 22.2%", comentario)
+
     def test_bond_subfamily_comments_are_more_specific(self) -> None:
         final_decision = self.final_decision.copy()
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "asset_subfamily"] = "bond_sov_ar"

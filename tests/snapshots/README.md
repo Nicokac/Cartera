@@ -19,47 +19,25 @@ Notas:
 - Los snapshots `real_*` salen desde `scripts/generate_real_report.py`.
 - Guardan datos ya normalizados; no deben incluir credenciales ni payloads crudos sensibles.
 - Baseline funcional estable vigente:
-  - `2026-04-04_real_decision_table.csv`
-  - `2026-04-04_real_portfolio_master.csv`
-  - `2026-04-04_real_technical_overlay.csv`
-  - `2026-04-04_real_kpis.json`
-- Esa baseline corresponde al primer estado completo del modelo con:
-  - overlay tecnico activo
-  - Finviz fundamentals activos
-  - ratings activos en cobertura parcial real
-  - ajuste fino de reduccion para ETFs/core
-- Baseline efectiva posterior dentro del mismo ciclo:
-  - mantener la referencia `2026-04-04_*`
-  - pero interpretar como estado vigente la corrida donde:
-    - `SPY` quedo neutral por ajuste `etf_core`
-    - `EWZ` quedo neutral por ajuste `etf_country_region`
-    - `GD30` quedo en `Rebalancear / tomar ganancia` por ajuste `bond_sov_ar`
-    - `TZXM7` y `TZXD6` quedaron en `Mantener / monitorear` por endurecimiento de `bond_other`
-    - refuerzos efectivos: `VIST`, `XLU`, `KO`
-    - comentarios operativos de bonos ya distinguen por subfamilia
-    - taxonomia visible en reporte:
-      - `etf_core`
-      - `etf_sector`
-      - `etf_country_region`
-      - `stock_growth`
-      - `stock_defensive_dividend`
-      - `stock_commodity`
-      - `stock_argentina`
-      - `bond_sov_ar`
-      - `bond_cer`
-      - `bond_bopreal`
-      - `bond_other`
-- Baseline vigente actual para CEDEARs tras calibracion por subfamilia de stock:
-  - refuerzos efectivos: `VIST`, `XLU`, `KO`
+  - `2026-04-07_real_decision_table.csv`
+  - `2026-04-07_real_portfolio_master.csv`
+  - `2026-04-07_real_technical_overlay.csv`
+  - `2026-04-07_real_kpis.json`
+- Esa baseline corresponde al estado real estable posterior a:
+  - reintegracion y hardening del overlay tecnico
+  - recuperacion de Finviz real
+  - activacion conservadora de scoring absoluto (`0.9 / 0.1`)
+  - alineacion de narrativa con thresholds configurables
+  - refuerzo conservador para bonos sin disparos espurios en la corrida vigente
+- Lectura operativa de esa baseline:
+  - overlay tecnico activo `24/24`
+  - Finviz fundamentals `24/24`
+  - Finviz ratings `17/24`
+  - refuerzos efectivos: `VIST`, `KO`, `XLU`, `XLV`
   - reduccion efectiva: `MELI`
-  - `stock_growth` queda como grupo mas exigido
-  - `stock_defensive_dividend` y `stock_commodity` quedan relativamente favorecidos
-  - `NEM` vuelve a `Mantener / Neutral` por filtro prudente en `stock_commodity`
-  - auditoria puntual de `NEM`:
-    - `2026-04-04`: `+0.183`, `Mantener / Neutral`
-    - `2026-04-05`: `+0.190`, `Refuerzo`
-    - baseline actual: `+0.160`, `Mantener / Neutral`
-    - el ultimo cambio responde al filtro tecnico prudente y no a una alteracion brusca del resto de las senales
+  - `SPY` y `AAPL` quedan en `Mantener / Neutral`
+  - `GD30` sigue en `Rebalancear / tomar ganancia`
+  - ningun bono dispara `Refuerzo`
 
 - Baseline vigente Bonistas v1 para monitoreo de bonos locales:
   - bloque `Bonos Locales` visible en el HTML real
@@ -74,12 +52,16 @@ Notas:
   - `bond_other` neutralizado y auditable:
     - `TZXD6`: `100.30%`
     - `TZXM7`: `99.30%`
+  - volumen spot visible:
+    - `GD30`: `4,068,012`
+    - `BPOC7`: `580,634`
+    - `AL30`: `234,824,216`
   - referencias macro visibles:
-    - `CER`: `738.7059`
-    - `TAMAR`: `26.31`
-    - `BADLAR`: filtrada por plausibilidad cuando corresponda
-    - `Reservas BCRA`: `43381.0`
-    - `A3500`: `1387.72`
+    - `CER`: `740.0696`
+    - `TAMAR`: `26.25`
+    - `BADLAR`: `25.1875`
+    - `Reservas BCRA`: `42052.0`
+    - `A3500`: `1391.69`
 - Taxonomia local ampliada disponible para siguiente iteracion de Bonistas:
   - `bond_hard_dollar`
   - `bond_dual`
@@ -116,3 +98,4 @@ Notas:
     - `paridad`
     - `REM 12m`
     - `REM inflacion`
+  - `bonistas_volume_avg_20d` y `bonistas_volume_ratio` siguen pendientes de una fuente historica mas robusta

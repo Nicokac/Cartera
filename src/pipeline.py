@@ -131,7 +131,7 @@ def build_decision_bundle(
         ).round(3)
     decision_tech = assign_action_v2(decision_tech, action_rules=action_rules)
     final_decision = finalize_unified_score(decision_tech)
-    final_decision = enrich_decision_explanations(final_decision)
+    final_decision = enrich_decision_explanations(final_decision, scoring_rules=scoring_rules)
 
     return {
         "decision": decision,

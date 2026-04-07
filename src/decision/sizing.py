@@ -98,6 +98,43 @@ def _comentario_operativo(row: pd.Series) -> str:
             return "Soberano AR con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
         return "Bono con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
     if accion == "Refuerzo":
+        if local_subfamily == "bond_cer":
+            details: list[str] = []
+            if tir:
+                details.append(f"TIR real {tir}")
+            if parity:
+                details.append(f"paridad {parity}")
+            if rem_inflacion_12m:
+                details.append(f"REM 12m {rem_inflacion_12m}")
+            if rem_inflacion:
+                details.append(f"REM mensual {rem_inflacion}")
+            if details:
+                return "Refuerzo CER por " + _join_with_y(details) + "; privilegiar carry real e inflacion esperada."
+            return "Refuerzo prudente en bono CER por mejora relativa de carry real."
+        if local_subfamily == "bond_bopreal":
+            details: list[str] = []
+            if parity:
+                details.append(f"paridad {parity}")
+            if tir:
+                details.append(f"TIR {tir}")
+            if put_flag:
+                details.append("PUT disponible")
+            if ust_spread:
+                details.append(f"spread {ust_spread} sobre UST")
+            if details:
+                return "Refuerzo Bopreal por " + _join_with_y(details) + "; privilegiar carry y opcionalidad."
+            return "Refuerzo prudente en Bopreal por carry y opcionalidad."
+        if asset_subfamily == "bond_other":
+            details: list[str] = []
+            if tir:
+                details.append(f"TIR {tir}")
+            if parity:
+                details.append(f"paridad {parity}")
+            if pd.notna(md):
+                details.append(f"MD {float(md):.2f}")
+            if details:
+                return "Refuerzo prudente en bono local por " + _join_with_y(details) + "."
+            return "Refuerzo prudente en bono local por score compuesto favorable."
         if tech == "Alcista fuerte":
             return "Refuerzo favorecido por score alto y soporte tecnico alcista."
         if pd.notna(beta) and beta < 0.8:
@@ -222,6 +259,35 @@ def _bucket_prudencia(
     return "Intermedio"
 
 
+def _prepare_allocation_frame(
+    df: pd.DataFrame,
+    *,
+    bucket_weights: dict[str, float],
+    sizing_rules: dict[str, object] | None = None,
+) -> pd.DataFrame:
+    sizing_rules = sizing_rules or {}
+    allocation_mix = sizing_rules.get("allocation_mix", {}) or {}
+    peso_base_weight = float(allocation_mix.get("peso_base", 0.80))
+    score_ajustado_weight = float(allocation_mix.get("score_ajustado", 0.20))
+    bucket_fallback_weight = float(sizing_rules.get("bucket_fallback_weight", 0.60))
+
+    out = df.copy()
+    if out.empty:
+        return out
+
+    out["Bucket_Prudencia"] = out.apply(
+        lambda row: _bucket_prudencia(row, sizing_rules=sizing_rules),
+        axis=1,
+    )
+    out["Peso_Base"] = out["Bucket_Prudencia"].map(bucket_weights).fillna(bucket_fallback_weight)
+    out["Score_Ajustado"] = pd.to_numeric(out["score_unificado"], errors="coerce").fillna(0).clip(lower=0)
+    out["Peso_Asignacion"] = (
+        peso_base_weight * out["Peso_Base"]
+        + score_ajustado_weight * out["Score_Ajustado"]
+    )
+    return out
+
+
 def build_operational_proposal(
     final_decision: pd.DataFrame,
     *,
@@ -265,11 +331,26 @@ def build_operational_proposal(
             )
         )
     )
+    bond_refuerzo_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
+        lambda subfamily: (bond_subfamily_thresholds.get(subfamily, {}) or {}).get("refuerzo_threshold")
+    )
+    bond_refuerzo_threshold = pd.to_numeric(bond_refuerzo_threshold, errors="coerce")
+
+    propuesta.loc[
+        mask_bonos
+        & bond_refuerzo_threshold.notna()
+        & (propuesta["score_unificado"] >= bond_refuerzo_threshold),
+        "accion_operativa",
+    ] = "Refuerzo"
     propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
         "Rebalancear / tomar ganancia"
     )
     propuesta.loc[
         mask_bonos
+        & ~(
+            bond_refuerzo_threshold.notna()
+            & (propuesta["score_unificado"] >= bond_refuerzo_threshold)
+        )
         & (propuesta["score_unificado"] > bond_rebalance_threshold)
         & (propuesta["score_unificado"] < bono_monitor_max),
         "accion_operativa",
@@ -392,27 +473,16 @@ def build_prudent_allocation(
     sizing_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
     sizing_rules = sizing_rules or {}
-    allocation_mix = sizing_rules.get("allocation_mix", {}) or {}
-    peso_base_weight = float(allocation_mix.get("peso_base", 0.80))
-    score_ajustado_weight = float(allocation_mix.get("score_ajustado", 0.20))
-    bucket_fallback_weight = float(sizing_rules.get("bucket_fallback_weight", 0.60))
     tope_posicion_pct = float(sizing_rules.get("tope_posicion_pct", 65.0))
 
     candidatos_refuerzo = propuesta[propuesta["accion_operativa"] == "Refuerzo"].copy()
     if len(candidatos_refuerzo) == 0 or monto_fondeo_ars <= 0:
         return candidatos_refuerzo
 
-    candidatos_refuerzo["Bucket_Prudencia"] = candidatos_refuerzo.apply(
-        lambda row: _bucket_prudencia(row, sizing_rules=sizing_rules),
-        axis=1,
-    )
-    candidatos_refuerzo["Peso_Base"] = candidatos_refuerzo["Bucket_Prudencia"].map(bucket_weights).fillna(
-        bucket_fallback_weight
-    )
-    candidatos_refuerzo["Score_Ajustado"] = candidatos_refuerzo["score_unificado"].clip(lower=0)
-    candidatos_refuerzo["Peso_Asignacion"] = (
-        peso_base_weight * candidatos_refuerzo["Peso_Base"]
-        + score_ajustado_weight * candidatos_refuerzo["Score_Ajustado"]
+    candidatos_refuerzo = _prepare_allocation_frame(
+        candidatos_refuerzo,
+        bucket_weights=bucket_weights,
+        sizing_rules=sizing_rules,
     )
 
     pesos = candidatos_refuerzo["Peso_Asignacion"] / candidatos_refuerzo["Peso_Asignacion"].sum()
@@ -456,27 +526,16 @@ def build_dynamic_allocation(
     sizing_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
     sizing_rules = sizing_rules or {}
-    allocation_mix = sizing_rules.get("allocation_mix", {}) or {}
-    peso_base_weight = float(allocation_mix.get("peso_base", 0.80))
-    score_ajustado_weight = float(allocation_mix.get("score_ajustado", 0.20))
-    bucket_fallback_weight = float(sizing_rules.get("bucket_fallback_weight", 0.60))
     tope_pct = float(sizing_rules.get("tope_posicion_pct", tope_pct))
 
     asignacion_final = top_reforzar_final.copy()
     if asignacion_final.empty or monto_fondeo_ars <= 0:
         return asignacion_final
 
-    asignacion_final["Bucket_Prudencia"] = asignacion_final.apply(
-        lambda row: _bucket_prudencia(row, sizing_rules=sizing_rules),
-        axis=1,
-    )
-    asignacion_final["Peso_Base"] = asignacion_final["Bucket_Prudencia"].map(bucket_weights).fillna(
-        bucket_fallback_weight
-    )
-    asignacion_final["Score_Ajustado"] = asignacion_final["score_unificado"].clip(lower=0)
-    asignacion_final["Peso_Asignacion"] = (
-        peso_base_weight * asignacion_final["Peso_Base"]
-        + score_ajustado_weight * asignacion_final["Score_Ajustado"]
+    asignacion_final = _prepare_allocation_frame(
+        asignacion_final,
+        bucket_weights=bucket_weights,
+        sizing_rules=sizing_rules,
     )
 
     pesos = asignacion_final["Peso_Asignacion"] / asignacion_final["Peso_Asignacion"].sum()

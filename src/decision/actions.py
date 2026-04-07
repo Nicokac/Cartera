@@ -3,76 +3,107 @@ from __future__ import annotations
 import pandas as pd
 
 
-def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
+def _assign_action(
+    decision: pd.DataFrame,
+    *,
+    action_column: str,
+    score_refuerzo_column: str,
+    score_reduccion_column: str,
+    action_rules: dict[str, object] | None = None,
+) -> pd.DataFrame:
     action_rules = action_rules or {}
     refuerzo_threshold = float(action_rules.get("refuerzo_threshold", 0.60))
     reduccion_threshold = float(action_rules.get("reduccion_threshold", 0.60))
-    bono_reduccion_threshold = float(action_rules.get("bono_reduccion_threshold", 0.60))
     score_gap_min = float(action_rules.get("score_gap_min", 0.10))
     despliegue_liquidez_threshold = float(action_rules.get("despliegue_liquidez_threshold", 0.55))
 
     out = decision.copy()
-    out["accion_sugerida"] = "Mantener / Neutral"
+    out[action_column] = "Mantener / Neutral"
 
     out.loc[
         (~out["Es_Liquidez"])
         & (~out["Es_Bono"])
-        & (out["score_refuerzo"] >= refuerzo_threshold)
-        & ((out["score_refuerzo"] - out["score_reduccion"]) >= score_gap_min),
-        "accion_sugerida",
+        & (out[score_refuerzo_column] >= refuerzo_threshold)
+        & ((out[score_refuerzo_column] - out[score_reduccion_column]) >= score_gap_min),
+        action_column,
     ] = "Refuerzo"
 
     out.loc[
         (~out["Es_Liquidez"])
         & (~out["Es_Bono"])
-        & (out["score_reduccion"] >= reduccion_threshold)
-        & ((out["score_reduccion"] - out["score_refuerzo"]) >= score_gap_min),
-        "accion_sugerida",
+        & (out[score_reduccion_column] >= reduccion_threshold)
+        & ((out[score_reduccion_column] - out[score_refuerzo_column]) >= score_gap_min),
+        action_column,
     ] = "Reducir"
 
     out.loc[
         (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
-        "accion_sugerida",
+        action_column,
     ] = "Desplegar liquidez"
     return out
+
+
+def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
+    return _assign_action(
+        decision,
+        action_column="accion_sugerida",
+        score_refuerzo_column="score_refuerzo",
+        score_reduccion_column="score_reduccion",
+        action_rules=action_rules,
+    )
 
 
 def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
-    action_rules = action_rules or {}
-    refuerzo_threshold = float(action_rules.get("refuerzo_threshold", 0.60))
-    reduccion_threshold = float(action_rules.get("reduccion_threshold", 0.60))
-    bono_reduccion_threshold = float(action_rules.get("bono_reduccion_threshold", 0.60))
-    score_gap_min = float(action_rules.get("score_gap_min", 0.10))
-    despliegue_liquidez_threshold = float(action_rules.get("despliegue_liquidez_threshold", 0.55))
-
-    out = decision_tech.copy()
-    out["accion_sugerida_v2"] = "Mantener / Neutral"
-
-    out.loc[
-        (~out["Es_Liquidez"])
-        & (~out["Es_Bono"])
-        & (out["score_refuerzo_v2"] >= refuerzo_threshold)
-        & ((out["score_refuerzo_v2"] - out["score_reduccion_v2"]) >= score_gap_min),
-        "accion_sugerida_v2",
-    ] = "Refuerzo"
-
-    out.loc[
-        (~out["Es_Liquidez"])
-        & (~out["Es_Bono"])
-        & (out["score_reduccion_v2"] >= reduccion_threshold)
-        & ((out["score_reduccion_v2"] - out["score_refuerzo_v2"]) >= score_gap_min),
-        "accion_sugerida_v2",
-    ] = "Reducir"
-
-    out.loc[
-        (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
-        "accion_sugerida_v2",
-    ] = "Desplegar liquidez"
-    return out
+    return _assign_action(
+        decision_tech,
+        action_column="accion_sugerida_v2",
+        score_refuerzo_column="score_refuerzo_v2",
+        score_reduccion_column="score_reduccion_v2",
+        action_rules=action_rules,
+    )
 
 
-def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
+def enrich_decision_explanations(
+    df: pd.DataFrame,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+) -> pd.DataFrame:
+    scoring_rules = scoring_rules or {}
     out = df.copy()
+    absolute_rules = scoring_rules.get("absolute_scoring", {}) or {}
+    absolute_metrics = absolute_rules.get("metrics", {}) or {}
+    narrative_rules = scoring_rules.get("narrative_thresholds", {}) or {}
+
+    beta_rules = absolute_metrics.get("beta", {}) or {}
+    pe_rules = absolute_metrics.get("pe", {}) or {}
+    roe_rules = absolute_metrics.get("roe", {}) or {}
+    profit_margin_rules = absolute_metrics.get("profit_margin", {}) or {}
+    mep_rules = absolute_metrics.get("mep_premium_pct", {}) or {}
+    gain_rules = absolute_metrics.get("ganancia_pct_cap", {}) or {}
+
+    positive_thresholds = narrative_rules.get("positive", {}) or {}
+    negative_thresholds = narrative_rules.get("negative", {}) or {}
+
+    low_weight_max = float(positive_thresholds.get("peso_max", 2.0))
+    beta_ok_max = float(positive_thresholds.get("beta_max", beta_rules.get("good_max", 0.8)))
+    pe_ok_max = float(positive_thresholds.get("pe_max", pe_rules.get("good_max", 18.0)))
+    roe_good_min = float(positive_thresholds.get("roe_min", roe_rules.get("good_min", 20.0)))
+    profit_margin_good_min = float(
+        positive_thresholds.get("profit_margin_min", profit_margin_rules.get("good_min", 20.0))
+    )
+    consensus_good_min = float(positive_thresholds.get("consensus_min", 0.70))
+    momentum_good_min = float(positive_thresholds.get("momentum_refuerzo_min", 0.65))
+    mep_good_max = float(positive_thresholds.get("mep_premium_max", mep_rules.get("good_max", -90.0)))
+
+    high_weight_min = float(negative_thresholds.get("peso_min", 4.0))
+    beta_risk_min = float(negative_thresholds.get("beta_min", beta_rules.get("bad_min", 1.3)))
+    pe_expensive_min = float(negative_thresholds.get("pe_min", pe_rules.get("bad_min", 30.0)))
+    profit_margin_low_max = float(
+        negative_thresholds.get("profit_margin_max", profit_margin_rules.get("bad_max", 10.0))
+    )
+    consensus_bad_max = float(negative_thresholds.get("consensus_max", 0.35))
+    momentum_bad_min = float(negative_thresholds.get("momentum_reduccion_min", 0.60))
+    gain_extended_min = float(negative_thresholds.get("ganancia_pct_cap_min", gain_rules.get("bad_min", 80.0)))
 
     def _is_country_region_etf(row: pd.Series) -> bool:
         return row.get("asset_subfamily") == "etf_country_region"
@@ -111,45 +142,45 @@ def enrich_decision_explanations(df: pd.DataFrame) -> pd.DataFrame:
 
     def _positive_signals(row: pd.Series) -> list[str]:
         signals: list[str] = []
-        if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) <= 2.0:
+        if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) <= low_weight_max:
             signals.append("peso bajo")
-        if _metric_available(row, "Beta") and float(row.get("Beta", 0)) <= 0.8:
+        if _metric_available(row, "Beta") and float(row.get("Beta", 0)) <= beta_ok_max:
             signals.append("beta controlada")
-        if _metric_available(row, "P/E") and float(row.get("P/E", 0)) <= 18:
+        if _metric_available(row, "P/E") and float(row.get("P/E", 0)) <= pe_ok_max:
             signals.append("valuacion razonable")
-        if _metric_available(row, "ROE") and float(row.get("ROE", 0)) >= 20:
+        if _metric_available(row, "ROE") and float(row.get("ROE", 0)) >= roe_good_min:
             signals.append("ROE alto")
-        if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 0)) >= 20:
+        if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 0)) >= profit_margin_good_min:
             signals.append("margen alto")
-        if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) >= 0.70:
+        if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) >= consensus_good_min:
             signals.append("consenso favorable")
-        if _metric_available(row, "Momentum_Refuerzo") and float(row.get("Momentum_Refuerzo", 0.5)) >= 0.65:
+        if _metric_available(row, "Momentum_Refuerzo") and float(row.get("Momentum_Refuerzo", 0.5)) >= momentum_good_min:
             signals.append("momentum fuerte")
         if row.get("Tech_Trend") == "Alcista":
             signals.append("tecnico alcista")
         if row.get("Tech_Trend") == "Alcista fuerte":
             signals.append("tecnico alcista fuerte")
-        if _metric_available(row, "MEP_Premium_%") and float(row.get("MEP_Premium_%", 0)) <= -90:
+        if _metric_available(row, "MEP_Premium_%") and float(row.get("MEP_Premium_%", 0)) <= mep_good_max:
             signals.append("MEP favorable")
         return signals
 
     def _negative_signals(row: pd.Series) -> list[str]:
         signals: list[str] = []
-        if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) >= 4.0:
+        if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) >= high_weight_min:
             signals.append("peso alto")
-        if _metric_available(row, "Beta") and float(row.get("Beta", 0)) >= 1.3:
+        if _metric_available(row, "Beta") and float(row.get("Beta", 0)) >= beta_risk_min:
             signals.append("beta alta")
-        if _metric_available(row, "P/E") and float(row.get("P/E", 0)) >= 30:
+        if _metric_available(row, "P/E") and float(row.get("P/E", 0)) >= pe_expensive_min:
             signals.append("valuacion exigente")
-        if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 100)) <= 10:
+        if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 100)) <= profit_margin_low_max:
             signals.append("margen bajo")
-        if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) <= 0.35:
+        if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) <= consensus_bad_max:
             signals.append("consenso debil")
-        if _metric_available(row, "Momentum_Reduccion_Effective") and float(row.get("Momentum_Reduccion_Effective", 0.5)) >= 0.60:
+        if _metric_available(row, "Momentum_Reduccion_Effective") and float(row.get("Momentum_Reduccion_Effective", 0.5)) >= momentum_bad_min:
             signals.append("momentum debil")
         if row.get("Tech_Trend") == "Bajista":
             signals.append("tecnico bajista")
-        if _metric_available(row, "Ganancia_%_Cap") and float(row.get("Ganancia_%_Cap", 0)) >= 80:
+        if _metric_available(row, "Ganancia_%_Cap") and float(row.get("Ganancia_%_Cap", 0)) >= gain_extended_min:
             signals.append("ganancia extendida")
         return signals
 

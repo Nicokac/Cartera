@@ -80,7 +80,7 @@ Subfamilias posibles a futuro:
 
 ### Etapa 4. Integración al pipeline
 
-- Estado: `Pendiente`
+- Estado: `En progreso`
 
 Objetivo:
 - enchufar Bonistas al flujo real sin romper estabilidad
@@ -117,6 +117,7 @@ Avance concreto actual:
 - mapping de tickers inicial creado
 - inferencia básica de subfamilia por ticker agregada
 - parser mínimo de página individual ya cubierto con tests sin red
+- volumen spot y bucket de liquidez visibles en corrida real via `PyOBD`
 
 ## Criterio de cierre de la Etapa 1
 
@@ -234,6 +235,33 @@ Estado de la etapa:
   - `Hecho`
 - scoring de bonos:
   - `Pendiente`
+
+## Actualizacion 2026-04-07 - Volumen spot y refuerzo prudente
+
+Avance validado:
+
+- el monitor de bonos ya muestra tambien:
+  - `bonistas_volume_last`
+  - `bonistas_liquidity_bucket`
+- la fuente actual prioriza volumen spot y deja el historico como mejora posterior;
+- se habilito `Refuerzo` conservador para:
+  - `bond_cer`
+  - `bond_bopreal`
+  - `bond_other`
+- `bond_sov_ar` sigue sin refuerzo automatico por prudencia.
+
+Lectura de baseline actual:
+
+- la capacidad de `Refuerzo` en bonos ya existe;
+- en la corrida real vigente no se dispara ningun bono en `Refuerzo`;
+- eso se considera correcto porque evita forzar compras con una senal todavia incompleta.
+
+Estado revisado:
+
+- Etapa 1: `Hecho`
+- Etapa 2: `Hecho`
+- Etapa 4: `En progreso`
+- Etapa 5: `Pendiente`
 
 ## Actualizacion 2026-04-05 - REM 12m via Excel BCRA
 

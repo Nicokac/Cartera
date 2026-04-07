@@ -50,6 +50,7 @@ Actualizacion validada en corrida real:
 - `bond_cer` ya incorpora `REM inflacion mensual` en comentarios operativos;
 - `bond_bopreal` ya incorpora `riesgo_pais_bps` junto con `put_flag`;
 - `bond_other` puede seguir operativo como `bond_other`, pero explicarse con taxonomia local `bond_cer` cuando Bonistas lo sugiere.
+- `Monitoreo de bonos` ya incorpora volumen spot y bucket de liquidez via `PyOBD`.
 
 ## Qué domina el análisis por tipo de bono
 
@@ -123,6 +124,8 @@ Antes de tocar reglas de scoring, la siguiente funcionalidad va a usar:
 - `bonistas_tir_vs_avg_365d_pct`
 - `bonistas_parity_gap_pct`
 - `bonistas_put_flag`
+- `bonistas_volume_last`
+- `bonistas_liquidity_bucket`
 
 Objetivos concretos:
 
@@ -183,30 +186,19 @@ Estos datos todavía no están integrados y conviene considerarlos para futuras 
 
 ### Alta prioridad
 
-- `ust_5y_pct`
-  - referencia de tasa libre de riesgo
-  - fuente faltante
-- `ust_10y_pct`
-  - referencia de tasa libre de riesgo
-  - fuente faltante
-- `rem_inflacion_12m_pct`
-  - inflacion esperada a horizonte mas largo
-  - fuente todavia no integrada
+- `bonistas_volume_avg_20d`
+  - promedio de volumen confiable
+  - hoy no queda estable para todos los simbolos
+- `bonistas_volume_ratio`
+  - comparacion spot vs promedio
+  - depende de resolver historico robusto
 
 ### Prioridad media
 
-- `reservas_bcra_usd`
-  - contexto de fragilidad o fortaleza externa
-  - fuente faltante
-- `tipo_cambio_mayorista`
-  - contexto cambiario para soberanos y dollar-linked
-  - fuente faltante
-- `badlar`
-  - benchmark para instrumentos tasa variable
-  - fuente aún no resuelta de forma robusta
-- `tamar`
-  - benchmark para instrumentos tasa TAMAR
-  - fuente aún no resuelta de forma robusta fuera del scraping puntual
+- series historicas macro para tendencia
+  - no solo ultimo valor
+- contexto de liquidez historica de mercado
+  - no solo volumen spot
 
 ### Prioridad específica por taxonomía futura
 
@@ -246,8 +238,8 @@ Estado actual de ese orden:
 
 1. `Hecho`
 2. `Hecho`
-3. `Parcialmente hecho`
-4. `Pendiente`
+3. `Hecho`
+4. `Parcialmente hecho`
 
 ## Decisión vigente
 
@@ -377,3 +369,26 @@ Uso actual en comentarios operativos:
   - `spread_vs_ust`
   - `reservas_bcra_musd`
   - `a3500_mayorista`
+
+## Actualizacion 2026-04-07 - Liquidez spot y refuerzo conservador
+
+Se deja asentado que la capa pre-scoring de bonos ya no es solo macro y taxonomia.
+
+Alcance actual:
+
+- `Monitoreo de bonos` ya muestra:
+  - `bonistas_volume_last`
+  - `bonistas_liquidity_bucket`
+- el volumen spot ya se captura con `PyOBD` en corrida real;
+- el historico de volumen sigue pendiente para:
+  - `bonistas_volume_avg_20d`
+  - `bonistas_volume_ratio`
+
+Decision operativa vigente:
+
+- ya existe `Refuerzo` conservador para:
+  - `bond_cer`
+  - `bond_bopreal`
+  - `bond_other`
+- `bond_sov_ar` sigue sin refuerzo automatico;
+- en la corrida real vigente del `2026-04-07` no se dispara ningun refuerzo de bonos, lo que se considera comportamiento correcto para esta primera version prudente.

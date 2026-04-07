@@ -1,5 +1,24 @@
 # Línea Base Actual
 
+## Nota de vigencia
+
+Este documento conserva la línea base histórica previa al cierre del refactor inicial.
+
+La baseline operativa vigente del pipeline real ya no es esta, sino la documentada en:
+
+- [refactor-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\refactor-roadmap.md)
+- [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
+
+Estado real vigente al `2026-04-07`:
+
+- overlay técnico `24/24`
+- Finviz fundamentals `24/24`
+- Finviz ratings `17/24`
+- `4` refuerzos: `VIST`, `KO`, `XLU`, `XLV`
+- `1` reducción: `MELI`
+- scoring absoluto conservador activo
+- monitoreo de bonos con volumen spot y contexto macro ampliado
+
 ## Fecha
 
 - `2026-03-31`

@@ -23,7 +23,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 - Fecha base del roadmap: `2026-03-31`
 - Estado global: `Fase 10 en progreso`
-- Última actualización: `2026-04-05`
+- Última actualización: `2026-04-07`
 
 ## Fase 0. Línea base y resguardo
 
@@ -607,6 +607,51 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - La baseline vigente de CEDEARs dentro del ciclo actual pasa a ser la corrida real `2026-04-05` posterior a ese filtro, con:
   - refuerzos: `VIST`, `XLU`, `KO`
   - reducción: `MELI`
+
+### 2026-04-06
+
+- Se integró `PyOBD` como capa opcional de volumen spot para bonos locales.
+- El bloque `Monitoreo de bonos` pasó a mostrar:
+  - `bonistas_volume_last`
+  - `bonistas_liquidity_bucket`
+- Se corrigió la compatibilidad del cliente con la versión moderna basada en `BymaData`.
+- Se dejó el histórico de volumen como mejora pendiente, pero el spot quedó operativo y visible en corrida real.
+- Se endureció el overlay técnico:
+  - `tech_reduccion` dejó de ser el inverso mecánico de `tech_refuerzo`
+  - los rangos del overlay técnico se externalizaron a `scoring_rules.json`
+- Se eliminó la doble decisión preliminar para bonos antes de la capa operativa de `sizing.py`.
+- Se habilitó fondeo multi-origen desde liquidez, en lugar de usar solo la primera fuente.
+- Se corrigió el cache de timezones de `yfinance`, recuperando cobertura técnica real `24/24`.
+
+### 2026-04-07
+
+- Se incorporó scoring absoluto opcional y luego se activó en modo conservador:
+  - `absolute_scoring.enabled = true`
+  - `relative_weight = 0.9`
+  - `absolute_weight = 0.1`
+- La narrativa de decisiones quedó alineada con thresholds configurables:
+  - `actions.py` ya toma thresholds desde `scoring_rules.json`
+  - se agregaron `narrative_thresholds`
+- Se unificó la lógica duplicada de:
+  - `assign_base_action(...)`
+  - `assign_action_v2(...)`
+- Se unificó la preparación compartida de allocation entre:
+  - `build_prudent_allocation(...)`
+  - `build_dynamic_allocation(...)`
+- Se agregó un guardarraíl para carteras vacías o `portfolio master` sin columnas esperadas:
+  - el runner real ya no rompe si IOL devuelve `0 tickers`
+- Se habilitó `Refuerzo` conservador para bonos en:
+  - `bond_cer`
+  - `bond_bopreal`
+  - `bond_other`
+- `bond_sov_ar` sigue sin refuerzo automático por prudencia.
+- La corrida real estable vigente del `2026-04-07` queda con:
+  - overlay técnico `24/24`
+  - Finviz fundamentals `24/24`
+  - Finviz ratings `17/24`
+  - `4` refuerzos: `VIST`, `KO`, `XLU`, `XLV`
+  - `1` reducción: `MELI`
+  - bonos con monitoreo enriquecido, volumen spot visible y sin refuerzos automáticos disparados
 ## Política de actualización
 
 Cada vez que avancemos una fase, este archivo debe actualizarse con:

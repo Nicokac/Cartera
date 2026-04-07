@@ -31,6 +31,14 @@ Siguen existiendo decisiones parametrizadas de estrategia, pero ya viven fuera d
 - [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
 - [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
 
+Actualizacion de cierre al `2026-04-07`:
+
+- el overlay tecnico ya no depende de rangos hardcodeados en `scoring.py`
+- la capa de reduccion tecnica ya no depende de `1 - tech_refuerzo`
+- el scoring absoluto conservador ya quedo parametrizado y activo desde `scoring_rules.json`
+- la narrativa de decisiones ya no depende de thresholds embebidos en `actions.py`
+- los umbrales de `Refuerzo` conservador para bonos ya viven en `action_rules.json`
+
 ## Principios
 
 - No usar tickers manuales para decidir perfil de riesgo.
@@ -137,3 +145,10 @@ Siguen existiendo decisiones parametrizadas de estrategia, pero ya viven fuera d
 - Se cerro la Fase D con la eliminacion del sesgo por `BLOCK_MAP` dentro del scoring.
 - Se cerro la Fase E con la politica de fondeo explicita y la eliminacion de la preferencia fija por caucion.
 - Se cerro la Fase F con la externalizacion de la taxonomia de consenso y el cierre del deshardcodeo estrategico.
+
+### 2026-04-07
+
+- Se externalizaron los rangos del overlay tecnico y sus subscores de reduccion a [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json).
+- Se activo scoring absoluto conservador (`0.9` relativo / `0.1` absoluto) sin dejar pesos embebidos en codigo.
+- La narrativa operativa paso a tomar thresholds desde configuracion en vez de usar cortes fijos solo en `actions.py`.
+- Los thresholds de `Refuerzo` para subfamilias de bonos quedaron externalizados en [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json).

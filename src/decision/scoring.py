@@ -88,7 +88,11 @@ def build_decision_base(
         "Cantidad_Real",
         "PPC_ARS",
     ]
-    base = df_total[decision_cols].copy()
+    base = df_total.copy()
+    for col in decision_cols:
+        if col not in base.columns:
+            base[col] = np.nan
+    base = base.reindex(columns=decision_cols).copy()
     base["Costo_ARS"] = base["Cantidad_Real"].fillna(0) * base["PPC_ARS"].fillna(0)
     base["Ganancia_%"] = np.where(
         base["Costo_ARS"] > 0,

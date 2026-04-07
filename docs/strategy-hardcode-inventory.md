@@ -25,12 +25,17 @@ Ya quedaron externalizados en `data/strategy/`:
 - pesos de `score_refuerzo`
 - pesos de `score_reduccion`
 - pesos de momentum
+- rangos del overlay tecnico
+- subscores de reduccion tecnica
 - taxonomia textual de consenso
+- blend relativo/absoluto del scoring
 - castigos por liquidez, bono y beta
 - thresholds de `Refuerzo`, `Reducir` y `Desplegar liquidez`
 - thresholds de rebalanceo de bonos
+- thresholds de refuerzo por subfamilia de bono
 - pesos de sizing, topes y politica de fondeo
 - thresholds de bucket por beta y defaults por tipo
+- thresholds narrativos de explicacion
 
 No quedan hardcodes materiales afectando estrategia.
 
@@ -66,6 +71,7 @@ No quedan hardcodes materiales afectando estrategia.
 - Estado:
   - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
   - sin sesgo por `Bloque`
+  - con blend absoluto opcional parametrizado
 
 #### `score_reduccion`
 
@@ -73,6 +79,13 @@ No quedan hardcodes materiales afectando estrategia.
 - Estado:
   - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
   - sin sesgo por `Bloque`
+
+#### overlay tecnico v2
+
+- Tipo: `Estrategia`
+- Estado:
+  - rangos y subscores parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - `tech_reduccion` ya no depende de la inversion mecanica de `tech_refuerzo`
 
 #### `score_despliegue_liquidez`
 
@@ -97,8 +110,9 @@ No quedan hardcodes materiales afectando estrategia.
 #### labels y mensajes
 
 - Tipo: `Presentacion`
-- Prioridad:
-  - baja
+- Estado:
+  - narrativa de umbrales operativos alineada con [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - quedan solo textos de presentacion como hardcode menor
 
 ### [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
 
@@ -124,6 +138,7 @@ No quedan hardcodes materiales afectando estrategia.
   - politica porcentual de fondeo
   - threshold de refuerzo fuerte
   - umbrales de bonos via `action_rules`
+  - thresholds de refuerzo por subfamilia de bono via `action_rules`
 
 #### `build_prudent_allocation(...)`
 
@@ -153,7 +168,7 @@ No quedan hardcodes materiales afectando estrategia.
 
 ### Prioridad 1
 
-- labels y comentarios de presentacion
+- labels y comentarios de presentacion que no cambian decision
 
 ## Conclusion
 

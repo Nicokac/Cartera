@@ -9,7 +9,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from decision.actions import assign_action_v2, enrich_decision_explanations
+from decision.actions import assign_action_v2, assign_base_action, enrich_decision_explanations
 from decision.scoring import (
     apply_base_scores,
     apply_technical_overlay_scores,
@@ -63,6 +63,40 @@ class StrategyRulesTests(unittest.TestCase):
 
         self.assertEqual(default_result.loc[0, "accion_sugerida_v2"], "Mantener / Neutral")
         self.assertEqual(custom_result.loc[0, "accion_sugerida_v2"], "Refuerzo")
+
+    def test_base_and_v2_action_assignment_share_the_same_logic(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "KO",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "score_refuerzo": 0.65,
+                    "score_reduccion": 0.20,
+                    "score_refuerzo_v2": 0.65,
+                    "score_reduccion_v2": 0.20,
+                    "score_despliegue_liquidez": 0.0,
+                },
+                {
+                    "Ticker_IOL": "CAUCION",
+                    "Es_Liquidez": True,
+                    "Es_Bono": False,
+                    "score_refuerzo": 0.10,
+                    "score_reduccion": 0.10,
+                    "score_refuerzo_v2": 0.10,
+                    "score_reduccion_v2": 0.10,
+                    "score_despliegue_liquidez": 0.60,
+                },
+            ]
+        )
+
+        base_result = assign_base_action(df)
+        v2_result = assign_action_v2(df)
+
+        self.assertListEqual(
+            base_result["accion_sugerida"].tolist(),
+            v2_result["accion_sugerida_v2"].tolist(),
+        )
 
     def test_block_label_no_longer_changes_scores(self) -> None:
         df = pd.DataFrame(
@@ -709,6 +743,15 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertEqual(mapping["BPOC7"], "bond_bopreal")
         self.assertEqual(mapping["TZXM7"], "bond_other")
 
+    def test_build_decision_base_handles_empty_portfolio_master_without_required_columns(self) -> None:
+        decision = build_decision_base(pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), mep_real=1000.0)
+
+        self.assertTrue(decision.empty)
+        self.assertIn("Ticker_IOL", decision.columns)
+        self.assertIn("Tipo", decision.columns)
+        self.assertIn("Peso_%", decision.columns)
+        self.assertIn("Consensus_Final", decision.columns)
+
     def test_country_region_etf_needs_more_support_for_refuerzo(self) -> None:
         df = pd.DataFrame(
             [
@@ -947,6 +990,107 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertIn("Refuerzo por", comment)
         self.assertTrue(("beta controlada" in comment) or ("ROE alto" in comment) or ("margen alto" in comment))
         self.assertIn("calidad", score_comment)
+
+    def test_explanations_follow_overridden_absolute_metric_thresholds(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "SAFE",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "stock_defensive_dividend",
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 1.5,
+                    "Beta": 0.9,
+                    "P/E": 14.0,
+                    "ROE": 18.0,
+                    "Profit Margin": 18.0,
+                    "Consensus_Final": 0.75,
+                    "Momentum_Refuerzo": 0.7,
+                    "Momentum_Reduccion_Effective": 0.2,
+                    "Ganancia_%_Cap": 30.0,
+                    "MEP_Premium_%": -95.0,
+                    "Tech_Trend": "Mixta",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.8,
+                    "s_consensus_bad": 0.2,
+                    "s_low_weight": 0.8,
+                    "s_high_weight": 0.2,
+                    "s_beta_ok": 0.7,
+                    "s_beta_risk": 0.3,
+                    "s_mep_ok": 0.8,
+                    "s_mep_premium": 0.2,
+                    "s_pe_ok": 0.8,
+                    "s_pe_expensive": 0.2,
+                }
+            ]
+        )
+
+        default_comment = enrich_decision_explanations(df).loc[0, "motivo_accion"]
+        custom_comment = enrich_decision_explanations(
+            df,
+            scoring_rules={
+                "absolute_scoring": {
+                    "metrics": {
+                        "beta": {"good_max": 1.0, "bad_min": 1.6},
+                        "pe": {"good_max": 15.0, "bad_min": 28.0},
+                        "roe": {"good_min": 18.0, "bad_max": 5.0},
+                        "profit_margin": {"good_min": 18.0, "bad_max": 5.0},
+                        "mep_premium_pct": {"good_max": -90.0, "bad_min": 10.0},
+                        "ganancia_pct_cap": {"good_max": 10.0, "bad_min": 80.0, "bad_loss_max": -20.0},
+                    }
+                }
+            },
+        ).loc[0, "motivo_accion"]
+
+        self.assertNotIn("beta controlada", default_comment)
+        self.assertIn("beta controlada", custom_comment)
+
+    def test_explanations_follow_overridden_narrative_thresholds(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "GAIN",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "stock_growth",
+                    "accion_sugerida_v2": "Reducir",
+                    "Peso_%": 3.0,
+                    "Beta": 1.2,
+                    "P/E": 25.0,
+                    "ROE": 12.0,
+                    "Profit Margin": 12.0,
+                    "Consensus_Final": 0.5,
+                    "Momentum_Refuerzo": 0.3,
+                    "Momentum_Reduccion_Effective": 0.7,
+                    "Ganancia_%_Cap": 70.0,
+                    "MEP_Premium_%": -95.0,
+                    "Tech_Trend": "Mixta",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.5,
+                    "s_consensus_bad": 0.5,
+                    "s_low_weight": 0.2,
+                    "s_high_weight": 0.8,
+                    "s_beta_ok": 0.2,
+                    "s_beta_risk": 0.8,
+                    "s_mep_ok": 0.8,
+                    "s_mep_premium": 0.2,
+                    "s_pe_ok": 0.1,
+                    "s_pe_expensive": 0.9,
+                }
+            ]
+        )
+
+        default_comment = enrich_decision_explanations(df).loc[0, "motivo_accion"]
+        custom_comment = enrich_decision_explanations(
+            df,
+            scoring_rules={"narrative_thresholds": {"negative": {"ganancia_pct_cap_min": 60.0}}},
+        ).loc[0, "motivo_accion"]
+
+        self.assertNotIn("ganancia extendida", default_comment)
+        self.assertIn("ganancia extendida", custom_comment)
 
     def test_stock_reduction_comment_mentions_pressure_sources(self) -> None:
         df = pd.DataFrame(

@@ -605,13 +605,10 @@ Con las primeras 34 celdas relevadas:
 
 ## Próximo paso
 
-Con el relevamiento completo del notebook, el siguiente frente de trabajo es:
-- reintegrar al runner real el overlay técnico ampliado de las celdas 29 y 30
-- calibrar y validar contra snapshots reales si esa reintegración mejora:
-  - top refuerzos
-  - top reducciones
-  - score unificado final
-  - sizing resultante
+Con la brecha principal ya cerrada, el siguiente frente abierto ya no es de trazabilidad sino de evolución del motor:
+- régimen de mercado
+- memoria temporal
+- mejoras adicionales de bonos solo si aparece evidencia en corridas reales
 
 ## Estado posterior al relevamiento
 
@@ -622,11 +619,17 @@ Desde este relevamiento ya se cerró la brecha funcional principal detectada:
   - fundamentals `24/24`
   - ratings `17/24`
 
-La baseline operativa vigente quedó fijada en la corrida real del `2026-04-04`, con:
+La corrida real del `2026-04-04` quedó como primer baseline completo posterior al cierre de la brecha de trazabilidad, con:
 - `4` refuerzos
 - `1` reducción
 - `0` despliegues
 - ajuste fino adicional para no sobrepenalizar ETFs/core amplios como `SPY`
 
-El próximo punto abierto ya no es de trazabilidad, sino de calibración fina:
-- revisar si `EWZ` debe seguir como `Refuerzo` o pasar a `Mantener`
+La baseline operativa vigente ya no es esa, sino la del `2026-04-07`, documentada en:
+- [refactor-roadmap.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\docs\refactor-roadmap.md)
+- [README.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
+
+El próximo punto abierto ya no es de trazabilidad, sino de evolución de producto:
+- incorporar sensibilidad a régimen de mercado;
+- evaluar memoria temporal de decisiones;
+- seguir endureciendo bonos solo si el histórico real lo justifica.
