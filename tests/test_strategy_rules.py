@@ -307,6 +307,124 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
         self.assertLess(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
 
+    def test_absolute_scoring_can_penalize_uniformly_expensive_names(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "EXP1",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 1.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 1.0,
+                    "Perf YTD": 1.0,
+                    "Beta": 1.0,
+                    "P/E": 35.0,
+                    "ROE": 18.0,
+                    "Profit Margin": 18.0,
+                    "MEP_Premium_%": -95.0,
+                    "Consensus_Final": 0.6,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "EXP2",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 1.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 1.0,
+                    "Perf YTD": 1.0,
+                    "Beta": 1.0,
+                    "P/E": 40.0,
+                    "ROE": 18.0,
+                    "Profit Margin": 18.0,
+                    "MEP_Premium_%": -95.0,
+                    "Consensus_Final": 0.6,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        relative_only = apply_base_scores(df)
+        with_absolute = apply_base_scores(
+            df,
+            scoring_rules={
+                "absolute_scoring": {
+                    "enabled": True,
+                    "relative_weight": 0.0,
+                    "absolute_weight": 1.0,
+                    "metrics": {
+                        "pe": {"good_max": 18.0, "bad_min": 30.0},
+                        "beta": {"good_max": 0.8, "bad_min": 1.5},
+                        "roe": {"good_min": 20.0, "bad_max": 5.0},
+                        "profit_margin": {"good_min": 20.0, "bad_max": 5.0},
+                        "mep_premium_pct": {"good_max": -90.0, "bad_min": 10.0},
+                        "ganancia_pct_cap": {"good_max": 10.0, "bad_min": 80.0, "bad_loss_max": -20.0},
+                    },
+                }
+            },
+        )
+
+        self.assertGreater(relative_only.loc[0, "s_pe_ok"], with_absolute.loc[0, "s_pe_ok"])
+        self.assertLessEqual(with_absolute.loc[0, "s_pe_ok"], 0.01)
+        self.assertLessEqual(with_absolute.loc[1, "s_pe_ok"], 0.01)
+
+    def test_absolute_scoring_can_reward_absolute_quality_even_if_relative_gap_is_small(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "Q1",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 1.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 1.0,
+                    "Perf YTD": 1.0,
+                    "Beta": 0.7,
+                    "P/E": 18.0,
+                    "ROE": 24.0,
+                    "Profit Margin": 22.0,
+                    "MEP_Premium_%": -95.0,
+                    "Consensus_Final": 0.6,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "Q2",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Peso_%": 1.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 1.0,
+                    "Perf YTD": 1.0,
+                    "Beta": 0.75,
+                    "P/E": 19.0,
+                    "ROE": 23.0,
+                    "Profit Margin": 21.0,
+                    "MEP_Premium_%": -95.0,
+                    "Consensus_Final": 0.6,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        with_absolute = apply_base_scores(
+            df,
+            scoring_rules={
+                "absolute_scoring": {
+                    "enabled": True,
+                    "relative_weight": 0.5,
+                    "absolute_weight": 0.5,
+                }
+            },
+        )
+
+        self.assertGreaterEqual(with_absolute["s_quality"].min(), 0.7)
+        self.assertGreaterEqual(with_absolute["s_beta_ok"].min(), 0.5)
+
     def test_core_etf_gets_softer_reduction_pressure_than_stock(self) -> None:
         df = pd.DataFrame(
             [

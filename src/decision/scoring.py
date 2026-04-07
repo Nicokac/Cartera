@@ -14,6 +14,34 @@ def rank_score(series: pd.Series, higher_is_better: bool = True, neutral: float 
     return out
 
 
+def threshold_score(
+    series: pd.Series,
+    *,
+    good: float,
+    bad: float,
+    higher_is_better: bool,
+    neutral: float = 0.5,
+) -> pd.Series:
+    s = pd.to_numeric(series, errors="coerce")
+    out = pd.Series(neutral, index=s.index, dtype=float)
+    valid = s.notna()
+    if not valid.any():
+        return out
+
+    spread = max(abs(float(bad) - float(good)), 1e-9)
+    if higher_is_better:
+        raw = (s[valid] - float(bad)) / spread
+    else:
+        raw = (float(bad) - s[valid]) / spread
+    out.loc[valid] = np.clip(raw, 0, 1)
+    return out
+
+
+def blend_scores(relative: pd.Series, absolute: pd.Series, *, relative_weight: float, absolute_weight: float) -> pd.Series:
+    total = max(float(relative_weight) + float(absolute_weight), 1e-9)
+    return ((float(relative_weight) * relative) + (float(absolute_weight) * absolute)) / total
+
+
 DEFAULT_CONSENSUS_TAXONOMY = {
     "positive_terms": ["buy", "outperform", "overweight", "upgrade", "positive", "strong buy", "initiated"],
     "negative_terms": ["sell", "underperform", "underweight", "downgrade", "negative", "reduce"],
@@ -199,6 +227,7 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     penalties = scoring_rules.get("penalties", {}) or {}
     refuerzo_penalties = penalties.get("refuerzo", {}) or {}
     reduccion_penalties = penalties.get("reduccion", {}) or {}
+    absolute_rules = scoring_rules.get("absolute_scoring", {}) or {}
 
     gain_clip_min = float(gain_clip.get("min", -100))
     gain_clip_max = float(gain_clip.get("max", 150))
@@ -265,6 +294,118 @@ def apply_base_scores(decision: pd.DataFrame, *, scoring_rules: dict[str, object
     quality_parts = pd.concat([out["s_quality_roe"], out["s_quality_margin"]], axis=1)
     out["s_quality"] = quality_parts.mean(axis=1).fillna(rank_neutral)
     out["s_low_quality"] = 1 - out["s_quality"]
+
+    if bool(absolute_rules.get("enabled", False)):
+        relative_weight = float(absolute_rules.get("relative_weight", 0.7))
+        absolute_weight = float(absolute_rules.get("absolute_weight", 0.3))
+        metrics = absolute_rules.get("metrics", {}) or {}
+
+        beta_rules = metrics.get("beta", {}) or {}
+        pe_rules = metrics.get("pe", {}) or {}
+        roe_rules = metrics.get("roe", {}) or {}
+        margin_rules = metrics.get("profit_margin", {}) or {}
+        mep_rules = metrics.get("mep_premium_pct", {}) or {}
+        gain_rules = metrics.get("ganancia_pct_cap", {}) or {}
+
+        abs_beta_ok = threshold_score(
+            out["Beta"],
+            good=float(beta_rules.get("good_max", 0.8)),
+            bad=float(beta_rules.get("bad_min", 1.5)),
+            higher_is_better=False,
+            neutral=rank_neutral,
+        )
+        abs_beta_risk = threshold_score(
+            out["Beta"],
+            good=float(beta_rules.get("bad_min", 1.5)),
+            bad=float(beta_rules.get("good_max", 0.8)),
+            higher_is_better=True,
+            neutral=rank_neutral,
+        )
+        abs_pe_ok = threshold_score(
+            out["P/E"],
+            good=float(pe_rules.get("good_max", 18.0)),
+            bad=float(pe_rules.get("bad_min", 30.0)),
+            higher_is_better=False,
+            neutral=rank_neutral,
+        )
+        abs_pe_expensive = threshold_score(
+            out["P/E"],
+            good=float(pe_rules.get("bad_min", 30.0)),
+            bad=float(pe_rules.get("good_max", 18.0)),
+            higher_is_better=True,
+            neutral=rank_neutral,
+        )
+        abs_quality_roe = threshold_score(
+            out["ROE"],
+            good=float(roe_rules.get("good_min", 20.0)),
+            bad=float(roe_rules.get("bad_max", 5.0)),
+            higher_is_better=True,
+            neutral=rank_neutral,
+        )
+        abs_quality_margin = threshold_score(
+            out["Profit Margin"],
+            good=float(margin_rules.get("good_min", 20.0)),
+            bad=float(margin_rules.get("bad_max", 5.0)),
+            higher_is_better=True,
+            neutral=rank_neutral,
+        )
+        abs_mep_ok = threshold_score(
+            out["MEP_Premium_%"],
+            good=float(mep_rules.get("good_max", -90.0)),
+            bad=float(mep_rules.get("bad_min", 10.0)),
+            higher_is_better=False,
+            neutral=rank_neutral,
+        )
+        abs_mep_premium = threshold_score(
+            out["MEP_Premium_%"],
+            good=float(mep_rules.get("bad_min", 10.0)),
+            bad=float(mep_rules.get("good_max", -90.0)),
+            higher_is_better=True,
+            neutral=rank_neutral,
+        )
+        abs_big_gain = threshold_score(
+            out["Ganancia_%_Cap"],
+            good=float(gain_rules.get("bad_min", 80.0)),
+            bad=float(gain_rules.get("good_max", 10.0)),
+            higher_is_better=True,
+            neutral=rank_neutral,
+        )
+        abs_big_loss = threshold_score(
+            out["Ganancia_%_Cap"],
+            good=float(gain_rules.get("bad_loss_max", -20.0)),
+            bad=float(gain_rules.get("good_max", 10.0)),
+            higher_is_better=False,
+            neutral=rank_neutral,
+        )
+
+        out["s_beta_ok"] = blend_scores(out["s_beta_ok"], abs_beta_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
+        out["s_beta_risk"] = blend_scores(
+            out["s_beta_risk"], abs_beta_risk, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        out["s_pe_ok"] = blend_scores(out["s_pe_ok"], abs_pe_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
+        out["s_pe_expensive"] = blend_scores(
+            out["s_pe_expensive"], abs_pe_expensive, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        out["s_quality_roe"] = blend_scores(
+            out["s_quality_roe"], abs_quality_roe, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        out["s_quality_margin"] = blend_scores(
+            out["s_quality_margin"], abs_quality_margin, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        out["s_mep_ok"] = blend_scores(out["s_mep_ok"], abs_mep_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
+        out["s_mep_premium"] = blend_scores(
+            out["s_mep_premium"], abs_mep_premium, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        out["s_big_gain"] = blend_scores(
+            out["s_big_gain"], abs_big_gain, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        out["s_big_loss"] = blend_scores(
+            out["s_big_loss"], abs_big_loss, relative_weight=relative_weight, absolute_weight=absolute_weight
+        )
+        quality_parts = pd.concat([out["s_quality_roe"], out["s_quality_margin"]], axis=1)
+        out["s_quality"] = quality_parts.mean(axis=1).fillna(rank_neutral)
+        out["s_low_quality"] = 1 - out["s_quality"]
+
     out["s_concentration_room"] = np.where(
         out["Peso_%"].isna(),
         rank_neutral,
