@@ -100,6 +100,49 @@ class LiquidityTests(unittest.TestCase):
         self.assertTrue(math.isclose(contract["liquidez_desplegable_total_ars"], 300000, rel_tol=0, abs_tol=0.01))
         self.assertFalse(contract["duplicate_caucion_in_cash"])
 
+    def test_rebuild_liquidity_treats_zero_mep_as_missing_without_dividing_by_zero(self) -> None:
+        activos = [
+            {
+                "valorizado": 100,
+                "gananciaDinero": 0,
+                "titulo": {
+                    "simbolo": "FCI_USD",
+                    "descripcion": "Fondo Dolar",
+                    "tipo": "FCI",
+                    "moneda": "USD",
+                },
+            },
+        ]
+        estado_payload = {
+            "totalEnPesos": 100000,
+            "cuentas": [
+                {
+                    "moneda": "Pesos",
+                    "disponible": 100000,
+                    "saldos": [{"liquidacion": "inmediato", "disponible": 100000}],
+                },
+                {
+                    "moneda": "USD",
+                    "disponible": 50,
+                    "saldos": [{"liquidacion": "inmediato", "disponible": 50}],
+                },
+            ],
+        }
+
+        df_liquidez, contract, _ = rebuild_liquidity(
+            activos,
+            estado_payload,
+            mep_real=0.0,
+            fci_cash_management={"FCI_USD"},
+        )
+
+        self.assertTrue(math.isclose(contract["cash_operativo_ars"], 100000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isnan(contract["cash_operativo_usd"]))
+        self.assertTrue(math.isnan(contract["liquidez_desplegable_total_usd"]))
+        fci_row = df_liquidez[df_liquidez["Ticker_IOL"] == "FCI_USD"].iloc[0]
+        self.assertTrue(math.isnan(float(fci_row["Valorizado_ARS"])))
+        self.assertEqual(float(fci_row["Valor_USD"]), 100.0)
+
 
 if __name__ == "__main__":
     unittest.main()

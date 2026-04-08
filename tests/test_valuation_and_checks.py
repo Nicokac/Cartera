@@ -12,7 +12,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from portfolio.checks import build_integrity_report
-from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+from portfolio.valuation import attach_value_usd, build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
 
 
 class ValuationAndChecksTests(unittest.TestCase):
@@ -112,6 +112,13 @@ class ValuationAndChecksTests(unittest.TestCase):
         )
 
         self.assertEqual(float(df_total.loc[0, "Peso_%"]), 0.0)
+
+    def test_attach_value_usd_treats_zero_mep_as_missing(self) -> None:
+        df = pd.DataFrame([{"Ticker_IOL": "AAPL", "Valorizado_ARS": 1000.0}])
+
+        result = attach_value_usd(df, mep_real=0.0)
+
+        self.assertTrue(pd.isna(result.loc[0, "Valor_USD"]))
 
 
 if __name__ == "__main__":

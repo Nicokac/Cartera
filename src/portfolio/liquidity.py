@@ -6,6 +6,14 @@ import numpy as np
 import pandas as pd
 
 
+def _valid_positive_mep(mep_real: object) -> float | None:
+    numeric = pd.to_numeric(pd.Series([mep_real]), errors="coerce").iloc[0]
+    if pd.isna(numeric):
+        return None
+    numeric = float(numeric)
+    return numeric if numeric > 0 else None
+
+
 def normalize_account_currency(moneda: Any) -> str:
     m = str(moneda or "").strip().upper()
     if "DOLAR" in m or "USD" in m:
@@ -82,6 +90,7 @@ def rebuild_liquidity(
     mep_real: float | None,
     fci_cash_management: set[str],
 ) -> tuple[pd.DataFrame, dict[str, float], list[tuple]]:
+    mep_value = _valid_positive_mep(mep_real)
     liquidez_rows: list[tuple] = []
 
     caucion_ars = 0.0
@@ -107,8 +116,8 @@ def rebuild_liquidity(
             continue
 
         if simbolo.upper() in fci_cash_management or "FONDOCOMUNDEINVERSION" in tipo_norm or "FCI" in tipo_norm:
-            valorizado_ars = valorizado * mep_real if moneda == "USD" and mep_real else valorizado
-            ganancia_ars = ganancia_dinero * mep_real if moneda == "USD" and mep_real else ganancia_dinero
+            valorizado_ars = valorizado * mep_value if moneda == "USD" and mep_value is not None else valorizado
+            ganancia_ars = ganancia_dinero * mep_value if moneda == "USD" and mep_value is not None else ganancia_dinero
 
             if simbolo.upper() in fci_cash_management:
                 fci_cash_management_ars += valorizado_ars
@@ -150,13 +159,13 @@ def rebuild_liquidity(
     registros_liquidez = []
     for ticker, descripcion, bloque, moneda, valorizado_raw, ganancia_raw in liquidez_rows:
         if moneda == "USD":
-            valorizado_ars = valorizado_raw * mep_real if mep_real else np.nan
-            ganancia_ars = ganancia_raw * mep_real if mep_real else np.nan
+            valorizado_ars = valorizado_raw * mep_value if mep_value is not None else np.nan
+            ganancia_ars = ganancia_raw * mep_value if mep_value is not None else np.nan
             valor_usd = valorizado_raw
         else:
             valorizado_ars = valorizado_raw
             ganancia_ars = ganancia_raw
-            valor_usd = valorizado_ars / mep_real if mep_real else np.nan
+            valor_usd = valorizado_ars / mep_value if mep_value is not None else np.nan
 
         registros_liquidez.append(
             {
@@ -182,9 +191,9 @@ def rebuild_liquidity(
                 ["Ticker_IOL", "Descripcion", "Bloque", "Tipo", "Moneda"], as_index=False
             ).agg(
                 {
-                    "Valorizado_ARS": "sum",
-                    "Valor_USD": "sum",
-                    "Ganancia_ARS": "sum",
+                    "Valorizado_ARS": lambda values: values.sum(min_count=1),
+                    "Valor_USD": lambda values: values.sum(min_count=1),
+                    "Ganancia_ARS": lambda values: values.sum(min_count=1),
                     "Cantidad": "first",
                     "Cantidad_Real": "first",
                     "PPC_ARS": "first",
@@ -193,7 +202,9 @@ def rebuild_liquidity(
             )
         )
 
-    cash_disponible_broker_ars = cash_immediate_ars + cash_immediate_usd * mep_real if mep_real else cash_immediate_ars
+    cash_disponible_broker_ars = (
+        cash_immediate_ars + cash_immediate_usd * mep_value if mep_value is not None else cash_immediate_ars
+    )
     caucion_colocada_ars = caucion_ars
     liquidez_estrategica_ars = fci_cash_management_ars
     liquidez_desplegable_total_ars = cash_disponible_broker_ars + caucion_colocada_ars + liquidez_estrategica_ars
@@ -203,10 +214,12 @@ def rebuild_liquidity(
         "caucion_tactica_ars": round(caucion_colocada_ars, 2),
         "fci_estrategico_ars": round(liquidez_estrategica_ars, 2),
         "liquidez_desplegable_total_ars": round(liquidez_desplegable_total_ars, 2),
-        "cash_operativo_usd": round(cash_disponible_broker_ars / mep_real, 2) if mep_real else np.nan,
-        "caucion_tactica_usd": round(caucion_colocada_ars / mep_real, 2) if mep_real else np.nan,
-        "fci_estrategico_usd": round(liquidez_estrategica_ars / mep_real, 2) if mep_real else np.nan,
-        "liquidez_desplegable_total_usd": round(liquidez_desplegable_total_ars / mep_real, 2) if mep_real else np.nan,
+        "cash_operativo_usd": round(cash_disponible_broker_ars / mep_value, 2) if mep_value is not None else np.nan,
+        "caucion_tactica_usd": round(caucion_colocada_ars / mep_value, 2) if mep_value is not None else np.nan,
+        "fci_estrategico_usd": round(liquidez_estrategica_ars / mep_value, 2) if mep_value is not None else np.nan,
+        "liquidez_desplegable_total_usd": (
+            round(liquidez_desplegable_total_ars / mep_value, 2) if mep_value is not None else np.nan
+        ),
         "total_broker_en_pesos": total_broker_en_pesos,
         "duplicate_caucion_in_cash": duplicate_caucion_in_cash,
     }

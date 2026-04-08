@@ -35,6 +35,14 @@ def _compute_weight_pct(series: pd.Series) -> pd.Series:
     return (values.fillna(0) / total * 100).round(2)
 
 
+def _valid_positive_mep(mep_real: object) -> float | None:
+    numeric = pd.to_numeric(pd.Series([mep_real]), errors="coerce").iloc[0]
+    if pd.isna(numeric):
+        return None
+    numeric = float(numeric)
+    return numeric if numeric > 0 else None
+
+
 def build_cedears_df(
     portafolio: list[tuple],
     precios_iol: dict[str, float],
@@ -136,8 +144,9 @@ def attach_value_usd(
     if df.empty:
         return df
     out = df.copy()
+    mep_value = _valid_positive_mep(mep_real)
     if "Valor_USD" not in out.columns:
-        out["Valor_USD"] = out["Valorizado_ARS"] / mep_real if mep_real else np.nan
+        out["Valor_USD"] = out["Valorizado_ARS"] / mep_value if mep_value is not None else np.nan
     if default_columns:
         for col in default_columns:
             if col not in out.columns:
@@ -153,6 +162,7 @@ def build_portfolio_master(
     *,
     mep_real: float | None,
 ) -> pd.DataFrame:
+    mep_value = _valid_positive_mep(mep_real)
     frames = []
     for frame in [df_cedears, df_local, df_bonos, df_liquidez]:
         if frame is None or frame.empty:
@@ -180,11 +190,11 @@ def build_portfolio_master(
         df_total["Cantidad_Real"] = df_total["Cantidad_Real"].fillna(df_total.get("Cantidad"))
 
     if "Valor_USD" not in df_total.columns:
-        df_total["Valor_USD"] = df_total["Valorizado_ARS"] / mep_real if mep_real else np.nan
+        df_total["Valor_USD"] = df_total["Valorizado_ARS"] / mep_value if mep_value is not None else np.nan
     else:
         faltantes = df_total["Valor_USD"].isna()
-        if mep_real:
-            df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"] / mep_real
+        if mep_value is not None:
+            df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"] / mep_value
 
     df_total["Peso_%"] = _compute_weight_pct(df_total["Valorizado_ARS"])
 

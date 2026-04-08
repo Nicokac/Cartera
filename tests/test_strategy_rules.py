@@ -202,6 +202,53 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(blended.loc[0, "tech_refuerzo"], 0.5)
         self.assertGreater(blended.loc[0, "score_refuerzo_v2"], blended.loc[0, "score_refuerzo"])
 
+    def test_build_decision_base_treats_zero_mep_as_missing_for_premium(self) -> None:
+        df_total = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Growth",
+                    "Peso_%": 1.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 10.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 900.0,
+                }
+            ]
+        )
+        df_cedears = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Ticker_Finviz": "AAPL",
+                    "instrument_class": "stock",
+                    "asset_family": "stock",
+                    "asset_subfamily": "stock_growth",
+                    "is_etf": False,
+                    "is_core_etf": False,
+                    "Perf Week": 1.0,
+                    "Perf Month": 2.0,
+                    "Perf YTD": 3.0,
+                    "Beta": 1.1,
+                    "P/E": 20.0,
+                    "ROE": 25.0,
+                    "Profit Margin": 22.0,
+                    "MEP_Implicito": 1200.0,
+                }
+            ]
+        )
+
+        decision = build_decision_base(
+            df_total,
+            df_cedears,
+            pd.DataFrame(),
+            mep_real=0.0,
+        )
+
+        self.assertTrue(pd.isna(decision.loc[0, "MEP_Premium_%"]))
+
     def test_technical_reduction_is_not_mechanical_inverse_of_refuerzo(self) -> None:
         df = pd.DataFrame(
             [

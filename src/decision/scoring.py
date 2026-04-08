@@ -4,6 +4,14 @@ import numpy as np
 import pandas as pd
 
 
+def _valid_positive_float(value: object) -> float | None:
+    numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    if pd.isna(numeric):
+        return None
+    numeric = float(numeric)
+    return numeric if numeric > 0 else None
+
+
 def rank_score(series: pd.Series, higher_is_better: bool = True, neutral: float = 0.5) -> pd.Series:
     s = pd.to_numeric(series, errors="coerce")
     out = pd.Series(neutral, index=s.index, dtype=float)
@@ -188,6 +196,7 @@ def build_decision_base(
     mep_real: float | None,
     scoring_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
+    mep_value = _valid_positive_float(mep_real)
     decision_cols = [
         "Ticker_IOL",
         "Tipo",
@@ -306,11 +315,12 @@ def build_decision_base(
         decision["Es_Liquidez"] & decision["asset_subfamily"].isna(),
         "asset_subfamily",
     ] = "liquidity_other"
-    decision["MEP_Premium_%"] = np.where(
-        decision["MEP_Implicito"].notna() & bool(mep_real),
-        (decision["MEP_Implicito"] / mep_real - 1) * 100,
-        np.nan,
-    )
+    decision["MEP_Premium_%"] = np.nan
+    if mep_value is not None:
+        premium_mask = decision["MEP_Implicito"].notna()
+        decision.loc[premium_mask, "MEP_Premium_%"] = (
+            decision.loc[premium_mask, "MEP_Implicito"] / mep_value - 1
+        ) * 100
 
     decision["Consensus_Score"] = decision["consenso"].apply(
         lambda value: consensus_to_score(value, scoring_rules=scoring_rules)
