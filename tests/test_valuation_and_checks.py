@@ -16,6 +16,16 @@ from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df
 
 
 class ValuationAndChecksTests(unittest.TestCase):
+    def test_build_cedears_df_returns_zero_weight_when_total_is_zero(self) -> None:
+        df_cedears = build_cedears_df(
+            [("AAPL", "AAPL", "Tecnologia", 2, 1000)],
+            {"AAPL": 0},
+            ratios={"AAPL": 10},
+        )
+
+        self.assertEqual(float(df_cedears.loc[0, "Valorizado_ARS"]), 0.0)
+        self.assertEqual(float(df_cedears.loc[0, "Peso_%"]), 0.0)
+
     def test_build_portfolio_master_recomputes_weight_over_all_assets(self) -> None:
         df_cedears = build_cedears_df(
             [("AAPL", "AAPL", "Tecnologia", 2, 1000)],
@@ -91,6 +101,17 @@ class ValuationAndChecksTests(unittest.TestCase):
         self.assertIn("AAPL", summary["faltan_precios"])
         self.assertFalse(summary["peso_ok"])
         self.assertEqual(report_df.loc[report_df["check"] == "peso_total", "estado"].iloc[0], "WARN")
+
+    def test_build_portfolio_master_returns_zero_weight_when_total_valorizado_is_zero(self) -> None:
+        df_total = build_portfolio_master(
+            pd.DataFrame([{"Ticker_IOL": "AAPL", "Tipo": "CEDEAR", "Valorizado_ARS": 0.0}]),
+            pd.DataFrame(),
+            pd.DataFrame(),
+            pd.DataFrame(),
+            mep_real=1000,
+        )
+
+        self.assertEqual(float(df_total.loc[0, "Peso_%"]), 0.0)
 
 
 if __name__ == "__main__":

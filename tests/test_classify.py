@@ -89,6 +89,31 @@ class ClassifyPortfolioTests(unittest.TestCase):
         self.assertEqual(result["LIQUIDEZ"][0][0], "CAUCION")
         self.assertEqual(result["LIQUIDEZ"][1][0], "FCI1")
 
+    def test_classify_iol_portfolio_keeps_cedear_without_finviz_mapping(self) -> None:
+        activos = [
+            {
+                "cantidad": 10,
+                "ppc": 1000,
+                "valorizado": 12000,
+                "gananciaDinero": 2000,
+                "titulo": {
+                    "simbolo": "NEWC",
+                    "descripcion": "Nuevo Cedear",
+                    "tipo": "CEDEARS",
+                    "moneda": "Pesos",
+                },
+            }
+        ]
+
+        result = classify_iol_portfolio(
+            activos,
+            finviz_map={},
+            block_map={},
+            vn_factor_map={},
+        )
+
+        self.assertEqual(result["PORTAFOLIO"], [("NEWC", None, "Sin clasificar", 10.0, 1000.0)])
+
 
 if __name__ == "__main__":
     unittest.main()

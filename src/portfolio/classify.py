@@ -35,8 +35,7 @@ def classify_iol_portfolio(
 
         if tipo_norm == "CEDEARS":
             ticker_finviz = finviz_map.get(simbolo)
-            if ticker_finviz:
-                portafolio.append((simbolo, ticker_finviz, bloque, cantidad, ppc))
+            portafolio.append((simbolo, ticker_finviz, bloque, cantidad, ppc))
             continue
 
         if tipo_norm in {"ACCIONES", "ACCION"}:

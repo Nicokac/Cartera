@@ -27,6 +27,14 @@ MASTER_PORTFOLIO_COLUMNS = [
 ]
 
 
+def _compute_weight_pct(series: pd.Series) -> pd.Series:
+    values = pd.to_numeric(series, errors="coerce")
+    total = float(values.sum(skipna=True))
+    if not np.isfinite(total) or abs(total) < 1e-12:
+        return pd.Series(0.0, index=series.index, dtype=float)
+    return (values.fillna(0) / total * 100).round(2)
+
+
 def build_cedears_df(
     portafolio: list[tuple],
     precios_iol: dict[str, float],
@@ -56,7 +64,7 @@ def build_cedears_df(
     if df.empty:
         return df
     df["Ratio"] = df["Ticker_IOL"].map(ratios)
-    df["Peso_%"] = (df["Valorizado_ARS"] / df["Valorizado_ARS"].sum() * 100).round(2)
+    df["Peso_%"] = _compute_weight_pct(df["Valorizado_ARS"])
     return df
 
 
@@ -85,7 +93,7 @@ def build_local_df(acciones_locales: list[tuple], precios_iol: dict[str, float])
     df_local = pd.DataFrame(registros)
     if df_local.empty:
         return df_local
-    df_local["Peso_%"] = (df_local["Valorizado_ARS"] / df_local["Valorizado_ARS"].sum() * 100).round(2)
+    df_local["Peso_%"] = _compute_weight_pct(df_local["Valorizado_ARS"])
     return df_local
 
 
@@ -115,7 +123,7 @@ def build_bonos_df(bonos: list[tuple], precios_iol: dict[str, float]) -> pd.Data
     df_bonos = pd.DataFrame(registros)
     if df_bonos.empty:
         return df_bonos
-    df_bonos["Peso_%"] = (df_bonos["Valorizado_ARS"] / df_bonos["Valorizado_ARS"].sum() * 100).round(2)
+    df_bonos["Peso_%"] = _compute_weight_pct(df_bonos["Valorizado_ARS"])
     return df_bonos
 
 
@@ -178,8 +186,6 @@ def build_portfolio_master(
         if mep_real:
             df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"] / mep_real
 
-    total_valorizado = df_total["Valorizado_ARS"].sum()
-    if total_valorizado:
-        df_total["Peso_%"] = (df_total["Valorizado_ARS"] / total_valorizado * 100).round(2)
+    df_total["Peso_%"] = _compute_weight_pct(df_total["Valorizado_ARS"])
 
     return df_total
