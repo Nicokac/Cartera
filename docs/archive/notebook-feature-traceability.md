@@ -645,3 +645,16 @@ Desde esta evaluación ya se implementó una primera capa de memoria temporal di
   - `score_delta_vs_dia_anterior`
   - rachas consecutivas por estado
 - la versión actual sigue siendo observacional y no altera score ni acción
+
+Actualización posterior:
+- el reporte HTML ya muestra:
+  - `Corrida`
+  - bloque `Regimen de mercado`
+  - `Accion previa`
+  - `Δ Score`
+  - `Racha`
+- la calibración reciente endureció levemente `stock_growth`
+- `stock_commodity` recibió un freno suave adicional cuando `Tech_Trend = Mixta`
+- efecto visible en corrida real vigente:
+  - `GOOGL` dejó de salir como `Refuerzo`
+  - `NEM` siguió en `Refuerzo`, pero con menor score

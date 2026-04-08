@@ -53,7 +53,7 @@ Actualizacion de cierre al `2026-04-07`:
 ### Cierre
 
 - Se relevo el inventario de hardcodes que afectan estrategia.
-- Se creo [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md).
+- Se creo [docs/archive/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\strategy-hardcode-inventory.md).
 
 ## Fase B. Parametrizacion externa
 
@@ -138,7 +138,7 @@ Actualizacion de cierre al `2026-04-07`:
 ### 2026-04-03
 
 - Se cerro la Fase A con el relevamiento completo de hardcodes que afectan la estrategia.
-- Se creo [docs/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\strategy-hardcode-inventory.md) como documento base de inventario.
+- Se creo [docs/archive/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\strategy-hardcode-inventory.md) como documento base de inventario.
 - Se cerro la Fase B con la externalizacion de thresholds y pesos de estrategia a `data/strategy/`.
 - El pipeline ya toma reglas de scoring, acciones y sizing desde archivos configurables.
 - Se cerro la Fase C con la eliminacion de `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` del sizing.

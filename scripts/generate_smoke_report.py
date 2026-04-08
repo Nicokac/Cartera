@@ -306,6 +306,7 @@ def render_report(
     finviz_stats = result.get("finviz_stats", {}) or {}
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
     decision_memory = decision_bundle.get("decision_memory", {}) or {}
+    market_regime = decision_bundle.get("market_regime", {}) or {}
 
     df_total = portfolio_bundle["df_total"].copy()
     integrity_report = portfolio_bundle["integrity_report"].copy()
@@ -438,6 +439,29 @@ def render_report(
       <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
     </section>
     """
+    regime_flags = market_regime.get("flags", {}) or {}
+    regime_active_flags = market_regime.get("active_flags", []) or []
+    regime_summary = ""
+    if market_regime:
+        regime_items = []
+        for flag_name, is_active in regime_flags.items():
+            regime_items.append(
+                f"<span>{html.escape(flag_name)}: <strong>{'Activo' if is_active else 'Inactivo'}</strong></span>"
+            )
+        active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
+        regime_state = "Activo" if market_regime.get("any_active") else "Sin activacion"
+        regime_summary = f"""
+    <section class="panel" id="regimen">
+      <h2>Regimen de mercado</h2>
+      <div class="meta">
+        <span>Estado: <strong>{html.escape(regime_state)}</strong></span>
+        <span>Flags activos: <strong>{html.escape(active_flags_label)}</strong></span>
+      </div>
+      <div class="meta">
+        {''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>'}
+      </div>
+    </section>
+    """
 
     bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
     bonistas_section = ""
@@ -507,6 +531,7 @@ def render_report(
       <a href="#integridad">Integridad</a>
       <a href="#resumen">Resumen</a>
       <a href="#decision">Decision</a>
+      <a href="#regimen">Regimen</a>
       <a href="#tecnico">Tecnico</a>
       {bonistas_nav}
       <a href="#sizing">Sizing</a>
@@ -516,6 +541,7 @@ def render_report(
     {summary_cards}
     {action_summary}
     {memory_summary}
+    {regime_summary}
 
     <section class="panel" id="integridad">
       <h2>Integridad</h2>

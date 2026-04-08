@@ -36,8 +36,9 @@ Notas:
   - Finviz ratings `17/24`
   - regimen de mercado configurado pero sin flags activos en la macro vigente
   - memoria temporal diaria habilitada con historial en `data/runtime/decision_history.csv`
-  - refuerzos efectivos: `VIST`, `KO`, `XLU`, `XLV`
+  - refuerzos efectivos actuales: `VIST`, `XLU`, `XLV`, `KO`, `NEM`
   - reduccion efectiva: `MELI`
+  - `GOOGL` volvió a `Mantener / Neutral`
   - `SPY` y `AAPL` quedan en `Mantener / Neutral`
   - `GD30` sigue en `Rebalancear / tomar ganancia`
   - ningun bono dispara `Refuerzo`
@@ -51,6 +52,17 @@ Notas:
     - `Refuerzos persistentes: 0`
     - `Reducciones persistentes: 0`
     - `Sin historial: 39`
+  - el HTML real ya expone:
+    - `Accion previa`
+    - `Δ Score`
+    - `Racha`
+
+- Ajuste reciente de calibracion:
+  - `stock_growth` se endurecio ligeramente
+  - `stock_commodity` suma un freno suave cuando el tecnico queda `Mixta`
+  - efecto visible:
+    - `GOOGL` salio de `Refuerzo`
+    - `NEM` siguio en `Refuerzo`, pero con menor score
 
 - Baseline vigente Bonistas v1 para monitoreo de bonos locales:
   - bloque `Bonos Locales` visible en el HTML real

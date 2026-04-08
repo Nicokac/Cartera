@@ -24,6 +24,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 - Fecha base del roadmap: `2026-03-31`
 - Estado global: `Fase 10 en progreso`
 - Última actualización: `2026-04-07`
+- Documentación canónica centralizada en [docs/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\README.md)
 
 ## Fase 0. Línea base y resguardo
 
@@ -384,7 +385,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
   - decisión
   - sizing
 - Se actualizó `src/__init__.py` para exponer la ruta canónica de pipeline desde el paquete base.
-- Se creó [`notebook-runbook.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\notebook-runbook.md) con el modo de uso final del notebook.
+- Se creó [`notebook-runbook.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\notebook-runbook.md) con el modo de uso final del notebook.
 - Se ajustó [`Cartera.ipynb`](C:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb) para:
   - declarar que la lógica canónica vive en `src/`
   - importar la fachada `pipeline`
@@ -418,7 +419,7 @@ Ordenar el proyecto para separar ingestión de datos, normalización, reglas de 
 
 ### Avance actual
 
-- se completó la trazabilidad funcional del notebook en [`notebook-feature-traceability.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\notebook-feature-traceability.md)
+- se completó la trazabilidad funcional del notebook en [`notebook-feature-traceability.md`](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\notebook-feature-traceability.md)
 - se identificó como brecha principal que el overlay técnico de las celdas 29 y 30 no estaba conectado al runner real
 - se inició la reintegración del overlay técnico al pipeline canónico y a [`generate_real_report.py`](C:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
 - el runner real ahora expone cobertura técnica y guarda snapshot específico del overlay técnico
@@ -674,4 +675,19 @@ Cada vez que avancemos una fase, este archivo debe actualizarse con:
   - `Reducciones persistentes: 0`
   - `Sin historial: 39`
 - Esta capa todavía no modifica score ni acción; solo agrega contexto temporal para la siguiente etapa.
+
+## Actualización de baseline vigente
+
+- La baseline operativa efectiva dentro del ciclo actual quedó en la corrida real `2026-04-07 23:55:21`.
+- Estado visible en reporte:
+  - bloque `Regimen de mercado` ya expuesto en HTML
+  - `Corrida` visible como timestamp canónico
+  - memoria temporal visible con `Accion previa`, `Δ Score` y `Racha`
+- Resultado operativo vigente:
+  - `5` refuerzos: `VIST`, `XLU`, `XLV`, `KO`, `NEM`
+  - `1` reducción: `MELI`
+  - `GOOGL` volvió a `Mantener / Neutral`
+- Ajuste reciente:
+  - `stock_growth` quedó apenas más exigente para `Refuerzo`
+  - `stock_commodity` suma un freno suave cuando el técnico es `Mixta`
 

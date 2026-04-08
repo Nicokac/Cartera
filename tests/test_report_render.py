@@ -77,7 +77,19 @@ def _build_minimal_result(
                 "liquidez_usd_ars": 0.0,
             },
         },
-        "decision_bundle": {"final_decision": final_decision, "decision_memory": decision_memory or {}},
+        "decision_bundle": {
+            "final_decision": final_decision,
+            "decision_memory": decision_memory or {},
+            "market_regime": {
+                "flags": {
+                    "stress_soberano_local": False,
+                    "inflacion_local_alta": False,
+                    "tasas_ust_altas": False,
+                },
+                "active_flags": [],
+                "any_active": False,
+            },
+        },
         "sizing_bundle": {
             "propuesta": pd.DataFrame(),
             "asignacion_final": pd.DataFrame(),
@@ -149,6 +161,14 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Racha", html)
         self.assertIn("Reducir", html)
         self.assertIn("+0.015", html)
+
+    def test_render_report_shows_market_regime_panel(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Regimen de mercado", html)
+        self.assertIn("Sin activacion", html)
+        self.assertIn("stress_soberano_local", html)
+        self.assertIn("tasas_ust_altas", html)
 
 
 if __name__ == "__main__":

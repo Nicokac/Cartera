@@ -23,3 +23,7 @@ Snapshots:
 Memoria temporal:
 - el historial diario observacional del runner real vive en `data/runtime/decision_history.csv`
 - una misma fecha no debe contar múltiples veces para persistencia
+- la tabla de decisión del HTML ya expone:
+  - `Accion previa`
+  - `Δ Score`
+  - `Racha`

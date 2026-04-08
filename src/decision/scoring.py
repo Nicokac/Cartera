@@ -864,21 +864,34 @@ def apply_technical_overlay_scores(
     out["score_reduccion_v2"] = (blend_base * out["score_reduccion"] + blend_tech * out["tech_reduccion"]).clip(0, 1)
     for subfamily, rules in asset_subfamily_adjustments.items():
         mask = out.get("asset_subfamily", pd.Series(index=out.index, dtype=object)).eq(subfamily)
-        mixed_refuerzo_penalty = float((rules or {}).get("technical_mixed_high_gain_refuerzo_penalty", 0.0))
-        mixed_reduccion_boost = float((rules or {}).get("technical_mixed_high_gain_reduccion_boost", 0.0))
+        mixed_refuerzo_penalty = float((rules or {}).get("technical_mixed_refuerzo_penalty", 0.0))
+        mixed_reduccion_boost = float((rules or {}).get("technical_mixed_reduccion_boost", 0.0))
+        mixed_high_gain_refuerzo_penalty = float((rules or {}).get("technical_mixed_high_gain_refuerzo_penalty", 0.0))
+        mixed_high_gain_reduccion_boost = float((rules or {}).get("technical_mixed_high_gain_reduccion_boost", 0.0))
         mixed_gain_threshold_pct = float((rules or {}).get("technical_mixed_gain_threshold_pct", 80.0))
         mixed_trends = set((rules or {}).get("technical_mixed_trends", ["Mixta"]))
-        if not mixed_refuerzo_penalty and not mixed_reduccion_boost:
+        if (
+            not mixed_refuerzo_penalty
+            and not mixed_reduccion_boost
+            and not mixed_high_gain_refuerzo_penalty
+            and not mixed_high_gain_reduccion_boost
+        ):
             continue
-        mixed_mask = (
+        trend_mask = (
             mask
             & out.get("Tech_Trend", pd.Series(index=out.index, dtype=object)).isin(mixed_trends)
-            & (pd.to_numeric(out.get("Ganancia_%_Cap"), errors="coerce").fillna(-1e9) >= mixed_gain_threshold_pct)
+        )
+        high_gain_mixed_mask = trend_mask & (
+            pd.to_numeric(out.get("Ganancia_%_Cap"), errors="coerce").fillna(-1e9) >= mixed_gain_threshold_pct
         )
         if mixed_refuerzo_penalty:
-            out["score_refuerzo_v2"] -= np.where(mixed_mask, mixed_refuerzo_penalty, 0.0)
+            out["score_refuerzo_v2"] -= np.where(trend_mask, mixed_refuerzo_penalty, 0.0)
         if mixed_reduccion_boost:
-            out["score_reduccion_v2"] += np.where(mixed_mask, mixed_reduccion_boost, 0.0)
+            out["score_reduccion_v2"] += np.where(trend_mask, mixed_reduccion_boost, 0.0)
+        if mixed_high_gain_refuerzo_penalty:
+            out["score_refuerzo_v2"] -= np.where(high_gain_mixed_mask, mixed_high_gain_refuerzo_penalty, 0.0)
+        if mixed_high_gain_reduccion_boost:
+            out["score_reduccion_v2"] += np.where(high_gain_mixed_mask, mixed_high_gain_reduccion_boost, 0.0)
     out["score_refuerzo_v2"] = out["score_refuerzo_v2"].clip(0, 1)
     out["score_reduccion_v2"] = out["score_reduccion_v2"].clip(0, 1)
     out["score_unificado_v2"] = (out["score_refuerzo_v2"] - out["score_reduccion_v2"]).round(3)

@@ -1324,6 +1324,48 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(blended.loc[0, "score_reduccion_v2"], blended.loc[1, "score_reduccion_v2"])
         self.assertLess(blended.loc[0, "score_unificado_v2"], blended.loc[1, "score_unificado_v2"])
 
+    def test_stock_commodity_mixed_technical_gets_soft_brake_even_without_high_gain(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "NEM",
+                    "asset_subfamily": "stock_commodity",
+                    "score_refuerzo": 0.59,
+                    "score_reduccion": 0.43,
+                    "tech_refuerzo": 0.63,
+                    "Tech_Trend": "Mixta",
+                    "Ganancia_%_Cap": 40.0,
+                },
+                {
+                    "Ticker_IOL": "VIST",
+                    "asset_subfamily": "stock_commodity",
+                    "score_refuerzo": 0.59,
+                    "score_reduccion": 0.43,
+                    "tech_refuerzo": 0.63,
+                    "Tech_Trend": "Alcista",
+                    "Ganancia_%_Cap": 40.0,
+                },
+            ]
+        )
+
+        blended = apply_technical_overlay_scores(
+            df,
+            scoring_rules={
+                "technical_overlay": {"blend_base": 0.75, "blend_tech": 0.25},
+                "asset_subfamily_adjustments": {
+                    "stock_commodity": {
+                        "technical_mixed_refuerzo_penalty": 0.01,
+                        "technical_mixed_reduccion_boost": 0.005,
+                        "technical_mixed_trends": ["Mixta"],
+                    }
+                },
+            },
+        )
+
+        self.assertLess(blended.loc[0, "score_refuerzo_v2"], blended.loc[1, "score_refuerzo_v2"])
+        self.assertGreater(blended.loc[0, "score_reduccion_v2"], blended.loc[1, "score_reduccion_v2"])
+        self.assertLess(blended.loc[0, "score_unificado_v2"], blended.loc[1, "score_unificado_v2"])
+
     def test_market_regime_can_penalize_local_equity_and_help_hard_currency_bonds(self) -> None:
         df = pd.DataFrame(
             [
