@@ -259,6 +259,8 @@ def build_decision_table(
         racha_reduccion = int(row.get("dias_consecutivos_reduccion", 0) or 0)
         racha_mantener = int(row.get("dias_consecutivos_mantener", 0) or 0)
         racha = max(racha_refuerzo, racha_reduccion, racha_mantener)
+        if racha <= 0 and accion.strip():
+            racha = 1
         driver_html = build_driver_chips(row)
         rows.append(
             "<tr "
