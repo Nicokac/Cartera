@@ -29,35 +29,68 @@ ALERTA_PERDIDA_MINIMA = -10000
 
 FCI_CASH_MANAGEMENT = {"ADBAICA", "IOLPORA", "PRPEDOB"}
 
+_MAPPING_FILES = {
+    "FINVIZ_MAP": "finviz_map.json",
+    "BLOCK_MAP": "block_map.json",
+    "INSTRUMENT_PROFILE_MAP": "instrument_profile_map.json",
+    "RATIOS": "ratios.json",
+    "VN_FACTOR_MAP": "vn_factor_map.json",
+}
 
-def _load_json_mapping(filename: str) -> dict[str, Any]:
-    path = MAPPINGS_DIR / filename
+_STRATEGY_FILES = {
+    "SCORING_RULES": "scoring_rules.json",
+    "ACTION_RULES": "action_rules.json",
+    "SIZING_RULES": "sizing_rules.json",
+}
+
+_CONFIG_CACHE: dict[str, Any] = {}
+
+
+def _load_json_object(path: Path, *, label: str) -> dict[str, Any]:
     with path.open(encoding="utf-8") as fh:
         data = json.load(fh)
     if not isinstance(data, dict):
-        raise ValueError(f"El mapping {path} debe ser un objeto JSON.")
+        raise ValueError(f"{label} {path} debe ser un objeto JSON.")
     return data
+
+
+def _load_json_mapping(filename: str) -> dict[str, Any]:
+    return _load_json_object(MAPPINGS_DIR / filename, label="El mapping")
 
 
 def _load_strategy_rules(filename: str) -> dict[str, Any]:
-    path = STRATEGY_DIR / filename
-    with path.open(encoding="utf-8") as fh:
-        data = json.load(fh)
-    if not isinstance(data, dict):
-        raise ValueError(f"La estrategia {path} debe ser un objeto JSON.")
-    return data
+    return _load_json_object(STRATEGY_DIR / filename, label="La estrategia")
 
 
-FINVIZ_MAP = _load_json_mapping("finviz_map.json")
-BLOCK_MAP = _load_json_mapping("block_map.json")
-INSTRUMENT_PROFILE_MAP = _load_json_mapping("instrument_profile_map.json")
-RATIOS = _load_json_mapping("ratios.json")
-VN_FACTOR_MAP = _load_json_mapping("vn_factor_map.json")
+def _load_cached_config(name: str) -> Any:
+    if name in _CONFIG_CACHE:
+        return _CONFIG_CACHE[name]
 
-SCORING_RULES = _load_strategy_rules("scoring_rules.json")
-ACTION_RULES = _load_strategy_rules("action_rules.json")
-SIZING_RULES = _load_strategy_rules("sizing_rules.json")
-BUCKET_WEIGHTS = dict(SIZING_RULES.get("bucket_weights", {}))
+    if name in _MAPPING_FILES:
+        value = _load_json_mapping(_MAPPING_FILES[name])
+    elif name in _STRATEGY_FILES:
+        value = _load_strategy_rules(_STRATEGY_FILES[name])
+    elif name == "BUCKET_WEIGHTS":
+        value = dict(getattr(__import__(__name__), "SIZING_RULES").get("bucket_weights", {}))
+    else:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    _CONFIG_CACHE[name] = value
+    return value
+
+
+def __getattr__(name: str) -> Any:
+    return _load_cached_config(name)
+
+
+def __dir__() -> list[str]:
+    return sorted(
+        list(globals().keys()) + list(_MAPPING_FILES.keys()) + list(_STRATEGY_FILES.keys()) + ["BUCKET_WEIGHTS"]
+    )
+
+
+def clear_config_cache() -> None:
+    _CONFIG_CACHE.clear()
 
 
 def load_runtime_config() -> dict[str, Any]:
@@ -78,18 +111,18 @@ def load_runtime_config() -> dict[str, Any]:
         "ALERTA_MEP_DESVIO_PCT": ALERTA_MEP_DESVIO_PCT,
         "ALERTA_PERDIDA_MINIMA": ALERTA_PERDIDA_MINIMA,
         "FCI_CASH_MANAGEMENT": set(FCI_CASH_MANAGEMENT),
-        "BUCKET_WEIGHTS": dict(BUCKET_WEIGHTS),
-        "SCORING_RULES": dict(SCORING_RULES),
-        "ACTION_RULES": dict(ACTION_RULES),
-        "SIZING_RULES": dict(SIZING_RULES),
+        "BUCKET_WEIGHTS": dict(_load_cached_config("BUCKET_WEIGHTS")),
+        "SCORING_RULES": dict(_load_cached_config("SCORING_RULES")),
+        "ACTION_RULES": dict(_load_cached_config("ACTION_RULES")),
+        "SIZING_RULES": dict(_load_cached_config("SIZING_RULES")),
     }
 
 
 def load_portfolio_mappings() -> dict[str, dict[str, Any]]:
     return {
-        "FINVIZ_MAP": dict(FINVIZ_MAP),
-        "BLOCK_MAP": dict(BLOCK_MAP),
-        "INSTRUMENT_PROFILE_MAP": dict(INSTRUMENT_PROFILE_MAP),
-        "RATIOS": dict(RATIOS),
-        "VN_FACTOR_MAP": dict(VN_FACTOR_MAP),
+        "FINVIZ_MAP": dict(_load_cached_config("FINVIZ_MAP")),
+        "BLOCK_MAP": dict(_load_cached_config("BLOCK_MAP")),
+        "INSTRUMENT_PROFILE_MAP": dict(_load_cached_config("INSTRUMENT_PROFILE_MAP")),
+        "RATIOS": dict(_load_cached_config("RATIOS")),
+        "VN_FACTOR_MAP": dict(_load_cached_config("VN_FACTOR_MAP")),
     }
