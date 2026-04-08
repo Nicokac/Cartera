@@ -45,11 +45,19 @@ def _build_minimal_result(
                 "driver_1": "peso",
                 "driver_2": "momentum",
                 "driver_3": "consenso",
+                "accion_previa": "Reducir",
+                "score_delta_vs_dia_anterior": 0.015,
+                "dias_consecutivos_refuerzo": 0,
+                "dias_consecutivos_reduccion": 0,
+                "dias_consecutivos_mantener": 2,
             }
         ]
     )
     return {
         "mep_real": 1200.0,
+        "generated_at_label": "2026-04-08 09:30:00",
+        "generated_at_timezone": "America/Buenos_Aires",
+        "generated_at_source": "Hora local de corrida",
         "portfolio_bundle": {
             "df_total": df_total,
             "integrity_report": pd.DataFrame([{"check": "peso_total", "estado": "OK", "detalle": "100%"}]),
@@ -124,6 +132,23 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Senales nuevas", html)
         self.assertIn("Refuerzos persistentes", html)
         self.assertIn("Sin historial", html)
+
+    def test_render_report_shows_run_timestamp_in_buenos_aires(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("2026-04-08 09:30:00", html)
+        self.assertIn("Corrida", html)
+        self.assertNotIn("Zona horaria", html)
+        self.assertNotIn("Fuente horaria", html)
+
+    def test_render_report_shows_temporal_columns_in_decision_table(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Accion previa", html)
+        self.assertIn("Δ Score", html)
+        self.assertIn("Racha", html)
+        self.assertIn("Reducir", html)
+        self.assertIn("+0.015", html)
 
 
 if __name__ == "__main__":

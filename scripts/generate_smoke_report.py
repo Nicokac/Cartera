@@ -3,6 +3,7 @@
 import html
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -37,6 +38,12 @@ def fmt_pct(value: object) -> str:
 
 
 def fmt_score(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+    return f"{float(value):+.3f}"
+
+
+def fmt_delta_score(value: object) -> str:
     if pd.isna(value):
         return "-"
     return f"{float(value):+.3f}"
@@ -87,6 +94,13 @@ def metric_class(column: str, value: object) -> str:
         if num > 0.03:
             return "metric metric-positive"
         if num <= -0.12:
+            return "metric metric-negative"
+        return "metric metric-neutral"
+
+    if column == "score_delta_vs_dia_anterior":
+        if num >= 0.03:
+            return "metric metric-positive"
+        if num <= -0.03:
             return "metric metric-negative"
         return "metric metric-neutral"
 
@@ -239,6 +253,12 @@ def build_decision_table(
         accion = str(row.get(action_col, ""))
         motivo = html.escape(str(row.get(motive_col, "")))
         motivo_score = html.escape(str(row.get("motivo_score", "")))
+        accion_previa = row.get("accion_previa")
+        delta_score = row.get("score_delta_vs_dia_anterior")
+        racha_refuerzo = int(row.get("dias_consecutivos_refuerzo", 0) or 0)
+        racha_reduccion = int(row.get("dias_consecutivos_reduccion", 0) or 0)
+        racha_mantener = int(row.get("dias_consecutivos_mantener", 0) or 0)
+        racha = max(racha_refuerzo, racha_reduccion, racha_mantener)
         driver_html = build_driver_chips(row)
         rows.append(
             "<tr "
@@ -252,6 +272,9 @@ def build_decision_table(
             f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
             f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
+            f"<td>{html.escape(fmt_label(accion_previa))}</td>"
+            f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
+            f"<td>{html.escape('-' if racha <= 0 else str(racha))}</td>"
             f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
             f"<td><div>{motivo}</div><div class=\"muted-inline\">{motivo_score}</div></td>"
             "</tr>"
@@ -259,7 +282,7 @@ def build_decision_table(
 
     return (
         '<div class="table-wrap"><table id="decision-table">'
-        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Accion</th><th>Drivers</th><th>Motivo</th></tr></thead>"
+        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Accion</th><th>Accion previa</th><th>Δ Score</th><th>Racha</th><th>Drivers</th><th>Motivo</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
@@ -272,6 +295,7 @@ def render_report(
     lede: str = "Reporte generado desde <code>scripts/generate_smoke_report.py</code> sin depender del notebook.",
 ) -> str:
     mep_real = float(result["mep_real"])
+    generated_at_label = result.get("generated_at_label")
     portfolio_bundle = result["portfolio_bundle"]
     dashboard_bundle = result["dashboard_bundle"]
     decision_bundle = result["decision_bundle"]
@@ -378,6 +402,7 @@ def render_report(
 
     summary_cards = f"""
     <section class="cards">
+      <article class="card"><span class="label">Corrida</span><strong>{html.escape(str(generated_at_label or "-"))}</strong></article>
       <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
       <article class="card"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
@@ -617,6 +642,10 @@ def render_report(
 def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     result = run_smoke_pipeline()
+    run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
+    result["generated_at_label"] = run_ts.strftime("%Y-%m-%d %H:%M:%S")
+    result["generated_at_timezone"] = "America/Buenos_Aires"
+    result["generated_at_source"] = "Hora local de corrida"
     html_body = render_report(result)
     HTML_PATH.write_text(html_body, encoding="utf-8")
     print(f"Reporte generado en: {HTML_PATH}")

@@ -5,6 +5,7 @@ import os
 import sys
 from getpass import getpass
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -429,7 +430,8 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
 def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
-    run_date = pd.Timestamp.now().strftime("%Y-%m-%d")
+    run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
+    run_date = run_ts.strftime("%Y-%m-%d")
 
     username, password = resolve_iol_credentials()
 
@@ -562,6 +564,9 @@ def main() -> None:
 
     report = {
         "mep_real": mep_real or 0.0,
+        "generated_at_label": run_ts.strftime("%Y-%m-%d %H:%M:%S"),
+        "generated_at_timezone": "America/Buenos_Aires",
+        "generated_at_source": "Hora local de corrida",
         "portfolio_bundle": portfolio_bundle,
         "dashboard_bundle": dashboard_bundle,
         "decision_bundle": decision_bundle,
