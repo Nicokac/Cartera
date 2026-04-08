@@ -1,0 +1,14 @@
+{
+  "AAPL": {
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth"
+  },
+  "SPY": {
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core"
+  },
+  "GD30": {
+    "asset_family": "bond",
+    "asset_subfamily": "bond_sov_ar"
+  }
+}

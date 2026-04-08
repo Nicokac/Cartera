@@ -8,6 +8,8 @@ Este índice concentra la documentación útil y separa lo canónico de lo compl
 - [refactor-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\refactor-roadmap.md)
 - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
 - [bonistas-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\bonistas-roadmap.md)
+- [claude-followups.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\claude-followups.md)
+- [improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
 - [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
 
 ## Complementaria
@@ -19,11 +21,16 @@ Este índice concentra la documentación útil y separa lo canónico de lo compl
 - [notebook-runbook.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\notebook-runbook.md)
 - [bonistas-reference.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\bonistas-reference.md)
 
+## Configuración de ejemplo
+
+- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
+
 ## Criterio
 
 - `README.md` raíz: instalación y uso
 - `baseline-actual.md`: estado vigente
 - `refactor-roadmap.md`: historial de cambios
+- `improvement-roadmap.md`: próximos cambios priorizados
 - lo demás queda como apoyo, no como punto de entrada
 
 ## Archivo histórico

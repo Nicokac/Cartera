@@ -1,0 +1,16 @@
+{
+  "refuerzo_threshold": 0.6,
+  "reduccion_threshold": 0.6,
+  "score_gap_min": 0.1,
+  "despliegue_liquidez_threshold": 0.55,
+  "bono_rebalance_threshold": -0.2,
+  "bono_monitor_max": 0.08,
+  "bond_subfamily_thresholds": {
+    "bond_cer": {
+      "refuerzo_threshold": 0.12
+    },
+    "bond_bopreal": {
+      "refuerzo_threshold": 0.12
+    }
+  }
+}

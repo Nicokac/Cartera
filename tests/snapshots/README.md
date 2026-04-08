@@ -19,10 +19,10 @@ Notas:
 - Los snapshots `real_*` salen desde `scripts/generate_real_report.py`.
 - Guardan datos ya normalizados; no deben incluir credenciales ni payloads crudos sensibles.
 - Baseline funcional estable vigente:
-  - `2026-04-07_real_decision_table.csv`
-  - `2026-04-07_real_portfolio_master.csv`
-  - `2026-04-07_real_technical_overlay.csv`
-  - `2026-04-07_real_kpis.json`
+  - `2026-04-08_real_decision_table.csv`
+  - `2026-04-08_real_portfolio_master.csv`
+  - `2026-04-08_real_technical_overlay.csv`
+  - `2026-04-08_real_kpis.json`
 - Esa baseline corresponde al estado real estable posterior a:
   - reintegracion y hardening del overlay tecnico
   - recuperacion de Finviz real
@@ -34,12 +34,12 @@ Notas:
   - overlay tecnico activo `24/24`
   - Finviz fundamentals `24/24`
   - Finviz ratings `17/24`
-  - regimen de mercado configurado pero sin flags activos en la macro vigente
-  - memoria temporal diaria habilitada con historial en `data/runtime/decision_history.csv`
-  - refuerzos efectivos actuales: `VIST`, `XLU`, `XLV`, `KO`, `NEM`
-  - reduccion efectiva: `MELI`
-  - `GOOGL` volvió a `Mantener / Neutral`
-  - `SPY` y `AAPL` quedan en `Mantener / Neutral`
+  - regimen de mercado activo por `inflacion_local_alta`
+  - memoria temporal diaria validada con cambio de fecha efectiva
+  - refuerzos efectivos actuales: `XLU`, `XLV`, `NEM`, `KO`, `EEM`, `GOOGL`, `VIST`
+  - reducciones efectivas: ninguna
+  - `MELI` volvió a `Mantener / Neutral`
+  - `SPY` y `AAPL` siguen en `Mantener / Neutral`
   - `GD30` sigue en `Rebalancear / tomar ganancia`
   - ningun bono dispara `Refuerzo`
 
@@ -47,11 +47,11 @@ Notas:
   - una sola observacion canonica por `ticker + fecha`
   - si hay reruns del mismo dia, se reemplaza el snapshot diario
   - la primera version es observacional y no altera score ni accion
-  - primera corrida real con memoria activa:
-    - `Senales nuevas: 0`
-    - `Refuerzos persistentes: 0`
+  - primera validacion real con fecha efectiva nueva:
+    - `Senales nuevas: 3`
+    - `Refuerzos persistentes: 5`
     - `Reducciones persistentes: 0`
-    - `Sin historial: 39`
+    - `Sin historial: 0`
   - el HTML real ya expone:
     - `Accion previa`
     - `Δ Score`
@@ -61,8 +61,9 @@ Notas:
   - `stock_growth` se endurecio ligeramente
   - `stock_commodity` suma un freno suave cuando el tecnico queda `Mixta`
   - efecto visible:
-    - `GOOGL` salio de `Refuerzo`
-    - `NEM` siguio en `Refuerzo`, pero con menor score
+    - `GOOGL` habia salido de `Refuerzo` en la corrida del `2026-04-07`
+    - con el nuevo contexto tecnico y macro del `2026-04-08`, volvio a `Refuerzo`
+    - `NEM` se sostuvo y aumento conviccion
 
 - Baseline vigente Bonistas v1 para monitoreo de bonos locales:
   - bloque `Bonos Locales` visible en el HTML real

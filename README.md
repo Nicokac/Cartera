@@ -11,23 +11,19 @@ Motor de análisis de cartera con foco en:
 
 ## Estado actual
 
-Baseline operativa vigente al `2026-04-07`:
+Baseline operativa vigente al `2026-04-08`:
 
 - overlay técnico `24/24`
 - Finviz fundamentals `24/24`
 - Finviz ratings `17/24`
-- `5` refuerzos: `VIST`, `XLU`, `XLV`, `KO`, `NEM`
-- `1` reducción: `MELI`
-- `GOOGL` volvió a `Mantener / Neutral` tras endurecer `stock_growth`
-- scoring absoluto conservador activo (`0.9` relativo / `0.1` absoluto)
-- régimen de mercado visible en el HTML y sin flags activos
-- memoria temporal diaria observacional visible en el HTML
+- memoria temporal diaria observacional ya validada con cambio de fecha efectiva
+- régimen de mercado visible en el HTML
 
 ## Estructura
 
 - `src/`: lógica canónica del proyecto
 - `scripts/`: runners y generación de reportes
-- `data/`: mappings, reglas y runtime
+- `data/`: mappings, reglas, runtime y ejemplos
 - `docs/`: documentación funcional y de arquitectura
 - `tests/`: suite de regresión y snapshots
 - `reports/`: HTMLs generados
@@ -81,7 +77,7 @@ python -m unittest tests.test_generate_real_report -v
 - historial diario en `data\runtime\decision_history.csv`
 - unidad canónica: `ticker + fecha`
 - reruns del mismo día reemplazan la observación
-- hoy solo agrega:
+- hoy agrega:
   - `accion_previa`
   - `score_delta_vs_dia_anterior`
   - `racha`
@@ -91,3 +87,9 @@ python -m unittest tests.test_generate_real_report -v
 Entrada canónica:
 
 - [docs/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\README.md)
+
+Documentos agregados para la siguiente etapa:
+
+- [docs/claude-followups.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\claude-followups.md)
+- [docs/improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
+- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)

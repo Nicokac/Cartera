@@ -1,0 +1,20 @@
+{
+  "top_candidates": 3,
+  "bucket_weights": {
+    "Defensivo": 1.0,
+    "Intermedio": 0.75,
+    "Agresivo": 0.5
+  },
+  "allocation_mix": {
+    "peso_base": 0.8,
+    "score_ajustado": 0.2
+  },
+  "funding_policy": {
+    "strong_refuerzo_threshold": 0.2,
+    "pct_fondeo": {
+      "strong_refuerzo_3_plus": 0.3,
+      "strong_refuerzo_1_plus": 0.2,
+      "default": 0.1
+    }
+  }
+}
