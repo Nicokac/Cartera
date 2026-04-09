@@ -87,6 +87,12 @@ python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
 ```
 
+CI minima:
+
+- workflow: `.github/workflows/ci.yml`
+- corre suites estables sin red real ni credenciales
+- hace bootstrap automatico de configuracion de ejemplo antes de ejecutar tests
+
 ## Memoria temporal
 
 - historial diario en `data/runtime/decision_history.csv`

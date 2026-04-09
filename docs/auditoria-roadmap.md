@@ -59,14 +59,16 @@ Trabajo cerrado:
 
 ### 2. Evaluar CI minima
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - impacto: `Medio/Alto`
 - complejidad: `Media`
 
-Propuesta:
+Trabajo cerrado:
 
 1. workflow simple de `unittest`
-2. correr al menos:
+2. bootstrap automatico de config de ejemplo
+3. suites estables:
+   - `tests.test_config`
    - `tests.test_strategy_rules`
    - `tests.test_sizing`
    - `tests.test_report_render`
@@ -157,11 +159,10 @@ Propuesta:
 
 ## Orden sugerido
 
-1. CI minima
-2. experimento controlado de scoring absoluto vs relativo
-3. revision fina de tecnica de reduccion
-4. alineacion final de narrativa
-5. hardening del CLI real
+1. experimento controlado de scoring absoluto vs relativo
+2. revision fina de tecnica de reduccion
+3. alineacion final de narrativa
+4. hardening del CLI real
 
 ## Criterio de cierre
 

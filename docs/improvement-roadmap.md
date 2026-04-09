@@ -13,6 +13,7 @@ Priorizacion combinando:
 - documentacion y `.json.example` para clones limpios
 - script de bootstrap para configuracion de ejemplo
 - `pyproject.toml` minimo del proyecto
+- CI minima con GitHub Actions para suites estables
 - guardas de `Peso_%` en valuacion
 - CEDEARs sin `finviz_map`
 - contrato explicito de `mep_real`
@@ -43,6 +44,7 @@ Trabajo hecho:
 - ejemplos `.json.example` para mappings y strategy
 - bootstrap minimo desde clone limpio
 - metadata base del proyecto en `pyproject.toml`
+- workflow de CI con `unittest` para rutas estables
 
 ## Proximo foco
 

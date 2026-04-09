@@ -19,6 +19,16 @@ python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
 ```
 
+CI minima:
+
+- workflow: `.github/workflows/ci.yml`
+- suites incluidas:
+  - `tests.test_config`
+  - `tests.test_strategy_rules`
+  - `tests.test_sizing`
+  - `tests.test_report_render`
+  - clientes principales sin red real
+
 ## Cobertura actual
 
 - cartera y valuacion
