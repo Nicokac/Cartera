@@ -13,7 +13,7 @@ Priorizacion combinando:
 - documentacion y `.json.example` para clones limpios
 - script de bootstrap para configuracion de ejemplo
 - `pyproject.toml` minimo del proyecto
-- CI minima con GitHub Actions para suites estables
+- CI minima con GitHub Actions ampliada a suites estables del pipeline y clientes
 - gate absoluto suave para limitar `Refuerzo` en setups no alcistas con momentum corto negativo
 - curva propia de RSI para reduccion tecnica en casos `oversold` y `overbought`
 - fallback visible de `FRED UST` en bundle real y reporte HTML

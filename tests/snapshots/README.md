@@ -17,7 +17,7 @@ Usar esta carpeta para guardar snapshots chicos y auditables de corridas de refe
 
 ## Baseline vigente
 
-La baseline funcional actual es la corrida real del `2026-04-08`.
+La baseline funcional actual es la corrida real del `2026-04-09 07:31`.
 
 Lectura operativa:
 
@@ -28,15 +28,16 @@ Lectura operativa:
 - memoria temporal diaria validada con cambio de fecha efectiva
 - refuerzos actuales:
   - `XLU`
-  - `XLV`
   - `NEM`
   - `KO`
   - `EEM`
-  - `GOOGL`
   - `VIST`
-- reducciones actuales: ninguna
-- `MELI` volvio a `Mantener / Neutral`
+  - `GOOGL`
+- reducciones actuales:
+  - `MELI`
+  - `AAPL`
 - `GD30` sigue en `Rebalancear / tomar ganancia`
+- con fondeo externo de `$600,000`, el sizing prioriza `XLU`, `NEM` y `KO`
 
 ## Contrato de memoria temporal
 
@@ -45,5 +46,5 @@ Lectura operativa:
 - la liquidez no cuenta en los KPIs agregados de persistencia
 - el HTML expone:
   - `Accion previa`
-  - `Δ Score`
+  - `Delta Score`
   - `Racha`

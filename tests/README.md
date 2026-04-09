@@ -13,6 +13,7 @@ python -m unittest discover -s tests -v
 Suites utiles:
 
 ```powershell
+python -m unittest tests.test_pipeline -v
 python -m unittest tests.test_strategy_rules -v
 python -m unittest tests.test_sizing -v
 python -m unittest tests.test_report_render -v
@@ -24,10 +25,12 @@ CI minima:
 - workflow: `.github/workflows/ci.yml`
 - suites incluidas:
   - `tests.test_config`
+  - `tests.test_pipeline`
   - `tests.test_strategy_rules`
   - `tests.test_sizing`
   - `tests.test_report_render`
-  - clientes principales sin red real
+  - `tests.test_generate_real_report`
+  - clientes principales y secundarios sin red real
 
 ## Cobertura actual
 
@@ -36,6 +39,8 @@ CI minima:
 - scoring, acciones y memoria temporal
 - render HTML
 - clientes principales
+- clientes secundarios
+- smoke pipeline sin APIs vivas
 
 ## Snapshots
 
