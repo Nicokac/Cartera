@@ -184,6 +184,35 @@ class DecisionHistoryTests(unittest.TestCase):
             "tasas_ust_altas,inflacion_local_alta",
         )
 
+    def test_temporal_memory_summary_excludes_liquidity_rows_from_aggregate_counts(self) -> None:
+        final_decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Tipo": "CEDEAR",
+                    "es_nueva_senal": True,
+                    "senal_persistente_refuerzo": True,
+                    "senal_persistente_reduccion": False,
+                    "sin_historial_temporal": False,
+                },
+                {
+                    "Ticker_IOL": "CASH_ARS",
+                    "Tipo": "Liquidez",
+                    "es_nueva_senal": True,
+                    "senal_persistente_refuerzo": False,
+                    "senal_persistente_reduccion": False,
+                    "sin_historial_temporal": True,
+                },
+            ]
+        )
+
+        summary = build_temporal_memory_summary(final_decision)
+
+        self.assertEqual(summary["senales_nuevas"], 1)
+        self.assertEqual(summary["persistentes_refuerzo"], 1)
+        self.assertEqual(summary["persistentes_reduccion"], 0)
+        self.assertEqual(summary["sin_historial"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

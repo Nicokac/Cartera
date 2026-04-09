@@ -213,13 +213,17 @@ def build_temporal_memory_summary(final_decision: pd.DataFrame) -> dict[str, int
             "sin_historial": 0,
         }
 
+    eligible = final_decision.copy()
+    if "Tipo" in eligible.columns:
+        eligible = eligible.loc[eligible["Tipo"].ne("Liquidez")].copy()
+
     return {
-        "senales_nuevas": int(final_decision.get("es_nueva_senal", pd.Series(dtype=bool)).fillna(False).sum()),
+        "senales_nuevas": int(eligible.get("es_nueva_senal", pd.Series(dtype=bool)).fillna(False).sum()),
         "persistentes_refuerzo": int(
-            final_decision.get("senal_persistente_refuerzo", pd.Series(dtype=bool)).fillna(False).sum()
+            eligible.get("senal_persistente_refuerzo", pd.Series(dtype=bool)).fillna(False).sum()
         ),
         "persistentes_reduccion": int(
-            final_decision.get("senal_persistente_reduccion", pd.Series(dtype=bool)).fillna(False).sum()
+            eligible.get("senal_persistente_reduccion", pd.Series(dtype=bool)).fillna(False).sum()
         ),
-        "sin_historial": int(final_decision.get("sin_historial_temporal", pd.Series(dtype=bool)).fillna(False).sum()),
+        "sin_historial": int(eligible.get("sin_historial_temporal", pd.Series(dtype=bool)).fillna(False).sum()),
     }
