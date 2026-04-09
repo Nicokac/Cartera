@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-09 06:40` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-09 07:01` en `America/Buenos_Aires`.
 
 ## Resumen
 
@@ -11,11 +11,11 @@ Estado operativo vigente al `2026-04-09 06:40` en `America/Buenos_Aires`.
 - Finviz ratings `17/24`
 - regimen de mercado activo por `inflacion_local_alta`
 - `6` refuerzos: `XLU`, `NEM`, `KO`, `EEM`, `VIST`, `GOOGL`
-- `0` reducciones
+- `2` reducciones: `MELI`, `AAPL`
 - `1` despliegue: `CASH_ARS`
-- `32` neutrales
+- `30` neutrales
 - `GD30` sigue en `Rebalancear / tomar ganancia`
-- `MELI` quedo en `Mantener / Neutral`
+- sizing con fondeo externo de `$600,000`: `XLU`, `NEM`, `KO`
 - `XLV` salio de `Refuerzo` y quedo en `Mantener / Neutral`
 
 ## Memoria temporal
@@ -43,4 +43,6 @@ Estado operativo vigente al `2026-04-09 06:40` en `America/Buenos_Aires`.
 - `GOOGL` se sostuvo en `Refuerzo` con tecnico `Alcista`
 - `XLV` quedo bloqueado en `Mantener / Neutral` por `Momentum_20d_% < 0` con tecnico `Mixta`
 - `VIST`, `XLU`, `KO` y `NEM` aparecen como refuerzos persistentes
+- con fondeo externo de `$600,000`, el sizing priorizo `XLU`, `NEM` y `KO`
+- la nueva curva de RSI de reduccion no rompio el bloque de refuerzos y endurecio el lado vendedor en `MELI` y `AAPL`
 - `bond_cer` mejoro por el flag inflacionario, pero todavia no emite `Refuerzo`

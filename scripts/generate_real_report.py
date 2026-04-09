@@ -405,8 +405,12 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
     except Exception as exc:
         print(f"FRED UST no disponible: {exc}")
         ust_latest = None
+        macro_variables = dict(macro_variables)
+        macro_variables["ust_status"] = "error"
+        macro_variables["ust_error"] = str(exc)
     if ust_latest:
         macro_variables = dict(macro_variables)
+        macro_variables["ust_status"] = "ok"
         macro_variables.update(ust_latest)
 
     if df_bonistas.empty and not macro_variables:

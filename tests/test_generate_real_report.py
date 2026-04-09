@@ -67,6 +67,14 @@ class GenerateRealReportTests(unittest.TestCase):
                 "tamar": 26.31,
             },
         ), patch(
+            "generate_real_report.get_ust_latest",
+            return_value={
+                "ust_date": "2026-04-08",
+                "ust_5y_pct": 3.95,
+                "ust_10y_pct": 4.33,
+                "ust_spread_10y_5y_pct": 0.38,
+            },
+        ), patch(
             "generate_real_report.get_bond_volume_context",
             return_value=pd.DataFrame(
                 [
@@ -102,8 +110,40 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(bundle["macro_variables"]["a3500_mayorista"], 1387.72)
         self.assertEqual(bundle["macro_variables"]["badlar"], 28.31)
         self.assertEqual(bundle["macro_variables"]["tamar"], 26.31)
+        self.assertEqual(bundle["macro_variables"]["ust_status"], "ok")
         enrich_mock.assert_called_once()
         self.assertEqual(enrich_mock.call_args.kwargs["mep_real"], 1434.0)
+
+    def test_build_real_bonistas_bundle_marks_ust_status_when_fred_fails(self) -> None:
+        df_bonos = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar", "Peso_%": 3.62}
+            ]
+        )
+
+        with patch("generate_real_report.get_bonds_for_portfolio", return_value=pd.DataFrame([{"bonistas_ticker": "GD30"}])), patch(
+            "generate_real_report.get_macro_variables", return_value={"cer_diario": 738.025}
+        ), patch(
+            "generate_real_report.get_riesgo_pais_latest", return_value=None
+        ), patch(
+            "generate_real_report.get_rem_latest", return_value=None
+        ), patch(
+            "generate_real_report.get_bcra_monetary_context", return_value={}
+        ), patch(
+            "generate_real_report.get_ust_latest", side_effect=RuntimeError("FRED caido")
+        ), patch(
+            "generate_real_report.get_bond_volume_context", return_value=pd.DataFrame()
+        ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()), patch(
+            "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame()
+        ), patch(
+            "generate_real_report.build_bond_subfamily_summary", return_value=pd.DataFrame()
+        ), patch(
+            "generate_real_report.build_bond_local_subfamily_summary", return_value=pd.DataFrame()
+        ):
+            bundle = build_real_bonistas_bundle(df_bonos, mep_real=1434.0)
+
+        self.assertEqual(bundle["macro_variables"]["ust_status"], "error")
+        self.assertIn("FRED caido", bundle["macro_variables"]["ust_error"])
 
     def test_real_report_bond_context_columns_include_bcra_macro_fields(self) -> None:
         bond_analytics = pd.DataFrame(

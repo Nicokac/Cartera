@@ -15,6 +15,9 @@ Priorizacion combinando:
 - `pyproject.toml` minimo del proyecto
 - CI minima con GitHub Actions para suites estables
 - gate absoluto suave para limitar `Refuerzo` en setups no alcistas con momentum corto negativo
+- curva propia de RSI para reduccion tecnica en casos `oversold` y `overbought`
+- fallback visible de `FRED UST` en bundle real y reporte HTML
+- narrativa alineada con scoring relativo sin perder brevedad
 - guardas de `Peso_%` en valuacion
 - CEDEARs sin `finviz_map`
 - contrato explicito de `mep_real`
@@ -51,6 +54,6 @@ Trabajo hecho:
 
 Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
-1. revisar si la tecnica de reduccion necesita mayor independencia en casos extremos
-2. ampliar cobertura en integraciones secundarias o de borde
-3. ajustar scoring o persistencia con evidencia de nuevas corridas reales
+1. ampliar cobertura en integraciones secundarias o de borde
+2. ajustar scoring o persistencia con evidencia de nuevas corridas reales
+3. ampliar cobertura en integraciones secundarias o endurecer el CLI real

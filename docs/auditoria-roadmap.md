@@ -24,22 +24,22 @@ Estos puntos aparecieron en la auditoria, pero ya no describen el estado actual 
 - cache de Bonistas sin cota
 - duplicacion principal entre `assign_base_action(...)` y `assign_action_v2(...)`
 - cobertura inexistente de clientes principales
-- ausencia de `requirements.txt`
+- ausencia de metadata minima del proyecto
 
 ### Hallazgos validos pero reclasificados
 
 Estos puntos siguen siendo razonables, pero no son bugs P0:
 
-- scoring relativo sin piso absoluto
-- narrativa con thresholds absolutos que no siempre refleja el ranking relativo
+- scoring relativo sin piso absoluto general
 - validacion de input CLI mejorable en `generate_real_report.py`
 - inferencia por prefijos en taxonomia/local bond analytics aun embebida en codigo
+- integraciones secundarias aun con cobertura menor que el core
 
 ### Hallazgos vigentes que si conviene trabajar
 
-- posible mejora de la capa tecnica de reduccion
-- evolucion del scoring absoluto vs relativo
-- mejoras de DX e infraestructura (`CI`, tooling)
+- calibraciones futuras del scoring absoluto vs relativo
+- hardening del CLI real
+- mejoras de DX e infraestructura secundaria
 
 ## Backlog vigente
 
@@ -101,45 +101,45 @@ Trabajo pendiente asociado:
 
 1. revisar si necesita calibracion por subfamilia
 
-### 4. Revisar señal tecnica de reduccion
+### 4. Revisar senal tecnica de reduccion
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - impacto: `Medio`
 - complejidad: `Media`
 
-Motivo:
+Trabajo cerrado:
 
-- hoy ya no existe el bug viejo de `1 - tech_refuerzo`
-- pero sigue siendo valido revisar si la pata de reduccion debe ser mas independiente
-
-Propuesta:
-
-1. testear casos extremos:
-   - oversold
-   - overbought
-   - momentum positivo fuerte
-   - tecnico mixto
-2. decidir si la reduccion tecnica necesita pesos o transforms propios adicionales
+1. el subscore RSI de reduccion ya usa una curva propia
+2. `oversold` penaliza menos la venta tecnica y `overbought` la refuerza
+3. hay test explicito para verificar `overbought > oversold` en `tech_reduccion`
 
 ### 5. Alinear narrativa con scoring
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - impacto: `Medio`
 - complejidad: `Baja/Media`
 
-Motivo:
+Trabajo cerrado:
 
-- ya se mejoro `_join_reasons(...)`
-- todavia puede haber desacoples entre thresholds absolutos del texto y ranking relativo del score
+1. `_join_reasons(...)` ya puede mostrar hasta tres senales sin volver el texto verboso
+2. la narrativa ahora puede surfacer calidad y valuacion relativas cuando los thresholds absolutos no alcanzan
+3. `ganancia extendida` deja de quedar tapada por senales relativas mas debiles
 
-Propuesta:
+### 6. Hacer visible el fallback de UST/FRED
 
-1. revisar `narrative_thresholds`
-2. decidir si ciertas señales deben derivarse de percentiles internos y no de umbrales fijos
+- estado: `Resuelto`
+- impacto: `Medio`
+- complejidad: `Baja`
+
+Trabajo cerrado:
+
+1. `build_real_bonistas_bundle(...)` ahora marca `ust_status`
+2. el reporte HTML muestra cuando `FRED` no estuvo disponible
+3. hay tests para el bundle real y el render
 
 ## P3. DX e infraestructura
 
-### 6. Crear `pyproject.toml`
+### 7. Crear `pyproject.toml`
 
 - estado: `Resuelto`
 - impacto: `Medio`
@@ -150,7 +150,7 @@ Trabajo cerrado:
 1. metadata minima del proyecto
 2. dependencias base declaradas para tooling moderno
 
-### 7. Hardening del CLI real
+### 8. Hardening del CLI real
 
 - estado: `Pendiente`
 - impacto: `Medio/Bajo`
@@ -167,10 +167,9 @@ Propuesta:
 
 ## Orden sugerido
 
-1. validar el gate absoluto suave en corridas reales
-2. revision fina de tecnica de reduccion
-3. alineacion final de narrativa
-4. hardening del CLI real
+1. hardening del CLI real
+2. ampliar cobertura en integraciones secundarias
+3. calibraciones futuras de scoring con nuevas corridas reales
 
 ## Criterio de cierre
 

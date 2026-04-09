@@ -319,6 +319,49 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertLess(custom_overlay.loc[0, "ts_above_sma20"], default_overlay.loc[0, "ts_above_sma20"])
         self.assertLess(custom_overlay.loc[0, "ts_mom20"], default_overlay.loc[0, "ts_mom20"])
 
+    def test_technical_rsi_reduction_prefers_overbought_over_oversold(self) -> None:
+        decision = pd.DataFrame(
+            [
+                {"Ticker_IOL": "OVERSOLD", "score_refuerzo": 0.40, "score_reduccion": 0.30},
+                {"Ticker_IOL": "OVERBOUGHT", "score_refuerzo": 0.40, "score_reduccion": 0.30},
+            ]
+        )
+        technical_overlay = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "OVERSOLD",
+                    "Dist_SMA20_%": 0.0,
+                    "Dist_SMA50_%": 0.0,
+                    "Dist_EMA20_%": 0.0,
+                    "Dist_EMA50_%": 0.0,
+                    "RSI_14": 25.0,
+                    "Momentum_20d_%": 0.0,
+                    "Momentum_60d_%": 0.0,
+                    "Vol_20d_Anual_%": 25.0,
+                    "Drawdown_desde_Max3m_%": -10.0,
+                    "Tech_Trend": "Mixta",
+                },
+                {
+                    "Ticker_IOL": "OVERBOUGHT",
+                    "Dist_SMA20_%": 0.0,
+                    "Dist_SMA50_%": 0.0,
+                    "Dist_EMA20_%": 0.0,
+                    "Dist_EMA50_%": 0.0,
+                    "RSI_14": 80.0,
+                    "Momentum_20d_%": 0.0,
+                    "Momentum_60d_%": 0.0,
+                    "Vol_20d_Anual_%": 25.0,
+                    "Drawdown_desde_Max3m_%": -10.0,
+                    "Tech_Trend": "Mixta",
+                },
+            ]
+        )
+
+        blended = apply_technical_overlay_scores(build_technical_overlay_scores(decision, technical_overlay))
+
+        self.assertLess(blended.loc[0, "ts_rsi_reduccion"], blended.loc[1, "ts_rsi_reduccion"])
+        self.assertLess(blended.loc[0, "tech_reduccion"], blended.loc[1, "tech_reduccion"])
+
     def test_concentration_and_quality_change_base_scores(self) -> None:
         df = pd.DataFrame(
             [
@@ -1081,6 +1124,48 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertIn("peso bajo", comment)
         self.assertIn("beta controlada", comment)
         self.assertIn("valuacion razonable", comment)
+
+    def test_narrative_can_use_relative_quality_when_absolute_threshold_is_not_met(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "RELQ",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "stock_growth",
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 0.4,
+                    "Beta": 1.0,
+                    "P/E": 26.0,
+                    "ROE": 12.0,
+                    "Profit Margin": 11.0,
+                    "Consensus_Final": 0.6,
+                    "Momentum_Refuerzo": 0.62,
+                    "Momentum_Reduccion_Effective": 0.3,
+                    "Ganancia_%_Cap": 8.0,
+                    "MEP_Premium_%": -95.0,
+                    "Tech_Trend": "Mixta",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.6,
+                    "s_consensus_bad": 0.4,
+                    "s_low_weight": 0.9,
+                    "s_high_weight": 0.1,
+                    "s_beta_ok": 0.72,
+                    "s_beta_risk": 0.28,
+                    "s_mep_ok": 0.9,
+                    "s_mep_premium": 0.1,
+                    "s_pe_ok": 0.73,
+                    "s_pe_expensive": 0.27,
+                    "s_quality_effective": 0.78,
+                    "s_low_quality_effective": 0.22,
+                }
+            ]
+        )
+
+        comment = enrich_decision_explanations(df).loc[0, "motivo_accion"]
+
+        self.assertIn("calidad relativa", comment)
 
     def test_explanations_follow_overridden_absolute_metric_thresholds(self) -> None:
         df = pd.DataFrame(

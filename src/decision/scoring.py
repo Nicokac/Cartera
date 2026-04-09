@@ -689,6 +689,47 @@ def _series_or_default(df: pd.DataFrame, column: str, default: float = 0.5) -> p
     return pd.Series(default, index=df.index, dtype=float)
 
 
+def _rsi_band_score(series: pd.Series, rsi_rules: dict[str, object], *, prefix: str = "") -> pd.Series:
+    oversold_max = float(rsi_rules.get("oversold_max", 30.0))
+    weak_max = float(rsi_rules.get("weak_max", 45.0))
+    strong_max = float(rsi_rules.get("strong_max", 65.0))
+    overbought_max = float(rsi_rules.get("overbought_max", 75.0))
+
+    reduction_defaults = {
+        "oversold_score": 0.10,
+        "weak_score": 0.25,
+        "strong_score": 0.45,
+        "late_score": 0.75,
+        "overbought_score": 1.00,
+    }
+
+    def _score(name: str, default: float) -> float:
+        effective_default = reduction_defaults.get(name, default) if prefix == "reduction_" else default
+        return float(rsi_rules.get(f"{prefix}{name}", effective_default))
+
+    return np.where(
+        series.isna(),
+        0.5,
+        np.select(
+            [
+                series < oversold_max,
+                (series >= oversold_max) & (series < weak_max),
+                (series >= weak_max) & (series <= strong_max),
+                (series > strong_max) & (series <= overbought_max),
+                series > overbought_max,
+            ],
+            [
+                _score("oversold_score", 0.35),
+                _score("weak_score", 0.60),
+                _score("strong_score", 1.00),
+                _score("late_score", 0.65),
+                _score("overbought_score", 0.30),
+            ],
+            default=0.5,
+        ),
+    )
+
+
 def build_technical_overlay_scores(
     decision: pd.DataFrame,
     technical_overlay: pd.DataFrame | None,
@@ -763,38 +804,11 @@ def build_technical_overlay_scores(
         floor=float(dist_ema50.get("min", -15.0)),
         ceiling=float(dist_ema50.get("max", 15.0)),
     )
-    out["ts_rsi"] = np.where(
-        out["RSI_14"].isna(),
-        0.5,
-        np.select(
-            [
-                out["RSI_14"] < float(rsi_rules.get("oversold_max", 30.0)),
-                (
-                    out["RSI_14"] >= float(rsi_rules.get("oversold_max", 30.0))
-                ) & (
-                    out["RSI_14"] < float(rsi_rules.get("weak_max", 45.0))
-                ),
-                (
-                    out["RSI_14"] >= float(rsi_rules.get("weak_max", 45.0))
-                ) & (
-                    out["RSI_14"] <= float(rsi_rules.get("strong_max", 65.0))
-                ),
-                (
-                    out["RSI_14"] > float(rsi_rules.get("strong_max", 65.0))
-                ) & (
-                    out["RSI_14"] <= float(rsi_rules.get("overbought_max", 75.0))
-                ),
-                out["RSI_14"] > float(rsi_rules.get("overbought_max", 75.0)),
-            ],
-            [
-                float(rsi_rules.get("oversold_score", 0.35)),
-                float(rsi_rules.get("weak_score", 0.60)),
-                float(rsi_rules.get("strong_score", 1.00)),
-                float(rsi_rules.get("late_score", 0.65)),
-                float(rsi_rules.get("overbought_score", 0.30)),
-            ],
-            default=0.5,
-        ),
+    out["ts_rsi"] = _rsi_band_score(pd.to_numeric(out["RSI_14"], errors="coerce"), rsi_rules)
+    out["ts_rsi_reduccion"] = _rsi_band_score(
+        pd.to_numeric(out["RSI_14"], errors="coerce"),
+        rsi_rules,
+        prefix="reduction_",
     )
     out["ts_mom20"] = _scaled_centered(
         out["Momentum_20d_%"],
@@ -859,7 +873,7 @@ def apply_technical_overlay_scores(
         + float(reduction_subscores.get("below_sma50", 0.15)) * (1 - _series_or_default(out, "ts_above_sma50"))
         + float(reduction_subscores.get("below_ema20", 0.10)) * (1 - _series_or_default(out, "ts_above_ema20"))
         + float(reduction_subscores.get("below_ema50", 0.10)) * (1 - _series_or_default(out, "ts_above_ema50"))
-        + float(reduction_subscores.get("rsi", 0.10)) * (1 - _series_or_default(out, "ts_rsi"))
+        + float(reduction_subscores.get("rsi", 0.10)) * _series_or_default(out, "ts_rsi_reduccion")
         + float(reduction_subscores.get("mom20", 0.15)) * (1 - _series_or_default(out, "ts_mom20"))
         + float(reduction_subscores.get("mom60", 0.15)) * (1 - _series_or_default(out, "ts_mom60"))
         + float(reduction_subscores.get("drawdown", 0.05)) * (1 - _series_or_default(out, "ts_drawdown"))

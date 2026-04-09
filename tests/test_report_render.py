@@ -200,6 +200,19 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Ticker_IOL", html)
         self.assertIn("Bucket_Prudencia", html)
 
+    def test_render_report_shows_fred_unavailable_note_when_ust_source_fails(self) -> None:
+        html = render_report(
+            _build_minimal_result(
+                bonistas_bundle={
+                    "bond_monitor": pd.DataFrame([{"Ticker_IOL": "GD30"}]),
+                    "bond_subfamily_summary": pd.DataFrame([{"asset_subfamily": "bond_sov_ar", "Instrumentos": 1}]),
+                    "macro_variables": {"ust_status": "error"},
+                }
+            )
+        )
+
+        self.assertIn("FRED no disponible", html)
+
 
 if __name__ == "__main__":
     unittest.main()

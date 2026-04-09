@@ -338,6 +338,10 @@ def render_report(
     bond_subfamily_summary = bonistas_bundle.get("bond_subfamily_summary", pd.DataFrame())
     bond_local_subfamily_summary = bonistas_bundle.get("bond_local_subfamily_summary", pd.DataFrame())
     bonistas_macro = bonistas_bundle.get("macro_variables", {}) or {}
+    ust_status = str(bonistas_macro.get("ust_status") or "").strip().lower()
+    ust_note = ""
+    if ust_status == "error":
+        ust_note = "<span>UST source: <strong>FRED no disponible</strong></span>"
     show_bonistas = (
         (isinstance(bond_monitor, pd.DataFrame) and not bond_monitor.empty)
         or (isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty)
@@ -494,6 +498,7 @@ def render_report(
         <span>REM 12m: <strong>{esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>
         <span>UST 5y: <strong>{esc_text(bonistas_macro.get('ust_5y_pct'))}</strong></span>
         <span>UST 10y: <strong>{esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></span>
+        {ust_note}
       </div>
       <h3>Resumen por subfamilia</h3>
       {build_table(

@@ -163,10 +163,20 @@ def enrich_decision_explanations(
             signals.append("ROE alto")
         if _metric_available(row, "Profit Margin") and float(row.get("Profit Margin", 0)) >= profit_margin_good_min:
             signals.append("margen alto")
+        if not {"ROE alto", "margen alto"}.intersection(signals) and _metric_available(row, "s_quality_effective") and float(
+            row.get("s_quality_effective", 0.5)
+        ) >= 0.70:
+            signals.append("calidad relativa")
+        if _metric_available(row, "s_beta_ok") and float(row.get("s_beta_ok", 0.5)) >= 0.70:
+            signals.append("beta favorable")
+        if _metric_available(row, "s_pe_ok") and float(row.get("s_pe_ok", 0.5)) >= 0.70:
+            signals.append("valuacion relativa favorable")
         if _metric_available(row, "Consensus_Final") and float(row.get("Consensus_Final", 0.5)) >= consensus_good_min:
             signals.append("consenso favorable")
         if _metric_available(row, "Momentum_Refuerzo") and float(row.get("Momentum_Refuerzo", 0.5)) >= momentum_good_min:
             signals.append("momentum fuerte")
+        elif _metric_available(row, "Momentum_Refuerzo") and float(row.get("Momentum_Refuerzo", 0.5)) >= 0.58:
+            signals.append("momentum relativo")
         if row.get("Tech_Trend") == "Alcista":
             signals.append("tecnico alcista")
         if row.get("Tech_Trend") == "Alcista fuerte":
@@ -179,6 +189,8 @@ def enrich_decision_explanations(
         signals: list[str] = []
         if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) >= high_weight_min:
             signals.append("peso alto")
+        if _metric_available(row, "Ganancia_%_Cap") and float(row.get("Ganancia_%_Cap", 0)) >= gain_extended_min:
+            signals.append("ganancia extendida")
         if _metric_available(row, "Beta") and float(row.get("Beta", 0)) >= beta_risk_min:
             signals.append("beta alta")
         if _metric_available(row, "P/E") and float(row.get("P/E", 0)) >= pe_expensive_min:
@@ -189,10 +201,16 @@ def enrich_decision_explanations(
             signals.append("consenso debil")
         if _metric_available(row, "Momentum_Reduccion_Effective") and float(row.get("Momentum_Reduccion_Effective", 0.5)) >= momentum_bad_min:
             signals.append("momentum debil")
+        elif _metric_available(row, "Momentum_Reduccion_Effective") and float(row.get("Momentum_Reduccion_Effective", 0.5)) >= 0.55:
+            signals.append("momentum relativo debil")
         if row.get("Tech_Trend") == "Bajista":
             signals.append("tecnico bajista")
-        if _metric_available(row, "Ganancia_%_Cap") and float(row.get("Ganancia_%_Cap", 0)) >= gain_extended_min:
-            signals.append("ganancia extendida")
+        if _metric_available(row, "s_beta_risk") and float(row.get("s_beta_risk", 0.5)) >= 0.70:
+            signals.append("beta exigente")
+        if _metric_available(row, "s_pe_expensive") and float(row.get("s_pe_expensive", 0.5)) >= 0.70:
+            signals.append("valuacion relativa exigente")
+        if _metric_available(row, "s_low_quality_effective") and float(row.get("s_low_quality_effective", 0.5)) >= 0.70:
+            signals.append("calidad relativa debil")
         return signals
 
     def top_drivers(row: pd.Series) -> list[str]:
