@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from common.numeric import to_float_or_none
 from decision.action_constants import (
     ACTION_DESPLEGAR_LIQUIDEZ,
     ACTION_MANTENER_LIQUIDEZ,
@@ -15,7 +16,7 @@ from decision.action_constants import (
 
 
 def _fmt_pct_short(value: object) -> str | None:
-    number = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    number = to_float_or_none(value)
     if pd.isna(number):
         return None
     return f"{float(number):.1f}%"
@@ -48,10 +49,10 @@ def _comentario_operativo(row: pd.Series) -> str:
     parity = _fmt_pct_short(row.get("bonistas_paridad_pct"))
     tir = _fmt_pct_short(row.get("bonistas_tir_pct"))
     tir_gap = _fmt_pct_short(row.get("bonistas_tir_vs_avg_365d_pct"))
-    md = pd.to_numeric(pd.Series([row.get("bonistas_md")]), errors="coerce").iloc[0]
-    riesgo_pais = pd.to_numeric(pd.Series([row.get("bonistas_riesgo_pais_bps")]), errors="coerce").iloc[0]
-    reservas_bcra = pd.to_numeric(pd.Series([row.get("bonistas_reservas_bcra_musd")]), errors="coerce").iloc[0]
-    a3500_value = pd.to_numeric(pd.Series([row.get("bonistas_a3500_mayorista")]), errors="coerce").iloc[0]
+    md = to_float_or_none(row.get("bonistas_md"))
+    riesgo_pais = to_float_or_none(row.get("bonistas_riesgo_pais_bps"))
+    reservas_bcra = to_float_or_none(row.get("bonistas_reservas_bcra_musd"))
+    a3500_value = to_float_or_none(row.get("bonistas_a3500_mayorista"))
     a3500_txt = f"{float(a3500_value):.2f}" if pd.notna(a3500_value) else None
     rem_inflacion = _fmt_pct_short(row.get("bonistas_rem_inflacion_mensual_pct"))
     rem_inflacion_12m = _fmt_pct_short(row.get("bonistas_rem_inflacion_12m_pct"))

@@ -5,13 +5,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-
-def _valid_positive_mep(mep_real: object) -> float | None:
-    numeric = pd.to_numeric(pd.Series([mep_real]), errors="coerce").iloc[0]
-    if pd.isna(numeric):
-        return None
-    numeric = float(numeric)
-    return numeric if numeric > 0 else None
+from common.numeric import positive_float_or_none
 
 
 def normalize_account_currency(moneda: Any) -> str:
@@ -90,7 +84,7 @@ def rebuild_liquidity(
     mep_real: float | None,
     fci_cash_management: set[str],
 ) -> tuple[pd.DataFrame, dict[str, float], list[tuple]]:
-    mep_value = _valid_positive_mep(mep_real)
+    mep_value = positive_float_or_none(mep_real)
     liquidez_rows: list[tuple] = []
 
     caucion_ars = 0.0

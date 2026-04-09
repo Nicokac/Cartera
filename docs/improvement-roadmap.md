@@ -20,6 +20,7 @@ Ya quedaron resueltos:
 - cache acotado en Bonistas
 - hardening de render HTML con escape consistente
 - constantes canónicas para acciones en motor, sizing y renderer
+- bootstrap numérico común para conversiones y validaciones escalares
 
 ## P1. Alto impacto, baja complejidad
 
@@ -75,15 +76,19 @@ Trabajo hecho:
 
 ### 5. Limpieza final de bootstrap y contratos
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - complejidad: `Media`
 - impacto: `Medio/Bajo`
 
-Trabajo:
+Trabajo hecho:
 
-- consolidar helpers comunes de validación
-- reducir supuestos implícitos entre módulos
+- helper común en `src/common/numeric.py`
+- validaciones numéricas escalares unificadas en scoring, liquidez, valuación y sizing
 
-## Orden recomendado
+## Próximo foco
 
-1. limpieza final de bootstrap
+Si seguimos mejorando, el trabajo ya pasa de hardening a evolución de producto:
+
+1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
+2. ampliar cobertura de tests de clientes externos
+3. revisar warnings de pandas en tests de sizing

@@ -3,13 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-
-def _valid_positive_float(value: object) -> float | None:
-    numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
-    if pd.isna(numeric):
-        return None
-    numeric = float(numeric)
-    return numeric if numeric > 0 else None
+from common.numeric import positive_float_or_none, to_float_or_none
 
 
 def rank_score(series: pd.Series, higher_is_better: bool = True, neutral: float = 0.5) -> pd.Series:
@@ -53,8 +47,7 @@ def blend_scores(relative: pd.Series, absolute: pd.Series, *, relative_weight: f
 def _market_value(market_context: dict[str, object] | None, key: str) -> float | None:
     if not market_context:
         return None
-    value = pd.to_numeric(pd.Series([market_context.get(key)]), errors="coerce").iloc[0]
-    return None if pd.isna(value) else float(value)
+    return to_float_or_none(market_context.get(key))
 
 
 def detect_market_regime_flags(
@@ -196,7 +189,7 @@ def build_decision_base(
     mep_real: float | None,
     scoring_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
-    mep_value = _valid_positive_float(mep_real)
+    mep_value = positive_float_or_none(mep_real)
     decision_cols = [
         "Ticker_IOL",
         "Tipo",

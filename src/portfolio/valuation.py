@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from common.numeric import positive_float_or_none
 
 MASTER_PORTFOLIO_COLUMNS = [
     "Ticker_IOL",
@@ -33,14 +34,6 @@ def _compute_weight_pct(series: pd.Series) -> pd.Series:
     if not np.isfinite(total) or abs(total) < 1e-12:
         return pd.Series(0.0, index=series.index, dtype=float)
     return (values.fillna(0) / total * 100).round(2)
-
-
-def _valid_positive_mep(mep_real: object) -> float | None:
-    numeric = pd.to_numeric(pd.Series([mep_real]), errors="coerce").iloc[0]
-    if pd.isna(numeric):
-        return None
-    numeric = float(numeric)
-    return numeric if numeric > 0 else None
 
 
 def build_cedears_df(
@@ -144,7 +137,7 @@ def attach_value_usd(
     if df.empty:
         return df
     out = df.copy()
-    mep_value = _valid_positive_mep(mep_real)
+    mep_value = positive_float_or_none(mep_real)
     if "Valor_USD" not in out.columns:
         out["Valor_USD"] = out["Valorizado_ARS"] / mep_value if mep_value is not None else np.nan
     if default_columns:
@@ -162,7 +155,7 @@ def build_portfolio_master(
     *,
     mep_real: float | None,
 ) -> pd.DataFrame:
-    mep_value = _valid_positive_mep(mep_real)
+    mep_value = positive_float_or_none(mep_real)
     frames = []
     for frame in [df_cedears, df_local, df_bonos, df_liquidez]:
         if frame is None or frame.empty:
