@@ -10,7 +10,13 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
-from generate_real_report import build_real_bonistas_bundle, load_local_env, resolve_iol_credentials
+from generate_real_report import (
+    build_real_bonistas_bundle,
+    load_local_env,
+    prompt_money_ars,
+    prompt_yes_no,
+    resolve_iol_credentials,
+)
 
 
 class GenerateRealReportTests(unittest.TestCase):
@@ -38,6 +44,20 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertEqual(username, "prompt-user@example.com")
         self.assertEqual(password, "prompt-pass")
+
+    def test_prompt_yes_no_retries_until_valid_answer(self) -> None:
+        with patch("builtins.input", side_effect=["quizas", "s"]), patch("builtins.print") as print_mock:
+            result = prompt_yes_no("Confirmar?", default=False)
+
+        self.assertTrue(result)
+        print_mock.assert_called_with("Respuesta invalida. Ingresa 's' o 'n'.")
+
+    def test_prompt_money_ars_retries_on_invalid_and_negative_values(self) -> None:
+        with patch("builtins.input", side_effect=["abc", "-5", "$600.000"]), patch("builtins.print") as print_mock:
+            result = prompt_money_ars("Monto")
+
+        self.assertEqual(result, 600000.0)
+        self.assertEqual(print_mock.call_count, 2)
 
     def test_build_real_bonistas_bundle_accepts_mep_real_and_returns_bundle(self) -> None:
         df_bonos = pd.DataFrame(

@@ -53,6 +53,19 @@ class PyOBDClientTests(unittest.TestCase):
         self.assertEqual(al30["bonistas_liquidity_bucket"], "baja")
         self.assertAlmostEqual(al30["bonistas_volume_last"], 80000.0, places=2)
 
+    def test_get_bond_volume_context_returns_empty_when_client_has_no_data(self) -> None:
+        class _EmptyPyOBD:
+            def get_current_quote(self, ticker: str):
+                return pd.DataFrame()
+
+            def get_daily_history(self, ticker: str, from_date: str, to_date: str):
+                return pd.DataFrame()
+
+        with patch("clients.pyobd_client._get_pyobd_client", return_value=_EmptyPyOBD()):
+            df = get_bond_volume_context(["GD30"])
+
+        self.assertTrue(df.empty)
+
 
 if __name__ == "__main__":
     unittest.main()

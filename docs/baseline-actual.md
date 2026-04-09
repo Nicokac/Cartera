@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-09 07:01` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-09 07:31` en `America/Buenos_Aires`.
 
 ## Resumen
 
@@ -12,11 +12,12 @@ Estado operativo vigente al `2026-04-09 07:01` en `America/Buenos_Aires`.
 - regimen de mercado activo por `inflacion_local_alta`
 - `6` refuerzos: `XLU`, `NEM`, `KO`, `EEM`, `VIST`, `GOOGL`
 - `2` reducciones: `MELI`, `AAPL`
-- `1` despliegue: `CASH_ARS`
+- `0` despliegues
 - `30` neutrales
 - `GD30` sigue en `Rebalancear / tomar ganancia`
 - sizing con fondeo externo de `$600,000`: `XLU`, `NEM`, `KO`
 - `XLV` salio de `Refuerzo` y quedo en `Mantener / Neutral`
+- `CASH_ARS` ya no figura como `Desplegar liquidez`; queda en `Mantener / Neutral` bajo la politica `Usa liquidez IOL: No`
 
 ## Memoria temporal
 
@@ -25,7 +26,7 @@ Estado operativo vigente al `2026-04-09 07:01` en `America/Buenos_Aires`.
 - reruns del mismo dia no suman persistencia
 - validacion real con fecha nueva:
   - `Senales nuevas: 3`
-  - `Refuerzos persistentes: 5`
+  - `Refuerzos persistentes: 6`
   - `Reducciones persistentes: 0`
   - `Sin historial: 0`
 - la liquidez ya no cuenta en los KPIs agregados de memoria
@@ -42,7 +43,7 @@ Estado operativo vigente al `2026-04-09 07:01` en `America/Buenos_Aires`.
 - `EEM` se sostuvo en `Refuerzo` con tecnico `Alcista` y momentum positivo
 - `GOOGL` se sostuvo en `Refuerzo` con tecnico `Alcista`
 - `XLV` quedo bloqueado en `Mantener / Neutral` por `Momentum_20d_% < 0` con tecnico `Mixta`
-- `VIST`, `XLU`, `KO` y `NEM` aparecen como refuerzos persistentes
+- `XLU`, `NEM`, `KO`, `VIST`, `EEM` y `GOOGL` aparecen como refuerzos persistentes
 - con fondeo externo de `$600,000`, el sizing priorizo `XLU`, `NEM` y `KO`
 - la nueva curva de RSI de reduccion no rompio el bloque de refuerzos y endurecio el lado vendedor en `MELI` y `AAPL`
 - `bond_cer` mejoro por el flag inflacionario, pero todavia no emite `Refuerzo`

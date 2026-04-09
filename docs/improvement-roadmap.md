@@ -18,6 +18,7 @@ Priorizacion combinando:
 - curva propia de RSI para reduccion tecnica en casos `oversold` y `overbought`
 - fallback visible de `FRED UST` en bundle real y reporte HTML
 - narrativa alineada con scoring relativo sin perder brevedad
+- hardening del CLI real para respuestas invalidas y montos negativos
 - guardas de `Peso_%` en valuacion
 - CEDEARs sin `finviz_map`
 - contrato explicito de `mep_real`
@@ -33,6 +34,10 @@ Priorizacion combinando:
   - `argentinadatos`
   - `market_data`
   - `finviz_client`
+- cobertura reforzada en integraciones secundarias:
+  - `bcra`
+  - `fred_client`
+  - `pyobd_client`
 
 ## Reproducibilidad
 
@@ -54,6 +59,6 @@ Trabajo hecho:
 
 Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
-1. ampliar cobertura en integraciones secundarias o de borde
-2. ajustar scoring o persistencia con evidencia de nuevas corridas reales
-3. ampliar cobertura en integraciones secundarias o endurecer el CLI real
+1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
+2. revisar calibraciones futuras por subfamilia si aparecen nuevas corridas borderline
+3. limpiar deuda menor solo si aparece evidencia real

@@ -33,6 +33,21 @@ class BcraClientTests(unittest.TestCase):
         self.assertEqual(payload["periodo"], "Febrero De 2026")
         self.assertEqual(payload["fecha_publicacion"], "5 de marzo de 2026")
 
+    def test_get_rem_latest_returns_none_when_monthly_pattern_is_missing(self) -> None:
+        html = """
+        <html>
+        <body>
+        <h2>RESUMEN EJECUTIVO | FEBRERO DE 2026</h2>
+        <p>Contenido sin patron de inflacion mensual reconocible.</p>
+        </body>
+        </html>
+        """
+
+        with patch("clients.bcra._fetch_text", return_value=html):
+            payload = get_rem_latest(base_url="https://www.bcra.gob.ar/relevamiento-expectativas-mercado-rem/")
+
+        self.assertIsNone(payload)
+
     def test_get_rem_latest_parses_12m_inflation_from_excel(self) -> None:
         html = """
         <html>

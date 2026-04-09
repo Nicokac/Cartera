@@ -50,6 +50,30 @@ class FredClientTests(unittest.TestCase):
         self.assertAlmostEqual(payload["ust_10y_pct"], 4.25, places=2)
         self.assertAlmostEqual(payload["ust_spread_10y_5y_pct"], 0.20, places=2)
 
+    def test_get_ust_series_requires_api_key(self) -> None:
+        fake_module = types.SimpleNamespace(Fred=_FakeFred)
+
+        with patch.dict(sys.modules, {"fredapi": fake_module}), patch.dict("os.environ", {}, clear=True), patch(
+            "clients.fred_client._load_local_env", return_value={}
+        ):
+            with self.assertRaises(ValueError):
+                get_ust_series()
+
+    def test_get_ust_latest_returns_none_when_series_are_empty(self) -> None:
+        class _EmptyFred:
+            def __init__(self, *, api_key: str) -> None:
+                self.api_key = api_key
+
+            def get_series(self, series_id: str) -> pd.Series:
+                return pd.Series(dtype=float)
+
+        fake_module = types.SimpleNamespace(Fred=_EmptyFred)
+
+        with patch.dict(sys.modules, {"fredapi": fake_module}), patch.dict("os.environ", {"FRED_API_KEY": "demo-key"}, clear=False):
+            payload = get_ust_latest()
+
+        self.assertIsNone(payload)
+
 
 if __name__ == "__main__":
     unittest.main()

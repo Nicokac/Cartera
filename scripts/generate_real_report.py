@@ -105,18 +105,32 @@ def resolve_iol_credentials() -> tuple[str, str]:
 
 def prompt_yes_no(label: str, *, default: bool = False) -> bool:
     suffix = " [s/N]: " if not default else " [S/n]: "
-    raw = input(label + suffix).strip().lower()
-    if not raw:
-        return default
-    return raw in {"s", "si", "sí", "y", "yes"}
+    while True:
+        raw = input(label + suffix).strip().lower()
+        if not raw:
+            return default
+        if raw in {"s", "si", "sí", "y", "yes"}:
+            return True
+        if raw in {"n", "no"}:
+            return False
+        print("Respuesta invalida. Ingresa 's' o 'n'.")
 
 
 def prompt_money_ars(label: str) -> float:
-    raw = input(label + " ").strip()
-    if not raw:
-        return 0.0
-    normalized = raw.replace("$", "").replace(".", "").replace(",", ".").strip()
-    return max(float(normalized), 0.0)
+    while True:
+        raw = input(label + " ").strip()
+        if not raw:
+            return 0.0
+        normalized = raw.replace("$", "").replace(".", "").replace(",", ".").strip()
+        try:
+            amount = float(normalized)
+        except ValueError:
+            print("Monto invalido. Ingresa un numero en ARS, por ejemplo 600000.")
+            continue
+        if amount < 0:
+            print("El monto no puede ser negativo. Ingresa 0 o un valor positivo.")
+            continue
+        return amount
 
 
 def parse_finviz_number(value: object) -> float:

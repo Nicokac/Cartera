@@ -31,15 +31,12 @@ Estos puntos aparecieron en la auditoria, pero ya no describen el estado actual 
 Estos puntos siguen siendo razonables, pero no son bugs P0:
 
 - scoring relativo sin piso absoluto general
-- validacion de input CLI mejorable en `generate_real_report.py`
 - inferencia por prefijos en taxonomia/local bond analytics aun embebida en codigo
-- integraciones secundarias aun con cobertura menor que el core
 
 ### Hallazgos vigentes que si conviene trabajar
 
 - calibraciones futuras del scoring absoluto vs relativo
-- hardening del CLI real
-- mejoras de DX e infraestructura secundaria
+- mejoras puntuales de DX e infraestructura solo si aparece evidencia real
 
 ## Backlog vigente
 
@@ -152,24 +149,20 @@ Trabajo cerrado:
 
 ### 8. Hardening del CLI real
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - impacto: `Medio/Bajo`
 - complejidad: `Baja`
 
-Motivo:
+Trabajo cerrado:
 
-- el ingreso manual de montos externos todavia puede mejorar
-
-Propuesta:
-
-1. validar input vacio, texto invalido y negativos
-2. devolver mensajes de error claros sin romper la corrida
+1. `prompt_yes_no(...)` ahora reintenta hasta recibir una respuesta valida
+2. `prompt_money_ars(...)` ya no rompe la corrida con texto invalido o montos negativos
+3. hay tests explicitos para ambos prompts
 
 ## Orden sugerido
 
-1. hardening del CLI real
-2. ampliar cobertura en integraciones secundarias
-3. calibraciones futuras de scoring con nuevas corridas reales
+1. calibraciones futuras de scoring con nuevas corridas reales
+2. limpieza final de deuda menor si aparece evidencia real
 
 ## Criterio de cierre
 
