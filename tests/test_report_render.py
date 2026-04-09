@@ -170,6 +170,26 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("stress_soberano_local", html)
         self.assertIn("tasas_ust_altas", html)
 
+    def test_render_report_escapes_untrusted_decision_and_macro_text(self) -> None:
+        result = _build_minimal_result(
+            bonistas_bundle={
+                "bond_monitor": pd.DataFrame([{"Ticker_IOL": "GD30"}]),
+                "bond_subfamily_summary": pd.DataFrame([{"asset_subfamily": "bond_sov_ar", "Instrumentos": 1}]),
+                "macro_variables": {"cer_diario": '<script>alert("x")</script>'},
+            }
+        )
+        result["decision_bundle"]["final_decision"].loc[0, "motivo_accion"] = '<img src=x onerror=alert("m")>'
+        result["decision_bundle"]["final_decision"].loc[0, "driver_1"] = "<b>peso</b>"
+
+        html = render_report(result)
+
+        self.assertNotIn('<script>alert("x")</script>', html)
+        self.assertNotIn('<img src=x onerror=alert("m")>', html)
+        self.assertNotIn("<b>peso</b>", html)
+        self.assertIn("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;", html)
+        self.assertIn("&lt;img src=x onerror=alert(&quot;m&quot;)&gt;", html)
+        self.assertIn("&lt;b&gt;peso&lt;/b&gt;", html)
+
 
 if __name__ == "__main__":
     unittest.main()

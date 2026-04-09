@@ -55,6 +55,10 @@ def fmt_label(value: object) -> str:
     return str(value)
 
 
+def esc_text(value: object) -> str:
+    return html.escape(fmt_label(value))
+
+
 def metric_class(column: str, value: object) -> str:
     if pd.isna(value):
         return "metric metric-neutral"
@@ -248,11 +252,11 @@ def build_decision_table(
     rows = []
     ordered = df.sort_values("score_unificado", ascending=False)
     for _, row in ordered.iterrows():
-        ticker = html.escape(str(row["Ticker_IOL"]))
-        tipo = html.escape(str(row["Tipo"]))
+        ticker = esc_text(row["Ticker_IOL"])
+        tipo = esc_text(row["Tipo"])
         accion = str(row.get(action_col, ""))
-        motivo = html.escape(str(row.get(motive_col, "")))
-        motivo_score = html.escape(str(row.get("motivo_score", "")))
+        motivo = esc_text(row.get(motive_col, ""))
+        motivo_score = esc_text(row.get("motivo_score", ""))
         accion_previa = row.get("accion_previa")
         delta_score = row.get("score_delta_vs_dia_anterior")
         racha_refuerzo = int(row.get("dias_consecutivos_refuerzo", 0) or 0)
@@ -274,7 +278,7 @@ def build_decision_table(
             f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
             f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
-            f"<td>{html.escape(fmt_label(accion_previa))}</td>"
+            f"<td>{esc_text(accion_previa)}</td>"
             f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
             f"<td>{html.escape('-' if racha <= 0 else str(racha))}</td>"
             f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
@@ -405,7 +409,7 @@ def render_report(
 
     summary_cards = f"""
     <section class="cards">
-      <article class="card"><span class="label">Corrida</span><strong>{html.escape(str(generated_at_label or "-"))}</strong></article>
+      <article class="card"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
       <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
       <article class="card"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
@@ -446,7 +450,7 @@ def render_report(
         regime_items = []
         for flag_name, is_active in regime_flags.items():
             regime_items.append(
-                f"<span>{html.escape(flag_name)}: <strong>{'Activo' if is_active else 'Inactivo'}</strong></span>"
+                f"<span>{esc_text(flag_name)}: <strong>{'Activo' if is_active else 'Inactivo'}</strong></span>"
             )
         active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
         regime_state = "Activo" if market_regime.get("any_active") else "Sin activacion"
@@ -454,8 +458,8 @@ def render_report(
     <section class="panel" id="regimen">
       <h2>Regimen de mercado</h2>
       <div class="meta">
-        <span>Estado: <strong>{html.escape(regime_state)}</strong></span>
-        <span>Flags activos: <strong>{html.escape(active_flags_label)}</strong></span>
+        <span>Estado: <strong>{esc_text(regime_state)}</strong></span>
+        <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
       </div>
       <div class="meta">
         {''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>'}
@@ -470,16 +474,16 @@ def render_report(
     <section class="panel" id="bonistas">
       <h2>Bonos Locales</h2>
       <div class="meta">
-        <span>CER: <strong>{fmt_label(bonistas_macro.get('cer_diario'))}</strong></span>
-        <span>TAMAR: <strong>{fmt_label(bonistas_macro.get('tamar'))}</strong></span>
-        <span>BADLAR: <strong>{fmt_label(bonistas_macro.get('badlar'))}</strong></span>
-        <span>Reservas BCRA: <strong>{fmt_label(bonistas_macro.get('reservas_bcra_musd'))}</strong></span>
-        <span>A3500: <strong>{fmt_label(bonistas_macro.get('a3500_mayorista'))}</strong></span>
-        <span>Riesgo pais: <strong>{fmt_label(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
-        <span>REM inflacion: <strong>{fmt_label(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
-        <span>REM 12m: <strong>{fmt_label(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>
-        <span>UST 5y: <strong>{fmt_label(bonistas_macro.get('ust_5y_pct'))}</strong></span>
-        <span>UST 10y: <strong>{fmt_label(bonistas_macro.get('ust_10y_pct'))}</strong></span>
+        <span>CER: <strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></span>
+        <span>TAMAR: <strong>{esc_text(bonistas_macro.get('tamar'))}</strong></span>
+        <span>BADLAR: <strong>{esc_text(bonistas_macro.get('badlar'))}</strong></span>
+        <span>Reservas BCRA: <strong>{esc_text(bonistas_macro.get('reservas_bcra_musd'))}</strong></span>
+        <span>A3500: <strong>{esc_text(bonistas_macro.get('a3500_mayorista'))}</strong></span>
+        <span>Riesgo pais: <strong>{esc_text(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
+        <span>REM inflacion: <strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
+        <span>REM 12m: <strong>{esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>
+        <span>UST 5y: <strong>{esc_text(bonistas_macro.get('ust_5y_pct'))}</strong></span>
+        <span>UST 10y: <strong>{esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></span>
       </div>
       <h3>Resumen por subfamilia</h3>
       {build_table(
@@ -521,8 +525,8 @@ def render_report(
   <main class="page">
     <header class="hero">
       <div>
-        <p class="eyebrow">{html.escape(title)}</p>
-        <h1>{html.escape(headline)}</h1>
+        <p class="eyebrow">{esc_text(title)}</p>
+        <h1>{esc_text(headline)}</h1>
         <p class="lede">{lede}</p>
       </div>
     </header>
@@ -580,7 +584,7 @@ def render_report(
       <section class="panel" id="sizing">
         <h2>Sizing</h2>
         <div class="meta">
-          <span>Fuente de fondeo: <strong>{html.escape(str(sizing_bundle['fuente_fondeo']))}</strong></span>
+          <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
           <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
           <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
           <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>

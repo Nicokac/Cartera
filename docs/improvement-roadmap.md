@@ -18,6 +18,7 @@ Ya quedaron resueltos:
 - contrato explícito de `mep_real`
 - lazy loading de `config.py`
 - cache acotado en Bonistas
+- hardening de render HTML con escape consistente
 
 ## P1. Alto impacto, baja complejidad
 
@@ -49,14 +50,14 @@ Trabajo hecho:
 
 ### 3. Hardening extra de render
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - complejidad: `Baja`
 - impacto: `Medio/Bajo`
 
-Trabajo:
+Trabajo hecho:
 
-- revisar que todo texto libre insertado al HTML pase por escape consistente
-- cubrir con tests de render
+- macros, motivos, drivers y etiquetas visibles pasan por escape consistente
+- agregado test específico con payload malicioso para render HTML
 
 ## P3. Mejora de diseño
 
@@ -79,6 +80,5 @@ Trabajo:
 
 ## Orden recomendado
 
-1. hardening de render
-2. enums o constantes canónicas para acciones
-3. limpieza final de bootstrap
+1. enums o constantes canónicas para acciones
+2. limpieza final de bootstrap
