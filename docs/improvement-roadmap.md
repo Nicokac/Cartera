@@ -28,6 +28,7 @@ Priorizacion combinando:
 - constantes canonicas para acciones
 - helpers numericos comunes para scoring, liquidez, valuacion y sizing
 - exclusion de liquidez en el resumen agregado de memoria temporal
+- continuidad temporal compartida entre `CASH_ARS` y `CAUCION` para liquidez operativa diaria
 - warnings de pandas en `tests/test_sizing.py`
 - cobertura base de clientes externos:
   - `iol`

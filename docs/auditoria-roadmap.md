@@ -25,6 +25,7 @@ Estos puntos aparecieron en la auditoria, pero ya no describen el estado actual 
 - duplicacion principal entre `assign_base_action(...)` y `assign_action_v2(...)`
 - cobertura inexistente de clientes principales
 - ausencia de metadata minima del proyecto
+- falsos cortes de memoria temporal por alternancia entre efectivo y caucion operativa
 
 ### Hallazgos validos pero reclasificados
 
@@ -158,6 +159,18 @@ Trabajo cerrado:
 1. `prompt_yes_no(...)` ahora reintenta hasta recibir una respuesta valida
 2. `prompt_money_ars(...)` ya no rompe la corrida con texto invalido o montos negativos
 3. hay tests explicitos para ambos prompts
+
+### 9. Continuidad temporal de liquidez operativa
+
+- estado: `Resuelto`
+- impacto: `Bajo/Medio`
+- complejidad: `Baja`
+
+Trabajo cerrado:
+
+1. `CASH_ARS` y `CAUCION` comparten continuidad temporal en la memoria observacional
+2. se evita marcar falsos `sin_historial` cuando la caja diaria rota a caucion
+3. hay test explicito para esa equivalencia operativa
 
 ## Orden sugerido
 

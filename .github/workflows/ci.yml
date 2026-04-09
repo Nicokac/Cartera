@@ -33,6 +33,7 @@ jobs:
             tests.test_pipeline \
             tests.test_strategy_rules \
             tests.test_sizing \
+            tests.test_decision_history \
             tests.test_report_render \
             tests.test_generate_real_report \
             tests.test_iol_client \

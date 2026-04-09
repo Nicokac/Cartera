@@ -16,6 +16,7 @@ Suites utiles:
 python -m unittest tests.test_pipeline -v
 python -m unittest tests.test_strategy_rules -v
 python -m unittest tests.test_sizing -v
+python -m unittest tests.test_decision_history -v
 python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
 ```
@@ -28,6 +29,7 @@ CI minima:
   - `tests.test_pipeline`
   - `tests.test_strategy_rules`
   - `tests.test_sizing`
+  - `tests.test_decision_history`
   - `tests.test_report_render`
   - `tests.test_generate_real_report`
   - clientes principales y secundarios sin red real
