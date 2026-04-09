@@ -146,7 +146,10 @@ def enrich_decision_explanations(
             return fallback
         if len(clean) == 1:
             return clean[0]
-        return f"{clean[0]} y {clean[1]}"
+        if len(clean) == 2:
+            return f"{clean[0]} y {clean[1]}"
+        visible = clean[:3]
+        return ", ".join(visible[:-1]) + " y " + visible[-1]
 
     def _positive_signals(row: pd.Series) -> list[str]:
         signals: list[str] = []

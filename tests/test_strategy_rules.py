@@ -1039,6 +1039,49 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertTrue(("beta controlada" in comment) or ("ROE alto" in comment) or ("margen alto" in comment))
         self.assertIn("calidad", score_comment)
 
+    def test_refuerzo_comment_can_surface_up_to_three_positive_signals(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "TRIPLE",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": None,
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 1.0,
+                    "Beta": 0.7,
+                    "P/E": 15.0,
+                    "ROE": 24.0,
+                    "Profit Margin": 23.0,
+                    "Consensus_Final": 0.8,
+                    "Momentum_Refuerzo": 0.8,
+                    "Momentum_Reduccion_Effective": 0.2,
+                    "Ganancia_%_Cap": 20.0,
+                    "MEP_Premium_%": -95.0,
+                    "Tech_Trend": "Alcista",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.8,
+                    "s_consensus_bad": 0.2,
+                    "s_low_weight": 0.9,
+                    "s_high_weight": 0.1,
+                    "s_beta_ok": 0.8,
+                    "s_beta_risk": 0.2,
+                    "s_mep_ok": 0.9,
+                    "s_mep_premium": 0.1,
+                    "s_pe_ok": 0.8,
+                    "s_pe_expensive": 0.2,
+                }
+            ]
+        )
+
+        explained = enrich_decision_explanations(df)
+        comment = explained.loc[0, "motivo_accion"]
+
+        self.assertIn("peso bajo", comment)
+        self.assertIn("beta controlada", comment)
+        self.assertIn("valuacion razonable", comment)
+
     def test_explanations_follow_overridden_absolute_metric_thresholds(self) -> None:
         df = pd.DataFrame(
             [
