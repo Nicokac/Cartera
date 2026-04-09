@@ -11,7 +11,16 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
+if str(ROOT / "src") not in sys.path:
+    sys.path.append(str(ROOT / "src"))
 
+from decision.action_constants import (
+    ACTION_DESPLEGAR_LIQUIDEZ,
+    ACTION_MANTENER_NEUTRAL,
+    ACTION_REDUCIR,
+    ACTION_REFUERZO,
+    NEUTRAL_ACTIONS,
+)
 from smoke_run import run_smoke_pipeline
 
 
@@ -221,11 +230,11 @@ def build_technical_table(df: pd.DataFrame) -> str:
 
 def badge_class(action: object) -> str:
     action_text = str(action or "").lower()
-    if "refuerzo" in action_text:
+    if action_text == ACTION_REFUERZO.lower():
         return "badge badge-buy"
-    if "reducir" in action_text:
+    if action_text == ACTION_REDUCIR.lower():
         return "badge badge-sell"
-    if "desplegar" in action_text:
+    if action_text == ACTION_DESPLEGAR_LIQUIDEZ.lower():
         return "badge badge-fund"
     return "badge badge-neutral"
 
@@ -358,12 +367,7 @@ def render_report(
         motive_col = "motivo_accion"
 
     action_counts = decision_view[action_col].value_counts(dropna=False).to_dict()
-    neutrales = (
-        int(action_counts.get("Mantener / Neutral", 0))
-        + int(action_counts.get("Mantener / monitorear", 0))
-        + int(action_counts.get("Mantener liquidez", 0))
-        + int(action_counts.get("Mantener liquidez bloqueada", 0))
-    )
+    neutrales = sum(int(action_counts.get(action_name, 0)) for action_name in NEUTRAL_ACTIONS)
 
     technical_cols = [
         col
@@ -427,9 +431,9 @@ def render_report(
 
     action_summary = f"""
     <section class="action-strip">
-      <article class="action-card buy"><span>Refuerzos</span><strong>{int(action_counts.get('Refuerzo', 0))}</strong></article>
-      <article class="action-card sell"><span>Reducciones</span><strong>{int(action_counts.get('Reducir', 0))}</strong></article>
-      <article class="action-card fund"><span>Despliegue</span><strong>{int(action_counts.get('Desplegar liquidez', 0))}</strong></article>
+      <article class="action-card buy"><span>Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
+      <article class="action-card sell"><span>Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
+      <article class="action-card fund"><span>Despliegue</span><strong>{int(action_counts.get(ACTION_DESPLEGAR_LIQUIDEZ, 0))}</strong></article>
       <article class="action-card neutral"><span>Neutrales</span><strong>{neutrales}</strong></article>
     </section>
     """
@@ -620,10 +624,10 @@ def render_report(
           <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
           <select id="action-filter">
             <option value="">Todas las acciones</option>
-            <option value="Refuerzo">Refuerzo</option>
-            <option value="Reducir">Reducir</option>
-            <option value="Desplegar liquidez">Desplegar liquidez</option>
-            <option value="Mantener / Neutral">Mantener / Neutral</option>
+            <option value="{ACTION_REFUERZO}">{ACTION_REFUERZO}</option>
+            <option value="{ACTION_REDUCIR}">{ACTION_REDUCIR}</option>
+            <option value="{ACTION_DESPLEGAR_LIQUIDEZ}">{ACTION_DESPLEGAR_LIQUIDEZ}</option>
+            <option value="{ACTION_MANTENER_NEUTRAL}">{ACTION_MANTENER_NEUTRAL}</option>
           </select>
         </div>
       </div>

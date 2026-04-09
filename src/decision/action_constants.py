@@ -1,0 +1,18 @@
+from __future__ import annotations
+
+
+ACTION_REFUERZO = "Refuerzo"
+ACTION_REDUCIR = "Reducir"
+ACTION_MANTENER_NEUTRAL = "Mantener / Neutral"
+ACTION_MANTENER_MONITOREAR = "Mantener / monitorear"
+ACTION_MANTENER_LIQUIDEZ = "Mantener liquidez"
+ACTION_MANTENER_LIQUIDEZ_BLOQUEADA = "Mantener liquidez bloqueada"
+ACTION_DESPLEGAR_LIQUIDEZ = "Desplegar liquidez"
+ACTION_REBALANCEAR = "Rebalancear / tomar ganancia"
+
+NEUTRAL_ACTIONS = {
+    ACTION_MANTENER_NEUTRAL,
+    ACTION_MANTENER_MONITOREAR,
+    ACTION_MANTENER_LIQUIDEZ,
+    ACTION_MANTENER_LIQUIDEZ_BLOQUEADA,
+}

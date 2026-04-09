@@ -19,6 +19,7 @@ Ya quedaron resueltos:
 - lazy loading de `config.py`
 - cache acotado en Bonistas
 - hardening de render HTML con escape consistente
+- constantes canónicas para acciones en motor, sizing y renderer
 
 ## P1. Alto impacto, baja complejidad
 
@@ -61,11 +62,16 @@ Trabajo hecho:
 
 ## P3. Mejora de diseño
 
-### 4. Enum o constantes canónicas para acciones
+### 4. Constantes canónicas para acciones
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - complejidad: `Media`
 - impacto: `Medio/Bajo`
+
+Trabajo hecho:
+
+- acciones centralizadas en `src/decision/action_constants.py`
+- `actions.py`, `sizing.py` y `generate_smoke_report.py` ya no dependen de strings crudos dispersos
 
 ### 5. Limpieza final de bootstrap y contratos
 
@@ -80,5 +86,4 @@ Trabajo:
 
 ## Orden recomendado
 
-1. enums o constantes canónicas para acciones
-2. limpieza final de bootstrap
+1. limpieza final de bootstrap

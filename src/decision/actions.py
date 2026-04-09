@@ -2,6 +2,14 @@ from __future__ import annotations
 
 import pandas as pd
 
+from decision.action_constants import (
+    ACTION_DESPLEGAR_LIQUIDEZ,
+    ACTION_MANTENER_NEUTRAL,
+    ACTION_REBALANCEAR,
+    ACTION_REDUCIR,
+    ACTION_REFUERZO,
+)
+
 
 def _assign_action(
     decision: pd.DataFrame,
@@ -18,7 +26,7 @@ def _assign_action(
     despliegue_liquidez_threshold = float(action_rules.get("despliegue_liquidez_threshold", 0.55))
 
     out = decision.copy()
-    out[action_column] = "Mantener / Neutral"
+    out[action_column] = ACTION_MANTENER_NEUTRAL
 
     out.loc[
         (~out["Es_Liquidez"])
@@ -26,7 +34,7 @@ def _assign_action(
         & (out[score_refuerzo_column] >= refuerzo_threshold)
         & ((out[score_refuerzo_column] - out[score_reduccion_column]) >= score_gap_min),
         action_column,
-    ] = "Refuerzo"
+    ] = ACTION_REFUERZO
 
     out.loc[
         (~out["Es_Liquidez"])
@@ -34,12 +42,12 @@ def _assign_action(
         & (out[score_reduccion_column] >= reduccion_threshold)
         & ((out[score_reduccion_column] - out[score_refuerzo_column]) >= score_gap_min),
         action_column,
-    ] = "Reducir"
+    ] = ACTION_REDUCIR
 
     out.loc[
         (out["Es_Liquidez"]) & (out["score_despliegue_liquidez"] >= despliegue_liquidez_threshold),
         action_column,
-    ] = "Desplegar liquidez"
+    ] = ACTION_DESPLEGAR_LIQUIDEZ
     return out
 
 
@@ -219,13 +227,13 @@ def enrich_decision_explanations(
         return "Score de CEDEAR compuesto por momentum, peso, consenso, beta, MEP, valuacion y calidad."
 
     def motivo_accion(row: pd.Series) -> str:
-        accion = row.get("accion_sugerida_v2", row.get("accion_sugerida", "Mantener / Neutral"))
+        accion = row.get("accion_sugerida_v2", row.get("accion_sugerida", ACTION_MANTENER_NEUTRAL))
         positive_signals = _positive_signals(row)
         negative_signals = _negative_signals(row)
         positive_summary = _join_reasons(positive_signals, "senales favorables")
         negative_summary = _join_reasons(negative_signals, "senales mixtas")
 
-        if accion == "Refuerzo":
+        if accion == ACTION_REFUERZO:
             if _is_sector_etf(row):
                 return f"Refuerzo sectorial por {positive_summary}."
             if _is_core_etf(row):
@@ -240,7 +248,7 @@ def enrich_decision_explanations(
                 return f"Refuerzo ligado a commodities por {positive_summary}."
             return f"Refuerzo por {positive_summary}."
 
-        if accion == "Reducir":
+        if accion == ACTION_REDUCIR:
             if _is_core_etf(row):
                 return f"Reduccion de ETF core por {negative_summary}."
             if _is_country_region_etf(row):
@@ -251,10 +259,10 @@ def enrich_decision_explanations(
                 return f"Reduccion ligada a commodities por {negative_summary}."
             return f"Reduccion por {negative_summary}."
 
-        if accion == "Rebalancear / tomar ganancia":
+        if accion == ACTION_REBALANCEAR:
             return "Bono con senal de salida parcial o toma de ganancia."
 
-        if accion == "Desplegar liquidez":
+        if accion == ACTION_DESPLEGAR_LIQUIDEZ:
             return "Liquidez identificada como fuente potencial de fondeo."
 
         if _is_core_etf(row):

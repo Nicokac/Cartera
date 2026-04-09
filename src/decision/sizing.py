@@ -3,6 +3,16 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from decision.action_constants import (
+    ACTION_DESPLEGAR_LIQUIDEZ,
+    ACTION_MANTENER_LIQUIDEZ,
+    ACTION_MANTENER_LIQUIDEZ_BLOQUEADA,
+    ACTION_MANTENER_MONITOREAR,
+    ACTION_REBALANCEAR,
+    ACTION_REDUCIR,
+    ACTION_REFUERZO,
+)
+
 
 def _fmt_pct_short(value: object) -> str | None:
     number = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
@@ -49,13 +59,13 @@ def _comentario_operativo(row: pd.Series) -> str:
     ust_spread = _fmt_pct_short(row.get("bonistas_spread_vs_ust_pct"))
     put_flag = bool(row.get("bonistas_put_flag")) if pd.notna(row.get("bonistas_put_flag")) else False
 
-    if accion == "Desplegar liquidez":
+    if accion == ACTION_DESPLEGAR_LIQUIDEZ:
         return "Liquidez disponible para fondear refuerzos sin vender posiciones de riesgo."
-    if accion == "Mantener liquidez":
+    if accion == ACTION_MANTENER_LIQUIDEZ:
         return "Liquidez conservada como reserva tactica."
-    if accion == "Mantener liquidez bloqueada":
+    if accion == ACTION_MANTENER_LIQUIDEZ_BLOQUEADA:
         return "Liquidez excluida del fondeo por politica explicita del analisis."
-    if accion == "Rebalancear / tomar ganancia":
+    if accion == ACTION_REBALANCEAR:
         if local_subfamily == "bond_hard_dollar":
             if parity and tir:
                 details: list[str] = []
@@ -97,7 +107,7 @@ def _comentario_operativo(row: pd.Series) -> str:
         if asset_subfamily == "bond_sov_ar":
             return "Soberano AR con ganancia extendida; priorizar rebalanceo o toma parcial de ganancia."
         return "Bono con senal parcial de salida; priorizar rebalanceo o toma parcial de ganancia."
-    if accion == "Refuerzo":
+    if accion == ACTION_REFUERZO:
         if local_subfamily == "bond_cer":
             details: list[str] = []
             if tir:
@@ -140,13 +150,13 @@ def _comentario_operativo(row: pd.Series) -> str:
         if pd.notna(beta) and beta < 0.8:
             return "Refuerzo defensivo con beta controlada."
         return "Refuerzo razonable por score compuesto favorable."
-    if accion == "Reducir":
+    if accion == ACTION_REDUCIR:
         if tech == "Bajista":
             return "Reduccion favorecida por score debil y tecnico bajista."
         if pd.notna(beta) and beta > 1.5:
             return "Reducir por beta alta y deterioro relativo."
         return "Reduccion o rebalanceo sugerido por score compuesto debil."
-    if accion == "Mantener / monitorear":
+    if accion == ACTION_MANTENER_MONITOREAR:
         if local_subfamily == "bond_hard_dollar":
             details: list[str] = []
             if parity:
@@ -317,11 +327,11 @@ def build_operational_proposal(
     if usar_liquidez_iol:
         propuesta.loc[mask_liq, "accion_operativa"] = np.where(
             propuesta.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,
-            "Desplegar liquidez",
-            "Mantener liquidez",
+            ACTION_DESPLEGAR_LIQUIDEZ,
+            ACTION_MANTENER_LIQUIDEZ,
         )
     else:
-        propuesta.loc[mask_liq, "accion_operativa"] = "Mantener liquidez bloqueada"
+        propuesta.loc[mask_liq, "accion_operativa"] = ACTION_MANTENER_LIQUIDEZ_BLOQUEADA
 
     mask_bonos = propuesta["Tipo"] == "Bono"
     bond_rebalance_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
@@ -341,9 +351,9 @@ def build_operational_proposal(
         & bond_refuerzo_threshold.notna()
         & (propuesta["score_unificado"] >= bond_refuerzo_threshold),
         "accion_operativa",
-    ] = "Refuerzo"
+    ] = ACTION_REFUERZO
     propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
-        "Rebalancear / tomar ganancia"
+        ACTION_REBALANCEAR
     )
     propuesta.loc[
         mask_bonos
@@ -354,7 +364,7 @@ def build_operational_proposal(
         & (propuesta["score_unificado"] > bond_rebalance_threshold)
         & (propuesta["score_unificado"] < bono_monitor_max),
         "accion_operativa",
-    ] = "Mantener / monitorear"
+    ] = ACTION_MANTENER_MONITOREAR
 
     propuesta["comentario_operativo"] = propuesta.apply(_comentario_operativo, axis=1)
     mask_market_assets = ~propuesta["Tipo"].isin(["Bono", "Liquidez"])
@@ -368,25 +378,25 @@ def build_operational_proposal(
         ]
 
     top_reforzar_final = (
-        propuesta[propuesta["accion_operativa"] == "Refuerzo"]
+        propuesta[propuesta["accion_operativa"] == ACTION_REFUERZO]
         .sort_values("score_unificado", ascending=False)
         .head(top_candidates)
         .copy()
     )
     top_reducir_final = (
-        propuesta[propuesta["accion_operativa"] == "Reducir"]
+        propuesta[propuesta["accion_operativa"] == ACTION_REDUCIR]
         .sort_values("score_unificado", ascending=True)
         .head(top_candidates)
         .copy()
     )
     top_bonos_rebalancear = (
-        propuesta[propuesta["accion_operativa"] == "Rebalancear / tomar ganancia"]
+        propuesta[propuesta["accion_operativa"] == ACTION_REBALANCEAR]
         .sort_values("score_unificado", ascending=True)
         .head(top_candidates)
         .copy()
     )
     top_fondeo = (
-        propuesta[propuesta["accion_operativa"] == "Desplegar liquidez"]
+        propuesta[propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ]
         .sort_values(["score_despliegue_liquidez", "Valorizado_ARS"], ascending=[False, False])
         .head(top_candidates)
         .copy()
@@ -475,7 +485,7 @@ def build_prudent_allocation(
     sizing_rules = sizing_rules or {}
     tope_posicion_pct = float(sizing_rules.get("tope_posicion_pct", 65.0))
 
-    candidatos_refuerzo = propuesta[propuesta["accion_operativa"] == "Refuerzo"].copy()
+    candidatos_refuerzo = propuesta[propuesta["accion_operativa"] == ACTION_REFUERZO].copy()
     if len(candidatos_refuerzo) == 0 or monto_fondeo_ars <= 0:
         return candidatos_refuerzo
 
