@@ -36,6 +36,10 @@ TEMPORAL_COLUMNS = [
     "senal_persistente_reduccion",
 ]
 
+LIQUIDITY_TEMPORAL_GROUPS = {
+    "operativa_ars": {"CASH_ARS", "CAUCION"},
+}
+
 
 def _empty_history_frame() -> pd.DataFrame:
     return pd.DataFrame(columns=HISTORY_COLUMNS)
@@ -56,6 +60,16 @@ def _normalize_action_bucket(action: object) -> str:
     if text == "desplegar liquidez":
         return "despliegue"
     return "otro"
+
+
+def _history_match_tickers(ticker: object) -> set[str]:
+    normalized = str(ticker or "").strip().upper()
+    if not normalized:
+        return set()
+    for members in LIQUIDITY_TEMPORAL_GROUPS.values():
+        if normalized in members:
+            return set(members)
+    return {normalized}
 
 
 def load_decision_history(path: Path | None = None) -> pd.DataFrame:
@@ -188,8 +202,9 @@ def enrich_with_temporal_memory(
     temporal_rows: list[dict[str, Any]] = []
     for _, row in out.iterrows():
         ticker = row.get("Ticker_IOL")
+        match_tickers = _history_match_tickers(ticker)
         ticker_history = (
-            prior_history.loc[prior_history["Ticker_IOL"] == ticker].copy()
+            prior_history.loc[prior_history["Ticker_IOL"].isin(match_tickers)].copy()
             if not prior_history.empty
             else _empty_history_frame()
         )

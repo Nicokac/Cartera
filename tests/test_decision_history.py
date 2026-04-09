@@ -2,6 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -212,6 +213,42 @@ class DecisionHistoryTests(unittest.TestCase):
         self.assertEqual(summary["persistentes_refuerzo"], 1)
         self.assertEqual(summary["persistentes_reduccion"], 0)
         self.assertEqual(summary["sin_historial"], 0)
+
+    def test_temporal_memory_treats_cash_ars_and_caucion_as_same_operational_liquidity(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-04-08",
+                    "Ticker_IOL": "CASH_ARS",
+                    "asset_subfamily": "liquidity_other",
+                    "score_unificado": -0.285,
+                    "accion_sugerida_v2": "Mantener liquidez bloqueada",
+                    "Peso_%": 30.0,
+                    "Tech_Trend": np.nan,
+                    "Momentum_20d_%": np.nan,
+                    "Momentum_60d_%": np.nan,
+                    "market_regime_any_active": True,
+                    "market_regime_active_flags": "inflacion_local_alta",
+                }
+            ]
+        )
+        final_decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CAUCION",
+                    "Tipo": "Liquidez",
+                    "score_unificado": -0.285,
+                    "accion_sugerida_v2": "Mantener liquidez bloqueada",
+                }
+            ]
+        )
+
+        enriched = enrich_with_temporal_memory(final_decision, history, run_date="2026-04-09")
+        row = enriched.iloc[0]
+
+        self.assertEqual(row["accion_previa"], "Mantener liquidez bloqueada")
+        self.assertFalse(bool(row["sin_historial_temporal"]))
+        self.assertEqual(row["dias_consecutivos_mantener"], 2)
 
 
 if __name__ == "__main__":
