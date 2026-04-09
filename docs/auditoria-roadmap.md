@@ -32,16 +32,14 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 
 - scoring relativo sin piso absoluto
 - narrativa con thresholds absolutos que no siempre refleja el ranking relativo
-- ausencia de `pyproject.toml` o CI automatizada
 - validacion de input CLI mejorable en `generate_real_report.py`
 - inferencia por prefijos en taxonomia/local bond analytics aun embebida en codigo
 
 ### Hallazgos vigentes que si conviene trabajar
 
-- backlog de reproducibilidad real para clones limpios sin JSON privados
 - posible mejora de la capa tecnica de reduccion
 - evolucion del scoring absoluto vs relativo
-- mejoras de DX e infraestructura (`pyproject.toml`, CI)
+- mejoras de DX e infraestructura (`CI`, tooling)
 
 ## Backlog vigente
 
@@ -49,26 +47,15 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 
 ### 1. Formalizar setup de clone limpio
 
-- estado: `Parcialmente resuelto`
+- estado: `Resuelto`
 - impacto: `Alto`
 - complejidad: `Baja`
 
-Ya existe:
+Trabajo cerrado:
 
-- `requirements.txt`
-- `data/examples/*.json.example`
-- documentacion de setup
-
-Falta:
-
-- documentar de forma mas visible que los JSON reales no se versionan
-- dejar un checklist unico de bootstrap para colaboracion o CI
-
-Propuesta:
-
-1. agregar una seccion corta en `README.md` con pasos de clone limpio
-2. referenciar directamente `data/examples/README.md`
-3. decidir si conviene un script de bootstrap opcional
+1. seccion explicita de clone limpio en `README.md`
+2. referencia directa a `data/examples/README.md`
+3. script de bootstrap opcional para copiar ejemplos a rutas reales
 
 ### 2. Evaluar CI minima
 
@@ -138,25 +125,20 @@ Motivo:
 Propuesta:
 
 1. revisar `narrative_thresholds`
-2. decidir si ciertas senales deben derivarse de percentiles internos y no de umbrales fijos
+2. decidir si ciertas señales deben derivarse de percentiles internos y no de umbrales fijos
 
 ## P3. DX e infraestructura
 
 ### 6. Crear `pyproject.toml`
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - impacto: `Medio`
 - complejidad: `Baja`
 
-Motivo:
+Trabajo cerrado:
 
-- `requirements.txt` ya existe
-- pero falta una declaracion moderna del proyecto para tooling
-
-Propuesta:
-
-1. agregar metadata minima
-2. dejar dependencias base sincronizadas con `requirements.txt`
+1. metadata minima del proyecto
+2. dependencias base declaradas para tooling moderno
 
 ### 7. Hardening del CLI real
 
@@ -175,11 +157,11 @@ Propuesta:
 
 ## Orden sugerido
 
-1. clone limpio y reproducibilidad visible
-2. `pyproject.toml` y CI minima
-3. experimento controlado de scoring absoluto vs relativo
-4. revision fina de tecnica de reduccion
-5. alineacion final de narrativa
+1. CI minima
+2. experimento controlado de scoring absoluto vs relativo
+3. revision fina de tecnica de reduccion
+4. alineacion final de narrativa
+5. hardening del CLI real
 
 ## Criterio de cierre
 

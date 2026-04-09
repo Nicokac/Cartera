@@ -11,6 +11,8 @@ Priorizacion combinando:
 ## Resuelto
 
 - documentacion y `.json.example` para clones limpios
+- script de bootstrap para configuracion de ejemplo
+- `pyproject.toml` minimo del proyecto
 - guardas de `Peso_%` en valuacion
 - CEDEARs sin `finviz_map`
 - contrato explicito de `mep_real`
@@ -27,11 +29,11 @@ Priorizacion combinando:
   - `market_data`
   - `finviz_client`
 
-## Documentado
+## Reproducibilidad
 
-### Reproducibilidad de configuracion
+### Configuracion de clone limpio
 
-- estado: `Documentado`
+- estado: `Resuelto`
 - complejidad: `Baja`
 - impacto: `Alto`
 
@@ -40,6 +42,7 @@ Trabajo hecho:
 - documentacion formal de JSON no versionados
 - ejemplos `.json.example` para mappings y strategy
 - bootstrap minimo desde clone limpio
+- metadata base del proyecto en `pyproject.toml`
 
 ## Proximo foco
 

@@ -41,6 +41,22 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## Clone limpio
+
+Los JSON reales de `data/mappings/` y `data/strategy/` no se versionan.
+
+Bootstrap minimo:
+
+```powershell
+python scripts\bootstrap_example_config.py
+```
+
+Eso copia los `.json.example` de `data/examples/` a sus rutas reales si todavia no existen.
+
+Documentacion asociada:
+
+- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
+
 ## Variables de entorno
 
 ```env
