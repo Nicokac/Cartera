@@ -626,7 +626,7 @@ La corrida real del `2026-04-04` quedó como primer baseline completo posterior 
 - ajuste fino adicional para no sobrepenalizar ETFs/core amplios como `SPY`
 
 La baseline operativa vigente ya no es esa, sino la del `2026-04-07`, documentada en:
-- [refactor-roadmap.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\docs\refactor-roadmap.md)
+- [refactor-roadmap.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\refactor-roadmap.md)
 - [README.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
 
 El próximo punto abierto ya no es de trazabilidad, sino de evolución de producto:

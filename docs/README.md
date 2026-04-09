@@ -1,38 +1,21 @@
-# Documentación
+# Documentacion
 
-Este índice concentra la documentación útil y separa lo canónico de lo complementario.
+Este indice concentra solo la documentacion activa del proyecto.
 
-## Canónica
+## Canonica
 
 - [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
-- [refactor-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\refactor-roadmap.md)
 - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
-- [bonistas-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\bonistas-roadmap.md)
-- [claude-followups.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\claude-followups.md)
 - [improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
 - [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
 
-## Complementaria
-
-- [bond-pre-scoring-context.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\bond-pre-scoring-context.md)
-- [strategy-hardcode-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\strategy-hardcode-roadmap.md)
-- [strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\strategy-hardcode-inventory.md)
-- [notebook-feature-traceability.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\notebook-feature-traceability.md)
-- [notebook-runbook.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\notebook-runbook.md)
-- [bonistas-reference.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\bonistas-reference.md)
-
-## Configuración de ejemplo
-
-- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
-
 ## Criterio
 
-- `README.md` raíz: instalación y uso
-- `baseline-actual.md`: estado vigente
-- `refactor-roadmap.md`: historial de cambios
-- `improvement-roadmap.md`: próximos cambios priorizados
-- lo demás queda como apoyo, no como punto de entrada
+- `README.md` raiz: instalacion y uso
+- `baseline-actual.md`: estado operativo vigente
+- `asset-taxonomy.md`: familias y subfamilias efectivas del motor
+- `improvement-roadmap.md`: backlog tecnico y proximo foco
 
-## Archivo histórico
+## Historico
 
-`docs/archive/` concentra documentación útil para trazabilidad o contexto histórico, pero que ya no forma parte del recorrido principal del proyecto.
+Todo lo que ya no es punto de entrada, pero sigue siendo util para trazabilidad, queda en `docs/archive/`.

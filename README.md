@@ -1,40 +1,39 @@
 # Cartera de Activos
 
-Motor de análisis de cartera con foco en:
+Motor de analisis de cartera con foco en:
 
-- valuación y consolidación desde IOL
-- scoring operativo de CEDEARs, acciones locales, bonos y liquidez
-- overlay técnico
-- contexto macro local
+- consolidacion y valuacion desde IOL
+- scoring operativo para CEDEARs, acciones locales, bonos y liquidez
+- overlay tecnico y contexto macro
+- memoria temporal diaria
 - reporte HTML reproducible
-- snapshots y tests de regresión
 
 ## Estado actual
 
 Baseline operativa vigente al `2026-04-08`:
 
-- overlay técnico `24/24`
+- overlay tecnico `24/24`
 - Finviz fundamentals `24/24`
 - Finviz ratings `17/24`
-- memoria temporal diaria observacional ya validada con cambio de fecha efectiva
-- régimen de mercado visible en el HTML
+- regimen de mercado visible en HTML
+- memoria temporal diaria validada con cambio de fecha efectiva
 
 ## Estructura
 
-- `src/`: lógica canónica del proyecto
-- `scripts/`: runners y generación de reportes
+- `src/`: logica canonica del proyecto
+- `scripts/`: runners y generacion de reportes
 - `data/`: mappings, reglas, runtime y ejemplos
-- `docs/`: documentación funcional y de arquitectura
-- `tests/`: suite de regresión y snapshots
+- `docs/`: documentacion activa e historica
+- `tests/`: suite de regresion y snapshots
 - `reports/`: HTMLs generados
 
 ## Requisitos
 
-- Python `3.12` recomendado
+- Python `3.12`
 - acceso de red para corridas reales
-- credenciales válidas de IOL para el flujo real
+- credenciales validas de IOL para el flujo real
 
-Instalación:
+## Instalacion
 
 ```powershell
 python -m venv .venv
@@ -50,7 +49,7 @@ IOL_PASSWORD=tu_password_iol
 FRED_API_KEY=tu_fred_api_key
 ```
 
-## Uso rápido
+## Uso rapido
 
 ```powershell
 python scripts\generate_smoke_report.py
@@ -63,7 +62,7 @@ python scripts\generate_real_report.py
 python -m unittest discover -s tests -v
 ```
 
-Suites puntuales:
+Suites utiles:
 
 ```powershell
 python -m unittest tests.test_strategy_rules -v
@@ -74,22 +73,20 @@ python -m unittest tests.test_generate_real_report -v
 
 ## Memoria temporal
 
-- historial diario en `data\runtime\decision_history.csv`
-- unidad canónica: `ticker + fecha`
-- reruns del mismo día reemplazan la observación
-- hoy agrega:
-  - `accion_previa`
-  - `score_delta_vs_dia_anterior`
-  - `racha`
+- historial diario en `data/runtime/decision_history.csv`
+- unidad canonica: `ticker + fecha`
+- reruns del mismo dia reemplazan la observacion
+- el HTML expone:
+  - `Accion previa`
+  - `Δ Score`
+  - `Racha`
 
-## Documentación
+## Documentacion
 
-Entrada canónica:
+Entrada canonica:
 
 - [docs/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\README.md)
 
-Documentos agregados para la siguiente etapa:
+Configuracion de ejemplo para clones limpios:
 
-- [docs/claude-followups.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\claude-followups.md)
-- [docs/improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
 - [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)

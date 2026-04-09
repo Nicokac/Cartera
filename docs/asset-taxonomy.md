@@ -1,8 +1,8 @@
-# Taxonomía de Activos
+# Taxonomia de Activos
 
 ## Objetivo
 
-Definir la taxonomía canónica que usa el motor para scoring, acciones y sizing.
+Definir la taxonomia canonica que usa el motor para scoring, acciones y sizing.
 
 ## Familias vigentes
 
@@ -38,24 +38,25 @@ Subfamilia:
 
 - `liquidity_other`
 
-## Lectura actual
+## Lectura vigente
 
-- `stock_growth` quedó más exigente para `Refuerzo`
-- `stock_commodity` tiene un freno técnico extra cuando `Tech_Trend = Mixta`
-- `etf_sector` sigue siendo la subfamilia ETF con más tolerancia a `Refuerzo`
-- `etf_country_region` requiere más soporte para dejar neutralidad
-- `bond_sov_ar` sigue en monitoreo/rebalanceo, sin `Refuerzo` automático
+- `stock_growth` quedo mas exigente para `Refuerzo`
+- `stock_commodity` tiene un freno tecnico extra cuando `Tech_Trend = Mixta`
+- `etf_sector` sigue siendo la subfamilia ETF con mas tolerancia a `Refuerzo`
+- `etf_country_region` requiere mas soporte para salir de neutralidad
+- `bond_sov_ar` sigue priorizando monitoreo o rebalanceo
 
 ## Casos de referencia
 
-- `GOOGL`: `stock_growth`, hoy `Mantener / Neutral`
+- `GOOGL`: `stock_growth`, hoy `Refuerzo`
 - `NEM`: `stock_commodity`, hoy `Refuerzo`
 - `XLU` y `XLV`: `etf_sector`, hoy `Refuerzo`
+- `EEM`: `etf_country_region`, hoy `Refuerzo`
 - `GD30`: `bond_sov_ar`, hoy `Rebalancear / tomar ganancia`
 
 ## Fuente efectiva
 
-La taxonomía efectiva vive en:
+La taxonomia efectiva vive en:
 
 - `src/decision/scoring.py`
 - `data/strategy/scoring_rules.json`

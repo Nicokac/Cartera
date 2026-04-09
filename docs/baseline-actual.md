@@ -2,30 +2,32 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-08 18:21:08` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-08 23:31:46` en `America/Buenos_Aires`.
 
 ## Resumen
 
-- overlay técnico `24/24`
+- overlay tecnico `24/24`
 - Finviz fundamentals `24/24`
 - Finviz ratings `17/24`
+- regimen de mercado activo por `inflacion_local_alta`
 - `7` refuerzos: `XLU`, `XLV`, `NEM`, `KO`, `EEM`, `GOOGL`, `VIST`
 - `0` reducciones
 - `0` despliegues
 - `31` neutrales
-- `MELI` salió de `Reducir` y pasó a `Mantener / Neutral`
-- régimen de mercado visible y activo por `inflacion_local_alta`
+- `GD30` sigue en `Rebalancear / tomar ganancia`
+- `MELI` quedo en `Mantener / Neutral`
 
 ## Memoria temporal
 
 - historial en `data/runtime/decision_history.csv`
-- unidad canónica: `ticker + fecha`
-- reruns del mismo día no suman persistencia
-- validación real con fecha nueva:
+- unidad canonica: `ticker + fecha`
+- reruns del mismo dia no suman persistencia
+- validacion real con fecha nueva:
   - `Senales nuevas: 3`
   - `Refuerzos persistentes: 5`
   - `Reducciones persistentes: 0`
   - `Sin historial: 0`
+- la liquidez ya no cuenta en los KPIs agregados de memoria
 - columnas visibles:
   - `Accion previa`
   - `Δ Score`
@@ -33,10 +35,8 @@ Estado operativo vigente al `2026-04-08 18:21:08` en `America/Buenos_Aires`.
 
 ## Lectura operativa
 
-- la memoria temporal ya quedó validada con un día efectivo distinto
-- el régimen de mercado ya impactó el scoring por inflación local alta
-- `GOOGL` volvió a `Refuerzo`
-- `EEM` entró a `Refuerzo`
-- `MELI` perdió la señal de `Reducir`
-- `bond_cer` mejoró por el flag inflacionario, pero todavía no emite `Refuerzo`
-- `GD30` sigue en `Rebalancear / tomar ganancia`
+- la memoria temporal ya quedo validada con dia efectivo distinto
+- el regimen de mercado ya impacta el scoring por inflacion local alta
+- `EEM` y `GOOGL` entraron como refuerzos nuevos frente al dia previo
+- `VIST`, `XLU`, `XLV`, `KO` y `NEM` aparecen como refuerzos persistentes
+- `bond_cer` mejoro por el flag inflacionario, pero todavia no emite `Refuerzo`
