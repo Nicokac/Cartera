@@ -280,7 +280,10 @@ class SizingTests(unittest.TestCase):
             ]
         )
         bpoc7_row = bpoc7_row.reindex(columns=final_decision.columns, fill_value=None)
-        final_decision.loc[len(final_decision)] = bpoc7_row.iloc[0]
+        final_decision = pd.DataFrame.from_records(
+            [*final_decision.to_dict("records"), bpoc7_row.iloc[0].to_dict()],
+            columns=final_decision.columns,
+        )
 
         result = build_operational_proposal(final_decision, mep_real=1000)
         propuesta = result["propuesta"]
@@ -326,7 +329,10 @@ class SizingTests(unittest.TestCase):
         }
         for col in final_decision.columns:
             cer_row.setdefault(col, None)
-        final_decision.loc[len(final_decision)] = cer_row
+        final_decision = pd.DataFrame.from_records(
+            [*final_decision.to_dict("records"), cer_row],
+            columns=final_decision.columns,
+        )
 
         result = build_operational_proposal(final_decision, mep_real=1000)
         propuesta = result["propuesta"]
