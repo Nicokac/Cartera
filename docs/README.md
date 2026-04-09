@@ -7,6 +7,7 @@ Este indice concentra solo la documentacion activa del proyecto.
 - [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
 - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
 - [improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
+- [auditoria-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\auditoria-roadmap.md)
 - [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
 
 ## Criterio
@@ -15,6 +16,7 @@ Este indice concentra solo la documentacion activa del proyecto.
 - `baseline-actual.md`: estado operativo vigente
 - `asset-taxonomy.md`: familias y subfamilias efectivas del motor
 - `improvement-roadmap.md`: backlog tecnico y proximo foco
+- `auditoria-roadmap.md`: triage del review externo y orden de absorcion
 
 ## Historico
 
