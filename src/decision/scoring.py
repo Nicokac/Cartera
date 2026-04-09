@@ -701,6 +701,7 @@ def build_technical_overlay_scores(
 
     scoring_rules = scoring_rules or {}
     tech_rules = scoring_rules.get("technical_overlay", {}) or {}
+    absolute_rules = scoring_rules.get("absolute_scoring", {}) or {}
     if tech_rules.get("enabled", True) is False:
         return out
 
@@ -848,6 +849,7 @@ def apply_technical_overlay_scores(
         return out
     scoring_rules = scoring_rules or {}
     tech_rules = scoring_rules.get("technical_overlay", {}) or {}
+    absolute_rules = scoring_rules.get("absolute_scoring", {}) or {}
     asset_subfamily_adjustments = scoring_rules.get("asset_subfamily_adjustments", {}) or {}
     blend_base = float(tech_rules.get("blend_base", 0.75))
     blend_tech = float(tech_rules.get("blend_tech", 0.25))
@@ -895,6 +897,27 @@ def apply_technical_overlay_scores(
             out["score_refuerzo_v2"] -= np.where(high_gain_mixed_mask, mixed_high_gain_refuerzo_penalty, 0.0)
         if mixed_high_gain_reduccion_boost:
             out["score_reduccion_v2"] += np.where(high_gain_mixed_mask, mixed_high_gain_reduccion_boost, 0.0)
+
+    refuerzo_gate = absolute_rules.get("refuerzo_gate", {}) or {}
+    if bool(refuerzo_gate.get("enabled", False)):
+        negative_mom20_max = float(refuerzo_gate.get("momentum_20d_max", 0.0))
+        max_refuerzo_score = float(refuerzo_gate.get("max_score", 0.58))
+        allowed_trends = set(refuerzo_gate.get("allowed_trends", ["Alcista", "Alcista fuerte"]))
+        excluded_families = set(refuerzo_gate.get("excluded_families", ["bond", "liquidity"]))
+        asset_family = out.get("asset_family", pd.Series(index=out.index, dtype=object))
+        tech_trend = out.get("Tech_Trend", pd.Series(index=out.index, dtype=object))
+        mom20 = pd.to_numeric(out.get("Momentum_20d_%"), errors="coerce")
+        gate_mask = (
+            ~asset_family.isin(excluded_families)
+            & mom20.notna()
+            & (mom20 < negative_mom20_max)
+            & ~tech_trend.isin(allowed_trends)
+        )
+        out["score_refuerzo_v2"] = np.where(
+            gate_mask,
+            np.minimum(out["score_refuerzo_v2"], max_refuerzo_score),
+            out["score_refuerzo_v2"],
+        )
     out["score_refuerzo_v2"] = out["score_refuerzo_v2"].clip(0, 1)
     out["score_reduccion_v2"] = out["score_reduccion_v2"].clip(0, 1)
     out["score_unificado_v2"] = (out["score_refuerzo_v2"] - out["score_reduccion_v2"]).round(3)

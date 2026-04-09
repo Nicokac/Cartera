@@ -1456,6 +1456,51 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(blended.loc[0, "score_reduccion_v2"], blended.loc[1, "score_reduccion_v2"])
         self.assertLess(blended.loc[0, "score_unificado_v2"], blended.loc[1, "score_unificado_v2"])
 
+    def test_absolute_refuerzo_gate_caps_non_bullish_negative_momentum_names(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "GOOGL",
+                    "asset_family": "stock",
+                    "asset_subfamily": "stock_growth",
+                    "score_refuerzo": 0.60,
+                    "score_reduccion": 0.40,
+                    "tech_refuerzo": 0.80,
+                    "Tech_Trend": "Mixta",
+                    "Momentum_20d_%": -1.0,
+                },
+                {
+                    "Ticker_IOL": "EEM",
+                    "asset_family": "etf",
+                    "asset_subfamily": "etf_country_region",
+                    "score_refuerzo": 0.60,
+                    "score_reduccion": 0.40,
+                    "tech_refuerzo": 0.80,
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": -1.0,
+                },
+            ]
+        )
+
+        blended = apply_technical_overlay_scores(
+            df,
+            scoring_rules={
+                "technical_overlay": {"blend_base": 0.75, "blend_tech": 0.25},
+                "absolute_scoring": {
+                    "refuerzo_gate": {
+                        "enabled": True,
+                        "momentum_20d_max": 0.0,
+                        "max_score": 0.58,
+                        "allowed_trends": ["Alcista", "Alcista fuerte"],
+                        "excluded_families": ["bond", "liquidity"],
+                    }
+                },
+            },
+        )
+
+        self.assertAlmostEqual(blended.loc[0, "score_refuerzo_v2"], 0.58, places=3)
+        self.assertGreater(blended.loc[1, "score_refuerzo_v2"], 0.58)
+
     def test_market_regime_can_penalize_local_equity_and_help_hard_currency_bonds(self) -> None:
         df = pd.DataFrame(
             [

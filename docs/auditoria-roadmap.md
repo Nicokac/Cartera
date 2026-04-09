@@ -78,7 +78,7 @@ Trabajo cerrado:
 
 ### 3. Revisar scoring absoluto vs relativo
 
-- estado: `Pendiente`
+- estado: `En progreso`
 - impacto: `Alto`
 - complejidad: `Media`
 
@@ -87,11 +87,16 @@ Motivo:
 - el ranking relativo siempre produce ganadores y perdedores
 - eso no siempre coincide con un mercado donde nadie merece refuerzo
 
-Propuesta:
+Avance actual:
 
-1. no tocar `rank_score(...)` global
-2. experimentar un gate absoluto solo sobre `score_refuerzo`
-3. validar en snapshots reales antes de mover baseline
+1. no se toco `rank_score(...)` global
+2. ya existe un gate absoluto suave y configurable en `absolute_scoring.refuerzo_gate`
+3. hoy limita `Refuerzo` cuando el momentum de 20 dias es negativo y el tecnico no es alcista
+
+Siguiente validacion:
+
+1. correr snapshots reales
+2. revisar si necesita calibracion por subfamilia
 
 ### 4. Revisar señal tecnica de reduccion
 
@@ -159,7 +164,7 @@ Propuesta:
 
 ## Orden sugerido
 
-1. experimento controlado de scoring absoluto vs relativo
+1. validar el gate absoluto suave en corridas reales
 2. revision fina de tecnica de reduccion
 3. alineacion final de narrativa
 4. hardening del CLI real

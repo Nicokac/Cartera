@@ -14,6 +14,7 @@ Priorizacion combinando:
 - script de bootstrap para configuracion de ejemplo
 - `pyproject.toml` minimo del proyecto
 - CI minima con GitHub Actions para suites estables
+- gate absoluto suave para limitar `Refuerzo` en setups no alcistas con momentum corto negativo
 - guardas de `Peso_%` en valuacion
 - CEDEARs sin `finviz_map`
 - contrato explicito de `mep_real`
@@ -52,4 +53,4 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
 1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
 2. ampliar cobertura en integraciones secundarias o de borde
-3. revisar mejoras de diseño de scoring absoluto vs relativo
+3. revisar si el gate absoluto suave necesita calibracion adicional por subfamilia
