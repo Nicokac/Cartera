@@ -17,6 +17,7 @@ Ya quedaron resueltos:
 - CEDEARs sin `finviz_map`
 - contrato explícito de `mep_real`
 - lazy loading de `config.py`
+- cache acotado en Bonistas
 
 ## P1. Alto impacto, baja complejidad
 
@@ -36,14 +37,15 @@ Trabajo ya hecho:
 
 ### 2. Cache con poda en Bonistas
 
-- estado: `Pendiente`
+- estado: `Resuelto`
 - complejidad: `Baja`
 - impacto: `Medio`
 
-Trabajo:
+Trabajo hecho:
 
-- reemplazar `_CACHE` por cache acotado o LRU
-- evitar crecimiento indefinido en procesos largos
+- `_CACHE` ahora usa capacidad acotada
+- entradas vencidas se purgan al consultar
+- hay helper `clear_cache()` para tests y corridas controladas
 
 ### 3. Hardening extra de render
 
@@ -77,7 +79,6 @@ Trabajo:
 
 ## Orden recomendado
 
-1. cache Bonistas
-2. hardening de render
-3. enums o constantes canónicas para acciones
-4. limpieza final de bootstrap
+1. hardening de render
+2. enums o constantes canónicas para acciones
+3. limpieza final de bootstrap

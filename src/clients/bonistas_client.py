@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import html
@@ -18,6 +19,7 @@ BASE_URL = "https://bonistas.com"
 INSTRUMENT_TTL_MINUTES = 15
 LISTING_TTL_MINUTES = 30
 MACRO_TTL_MINUTES = 60
+MAX_CACHE_ENTRIES = 128
 
 ROOT = Path(__file__).resolve().parents[2]
 MAPPING_PATH = ROOT / "data" / "mappings" / "bonistas_ticker_map.json"
@@ -29,7 +31,7 @@ class _CacheEntry:
     fetched_at: datetime
 
 
-_CACHE: dict[str, _CacheEntry] = {}
+_CACHE: OrderedDict[str, _CacheEntry] = OrderedDict()
 
 
 def _utcnow() -> datetime:
@@ -62,13 +64,23 @@ def _get_cached(key: str, ttl_minutes: int) -> Any | None:
     if entry is None:
         return None
     if _utcnow() - entry.fetched_at > timedelta(minutes=ttl_minutes):
+        _CACHE.pop(key, None)
         return None
+    _CACHE.move_to_end(key)
     return entry.data
 
 
 def _set_cached(key: str, data: Any) -> Any:
+    if key in _CACHE:
+        _CACHE.pop(key, None)
     _CACHE[key] = _CacheEntry(data=data, fetched_at=_utcnow())
+    while len(_CACHE) > MAX_CACHE_ENTRIES:
+        _CACHE.popitem(last=False)
     return data
+
+
+def clear_cache() -> None:
+    _CACHE.clear()
 
 
 def _fetch_html(path: str, *, timeout: int = DEFAULT_TIMEOUT) -> str:

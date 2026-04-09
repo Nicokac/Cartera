@@ -9,8 +9,12 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from clients.bonistas_client import (
+    MAX_CACHE_ENTRIES,
+    _CACHE,
     _infer_bonistas_subfamily,
     _parse_instrument_html,
+    _set_cached,
+    clear_cache,
     get_macro_variables,
     get_bonds_for_portfolio,
     normalize_bonistas_ticker,
@@ -18,9 +22,20 @@ from clients.bonistas_client import (
 
 
 class BonistasClientTests(unittest.TestCase):
+    def setUp(self) -> None:
+        clear_cache()
+
     def test_normalize_bonistas_ticker_defaults_to_uppercase(self) -> None:
         self.assertEqual(normalize_bonistas_ticker("gd30"), "GD30")
         self.assertEqual(normalize_bonistas_ticker("  al30 "), "AL30")
+
+    def test_cache_is_bounded(self) -> None:
+        for idx in range(MAX_CACHE_ENTRIES + 5):
+            _set_cached(f"instrument:T{idx}", {"idx": idx})
+
+        self.assertEqual(len(_CACHE), MAX_CACHE_ENTRIES)
+        self.assertNotIn("instrument:T0", _CACHE)
+        self.assertIn(f"instrument:T{MAX_CACHE_ENTRIES + 4}", _CACHE)
 
     def test_get_bonds_for_portfolio_returns_canonical_columns(self) -> None:
         fake_rows = [
