@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-08 23:31:46` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-09 06:40` en `America/Buenos_Aires`.
 
 ## Resumen
 
@@ -10,12 +10,13 @@ Estado operativo vigente al `2026-04-08 23:31:46` en `America/Buenos_Aires`.
 - Finviz fundamentals `24/24`
 - Finviz ratings `17/24`
 - regimen de mercado activo por `inflacion_local_alta`
-- `7` refuerzos: `XLU`, `XLV`, `NEM`, `KO`, `EEM`, `GOOGL`, `VIST`
+- `6` refuerzos: `XLU`, `NEM`, `KO`, `EEM`, `VIST`, `GOOGL`
 - `0` reducciones
-- `0` despliegues
-- `31` neutrales
+- `1` despliegue: `CASH_ARS`
+- `32` neutrales
 - `GD30` sigue en `Rebalancear / tomar ganancia`
 - `MELI` quedo en `Mantener / Neutral`
+- `XLV` salio de `Refuerzo` y quedo en `Mantener / Neutral`
 
 ## Memoria temporal
 
@@ -37,6 +38,9 @@ Estado operativo vigente al `2026-04-08 23:31:46` en `America/Buenos_Aires`.
 
 - la memoria temporal ya quedo validada con dia efectivo distinto
 - el regimen de mercado ya impacta el scoring por inflacion local alta
-- `EEM` y `GOOGL` entraron como refuerzos nuevos frente al dia previo
-- `VIST`, `XLU`, `XLV`, `KO` y `NEM` aparecen como refuerzos persistentes
+- el gate absoluto suave ya quedo validado en corrida real
+- `EEM` se sostuvo en `Refuerzo` con tecnico `Alcista` y momentum positivo
+- `GOOGL` se sostuvo en `Refuerzo` con tecnico `Alcista`
+- `XLV` quedo bloqueado en `Mantener / Neutral` por `Momentum_20d_% < 0` con tecnico `Mixta`
+- `VIST`, `XLU`, `KO` y `NEM` aparecen como refuerzos persistentes
 - `bond_cer` mejoro por el flag inflacionario, pero todavia no emite `Refuerzo`

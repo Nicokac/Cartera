@@ -51,6 +51,6 @@ Trabajo hecho:
 
 Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
-1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
+1. revisar si la tecnica de reduccion necesita mayor independencia en casos extremos
 2. ampliar cobertura en integraciones secundarias o de borde
-3. revisar si el gate absoluto suave necesita calibracion adicional por subfamilia
+3. ajustar scoring o persistencia con evidencia de nuevas corridas reales

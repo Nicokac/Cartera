@@ -187,6 +187,12 @@ def build_table(
     return f'<div class="table-wrap"><table class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
 
 
+def ensure_table_columns(df: pd.DataFrame | None, columns: list[str]) -> pd.DataFrame:
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return pd.DataFrame(columns=columns)
+    return df.reindex(columns=columns)
+
+
 def build_technical_table(df: pd.DataFrame) -> str:
     if df.empty:
         return '<div class="empty">Sin datos para mostrar.</div>'
@@ -595,8 +601,10 @@ def render_report(
           <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
         </div>
         {build_table(
-            asignacion_final[["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"]]
-            if not asignacion_final.empty else asignacion_final,
+            ensure_table_columns(
+                asignacion_final,
+                ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"],
+            ),
             formatters={
                 "Peso_Fondeo_%": fmt_pct,
                 "Monto_ARS": fmt_ars,

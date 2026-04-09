@@ -78,7 +78,7 @@ Trabajo cerrado:
 
 ### 3. Revisar scoring absoluto vs relativo
 
-- estado: `En progreso`
+- estado: `Validado en corrida real`
 - impacto: `Alto`
 - complejidad: `Media`
 
@@ -92,11 +92,14 @@ Avance actual:
 1. no se toco `rank_score(...)` global
 2. ya existe un gate absoluto suave y configurable en `absolute_scoring.refuerzo_gate`
 3. hoy limita `Refuerzo` cuando el momentum de 20 dias es negativo y el tecnico no es alcista
+4. corrida real `2026-04-09` validada:
+   - `XLV` salio de `Refuerzo`
+   - `GOOGL` siguio en `Refuerzo` con tecnico `Alcista`
+   - `EEM` siguio en `Refuerzo` con momentum positivo y tecnico `Alcista`
 
-Siguiente validacion:
+Trabajo pendiente asociado:
 
-1. correr snapshots reales
-2. revisar si necesita calibracion por subfamilia
+1. revisar si necesita calibracion por subfamilia
 
 ### 4. Revisar señal tecnica de reduccion
 

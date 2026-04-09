@@ -190,6 +190,16 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("&lt;img src=x onerror=alert(&quot;m&quot;)&gt;", html)
         self.assertIn("&lt;b&gt;peso&lt;/b&gt;", html)
 
+    def test_render_report_tolerates_partial_sizing_frame_without_alloc_columns(self) -> None:
+        result = _build_minimal_result()
+        result["sizing_bundle"]["asignacion_final"] = pd.DataFrame([{"Ticker_IOL": "XLU"}])
+
+        html = render_report(result)
+
+        self.assertIn("Sizing", html)
+        self.assertIn("Ticker_IOL", html)
+        self.assertIn("Bucket_Prudencia", html)
+
 
 if __name__ == "__main__":
     unittest.main()
