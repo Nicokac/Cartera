@@ -22,7 +22,7 @@ Ya quedaron resueltos:
 - constantes canonicas para acciones en motor, sizing y renderer
 - bootstrap numerico comun para conversiones y validaciones escalares
 - warnings de pandas en `tests/test_sizing.py`
-- cobertura base de clientes externos (`iol`, `argentinadatos`, `market_data`)
+- cobertura base de clientes externos (`iol`, `argentinadatos`, `market_data`, `finviz_client`)
 
 ## P1. Alto impacto, baja complejidad
 
@@ -92,5 +92,5 @@ Trabajo hecho:
 Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
 1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
-2. ampliar cobertura en clientes secundarios (`finviz_client`, integraciones menos criticas)
+2. ampliar cobertura en integraciones secundarias o de borde
 3. revisar mejoras de diseño de scoring absoluto vs relativo
