@@ -48,6 +48,9 @@ Priorizacion combinando:
   - fetch concurrente acotado
   - errores aislados por activo
   - sin mutacion concurrente de DataFrame
+- renderer HTML desacoplado de los runners:
+  - `report_renderer.py` como capa comun
+  - `generate_smoke_report.py` y `generate_real_report.py` quedan como runners finos
 
 ## Reproducibilidad
 

@@ -48,8 +48,8 @@ from decision.history import (
     save_decision_history,
     upsert_daily_decision_history,
 )
-from generate_smoke_report import REPORTS_DIR, render_report
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
+from report_renderer import REPORTS_DIR, render_report
 
 
 HTML_PATH = REPORTS_DIR / "real-report.html"

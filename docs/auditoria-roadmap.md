@@ -45,6 +45,9 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
   - fetch concurrente por ticker
   - errores aislados por activo
   - contrato del reporte preservado
+- el acoplamiento entre runner real y smoke ya quedo resuelto:
+  - renderer compartido extraido a modulo comun
+  - runners desacoplados entre si
 
 ## Backlog vigente
 
