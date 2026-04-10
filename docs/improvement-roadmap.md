@@ -39,6 +39,11 @@ Priorizacion combinando:
   - `bcra`
   - `fred_client`
   - `pyobd_client`
+- cobertura expandida del universo BYMA:
+  - `364 / 407` tickers con cobertura completa
+  - `340` candidatos automaticos integrados
+  - `1` rescate manual razonable (`VRSN`)
+  - `43` casos restantes formalizados como backlog manual
 
 ## Reproducibilidad
 
@@ -62,4 +67,8 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
 1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
 2. revisar calibraciones futuras por subfamilia si aparecen nuevas corridas borderline
-3. limpiar deuda menor solo si aparece evidencia real
+3. definir politica para los `43` CEDEARs fuera del circuito automatico:
+   - excluirlos formalmente
+   - cubrir una fuente alternativa a Finviz
+   - o resolver solo algunos casos manuales
+4. limpiar deuda menor solo si aparece evidencia real

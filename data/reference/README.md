@@ -45,12 +45,20 @@ Salida:
 - `finviz_candidates/excluded.json`: casos a revisar manualmente
 - `finviz_candidates/summary.json`: resumen de la generacion inicial
 - `finviz_candidates/final_status.json`: estado final despues de integrar todas las tandas automaticas
+- `finviz_candidates/manual_review_status.json`: backlog manual restante y casos rescatados
+
+Para validar que el remanente manual esta consistente con la auditoria:
+
+```powershell
+python scripts\validate_byma_manual_backlog.py
+```
 
 ## Estado actual
 
 - `340` candidatos directos ya fueron integrados en `finviz_map.json` e `instrument_profile_map.json`
-- `44` casos restantes coinciden exactamente con `excluded.json`
-- `363 / 407` tickers tienen cobertura completa contra el catalogo BYMA
+- `1` caso fue rescatado manualmente (`VRSN`)
+- `43` casos restantes conforman el backlog manual real
+- `364 / 407` tickers tienen cobertura completa contra el catalogo BYMA
 - el remanente ya no corresponde a batches automaticos; requiere revision manual
 
 ## Criterio actual
