@@ -72,6 +72,25 @@ def _history_match_tickers(ticker: object) -> set[str]:
     return {normalized}
 
 
+def _prepare_history_lookup(prior_history: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    if prior_history.empty:
+        return {}
+    sorted_history = prior_history.sort_values(["Ticker_IOL", "run_date"]).copy()
+    return {str(ticker): frame.copy() for ticker, frame in sorted_history.groupby("Ticker_IOL", sort=False)}
+
+
+def _merge_ticker_histories(
+    history_lookup: dict[str, pd.DataFrame],
+    tickers: set[str],
+) -> pd.DataFrame:
+    if not tickers:
+        return _empty_history_frame()
+    frames = [history_lookup[ticker] for ticker in sorted(tickers) if ticker in history_lookup]
+    if not frames:
+        return _empty_history_frame()
+    return pd.concat(frames, ignore_index=True)
+
+
 def load_decision_history(path: Path | None = None) -> pd.DataFrame:
     path = path or DECISION_HISTORY_PATH
     if not path.exists():
@@ -144,7 +163,7 @@ def save_decision_history(history: pd.DataFrame, path: Path | None = None) -> Pa
 
 
 def _build_temporal_row(
-    row: pd.Series,
+    row: dict[str, Any],
     *,
     ticker_history: pd.DataFrame,
 ) -> dict[str, Any]:
@@ -163,8 +182,9 @@ def _build_temporal_row(
 
     streak = 1 if current_bucket in {"refuerzo", "reduccion", "mantener"} else 0
     if streak:
-        for _, hist_row in ticker_history.sort_values("run_date", ascending=False).iterrows():
-            if _normalize_action_bucket(hist_row.get("accion_sugerida_v2")) != current_bucket:
+        history_buckets = ticker_history["accion_sugerida_v2"].map(_normalize_action_bucket).tolist()
+        for bucket in reversed(history_buckets):
+            if bucket != current_bucket:
                 break
             streak += 1
 
@@ -198,16 +218,13 @@ def enrich_with_temporal_memory(
     if not prior_history.empty:
         prior_history["run_date"] = prior_history["run_date"].map(_normalize_run_date)
         prior_history = prior_history.loc[prior_history["run_date"] < run_date_norm].copy()
+    history_lookup = _prepare_history_lookup(prior_history)
 
     temporal_rows: list[dict[str, Any]] = []
-    for _, row in out.iterrows():
+    for row in out.to_dict(orient="records"):
         ticker = row.get("Ticker_IOL")
         match_tickers = _history_match_tickers(ticker)
-        ticker_history = (
-            prior_history.loc[prior_history["Ticker_IOL"].isin(match_tickers)].copy()
-            if not prior_history.empty
-            else _empty_history_frame()
-        )
+        ticker_history = _merge_ticker_histories(history_lookup, match_tickers)
         temporal_rows.append(_build_temporal_row(row, ticker_history=ticker_history))
 
     temporal_df = pd.DataFrame(temporal_rows, index=out.index)

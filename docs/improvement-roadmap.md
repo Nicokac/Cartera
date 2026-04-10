@@ -85,6 +85,10 @@ Priorizacion combinando:
 - limpieza de config no usada:
   - removidos `ALERTA_MEP_DESVIO_PCT` y `ALERTA_PERDIDA_MINIMA`
   - `load_runtime_config()` queda alineado con consumidores reales
+- memoria temporal optimizada:
+  - lookup previo por ticker
+  - sin filtrado repetido de toda la historia por cada fila
+  - rachas calculadas sobre buckets ya normalizados
 
 ## Reproducibilidad
 

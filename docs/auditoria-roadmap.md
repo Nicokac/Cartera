@@ -65,6 +65,9 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
   - warnings en clientes externos sensibles
 - la config muerta ya quedo limpiada:
   - removidos flags runtime sin consumidor real
+- la memoria temporal ya no recorre historia completa por ticker en cada fila:
+  - lookup previo por `Ticker_IOL`
+  - calculo de rachas sobre series ya ordenadas
 - el bootstrap de clones limpios vuelve a quedar consistente:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 - la CI ya no deja afuera suites criticas del core:
