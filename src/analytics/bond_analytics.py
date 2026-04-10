@@ -4,6 +4,8 @@ from datetime import datetime
 
 import pandas as pd
 
+import config as project_config
+
 
 def _infer_bond_subfamily_from_block(value: object) -> str | None:
     text = str(value or "").strip().lower()
@@ -18,6 +20,13 @@ def _infer_bond_subfamily_from_block(value: object) -> str | None:
     return "bond_other"
 
 
+def _configured_bond_local_subfamily_rules() -> list[dict[str, object]]:
+    rules = (getattr(project_config, "BOND_LOCAL_SUBFAMILY_RULES", {}) or {}).get("rules", [])
+    if not isinstance(rules, list):
+        return []
+    return [rule for rule in rules if isinstance(rule, dict)]
+
+
 def _infer_bonistas_local_subfamily(row: pd.Series) -> str | None:
     explicit = str(row.get("bonistas_subfamily") or "").strip()
     if explicit:
@@ -26,22 +35,22 @@ def _infer_bonistas_local_subfamily(row: pd.Series) -> str | None:
     ticker = str(row.get("Ticker_IOL") or "").strip().upper()
     block = str(row.get("Bloque") or "").strip().lower()
 
-    if ticker.startswith(("GD", "AL", "AE", "AO", "AN")):
-        return "bond_hard_dollar"
-    if ticker.startswith("BPO") or "bopreal" in block:
-        return "bond_bopreal"
-    if ticker.startswith(("TZX", "TX", "TC", "CUAP", "DICP", "DIP0", "PARP", "PAP0", "X")) or block == "cer":
-        return "bond_cer"
-    if ticker.startswith("TT"):
-        return "bond_dual"
-    if ticker.startswith(("TV", "D30", "TZV")):
-        return "bond_dollar_linked"
-    if ticker.startswith("TMF"):
-        return "bond_tamar"
-    if ticker.startswith(("M", "TM")):
-        return "bond_tamar"
-    if ticker.startswith(("S", "T")):
-        return "bond_fixed_rate"
+    for rule in _configured_bond_local_subfamily_rules():
+        local_subfamily = str(rule.get("local_subfamily") or "").strip()
+        if not local_subfamily:
+            continue
+
+        ticker_prefixes = tuple(str(prefix).upper() for prefix in (rule.get("ticker_prefixes") or []) if str(prefix).strip())
+        block_equals = {str(value).strip().lower() for value in (rule.get("block_equals") or []) if str(value).strip()}
+        block_contains = [str(value).strip().lower() for value in (rule.get("block_contains") or []) if str(value).strip()]
+
+        ticker_match = bool(ticker_prefixes) and ticker.startswith(ticker_prefixes)
+        block_equals_match = bool(block_equals) and block in block_equals
+        block_contains_match = any(fragment in block for fragment in block_contains)
+
+        if ticker_match or block_equals_match or block_contains_match:
+            return local_subfamily
+
     return None
 
 

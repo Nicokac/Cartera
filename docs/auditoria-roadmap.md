@@ -48,6 +48,9 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 - el acoplamiento entre runner real y smoke ya quedo resuelto:
   - renderer compartido extraido a modulo comun
   - runners desacoplados entre si
+- la taxonomia local de bonos ya no depende solo de prefijos hardcodeados:
+  - reglas movidas a mapping versionado
+  - fallback operativo preservado
 
 ## Backlog vigente
 

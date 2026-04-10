@@ -51,6 +51,9 @@ Priorizacion combinando:
 - renderer HTML desacoplado de los runners:
   - `report_renderer.py` como capa comun
   - `generate_smoke_report.py` y `generate_real_report.py` quedan como runners finos
+- taxonomia local de bonos externalizada:
+  - reglas de `bonistas_local_subfamily` movidas a `bond_local_subfamily_rules.json`
+  - override configurable sin editar codigo
 
 ## Reproducibilidad
 

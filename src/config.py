@@ -33,6 +33,7 @@ _MAPPING_FILES = {
     "FINVIZ_MAP": "finviz_map.json",
     "BLOCK_MAP": "block_map.json",
     "INSTRUMENT_PROFILE_MAP": "instrument_profile_map.json",
+    "BOND_LOCAL_SUBFAMILY_RULES": "bond_local_subfamily_rules.json",
     "RATIOS": "ratios.json",
     "VN_FACTOR_MAP": "vn_factor_map.json",
 }
@@ -123,6 +124,7 @@ def load_portfolio_mappings() -> dict[str, dict[str, Any]]:
         "FINVIZ_MAP": dict(_load_cached_config("FINVIZ_MAP")),
         "BLOCK_MAP": dict(_load_cached_config("BLOCK_MAP")),
         "INSTRUMENT_PROFILE_MAP": dict(_load_cached_config("INSTRUMENT_PROFILE_MAP")),
+        "BOND_LOCAL_SUBFAMILY_RULES": dict(_load_cached_config("BOND_LOCAL_SUBFAMILY_RULES")),
         "RATIOS": dict(_load_cached_config("RATIOS")),
         "VN_FACTOR_MAP": dict(_load_cached_config("VN_FACTOR_MAP")),
     }

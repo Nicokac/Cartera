@@ -1,6 +1,7 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -212,6 +213,28 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertEqual(local_map["TZV26"], "bond_dollar_linked")
         self.assertEqual(local_map["TMF27"], "bond_tamar")
         self.assertEqual(operational_map["TTJ26"], "bond_other")
+
+    def test_enrich_bond_analytics_can_override_local_subfamily_rules_from_config(self) -> None:
+        df_bonds = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar"},
+                {"Ticker_IOL": "ABC1", "Tipo": "Bono", "Bloque": "Mixto especial", "asset_subfamily": "bond_other"},
+            ]
+        )
+
+        custom_rules = {
+            "rules": [
+                {"local_subfamily": "bond_fixed_rate", "ticker_prefixes": ["GD"]},
+                {"local_subfamily": "bond_dual", "block_contains": ["mixto especial"]},
+            ]
+        }
+
+        with patch("analytics.bond_analytics.project_config.BOND_LOCAL_SUBFAMILY_RULES", custom_rules):
+            enriched = enrich_bond_analytics(df_bonds, reference_date="2026-04-05")
+
+        local_map = enriched.set_index("Ticker_IOL")["bonistas_local_subfamily"].to_dict()
+        self.assertEqual(local_map["GD30"], "bond_fixed_rate")
+        self.assertEqual(local_map["ABC1"], "bond_dual")
 
     def test_build_bond_local_subfamily_summary_aggregates_local_taxonomy(self) -> None:
         df = pd.DataFrame(
