@@ -32,5 +32,7 @@ class ConfigTests(unittest.TestCase):
         self.assertIn("ACTION_RULES", runtime_config)
         self.assertIn("SIZING_RULES", runtime_config)
         self.assertIn("BUCKET_WEIGHTS", runtime_config)
+        self.assertIn("FINVIZ_MAX_WORKERS", runtime_config)
+        self.assertIn("FINVIZ_WORKER_TIMEOUT_SECONDS", runtime_config)
         self.assertIsInstance(runtime_config["SCORING_RULES"], dict)
         self.assertIsInstance(runtime_config["BUCKET_WEIGHTS"], dict)

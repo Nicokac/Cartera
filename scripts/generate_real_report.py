@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, wait
 from getpass import getpass
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -55,7 +55,6 @@ from report_renderer import REPORTS_DIR, render_report
 HTML_PATH = REPORTS_DIR / "real-report.html"
 SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
 ENV_PATH = ROOT / ".env"
-FINVIZ_MAX_WORKERS = 6
 
 
 def load_local_env(path: Path = ENV_PATH) -> dict[str, str]:
@@ -260,21 +259,29 @@ def enrich_real_cedears(
             tasks.append((idx, row_data))
 
     if tasks:
-        max_workers = min(FINVIZ_MAX_WORKERS, len(tasks))
-        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="finviz") as executor:
-            future_map = {
-                executor.submit(_enrich_cedear_row_payload, idx, row_data=row_data, mep_real=mep_real): idx
-                for idx, row_data in tasks
-            }
-            for future in as_completed(future_map):
-                idx, updates, rating_row, error = future.result()
-                if error:
-                    errors.append(error)
-                    continue
-                for col, value in updates.items():
-                    out.loc[idx, col] = value
-                if rating_row is not None:
-                    ratings_rows.append(rating_row)
+        max_workers = min(project_config.FINVIZ_MAX_WORKERS, len(tasks))
+        timeout_seconds = float(project_config.FINVIZ_WORKER_TIMEOUT_SECONDS)
+        executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="finviz")
+        future_map = {
+            executor.submit(_enrich_cedear_row_payload, idx, row_data=row_data, mep_real=mep_real): (idx, row_data)
+            for idx, row_data in tasks
+        }
+        done, not_done = wait(future_map.keys(), timeout=timeout_seconds)
+        for future in done:
+            idx, updates, rating_row, error = future.result()
+            if error:
+                errors.append(error)
+                continue
+            for col, value in updates.items():
+                out.loc[idx, col] = value
+            if rating_row is not None:
+                ratings_rows.append(rating_row)
+        for future in not_done:
+            idx, row_data = future_map[future]
+            ticker_finviz = str(row_data.get("Ticker_Finviz") or row_data.get("Ticker_IOL") or idx)
+            future.cancel()
+            errors.append(f"{ticker_finviz}: timeout after {timeout_seconds:.0f}s")
+        executor.shutdown(wait=False, cancel_futures=True)
 
     df_ratings_res = pd.DataFrame(ratings_rows)
     if not df_ratings_res.empty:

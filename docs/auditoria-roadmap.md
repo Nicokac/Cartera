@@ -56,6 +56,8 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 - el riesgo operativo de Finviz ya quedo mitigado:
   - retry con backoff corto
   - fallas transitorias mas tolerables sin cambiar la interfaz del cliente
+  - concurrencia parametrizada desde config
+  - timeout explicito de futures en enriquecimiento real
 - el bootstrap de clones limpios vuelve a quedar consistente:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 - la CI ya no deja afuera suites criticas del core:

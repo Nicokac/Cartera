@@ -1,5 +1,6 @@
 import sys
 import unittest
+from concurrent.futures import Future
 from pathlib import Path
 from unittest.mock import patch
 
@@ -222,6 +223,47 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertIn("AAPL: timeout", stats["errors"][0])
         self.assertTrue(pd.isna(enriched.loc[0, "Beta"]))
         self.assertEqual(ratings.loc["KO", "consenso"], "Hold")
+
+    def test_enrich_real_cedears_marks_timeout_when_future_does_not_finish(self) -> None:
+        df_cedears = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
+                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
+            ]
+        )
+        finished = Future()
+        finished.set_result(
+            (
+                0,
+                {"Perf Week": 1.5, "Beta": 1.2, "MEP_Implicito": 1.0},
+                {"Ticker_Finviz": "AAPL", "consenso": "Buy", "consenso_n": 1, "total_ratings": 1},
+                None,
+            )
+        )
+        pending = Future()
+
+        class FakeExecutor:
+            def __init__(self, *_args, **_kwargs) -> None:
+                self._futures = [finished, pending]
+
+            def submit(self, *_args, **_kwargs):
+                return self._futures.pop(0)
+
+            def shutdown(self, *args, **kwargs) -> None:
+                return None
+
+        with patch("generate_real_report.ThreadPoolExecutor", FakeExecutor), patch(
+            "generate_real_report.wait", return_value=({finished}, {pending})
+        ), patch("generate_real_report.project_config.FINVIZ_MAX_WORKERS", 2), patch(
+            "generate_real_report.project_config.FINVIZ_WORKER_TIMEOUT_SECONDS", 7
+        ):
+            enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
+
+        self.assertEqual(stats["fundamentals_covered"], 1)
+        self.assertEqual(stats["ratings_covered"], 1)
+        self.assertIn("KO: timeout after 7s", stats["errors"])
+        self.assertEqual(ratings.loc["AAPL", "consenso"], "Buy")
+        self.assertTrue(pd.isna(enriched.loc[1, "Beta"]))
 
     def test_real_report_bond_context_columns_include_bcra_macro_fields(self) -> None:
         bond_analytics = pd.DataFrame(

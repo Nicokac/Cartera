@@ -66,6 +66,10 @@ Priorizacion combinando:
   - retry con backoff corto por seccion
   - mismo contrato de salida del bundle
   - tolerancia mejor a fallas transitorias
+- concurrencia Finviz endurecida en corrida real:
+  - `FINVIZ_MAX_WORKERS` y `FINVIZ_WORKER_TIMEOUT_SECONDS` expuestos desde `config.py`
+  - timeout explicito de futures
+  - errores por timeout aislados por ticker
 - bootstrap de clones limpios alineado con la taxonomia local de bonos:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 
