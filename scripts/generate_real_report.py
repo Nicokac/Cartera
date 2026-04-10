@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -55,6 +56,16 @@ from report_renderer import REPORTS_DIR, render_report
 HTML_PATH = REPORTS_DIR / "real-report.html"
 SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
 ENV_PATH = ROOT / ".env"
+logger = logging.getLogger(__name__)
+
+
+def configure_logging() -> None:
+    if logging.getLogger().handlers:
+        return
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
 
 
 def load_local_env(path: Path = ENV_PATH) -> dict[str, str]:
@@ -145,11 +156,13 @@ def parse_finviz_number(value: object) -> float:
     if suffix in suffixes:
         try:
             return float(text[:-1]) * suffixes[suffix]
-        except Exception:
+        except Exception as exc:
+            logger.debug("No se pudo parsear numero Finviz con sufijo %r: %s", value, exc)
             return np.nan
     try:
         return float(text)
-    except Exception:
+    except Exception as exc:
+        logger.debug("No se pudo parsear numero Finviz %r: %s", value, exc)
         return np.nan
 
 
@@ -162,7 +175,8 @@ def parse_finviz_pct(value: object) -> float:
     text = text.replace("%", "")
     try:
         return float(text)
-    except Exception:
+    except Exception as exc:
+        logger.debug("No se pudo parsear porcentaje Finviz %r: %s", value, exc)
         return np.nan
 
 
@@ -207,6 +221,7 @@ def fetch_prices(
             status = exc.response.status_code if exc.response is not None else None
             if status == 404:
                 print(f"  [skip] Sin cotizacion IOL para {ticker} (404)")
+                logger.info("Sin cotizacion IOL para %s (404)", ticker)
                 continue
             raise
 
@@ -215,6 +230,7 @@ def fetch_prices(
             prices[ticker] = float(price)
         else:
             print(f"  [skip] ultimoPrecio ausente para {ticker}")
+            logger.info("ultimoPrecio ausente para %s", ticker)
 
     return prices, current_token
 
@@ -312,6 +328,7 @@ def _enrich_cedear_row_payload(
     try:
         bundle = fetch_finviz_bundle(str(ticker_finviz))
     except Exception as exc:
+        logger.warning("Finviz enrichment failed for %s: %s", ticker_finviz, exc)
         return idx, {}, None, f"{ticker_finviz}: {exc}"
 
     updates: dict[str, object] = {}
@@ -327,8 +344,8 @@ def _enrich_cedear_row_payload(
     if mep_real and pd.notna(row_data.get("Precio_ARS")):
         try:
             updates["MEP_Implicito"] = float(row_data["Precio_ARS"]) / max(float(mep_real), 1.0)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("No se pudo calcular MEP implicito para %s: %s", ticker_finviz, exc)
 
     rating_row = None
     ratings = bundle.get("ratings")
@@ -392,6 +409,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         df_bonistas = get_bonds_for_portfolio(tickers)
     except Exception as exc:
         print(f"Bonistas instrumentos no disponible: {exc}")
+        logger.warning("Bonistas instrumentos no disponible: %s", exc)
         df_bonistas = pd.DataFrame()
     if not df_bonistas.empty and "bonistas_ticker" in df_bonistas.columns and "Ticker_IOL" not in df_bonistas.columns:
         df_bonistas = df_bonistas.rename(columns={"bonistas_ticker": "Ticker_IOL"})
@@ -400,6 +418,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         df_bond_volume = get_bond_volume_context(tickers)
     except Exception as exc:
         print(f"PyOBD volumen no disponible: {exc}")
+        logger.warning("PyOBD volumen no disponible: %s", exc)
         df_bond_volume = pd.DataFrame()
     if not df_bond_volume.empty:
         if df_bonistas.empty:
@@ -411,12 +430,14 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         macro_variables = get_macro_variables()
     except Exception as exc:
         print(f"Bonistas variables no disponible: {exc}")
+        logger.warning("Bonistas variables no disponible: %s", exc)
         macro_variables = {}
 
     try:
         riesgo_pais = get_riesgo_pais_latest(base_url=project_config.ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL)
     except Exception as exc:
         print(f"ArgentinaDatos riesgo pais no disponible: {exc}")
+        logger.warning("ArgentinaDatos riesgo pais no disponible: %s", exc)
         riesgo_pais = None
     if riesgo_pais:
         macro_variables = dict(macro_variables)
@@ -430,6 +451,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         )
     except Exception as exc:
         print(f"BCRA REM no disponible: {exc}")
+        logger.warning("BCRA REM no disponible: %s", exc)
         rem_latest = None
     if rem_latest:
         macro_variables = dict(macro_variables)
@@ -449,6 +471,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         )
     except Exception as exc:
         print(f"BCRA monetarias no disponible: {exc}")
+        logger.warning("BCRA monetarias no disponible: %s", exc)
         bcra_monetary = {}
     if bcra_monetary:
         macro_variables = dict(macro_variables)
@@ -458,6 +481,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
         ust_latest = get_ust_latest()
     except Exception as exc:
         print(f"FRED UST no disponible: {exc}")
+        logger.warning("FRED UST no disponible: %s", exc)
         ust_latest = None
         macro_variables = dict(macro_variables)
         macro_variables["ust_status"] = "error"
@@ -486,6 +510,7 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
 
 
 def main() -> None:
+    configure_logging()
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))

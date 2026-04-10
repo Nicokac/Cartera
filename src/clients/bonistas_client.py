@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import html
 from io import StringIO
 import json
+import logging
 from pathlib import Path
 import re
 from typing import Any
@@ -20,6 +21,7 @@ INSTRUMENT_TTL_MINUTES = 15
 LISTING_TTL_MINUTES = 30
 MACRO_TTL_MINUTES = 60
 MAX_CACHE_ENTRIES = 128
+logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parents[2]
 MAPPING_PATH = ROOT / "data" / "mappings" / "bonistas_ticker_map.json"
@@ -43,7 +45,8 @@ def _read_ticker_map() -> dict[str, str]:
         return {}
     try:
         return json.loads(MAPPING_PATH.read_text(encoding="utf-8"))
-    except Exception:
+    except Exception as exc:
+        logger.warning("No se pudo leer bonistas_ticker_map.json: %s", exc)
         return {}
 
 
@@ -235,7 +238,8 @@ def get_instrument_data(ticker: str, *, timeout: int = DEFAULT_TIMEOUT, use_cach
     try:
         raw_html = _fetch_html(f"/bono-cotizacion-rendimiento-precio-hoy/{normalized}", timeout=timeout)
         payload = _parse_instrument_html(normalized, raw_html)
-    except Exception:
+    except Exception as exc:
+        logger.warning("Bonistas instrument fetch failed for %s: %s", normalized, exc)
         payload = {
             "bonistas_ticker": normalized,
             "bonistas_source_url": f"{BASE_URL}/bono-cotizacion-rendimiento-precio-hoy/{normalized}",
@@ -284,7 +288,8 @@ def get_macro_variables(*, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = Tru
 
     try:
         raw_html = _fetch_html("/variables", timeout=timeout)
-    except Exception:
+    except Exception as exc:
+        logger.warning("Bonistas macro fetch failed: %s", exc)
         payload = {
             "bonistas_parse_status": "error",
             "bonistas_source_url": f"{BASE_URL}/variables",

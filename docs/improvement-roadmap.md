@@ -78,6 +78,10 @@ Priorizacion combinando:
 - limpieza de `analytics` no usado:
   - removidos `fundamentals.py`, `ratings.py`, `news.py` e `insiders.py`
   - el pipeline queda alineado con la superficie activa real
+- logging estructurado minimo en flujo real y clientes sensibles:
+  - `logging.getLogger(__name__)`
+  - warnings en fallas de Finviz y Bonistas
+  - sin perder los mensajes de UX en terminal
 
 ## Reproducibilidad
 

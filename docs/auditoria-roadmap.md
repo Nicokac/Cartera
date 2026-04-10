@@ -60,6 +60,9 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
   - timeout explicito de futures en enriquecimiento real
 - el dead code de `analytics` ya quedo recortado:
   - removidos modulos sin consumidores activos en pipeline, scripts y tests
+- la observabilidad minima ya quedo mejorada:
+  - logging estructurado agregado en flujo real
+  - warnings en clientes externos sensibles
 - el bootstrap de clones limpios vuelve a quedar consistente:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 - la CI ya no deja afuera suites criticas del core:
