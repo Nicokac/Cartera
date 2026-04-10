@@ -82,6 +82,9 @@ Priorizacion combinando:
   - `logging.getLogger(__name__)`
   - warnings en fallas de Finviz y Bonistas
   - sin perder los mensajes de UX en terminal
+- limpieza de config no usada:
+  - removidos `ALERTA_MEP_DESVIO_PCT` y `ALERTA_PERDIDA_MINIMA`
+  - `load_runtime_config()` queda alineado con consumidores reales
 
 ## Reproducibilidad
 

@@ -63,6 +63,8 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 - la observabilidad minima ya quedo mejorada:
   - logging estructurado agregado en flujo real
   - warnings en clientes externos sensibles
+- la config muerta ya quedo limpiada:
+  - removidos flags runtime sin consumidor real
 - el bootstrap de clones limpios vuelve a quedar consistente:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 - la CI ya no deja afuera suites criticas del core:
