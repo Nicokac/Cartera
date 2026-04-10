@@ -51,6 +51,9 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 - la taxonomia local de bonos ya no depende solo de prefijos hardcodeados:
   - reglas movidas a mapping versionado
   - fallback operativo preservado
+- el riesgo operativo de Finviz ya quedo mitigado:
+  - retry con backoff corto
+  - fallas transitorias mas tolerables sin cambiar la interfaz del cliente
 
 ## Backlog vigente
 

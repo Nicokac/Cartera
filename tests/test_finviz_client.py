@@ -48,6 +48,28 @@ class _FailingFinvizStock:
         raise RuntimeError("insiders failed")
 
 
+class _RetryingFinvizStock:
+    fundamentals_attempts = 0
+
+    def __init__(self, ticker: str) -> None:
+        self.ticker = ticker
+
+    def ticker_fundament(self):
+        type(self).fundamentals_attempts += 1
+        if type(self).fundamentals_attempts < 3:
+            raise RuntimeError("temporary fundamentals failure")
+        return {"P/E": 21.0}
+
+    def ticker_outer_ratings(self):
+        return pd.DataFrame([{"Rating": "Hold"}])
+
+    def ticker_news(self):
+        return pd.DataFrame()
+
+    def ticker_inside_trader(self):
+        return pd.DataFrame()
+
+
 class FinvizClientTests(unittest.TestCase):
     def test_fetch_finviz_bundle_returns_all_sections_when_source_works(self) -> None:
         fake_quote_module = types.SimpleNamespace(finvizfinance=_FakeFinvizStock)
@@ -74,6 +96,19 @@ class FinvizClientTests(unittest.TestCase):
         self.assertTrue(bundle["ratings"].empty)
         self.assertTrue(bundle["news"].empty)
         self.assertTrue(bundle["insiders"].empty)
+
+    def test_fetch_finviz_bundle_retries_temporary_failures(self) -> None:
+        _RetryingFinvizStock.fundamentals_attempts = 0
+        fake_quote_module = types.SimpleNamespace(finvizfinance=_RetryingFinvizStock)
+
+        with patch.dict(sys.modules, {"finvizfinance.quote": fake_quote_module}), patch(
+            "clients.finviz_client.time.sleep"
+        ) as sleep_mock:
+            bundle = fetch_finviz_bundle("AAPL")
+
+        self.assertEqual(bundle["fundamentals"]["P/E"], 21.0)
+        self.assertEqual(_RetryingFinvizStock.fundamentals_attempts, 3)
+        self.assertEqual(sleep_mock.call_count, 2)
 
 
 if __name__ == "__main__":

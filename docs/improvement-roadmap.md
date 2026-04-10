@@ -54,6 +54,10 @@ Priorizacion combinando:
 - taxonomia local de bonos externalizada:
   - reglas de `bonistas_local_subfamily` movidas a `bond_local_subfamily_rules.json`
   - override configurable sin editar codigo
+- cliente Finviz endurecido:
+  - retry con backoff corto por seccion
+  - mismo contrato de salida del bundle
+  - tolerancia mejor a fallas transitorias
 
 ## Reproducibilidad
 
