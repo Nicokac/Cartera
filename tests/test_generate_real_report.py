@@ -12,6 +12,7 @@ if str(SCRIPTS) not in sys.path:
 
 from generate_real_report import (
     build_real_bonistas_bundle,
+    enrich_real_cedears,
     load_local_env,
     prompt_money_ars,
     prompt_yes_no,
@@ -164,6 +165,63 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertEqual(bundle["macro_variables"]["ust_status"], "error")
         self.assertIn("FRED caido", bundle["macro_variables"]["ust_error"])
+
+    def test_enrich_real_cedears_parallel_fetch_preserves_outputs(self) -> None:
+        df_cedears = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
+                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
+            ]
+        )
+
+        def fake_bundle(ticker: str) -> dict[str, object]:
+            if ticker == "AAPL":
+                return {
+                    "fundamentals": {"Perf Week": "1.5%", "Beta": "1.2", "P/E": "28", "ROE": "20%", "Profit Margin": "25%"},
+                    "ratings": pd.DataFrame([{"Rating": "Buy"}, {"Rating": "Buy"}, {"Rating": "Hold"}]),
+                }
+            return {
+                "fundamentals": {"Perf Month": "2.0%", "Beta": "0.7", "P/E": "22", "ROE": "18%", "Profit Margin": "21%"},
+                "ratings": pd.DataFrame([{"Action": "Hold"}, {"Action": "Hold"}]),
+            }
+
+        with patch("generate_real_report.fetch_finviz_bundle", side_effect=fake_bundle):
+            enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
+
+        self.assertEqual(stats["cedears_total"], 2)
+        self.assertEqual(stats["fundamentals_covered"], 2)
+        self.assertEqual(stats["ratings_covered"], 2)
+        self.assertEqual(stats["errors"], [])
+        self.assertAlmostEqual(enriched.loc[0, "MEP_Implicito"], 1.0, places=4)
+        self.assertAlmostEqual(enriched.loc[1, "MEP_Implicito"], 0.45, places=4)
+        self.assertEqual(ratings.loc["AAPL", "consenso"], "Buy")
+        self.assertEqual(ratings.loc["KO", "consenso"], "Hold")
+
+    def test_enrich_real_cedears_keeps_per_ticker_errors_without_aborting(self) -> None:
+        df_cedears = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
+                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
+            ]
+        )
+
+        def fake_bundle(ticker: str) -> dict[str, object]:
+            if ticker == "AAPL":
+                raise RuntimeError("timeout")
+            return {
+                "fundamentals": {"Perf Week": "1.0%", "Beta": "0.7"},
+                "ratings": pd.DataFrame([{"Status": "Hold"}]),
+            }
+
+        with patch("generate_real_report.fetch_finviz_bundle", side_effect=fake_bundle):
+            enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
+
+        self.assertEqual(stats["fundamentals_covered"], 1)
+        self.assertEqual(stats["ratings_covered"], 1)
+        self.assertEqual(len(stats["errors"]), 1)
+        self.assertIn("AAPL: timeout", stats["errors"][0])
+        self.assertTrue(pd.isna(enriched.loc[0, "Beta"]))
+        self.assertEqual(ratings.loc["KO", "consenso"], "Hold")
 
     def test_real_report_bond_context_columns_include_bcra_macro_fields(self) -> None:
         bond_analytics = pd.DataFrame(

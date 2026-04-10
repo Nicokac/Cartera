@@ -41,6 +41,10 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 - la cobertura BYMA/Finviz ya quedo cerrada para el circuito automatico:
   - `364 / 407` tickers cubiertos
   - `43` excluidos formalmente por politica del proyecto
+- el enriquecimiento serial de CEDEARs con Finviz ya quedo mitigado:
+  - fetch concurrente por ticker
+  - errores aislados por activo
+  - contrato del reporte preservado
 
 ## Backlog vigente
 

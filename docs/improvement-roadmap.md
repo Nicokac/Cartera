@@ -44,6 +44,10 @@ Priorizacion combinando:
   - `340` candidatos automaticos integrados
   - `1` rescate manual razonable (`VRSN`)
   - `43` casos restantes formalizados como exclusion versionada en `unsupported_byma_tickers.json`
+- enriquecimiento real de CEDEARs con Finviz paralelizado por ticker:
+  - fetch concurrente acotado
+  - errores aislados por activo
+  - sin mutacion concurrente de DataFrame
 
 ## Reproducibilidad
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from getpass import getpass
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -54,6 +55,7 @@ from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfo
 HTML_PATH = REPORTS_DIR / "real-report.html"
 SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
 ENV_PATH = ROOT / ".env"
+FINVIZ_MAX_WORKERS = 6
 
 
 def load_local_env(path: Path = ENV_PATH) -> dict[str, str]:
@@ -250,47 +252,29 @@ def enrich_real_cedears(
         if col not in out.columns:
             out[col] = default
 
+    tasks: list[tuple[object, dict[str, object]]] = []
     for idx, row in out.iterrows():
-        ticker_finviz = row.get("Ticker_Finviz")
-        if not ticker_finviz:
-            continue
+        row_data = row.to_dict()
+        ticker_finviz = row_data.get("Ticker_Finviz")
+        if ticker_finviz:
+            tasks.append((idx, row_data))
 
-        try:
-            bundle = fetch_finviz_bundle(str(ticker_finviz))
-        except Exception as exc:
-            errors.append(f"{ticker_finviz}: {exc}")
-            continue
-
-        fundamentals = bundle.get("fundamentals", {}) or {}
-        out.loc[idx, "Perf Week"] = parse_finviz_pct(fundamentals.get("Perf Week", out.loc[idx, "Perf Week"]))
-        out.loc[idx, "Perf Month"] = parse_finviz_pct(fundamentals.get("Perf Month", out.loc[idx, "Perf Month"]))
-        out.loc[idx, "Perf YTD"] = parse_finviz_pct(fundamentals.get("Perf YTD", out.loc[idx, "Perf YTD"]))
-        out.loc[idx, "Beta"] = parse_finviz_number(fundamentals.get("Beta", out.loc[idx, "Beta"]))
-        out.loc[idx, "P/E"] = parse_finviz_number(fundamentals.get("P/E", out.loc[idx, "P/E"]))
-        out.loc[idx, "ROE"] = parse_finviz_pct(fundamentals.get("ROE", out.loc[idx, "ROE"]))
-        out.loc[idx, "Profit Margin"] = parse_finviz_pct(fundamentals.get("Profit Margin", out.loc[idx, "Profit Margin"]))
-
-        if mep_real and pd.notna(row.get("Precio_ARS")):
-            try:
-                out.loc[idx, "MEP_Implicito"] = float(row["Precio_ARS"]) / max(float(mep_real), 1.0)
-            except Exception:
-                pass
-
-        ratings = bundle.get("ratings")
-        if isinstance(ratings, pd.DataFrame) and not ratings.empty:
-            ratings = ratings.copy()
-            action_col = next((c for c in ratings.columns if c.lower() in {"rating", "action", "status"}), None)
-            if action_col:
-                consenso = str(ratings[action_col].mode().iloc[0]) if not ratings[action_col].mode().empty else None
-                consenso_n = int((ratings[action_col] == consenso).sum()) if consenso else 0
-                ratings_rows.append(
-                    {
-                        "Ticker_Finviz": ticker_finviz,
-                        "consenso": consenso,
-                        "consenso_n": consenso_n,
-                        "total_ratings": int(len(ratings)),
-                    }
-                )
+    if tasks:
+        max_workers = min(FINVIZ_MAX_WORKERS, len(tasks))
+        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="finviz") as executor:
+            future_map = {
+                executor.submit(_enrich_cedear_row_payload, idx, row_data=row_data, mep_real=mep_real): idx
+                for idx, row_data in tasks
+            }
+            for future in as_completed(future_map):
+                idx, updates, rating_row, error = future.result()
+                if error:
+                    errors.append(error)
+                    continue
+                for col, value in updates.items():
+                    out.loc[idx, col] = value
+                if rating_row is not None:
+                    ratings_rows.append(rating_row)
 
     df_ratings_res = pd.DataFrame(ratings_rows)
     if not df_ratings_res.empty:
@@ -306,6 +290,55 @@ def enrich_real_cedears(
         "errors": errors[:10],
     }
     return out, df_ratings_res, stats
+
+
+def _enrich_cedear_row_payload(
+    idx: object,
+    *,
+    row_data: dict[str, object],
+    mep_real: float | None,
+) -> tuple[object, dict[str, object], dict[str, object] | None, str | None]:
+    ticker_finviz = row_data.get("Ticker_Finviz")
+    if not ticker_finviz:
+        return idx, {}, None, None
+
+    try:
+        bundle = fetch_finviz_bundle(str(ticker_finviz))
+    except Exception as exc:
+        return idx, {}, None, f"{ticker_finviz}: {exc}"
+
+    updates: dict[str, object] = {}
+    fundamentals = bundle.get("fundamentals", {}) or {}
+    updates["Perf Week"] = parse_finviz_pct(fundamentals.get("Perf Week", row_data.get("Perf Week")))
+    updates["Perf Month"] = parse_finviz_pct(fundamentals.get("Perf Month", row_data.get("Perf Month")))
+    updates["Perf YTD"] = parse_finviz_pct(fundamentals.get("Perf YTD", row_data.get("Perf YTD")))
+    updates["Beta"] = parse_finviz_number(fundamentals.get("Beta", row_data.get("Beta")))
+    updates["P/E"] = parse_finviz_number(fundamentals.get("P/E", row_data.get("P/E")))
+    updates["ROE"] = parse_finviz_pct(fundamentals.get("ROE", row_data.get("ROE")))
+    updates["Profit Margin"] = parse_finviz_pct(fundamentals.get("Profit Margin", row_data.get("Profit Margin")))
+
+    if mep_real and pd.notna(row_data.get("Precio_ARS")):
+        try:
+            updates["MEP_Implicito"] = float(row_data["Precio_ARS"]) / max(float(mep_real), 1.0)
+        except Exception:
+            pass
+
+    rating_row = None
+    ratings = bundle.get("ratings")
+    if isinstance(ratings, pd.DataFrame) and not ratings.empty:
+        ratings = ratings.copy()
+        action_col = next((c for c in ratings.columns if c.lower() in {"rating", "action", "status"}), None)
+        if action_col:
+            consenso = str(ratings[action_col].mode().iloc[0]) if not ratings[action_col].mode().empty else None
+            consenso_n = int((ratings[action_col] == consenso).sum()) if consenso else 0
+            rating_row = {
+                "Ticker_Finviz": str(ticker_finviz),
+                "consenso": consenso,
+                "consenso_n": consenso_n,
+                "total_ratings": int(len(ratings)),
+            }
+
+    return idx, updates, rating_row, None
 
 
 def write_real_snapshots(
