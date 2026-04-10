@@ -75,6 +75,9 @@ Priorizacion combinando:
 - `pypdf` movido fuera de dependencias base:
   - extra opcional `byma`
   - el extractor BYMA informa como instalarlo si falta
+- limpieza de `analytics` no usado:
+  - removidos `fundamentals.py`, `ratings.py`, `news.py` e `insiders.py`
+  - el pipeline queda alineado con la superficie activa real
 
 ## Reproducibilidad
 
