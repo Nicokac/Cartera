@@ -1,6 +1,6 @@
 # Referencias externas
 
-Este directorio guarda catálogos y artefactos de referencia extraídos desde fuentes externas.
+Este directorio guarda catalogos y artefactos de referencia extraidos desde fuentes externas.
 
 ## BYMA CEDEARs
 
@@ -10,42 +10,51 @@ Para extraer un PDF oficial de BYMA a una tabla reusable:
 python scripts\extract_byma_cedears_pdf.py "C:\ruta\al\archivo.pdf"
 ```
 
-Salida esperada:
+Salida:
 
-- `*.csv`: catálogo raw fila por fila
-- `*.metadata.json`: metadatos de extracción
+- `*.csv`: catalogo raw fila por fila
+- `*.metadata.json`: metadatos de extraccion
 - `*.conflicts.json`: tickers duplicados o ambiguos en el PDF
-- `*.ratios.unique.json`: ratios únicos listos para auditar
-- `*.comparison.json`: comparación contra `data/mappings/ratios.json`
+- `*.ratios.unique.json`: ratios unicos listos para auditar
+- `*.comparison.json`: comparacion contra `data/mappings/ratios.json`
 
-Nota:
-- `*.ratios.unique.json` no pisa `data/mappings/ratios.json` automáticamente
-- si BYMA trae conflictos o duplicados, primero conviene revisarlos
+Notas:
 
-Para auditar cobertura de mappings contra el catálogo extraído:
+- `*.ratios.unique.json` no pisa `data/mappings/ratios.json` automaticamente
+- si BYMA trae conflictos o duplicados, conviene revisarlos antes de actualizar mappings
+
+Para auditar cobertura de mappings contra el catalogo extraido:
 
 ```powershell
 python scripts\audit_byma_mapping_coverage.py
 ```
 
-Salida esperada:
+Salida:
 
 - `byma_mapping_coverage.json`: gaps entre `ratios`, `finviz_map` e `instrument_profile_map`
 
-Para preparar tandas candidatas de expansión de `finviz_map`:
+Para preparar tandas candidatas de expansion de `finviz_map`:
 
 ```powershell
 python scripts\build_byma_finviz_candidates.py
 ```
 
-Salida esperada:
+Salida:
 
 - `finviz_candidates/byma_finviz_candidates_batch_*.json`: tandas de candidatos directos `ticker BYMA -> ticker Finviz`
 - `finviz_candidates/excluded.json`: casos a revisar manualmente
-- `finviz_candidates/summary.json`: resumen de la tanda generada
+- `finviz_candidates/summary.json`: resumen de la generacion inicial
+- `finviz_candidates/final_status.json`: estado final despues de integrar todas las tandas automaticas
 
-Criterio actual:
+## Estado actual
 
-- sólo mercados compatibles o razonables para Finviz
-- sólo tickers simples sin mapeo especial
-- no pisa `data/mappings/finviz_map.json` automáticamente
+- `340` candidatos directos ya fueron integrados en `finviz_map.json` e `instrument_profile_map.json`
+- `44` casos restantes coinciden exactamente con `excluded.json`
+- `363 / 407` tickers tienen cobertura completa contra el catalogo BYMA
+- el remanente ya no corresponde a batches automaticos; requiere revision manual
+
+## Criterio actual
+
+- solo mercados compatibles o razonables para Finviz
+- solo tickers simples sin mapeo especial
+- no se pisa `data/mappings/finviz_map.json` automaticamente
