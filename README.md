@@ -10,13 +10,20 @@ Motor de analisis de cartera con foco en:
 
 ## Estado actual
 
-Baseline operativa vigente al `2026-04-08`:
+Baseline operativa vigente al `2026-04-09 23:33`:
 
 - overlay tecnico `24/24`
-- Finviz fundamentals `24/24`
-- Finviz ratings `17/24`
+- Finviz fundamentals `20/24`
+- Finviz ratings `15/24`
 - regimen de mercado visible en HTML
 - memoria temporal diaria validada con cambio de fecha efectiva
+- `6` refuerzos: `KO`, `EWZ`, `EEM`, `GOOGL`, `NEM`, `XLU`
+- `2` reducciones: `MELI`, `AAPL`
+- sizing vigente con fondeo externo de `$600,000`: `KO`, `EWZ`, `EEM`
+
+Detalle completo:
+
+- [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
 
 ## Estructura
 
@@ -87,10 +94,10 @@ python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
 ```
 
-CI minima:
+CI actual:
 
 - workflow: `.github/workflows/ci.yml`
-- corre suites estables sin red real ni credenciales
+- corre la bateria estable completa del repo activo sin red real ni credenciales
 - hace bootstrap automatico de configuracion de ejemplo antes de ejecutar tests
 
 ## Memoria temporal

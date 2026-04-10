@@ -38,8 +38,14 @@ CI actual:
   - `tests.test_generate_real_report`
   - `tests.test_liquidity`
   - `tests.test_numeric_utils`
+  - `tests.test_iol_client`
+  - `tests.test_argentinadatos_client`
+  - `tests.test_market_data_client`
+  - `tests.test_finviz_client`
+  - `tests.test_bcra_client`
+  - `tests.test_fred_client`
+  - `tests.test_pyobd_client`
   - `tests.test_valuation_and_checks`
-  - clientes principales y secundarios sin red real
 
 ## Cobertura actual
 
