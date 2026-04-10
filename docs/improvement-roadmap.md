@@ -81,5 +81,10 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
 1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
 2. revisar calibraciones futuras por subfamilia si aparecen nuevas corridas borderline
-3. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
-4. limpiar deuda menor solo si aparece evidencia real
+3. seguir monitoreando rotacion de refuerzos con evidencia real:
+   - `EWZ` afirmado
+   - `VIST` fuera de refuerzo
+   - `KO`, `EWZ`, `EEM` como sizing defensivo vigente al `2026-04-09 23:33`
+4. observar la variabilidad de cobertura Finviz en corridas reales aun con retry y paralelizacion
+5. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
+6. limpiar deuda menor solo si aparece evidencia real

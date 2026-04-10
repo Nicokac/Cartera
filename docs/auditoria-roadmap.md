@@ -193,6 +193,18 @@ Trabajo cerrado:
 1. calibraciones futuras de scoring con nuevas corridas reales
 2. limpieza final de deuda menor si aparece evidencia real
 
+## Evidencia real reciente
+
+- corrida `2026-04-09 23:33`:
+  - `6` refuerzos: `KO`, `EWZ`, `EEM`, `GOOGL`, `NEM`, `XLU`
+  - `2` reducciones: `MELI`, `AAPL`
+  - sizing defensivo con `$600,000`: `KO`, `EWZ`, `EEM`
+  - `VIST` salio de `Refuerzo`
+  - la cobertura Finviz bajo a `20/24` fundamentals y `15/24` ratings sin romper el flujo
+- lectura:
+  - la auditoria ya no deja trabajo correctivo urgente
+  - el foco real pasa a calibracion y seguimiento de corridas productivas
+
 ## Criterio de cierre
 
 Esta auditoria se considera absorbida cuando:
