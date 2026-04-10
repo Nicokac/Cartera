@@ -7,7 +7,14 @@ Este directorio guarda catalogos y artefactos de referencia extraidos desde fuen
 Para extraer un PDF oficial de BYMA a una tabla reusable:
 
 ```powershell
+pip install pypdf
 python scripts\extract_byma_cedears_pdf.py "C:\ruta\al\archivo.pdf"
+```
+
+Alternativa si instalas el proyecto desde `pyproject.toml`:
+
+```powershell
+pip install .[byma]
 ```
 
 Salida:

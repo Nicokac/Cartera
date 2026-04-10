@@ -7,7 +7,12 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from pypdf import PdfReader
+try:
+    from pypdf import PdfReader
+except ModuleNotFoundError as exc:  # pragma: no cover - depende del entorno local
+    raise SystemExit(
+        "Falta la dependencia opcional 'pypdf'. Instalala con 'pip install pypdf' o 'pip install .[byma]'."
+    ) from exc
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]

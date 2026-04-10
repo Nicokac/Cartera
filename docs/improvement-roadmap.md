@@ -72,6 +72,9 @@ Priorizacion combinando:
   - errores por timeout aislados por ticker
 - bootstrap de clones limpios alineado con la taxonomia local de bonos:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
+- `pypdf` movido fuera de dependencias base:
+  - extra opcional `byma`
+  - el extractor BYMA informa como instalarlo si falta
 
 ## Reproducibilidad
 
