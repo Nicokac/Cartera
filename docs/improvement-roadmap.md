@@ -14,6 +14,14 @@ Priorizacion combinando:
 - script de bootstrap para configuracion de ejemplo
 - `pyproject.toml` minimo del proyecto
 - CI minima con GitHub Actions ampliada a suites estables del pipeline y clientes
+- CI ampliada a la bateria local completa del repo:
+  - `bond_analytics`
+  - `bonistas_client`
+  - `classify`
+  - `dashboard`
+  - `liquidity`
+  - `numeric_utils`
+  - `valuation_and_checks`
 - gate absoluto suave para limitar `Refuerzo` en setups no alcistas con momentum corto negativo
 - curva propia de RSI para reduccion tecnica en casos `oversold` y `overbought`
 - fallback visible de `FRED UST` en bundle real y reporte HTML
@@ -58,6 +66,8 @@ Priorizacion combinando:
   - retry con backoff corto por seccion
   - mismo contrato de salida del bundle
   - tolerancia mejor a fallas transitorias
+- bootstrap de clones limpios alineado con la taxonomia local de bonos:
+  - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 
 ## Reproducibilidad
 

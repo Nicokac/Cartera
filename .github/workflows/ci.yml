@@ -29,7 +29,11 @@ jobs:
       - name: Run stable unittest suites
         run: |
           python -m unittest \
+            tests.test_bond_analytics \
+            tests.test_bonistas_client \
+            tests.test_classify \
             tests.test_config \
+            tests.test_dashboard \
             tests.test_pipeline \
             tests.test_strategy_rules \
             tests.test_sizing \
@@ -38,9 +42,12 @@ jobs:
             tests.test_generate_real_report \
             tests.test_iol_client \
             tests.test_argentinadatos_client \
+            tests.test_liquidity \
             tests.test_market_data_client \
             tests.test_finviz_client \
             tests.test_bcra_client \
             tests.test_fred_client \
+            tests.test_numeric_utils \
             tests.test_pyobd_client \
+            tests.test_valuation_and_checks \
             -v

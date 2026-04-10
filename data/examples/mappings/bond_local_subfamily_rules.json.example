@@ -1,0 +1,34 @@
+{
+  "rules": [
+    {
+      "local_subfamily": "bond_hard_dollar",
+      "ticker_prefixes": ["GD", "AL", "AE", "AO", "AN"]
+    },
+    {
+      "local_subfamily": "bond_bopreal",
+      "ticker_prefixes": ["BPO"],
+      "block_contains": ["bopreal"]
+    },
+    {
+      "local_subfamily": "bond_cer",
+      "ticker_prefixes": ["TZX", "TX", "TC", "CUAP", "DICP", "DIP0", "PARP", "PAP0", "X"],
+      "block_equals": ["cer"]
+    },
+    {
+      "local_subfamily": "bond_dual",
+      "ticker_prefixes": ["TT"]
+    },
+    {
+      "local_subfamily": "bond_dollar_linked",
+      "ticker_prefixes": ["TV", "D30", "TZV"]
+    },
+    {
+      "local_subfamily": "bond_tamar",
+      "ticker_prefixes": ["TMF", "M", "TM"]
+    },
+    {
+      "local_subfamily": "bond_fixed_rate",
+      "ticker_prefixes": ["S", "T"]
+    }
+  ]
+}

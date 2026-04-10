@@ -26,6 +26,8 @@ Estos puntos aparecieron en la auditoria, pero ya no describen el estado actual 
 - cobertura inexistente de clientes principales
 - ausencia de metadata minima del proyecto
 - falsos cortes de memoria temporal por alternancia entre efectivo y caucion operativa
+- ausencia del `.example` para `bond_local_subfamily_rules.json`
+- suites criticas excluidas de CI
 
 ### Hallazgos validos pero reclasificados
 
@@ -54,6 +56,16 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 - el riesgo operativo de Finviz ya quedo mitigado:
   - retry con backoff corto
   - fallas transitorias mas tolerables sin cambiar la interfaz del cliente
+- el bootstrap de clones limpios vuelve a quedar consistente:
+  - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
+- la CI ya no deja afuera suites criticas del core:
+  - `bond_analytics`
+  - `bonistas_client`
+  - `classify`
+  - `dashboard`
+  - `liquidity`
+  - `numeric_utils`
+  - `valuation_and_checks`
 
 ## Backlog vigente
 
