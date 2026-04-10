@@ -38,6 +38,9 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
 
 - calibraciones futuras del scoring absoluto vs relativo
 - mejoras puntuales de DX e infraestructura solo si aparece evidencia real
+- la cobertura BYMA/Finviz ya quedo cerrada para el circuito automatico:
+  - `364 / 407` tickers cubiertos
+  - `43` excluidos formalmente por politica del proyecto
 
 ## Backlog vigente
 

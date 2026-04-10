@@ -43,7 +43,7 @@ Priorizacion combinando:
   - `364 / 407` tickers con cobertura completa
   - `340` candidatos automaticos integrados
   - `1` rescate manual razonable (`VRSN`)
-  - `43` casos restantes formalizados como backlog manual
+  - `43` casos restantes formalizados como exclusion versionada en `unsupported_byma_tickers.json`
 
 ## Reproducibilidad
 
@@ -67,8 +67,5 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 
 1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
 2. revisar calibraciones futuras por subfamilia si aparecen nuevas corridas borderline
-3. definir politica para los `43` CEDEARs fuera del circuito automatico:
-   - excluirlos formalmente
-   - cubrir una fuente alternativa a Finviz
-   - o resolver solo algunos casos manuales
+3. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
 4. limpiar deuda menor solo si aparece evidencia real

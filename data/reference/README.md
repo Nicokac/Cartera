@@ -46,6 +46,7 @@ Salida:
 - `finviz_candidates/summary.json`: resumen de la generacion inicial
 - `finviz_candidates/final_status.json`: estado final despues de integrar todas las tandas automaticas
 - `finviz_candidates/manual_review_status.json`: backlog manual restante y casos rescatados
+- `data/mappings/unsupported_byma_tickers.json`: exclusion formal del remanente fuera del circuito automatico
 
 Para validar que el remanente manual esta consistente con la auditoria:
 
@@ -59,7 +60,7 @@ python scripts\validate_byma_manual_backlog.py
 - `1` caso fue rescatado manualmente (`VRSN`)
 - `43` casos restantes conforman el backlog manual real
 - `364 / 407` tickers tienen cobertura completa contra el catalogo BYMA
-- el remanente ya no corresponde a batches automaticos; requiere revision manual
+- el remanente ya no corresponde a batches automaticos y queda formalmente excluido por politica
 
 ## Criterio actual
 
