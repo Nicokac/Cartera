@@ -15,6 +15,7 @@ Suites utiles:
 ```powershell
 python -m unittest tests.test_pipeline -v
 python -m unittest tests.test_strategy_rules -v
+python -m unittest tests.test_technical -v
 python -m unittest tests.test_sizing -v
 python -m unittest tests.test_decision_history -v
 python -m unittest tests.test_report_render -v
@@ -32,6 +33,7 @@ CI actual:
   - `tests.test_dashboard`
   - `tests.test_pipeline`
   - `tests.test_strategy_rules`
+  - `tests.test_technical`
   - `tests.test_sizing`
   - `tests.test_decision_history`
   - `tests.test_report_render`

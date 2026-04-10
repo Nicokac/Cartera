@@ -89,6 +89,12 @@ Priorizacion combinando:
   - lookup previo por ticker
   - sin filtrado repetido de toda la historia por cada fila
   - rachas calculadas sobre buckets ya normalizados
+- overlay tecnico enriquecido con Yahoo:
+  - `SMA_200`
+  - `Dist_SMA200_%`
+  - `High_52w` / `Low_52w`
+  - `Dist_52w_High_%` / `Dist_52w_Low_%`
+  - `Avg_Volume_20d`
 
 ## Reproducibilidad
 

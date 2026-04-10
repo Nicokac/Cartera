@@ -58,20 +58,31 @@ def build_technical_overlay(
             sma9 = float(close.rolling(9).mean().iloc[-1]) if len(close) >= 9 else np.nan
             sma20 = float(close.rolling(20).mean().iloc[-1]) if len(close) >= 20 else np.nan
             sma50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else np.nan
+            sma200 = float(close.rolling(200).mean().iloc[-1]) if len(close) >= 200 else np.nan
             ema20 = float(close.ewm(span=20, adjust=False).mean().iloc[-1]) if len(close) >= 20 else np.nan
             ema50 = float(close.ewm(span=50, adjust=False).mean().iloc[-1]) if len(close) >= 50 else np.nan
             rsi14 = float(compute_rsi(close, 14).iloc[-1]) if len(close) >= 20 else np.nan
             returns = close.pct_change().dropna()
             vol20 = float(returns.tail(20).std() * np.sqrt(252) * 100) if len(returns) >= 20 else np.nan
+            avg_volume_20d = (
+                float(pd.to_numeric(hist["Volume"], errors="coerce").dropna().tail(20).mean())
+                if "Volume" in hist.columns and len(hist["Volume"].dropna()) >= 20
+                else np.nan
+            )
             momentum_20d = float((close.iloc[-1] / close.iloc[-21] - 1) * 100) if len(close) >= 21 else np.nan
             momentum_60d = float((close.iloc[-1] / close.iloc[-61] - 1) * 100) if len(close) >= 61 else np.nan
             max_3m = float(close.tail(63).max()) if len(close) >= 20 else np.nan
             min_3m = float(close.tail(63).min()) if len(close) >= 20 else np.nan
+            high_52w = float(close.tail(252).max()) if len(close) >= 20 else np.nan
+            low_52w = float(close.tail(252).min()) if len(close) >= 20 else np.nan
             drawdown = float((last_close / max_3m - 1) * 100) if pd.notna(max_3m) and max_3m != 0 else np.nan
             dist_sma20 = ((last_close / sma20) - 1) * 100 if pd.notna(sma20) and sma20 != 0 else np.nan
             dist_sma50 = ((last_close / sma50) - 1) * 100 if pd.notna(sma50) and sma50 != 0 else np.nan
+            dist_sma200 = ((last_close / sma200) - 1) * 100 if pd.notna(sma200) and sma200 != 0 else np.nan
             dist_ema20 = ((last_close / ema20) - 1) * 100 if pd.notna(ema20) and ema20 != 0 else np.nan
             dist_ema50 = ((last_close / ema50) - 1) * 100 if pd.notna(ema50) and ema50 != 0 else np.nan
+            dist_52w_high = ((last_close / high_52w) - 1) * 100 if pd.notna(high_52w) and high_52w != 0 else np.nan
+            dist_52w_low = ((last_close / low_52w) - 1) * 100 if pd.notna(low_52w) and low_52w != 0 else np.nan
 
             if pd.notna(sma9) and pd.notna(sma20) and pd.notna(sma50):
                 if last_close > sma9 > sma20 > sma50:
@@ -93,18 +104,25 @@ def build_technical_overlay(
                     "SMA_9": sma9,
                     "SMA_20": sma20,
                     "SMA_50": sma50,
+                    "SMA_200": sma200,
                     "EMA_20": ema20,
                     "EMA_50": ema50,
                     "Dist_SMA20_%": dist_sma20,
                     "Dist_SMA50_%": dist_sma50,
+                    "Dist_SMA200_%": dist_sma200,
                     "Dist_EMA20_%": dist_ema20,
                     "Dist_EMA50_%": dist_ema50,
+                    "Avg_Volume_20d": avg_volume_20d,
                     "RSI_14": rsi14,
                     "Momentum_20d_%": momentum_20d,
                     "Momentum_60d_%": momentum_60d,
                     "Vol_20d_Anual_%": vol20,
                     "Max_3m": max_3m,
                     "Min_3m": min_3m,
+                    "High_52w": high_52w,
+                    "Low_52w": low_52w,
+                    "Dist_52w_High_%": dist_52w_high,
+                    "Dist_52w_Low_%": dist_52w_low,
                     "Drawdown_desde_Max3m_%": drawdown,
                     "Tech_Trend": trend,
                 }

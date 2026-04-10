@@ -123,7 +123,17 @@ def metric_class(column: str, value: object) -> str:
             return "metric metric-warn"
         return "metric metric-negative"
 
-    if column in {"Momentum_20d_%", "Momentum_60d_%", "Dist_SMA20_%", "Dist_SMA50_%", "Dist_EMA20_%", "Dist_EMA50_%"}:
+    if column in {
+        "Momentum_20d_%",
+        "Momentum_60d_%",
+        "Dist_SMA20_%",
+        "Dist_SMA50_%",
+        "Dist_SMA200_%",
+        "Dist_EMA20_%",
+        "Dist_EMA50_%",
+        "Dist_52w_High_%",
+        "Dist_52w_Low_%",
+    }:
         if num > 1:
             return "metric metric-positive"
         if num < -1:
@@ -194,9 +204,13 @@ def build_technical_table(df: pd.DataFrame) -> str:
         "Momentum_60d_%": fmt_pct,
         "Dist_SMA20_%": fmt_pct,
         "Dist_SMA50_%": fmt_pct,
+        "Dist_SMA200_%": fmt_pct,
         "Dist_EMA20_%": fmt_pct,
         "Dist_EMA50_%": fmt_pct,
+        "Dist_52w_High_%": fmt_pct,
+        "Dist_52w_Low_%": fmt_pct,
         "Vol_20d_Anual_%": fmt_pct,
+        "Avg_Volume_20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
         "Drawdown_desde_Max3m_%": fmt_pct,
     }
     headers = "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
@@ -211,9 +225,13 @@ def build_technical_table(df: pd.DataFrame) -> str:
                 "Momentum_60d_%",
                 "Dist_SMA20_%",
                 "Dist_SMA50_%",
+                "Dist_SMA200_%",
                 "Dist_EMA20_%",
                 "Dist_EMA50_%",
+                "Dist_52w_High_%",
+                "Dist_52w_Low_%",
                 "Vol_20d_Anual_%",
+                "Avg_Volume_20d",
                 "Drawdown_desde_Max3m_%",
                 "Peso_%",
             }:
@@ -341,12 +359,16 @@ def render_report(
     tech_metric_cols = [
         "Dist_SMA20_%",
         "Dist_SMA50_%",
+        "Dist_SMA200_%",
         "Dist_EMA20_%",
         "Dist_EMA50_%",
+        "Dist_52w_High_%",
+        "Dist_52w_Low_%",
         "RSI_14",
         "Momentum_20d_%",
         "Momentum_60d_%",
         "Vol_20d_Anual_%",
+        "Avg_Volume_20d",
         "Drawdown_desde_Max3m_%",
     ]
     tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
@@ -380,9 +402,13 @@ def render_report(
             "Momentum_60d_%",
             "Dist_SMA20_%",
             "Dist_SMA50_%",
+            "Dist_SMA200_%",
             "Dist_EMA20_%",
             "Dist_EMA50_%",
+            "Dist_52w_High_%",
+            "Dist_52w_Low_%",
             "Vol_20d_Anual_%",
+            "Avg_Volume_20d",
             "Drawdown_desde_Max3m_%",
         ]
         if col in technical_overlay.columns
