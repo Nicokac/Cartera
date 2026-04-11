@@ -72,6 +72,9 @@ Priorizacion combinando:
   - errores por timeout aislados por ticker
   - `FINVIZ_SUBMIT_DELAY_SECONDS` para espaciar submits y reducir `429`
   - paralelismo por defecto bajado a un valor mas prudente para corridas reales
+  - segunda calibracion conservadora:
+    - `FINVIZ_MAX_WORKERS = 2`
+    - `FINVIZ_SUBMIT_DELAY_SECONDS = 0.75`
 - bootstrap de clones limpios alineado con la taxonomia local de bonos:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 - `pypdf` movido fuera de dependencias base:
