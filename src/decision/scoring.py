@@ -749,6 +749,7 @@ def build_technical_overlay_scores(
     metric_cols = [
         "Dist_SMA20_%",
         "Dist_SMA50_%",
+        "Dist_SMA200_%",
         "Dist_EMA20_%",
         "Dist_EMA50_%",
         "RSI_14",
@@ -776,6 +777,7 @@ def build_technical_overlay_scores(
     ranges = tech_rules.get("ranges", {}) or {}
     dist_sma20 = ranges.get("dist_sma20_pct", {}) or {}
     dist_sma50 = ranges.get("dist_sma50_pct", {}) or {}
+    dist_sma200 = ranges.get("dist_sma200_pct", {}) or {}
     dist_ema20 = ranges.get("dist_ema20_pct", {}) or {}
     dist_ema50 = ranges.get("dist_ema50_pct", {}) or {}
     mom20 = ranges.get("momentum_20d_pct", {}) or {}
@@ -793,6 +795,11 @@ def build_technical_overlay_scores(
         out["Dist_SMA50_%"],
         floor=float(dist_sma50.get("min", -15.0)),
         ceiling=float(dist_sma50.get("max", 15.0)),
+    )
+    out["ts_above_sma200"] = _scaled_centered(
+        out["Dist_SMA200_%"],
+        floor=float(dist_sma200.get("min", -25.0)),
+        ceiling=float(dist_sma200.get("max", 25.0)),
     )
     out["ts_above_ema20"] = _scaled_centered(
         out["Dist_EMA20_%"],
@@ -842,6 +849,7 @@ def build_technical_overlay_scores(
     out["tech_refuerzo"] = (
         float(subscores.get("above_sma20", 0.15)) * out["ts_above_sma20"]
         + float(subscores.get("above_sma50", 0.15)) * out["ts_above_sma50"]
+        + float(subscores.get("above_sma200", 0.05)) * out["ts_above_sma200"]
         + float(subscores.get("above_ema20", 0.10)) * out["ts_above_ema20"]
         + float(subscores.get("above_ema50", 0.10)) * out["ts_above_ema50"]
         + float(subscores.get("rsi", 0.15)) * out["ts_rsi"]
@@ -871,6 +879,7 @@ def apply_technical_overlay_scores(
     out["tech_reduccion"] = (
         float(reduction_subscores.get("below_sma20", 0.15)) * (1 - _series_or_default(out, "ts_above_sma20"))
         + float(reduction_subscores.get("below_sma50", 0.15)) * (1 - _series_or_default(out, "ts_above_sma50"))
+        + float(reduction_subscores.get("below_sma200", 0.05)) * (1 - _series_or_default(out, "ts_above_sma200"))
         + float(reduction_subscores.get("below_ema20", 0.10)) * (1 - _series_or_default(out, "ts_above_ema20"))
         + float(reduction_subscores.get("below_ema50", 0.10)) * (1 - _series_or_default(out, "ts_above_ema50"))
         + float(reduction_subscores.get("rsi", 0.10)) * _series_or_default(out, "ts_rsi_reduccion")

@@ -181,6 +181,7 @@ class StrategyRulesTests(unittest.TestCase):
                     "Ticker_IOL": "CRM",
                     "Dist_SMA20_%": 8.0,
                     "Dist_SMA50_%": 10.0,
+                    "Dist_SMA200_%": 12.0,
                     "Dist_EMA20_%": 7.0,
                     "Dist_EMA50_%": 9.0,
                     "RSI_14": 55.0,
@@ -290,6 +291,7 @@ class StrategyRulesTests(unittest.TestCase):
                     "Ticker_IOL": "CRM",
                     "Dist_SMA20_%": 8.0,
                     "Dist_SMA50_%": 10.0,
+                    "Dist_SMA200_%": 12.0,
                     "Dist_EMA20_%": 7.0,
                     "Dist_EMA50_%": 9.0,
                     "RSI_14": 55.0,
@@ -332,6 +334,7 @@ class StrategyRulesTests(unittest.TestCase):
                     "Ticker_IOL": "OVERSOLD",
                     "Dist_SMA20_%": 0.0,
                     "Dist_SMA50_%": 0.0,
+                    "Dist_SMA200_%": 0.0,
                     "Dist_EMA20_%": 0.0,
                     "Dist_EMA50_%": 0.0,
                     "RSI_14": 25.0,
@@ -345,6 +348,7 @@ class StrategyRulesTests(unittest.TestCase):
                     "Ticker_IOL": "OVERBOUGHT",
                     "Dist_SMA20_%": 0.0,
                     "Dist_SMA50_%": 0.0,
+                    "Dist_SMA200_%": 0.0,
                     "Dist_EMA20_%": 0.0,
                     "Dist_EMA50_%": 0.0,
                     "RSI_14": 80.0,
@@ -360,6 +364,52 @@ class StrategyRulesTests(unittest.TestCase):
         blended = apply_technical_overlay_scores(build_technical_overlay_scores(decision, technical_overlay))
 
         self.assertLess(blended.loc[0, "ts_rsi_reduccion"], blended.loc[1, "ts_rsi_reduccion"])
+        self.assertLess(blended.loc[0, "tech_reduccion"], blended.loc[1, "tech_reduccion"])
+
+    def test_sma200_can_softly_improve_or_worsen_technical_scores(self) -> None:
+        decision = pd.DataFrame(
+            [
+                {"Ticker_IOL": "ABOVE", "score_refuerzo": 0.40, "score_reduccion": 0.30},
+                {"Ticker_IOL": "BELOW", "score_refuerzo": 0.40, "score_reduccion": 0.30},
+            ]
+        )
+        technical_overlay = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "ABOVE",
+                    "Dist_SMA20_%": 1.0,
+                    "Dist_SMA50_%": 1.0,
+                    "Dist_SMA200_%": 20.0,
+                    "Dist_EMA20_%": 1.0,
+                    "Dist_EMA50_%": 1.0,
+                    "RSI_14": 55.0,
+                    "Momentum_20d_%": 2.0,
+                    "Momentum_60d_%": 4.0,
+                    "Vol_20d_Anual_%": 20.0,
+                    "Drawdown_desde_Max3m_%": -4.0,
+                    "Tech_Trend": "Alcista",
+                },
+                {
+                    "Ticker_IOL": "BELOW",
+                    "Dist_SMA20_%": 1.0,
+                    "Dist_SMA50_%": 1.0,
+                    "Dist_SMA200_%": -20.0,
+                    "Dist_EMA20_%": 1.0,
+                    "Dist_EMA50_%": 1.0,
+                    "RSI_14": 55.0,
+                    "Momentum_20d_%": 2.0,
+                    "Momentum_60d_%": 4.0,
+                    "Vol_20d_Anual_%": 20.0,
+                    "Drawdown_desde_Max3m_%": -4.0,
+                    "Tech_Trend": "Alcista",
+                },
+            ]
+        )
+
+        blended = apply_technical_overlay_scores(build_technical_overlay_scores(decision, technical_overlay))
+
+        self.assertGreater(blended.loc[0, "ts_above_sma200"], blended.loc[1, "ts_above_sma200"])
+        self.assertGreater(blended.loc[0, "tech_refuerzo"], blended.loc[1, "tech_refuerzo"])
         self.assertLess(blended.loc[0, "tech_reduccion"], blended.loc[1, "tech_reduccion"])
 
     def test_concentration_and_quality_change_base_scores(self) -> None:
