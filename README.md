@@ -10,16 +10,16 @@ Motor de analisis de cartera con foco en:
 
 ## Estado actual
 
-Baseline operativa vigente al `2026-04-09 23:33`:
+Baseline operativa vigente al `2026-04-11 12:34`:
 
 - overlay tecnico `24/24`
-- Finviz fundamentals `20/24`
-- Finviz ratings `15/24`
+- Finviz fundamentals `24/24`
+- Finviz ratings `17/24`
 - regimen de mercado visible en HTML
-- memoria temporal diaria validada con cambio de fecha efectiva
-- `6` refuerzos: `KO`, `EWZ`, `EEM`, `GOOGL`, `NEM`, `XLU`
-- `2` reducciones: `MELI`, `AAPL`
-- sizing vigente con fondeo externo de `$600,000`: `KO`, `EWZ`, `EEM`
+- memoria temporal diaria validada con fecha efectiva de mercado
+- `6` refuerzos: `XLU`, `NEM`, `KO`, `EWZ`, `VIST`, `GOOGL`
+- `1` reduccion: `MELI`
+- sizing vigente con fondeo externo de `$600,000`: `XLU`, `NEM`, `KO`
 
 Detalle completo:
 
@@ -103,8 +103,9 @@ CI actual:
 ## Memoria temporal
 
 - historial diario en `data/runtime/decision_history.csv`
-- unidad canonica: `ticker + fecha`
+- unidad canonica: `ticker + fecha_efectiva_de_mercado`
 - reruns del mismo dia reemplazan la observacion
+- corridas de fin de semana o preapertura no inflan persistencia artificial
 - el HTML expone:
   - `Accion previa`
   - `Δ Score`

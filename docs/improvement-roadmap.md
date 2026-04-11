@@ -109,10 +109,16 @@ Priorizacion combinando:
 - narrativa enriquecida con `52w high`:
   - `Dist_52w_High_%` ya puede aparecer como contexto textual
   - confirma fortaleza cerca de maximos y debilidad cuando el activo sigue lejos
+- narrativa de ETF/regiones compactada:
+  - menos comentarios largos
+  - sin duplicaciones con el sufijo de `52w`
 - calibracion conservadora de Finviz validada en corrida real:
   - `24/24` fundamentals
   - `17/24` ratings
   - recuperacion de cobertura con impacto real en decisiones
+- memoria temporal anclada a fecha efectiva de mercado:
+  - fin de semana y preapertura ya no inflan rachas artificiales
+  - validado luego en corrida habil real
 
 ## Reproducibilidad
 
@@ -140,7 +146,7 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
    - `XLU` afirmado de nuevo
    - `VIST` de vuelta en `Refuerzo`
    - `EEM` fuera de refuerzo
-   - `XLU`, `NEM`, `KO` como sizing defensivo vigente al `2026-04-11 00:48`
+   - `XLU`, `NEM`, `KO` como sizing defensivo vigente al `2026-04-11 12:34`
 4. observar si la nueva calibracion de Finviz mantiene `24/24` de forma estable en varias corridas
 5. decidir mas adelante si `Dist_52w_High_%` o `Dist_52w_Low_%` merecen entrar al scoring, solo con evidencia real
 6. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker

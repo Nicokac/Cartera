@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-11 00:48` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-11 12:34` en `America/Buenos_Aires`.
 
 ## Resumen
 
@@ -23,15 +23,17 @@ Estado operativo vigente al `2026-04-11 00:48` en `America/Buenos_Aires`.
 - `SMA200` ya se integra al scoring tecnico con peso prudente y validacion real
 - la calibracion conservadora de Finviz recupero cobertura completa de fundamentals
 - la liquidez operativa diaria puede alternar entre `CASH_ARS` y `CAUCION` sin romper continuidad temporal
+- la narrativa de ETF/regiones ya quedo compactada sin duplicaciones con contexto `52w`
 
 ## Memoria temporal
 
 - historial en `data/runtime/decision_history.csv`
-- unidad canonica: `ticker + fecha`
+- unidad canonica: `ticker + fecha_efectiva_de_mercado`
 - reruns del mismo dia no suman persistencia
-- validacion real con fecha nueva:
+- corridas de fin de semana o preapertura usan la ultima fecha efectiva de mercado
+- validacion real con nueva rueda habil:
   - `Senales nuevas: 3`
-  - `Refuerzos persistentes: 4`
+  - `Refuerzos persistentes: 5`
   - `Reducciones persistentes: 1`
   - `Sin historial: 0`
 - la liquidez ya no cuenta en los KPIs agregados de memoria
@@ -53,6 +55,7 @@ Estado operativo vigente al `2026-04-11 00:48` en `America/Buenos_Aires`.
 - `XLU` recupero `Refuerzo` y paso a liderar el sizing
 - `EEM` cedio conviccion y quedo neutral
 - con fondeo externo de `$600,000`, el sizing priorizo `XLU`, `NEM` y `KO`
+- la narrativa de `52w` ya acompana la decision sin duplicar frases en ETFs/regiones
 - la nueva curva de RSI de reduccion no rompio el bloque de refuerzos y endurecio el lado vendedor en `MELI` y `AAPL`
 - `SMA200` ya confirma de forma suave a los ganadores estructurales:
   - `NEM`
