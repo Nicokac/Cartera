@@ -308,12 +308,12 @@ def enrich_decision_explanations(
 
         if _is_country_region_etf(row):
             if positive_signals and not row.get("has_fundamental_support", False):
-                return f"ETF pais o region con {positive_summary}, pero con soporte fundamental limitado.{_market_position_suffix(row)}"
+                return f"ETF pais o region con soporte fundamental limitado pese a {positive_summary}.{_market_position_suffix(row)}"
             return f"ETF pais o region en monitoreo por senales tacticas mixtas.{_market_position_suffix(row)}"
 
         if _is_sector_etf(row):
             if positive_signals and negative_signals:
-                return f"ETF sectorial en monitoreo: conviven {positive_summary} con {negative_summary}.{_market_position_suffix(row)}"
+                return f"ETF sectorial en monitoreo: conviven {positive_summary}, pero pesan {negative_summary}.{_market_position_suffix(row)}"
             return f"ETF sectorial en monitoreo por falta de senal dominante.{_market_position_suffix(row)}"
 
         if _is_growth_stock(row):
