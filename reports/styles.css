@@ -72,6 +72,11 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   margin: 18px 0 0;
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  padding: 10px 0;
+  backdrop-filter: blur(10px);
 }
 
 .quick-nav a {
@@ -82,6 +87,13 @@ body {
   color: var(--accent);
   text-decoration: none;
   font: 600 13px/1 var(--mono);
+}
+
+.quick-nav a.active {
+  background: var(--accent);
+  color: #fffdf8;
+  border-color: var(--accent);
+  box-shadow: 0 8px 18px rgba(15, 108, 92, 0.18);
 }
 
 .cards {
@@ -304,6 +316,45 @@ body {
 
 .decision-priority {
   margin-bottom: 18px;
+}
+
+.collapsible {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  overflow: hidden;
+}
+
+.collapsible summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 16px;
+  font: 700 13px/1.4 var(--mono);
+  color: var(--ink);
+  background: rgba(15, 108, 92, 0.04);
+}
+
+.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible summary::after {
+  content: "+";
+  float: right;
+  color: var(--accent);
+}
+
+.collapsible[open] summary::after {
+  content: "−";
+}
+
+.collapsible-body {
+  padding: 0 14px 14px;
+}
+
+.compact-collapsible {
+  margin-top: 10px;
 }
 
 #decision h3 {

@@ -185,7 +185,7 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Refuerzos activos", html)
         self.assertIn("Reducciones activas", html)
         self.assertIn("Neutrales relevantes", html)
-        self.assertIn("Tabla completa", html)
+        self.assertIn("Ver tabla completa de decision", html)
 
     def test_render_report_shows_technical_summary_layer(self) -> None:
         result = _build_minimal_result()
@@ -228,6 +228,19 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Contexto macro", html)
         self.assertIn("Subfamilias", html)
         self.assertIn("Taxonomia local", html)
+
+    def test_render_report_shows_collapsible_detail_layers(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Ver tabla completa de decision", html)
+        self.assertIn("Ver cartera completa", html)
+        self.assertIn("Ver chequeos de integridad", html)
+
+    def test_render_report_shows_sticky_nav_active_hook(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("quick-nav", html)
+        self.assertIn("classList.toggle('active'", html)
 
     def test_render_report_escapes_untrusted_decision_and_macro_text(self) -> None:
         result = _build_minimal_result(

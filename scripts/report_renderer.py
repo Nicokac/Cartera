@@ -524,6 +524,23 @@ def build_bond_summary(
     """
 
 
+def build_collapsible(
+    title: str,
+    content: str,
+    *,
+    open_by_default: bool = False,
+    compact: bool = False,
+) -> str:
+    open_attr = " open" if open_by_default else ""
+    compact_class = " compact-collapsible" if compact else ""
+    return (
+        f'<details class="collapsible{compact_class}"{open_attr}>'
+        f'<summary>{html.escape(title)}</summary>'
+        f'<div class="collapsible-body">{content}</div>'
+        "</details>"
+    )
+
+
 def render_report(
     result: dict[str, object],
     *,
@@ -849,6 +866,28 @@ def render_report(
     bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
     bonistas_section = ""
     if show_bonistas:
+        bond_summary_tables = (
+            build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_summary, formatters={}), open_by_default=True, compact=True)
+            + build_collapsible("Ver resumen por taxonomia local", build_table(bond_local_subfamily_summary, formatters={}), compact=True)
+            + build_collapsible(
+                "Ver monitoreo completo de bonos",
+                build_table(
+                    bond_monitor,
+                    formatters={
+                        "Peso_%": fmt_pct,
+                        "bonistas_tir_pct": fmt_pct,
+                        "bonistas_paridad_pct": fmt_pct,
+                        "bonistas_md": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
+                        "bonistas_volume_last": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                        "bonistas_volume_avg_20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                        "bonistas_volume_ratio": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
+                        "bonistas_tir_vs_avg_365d_pct": fmt_pct,
+                        "bonistas_parity_gap_pct": fmt_pct,
+                    },
+                ),
+                compact=True,
+            )
+        )
         bonistas_section = f"""
     <section class="panel" id="bonistas">
       <h2>Bonos Locales</h2>
@@ -866,25 +905,7 @@ def render_report(
         {ust_note}
       </div>
       {build_bond_summary(bond_subfamily_summary, bond_local_subfamily_summary, bonistas_macro)}
-      <h3>Resumen por subfamilia</h3>
-      {build_table(bond_subfamily_summary, formatters={})}
-      <h3>Resumen por taxonomia local</h3>
-      {build_table(bond_local_subfamily_summary, formatters={})}
-      <h3>Monitoreo de bonos</h3>
-      {build_table(
-          bond_monitor,
-          formatters={
-              "Peso_%": fmt_pct,
-              "bonistas_tir_pct": fmt_pct,
-              "bonistas_paridad_pct": fmt_pct,
-              "bonistas_md": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
-              "bonistas_volume_last": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
-              "bonistas_volume_avg_20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
-              "bonistas_volume_ratio": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
-              "bonistas_tir_vs_avg_365d_pct": fmt_pct,
-              "bonistas_parity_gap_pct": fmt_pct,
-          },
-      )}
+      {bond_summary_tables}
     </section>
     """
 
@@ -983,8 +1004,7 @@ def render_report(
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
       {build_technical_summary(technical_view)}
-      <h3>Tabla completa</h3>
-      {build_technical_table(technical_view)}
+      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view), compact=True)}
     </section>
 
     {bonistas_section}
@@ -1004,33 +1024,40 @@ def render_report(
         </div>
       </div>
       {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
-      <h3>Tabla completa</h3>
-      {build_decision_table(decision_view, action_col=action_col, motive_col=motive_col)}
+      {build_collapsible("Ver tabla completa de decision", build_decision_table(decision_view, action_col=action_col, motive_col=motive_col), open_by_default=True)}
     </section>
 
     <section class="panel" id="cartera">
       <h2>Cartera maestra</h2>
-      {build_table(
-          df_total[["Ticker_IOL", "Tipo", "Bloque", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]]
-          .sort_values("Valorizado_ARS", ascending=False),
-          formatters={
-              "Valorizado_ARS": fmt_ars,
-              "Valor_USD": fmt_usd,
-              "Ganancia_ARS": fmt_ars,
-              "Peso_%": fmt_pct,
-          },
+      {build_collapsible(
+          "Ver cartera completa",
+          build_table(
+              df_total[["Ticker_IOL", "Tipo", "Bloque", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]]
+              .sort_values("Valorizado_ARS", ascending=False),
+              formatters={
+                  "Valorizado_ARS": fmt_ars,
+                  "Valor_USD": fmt_usd,
+                  "Ganancia_ARS": fmt_ars,
+                  "Peso_%": fmt_pct,
+              },
+          ),
+          compact=True,
       )}
     </section>
 
     <section class="panel" id="integridad">
       <h2>Integridad</h2>
-      {build_table(integrity_report)}
+      {build_collapsible("Ver chequeos de integridad", build_table(integrity_report), compact=True)}
     </section>
   </main>
   <script>
     const tickerInput = document.getElementById('ticker-filter');
     const actionSelect = document.getElementById('action-filter');
     const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
+    const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
+    const observedSections = navLinks
+      .map((link) => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
 
     function applyDecisionFilter() {{
       const tickerNeedle = (tickerInput?.value || '').toLowerCase().trim();
@@ -1046,6 +1073,18 @@ def render_report(
 
     tickerInput?.addEventListener('input', applyDecisionFilter);
     actionSelect?.addEventListener('change', applyDecisionFilter);
+
+    const observer = new IntersectionObserver((entries) => {{
+      entries.forEach((entry) => {{
+        if (!entry.isIntersecting) return;
+        const id = `#${{entry.target.id}}`;
+        navLinks.forEach((link) => {{
+          link.classList.toggle('active', link.getAttribute('href') === id);
+        }});
+      }});
+    }}, {{ rootMargin: '-35% 0px -55% 0px', threshold: 0.01 }});
+
+    observedSections.forEach((section) => observer.observe(section));
   </script>
 </body>
 </html>
