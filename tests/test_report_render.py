@@ -178,6 +178,15 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Sizing activo", html)
         self.assertIn("Cambios de accion", html)
 
+    def test_render_report_shows_priority_decision_board(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Senales nuevas", html)
+        self.assertIn("Refuerzos activos", html)
+        self.assertIn("Reducciones activas", html)
+        self.assertIn("Neutrales relevantes", html)
+        self.assertIn("Tabla completa", html)
+
     def test_render_report_escapes_untrusted_decision_and_macro_text(self) -> None:
         result = _build_minimal_result(
             bonistas_bundle={

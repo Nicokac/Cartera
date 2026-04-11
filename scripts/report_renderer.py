@@ -342,6 +342,76 @@ def build_focus_list(
     return f'<div class="focus-list tone-{tone}">{"".join(rows)}</div>'
 
 
+def build_decision_priority_board(
+    df: pd.DataFrame,
+    *,
+    action_col: str,
+    motive_col: str,
+) -> str:
+    if df.empty:
+        return '<div class="empty">Sin decisiones para priorizar.</div>'
+
+    work = df.copy()
+    work["_accion_actual"] = work[action_col].fillna("").astype(str)
+    work["_accion_previa"] = work.get("accion_previa", pd.Series(index=work.index, dtype=object)).fillna("").astype(str)
+    work["_cambio_accion"] = (
+        (work["_accion_previa"].str.strip() != "")
+        & (work["_accion_actual"].str.strip() != "")
+        & (work["_accion_previa"] != work["_accion_actual"])
+    )
+
+    def _build_items(source: pd.DataFrame, *, ascending: bool = False, limit: int = 3, badge_from_action: bool = True) -> list[dict[str, str]]:
+        if source.empty:
+            return []
+        ordered = source.sort_values("score_unificado", ascending=ascending).head(limit)
+        items: list[dict[str, str]] = []
+        for _, row in ordered.iterrows():
+            racha = max(
+                int(row.get("dias_consecutivos_refuerzo", 0) or 0),
+                int(row.get("dias_consecutivos_reduccion", 0) or 0),
+                int(row.get("dias_consecutivos_mantener", 0) or 0),
+                1,
+            )
+            accion = str(row.get(action_col, ""))
+            items.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": f"{fmt_score(row.get('score_unificado'))} | Racha {racha}",
+                    "detail": str(row.get(motive_col, ""))[:160],
+                    "badge": accion if badge_from_action else None,
+                }
+            )
+        return items
+
+    nuevos = work[work["_cambio_accion"]]
+    refuerzos = work[work["_accion_actual"] == ACTION_REFUERZO]
+    reducciones = work[work["_accion_actual"] == ACTION_REDUCIR]
+    neutrales = work[work["_accion_actual"].isin(NEUTRAL_ACTIONS)]
+
+    return f"""
+    <section class="decision-priority">
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Senales nuevas</h3>
+          {build_focus_list(_build_items(nuevos, ascending=False), empty_message='Sin cambios de accion nuevos.', tone='neutral')}
+        </div>
+        <div>
+          <h3>Refuerzos activos</h3>
+          {build_focus_list(_build_items(refuerzos, ascending=False), empty_message='Sin refuerzos activos.', tone='buy')}
+        </div>
+        <div>
+          <h3>Reducciones activas</h3>
+          {build_focus_list(_build_items(reducciones, ascending=True), empty_message='Sin reducciones activas.', tone='sell')}
+        </div>
+        <div>
+          <h3>Neutrales relevantes</h3>
+          {build_focus_list(_build_items(neutrales, ascending=False, badge_from_action=True), empty_message='Sin neutrales relevantes.', tone='neutral')}
+        </div>
+      </div>
+    </section>
+    """
+
+
 def render_report(
     result: dict[str, object],
     *,
@@ -818,6 +888,8 @@ def render_report(
           </select>
         </div>
       </div>
+      {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
+      <h3>Tabla completa</h3>
       {build_decision_table(decision_view, action_col=action_col, motive_col=motive_col)}
     </section>
 
