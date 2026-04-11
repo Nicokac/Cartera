@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-11 12:34` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-11 15:13` en `America/Buenos_Aires`.
 
 ## Resumen
 
@@ -24,6 +24,9 @@ Estado operativo vigente al `2026-04-11 12:34` en `America/Buenos_Aires`.
 - la calibracion conservadora de Finviz recupero cobertura completa de fundamentals
 - la liquidez operativa diaria puede alternar entre `CASH_ARS` y `CAUCION` sin romper continuidad temporal
 - la narrativa de ETF/regiones ya quedo compactada sin duplicaciones con contexto `52w`
+- la nueva arquitectura UX/UI del reporte quedo validada en corrida real
+- `Panorama`, `Cambios materiales` y la vista priorizada de `Decision final` ya funcionan como baseline visual
+- la tabla completa de decision se mantiene como segunda capa y el criterio de score queda disponible en detalle expandible
 
 ## Memoria temporal
 
@@ -71,3 +74,30 @@ Estado operativo vigente al `2026-04-11 12:34` en `America/Buenos_Aires`.
 - la calibracion mas conservadora de Finviz subio la cobertura a `24/24` fundamentals y `17/24` ratings
 - la mejora de cobertura no fue cosmetica: movio la decision final y el sizing
 - `bond_cer` mejoro por el flag inflacionario, pero todavia no emite `Refuerzo`
+
+## Baseline UX/UI
+
+- navegacion priorizada y sticky:
+  - `Panorama`
+  - `Cambios`
+  - `Decision`
+  - `Sizing`
+  - `Regimen`
+  - `Resumen`
+  - `Tecnico`
+  - `Bonos Locales`
+  - `Cartera`
+  - `Integridad`
+- capa ejecutiva validada:
+  - `Panorama`
+  - `Cambios materiales`
+  - `Sizing activo`
+- capa operativa validada:
+  - `Refuerzos activos`
+  - `Reducciones activas`
+  - `Neutrales relevantes`
+  - tabla completa colapsable
+- capa analitica validada:
+  - sintesis tecnica
+  - sintesis de bonos
+  - detalle completo colapsable

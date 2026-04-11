@@ -322,6 +322,12 @@ class ReportRenderTests(unittest.TestCase):
 
         self.assertIn("FRED no disponible", html)
 
+    def test_render_report_hides_score_criteria_behind_inline_detail(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Ver criterio de score", html)
+        self.assertIn("Score de bono calculado con sesgo prudencial y control de rebalanceo.", html)
+
 
 if __name__ == "__main__":
     unittest.main()

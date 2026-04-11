@@ -10,7 +10,24 @@ Definir una arquitectura nueva para el reporte HTML que mejore:
 - trazabilidad de cambios entre corridas
 - escalabilidad de la interfaz a medida que el motor sume mas senales
 
-Este documento describe la estructura objetivo. No implica implementar todo de una vez.
+Este documento describe la estructura objetivo. La fase inicial ya fue implementada y validada en corrida real al `2026-04-11 15:13`.
+
+## Estado actual
+
+La nueva arquitectura ya quedo aplicada en una primera version completa:
+
+- portada ejecutiva con `Panorama`, KPIs priorizados y `Sizing activo`
+- bloque de `Cambios materiales` con limpieza de ruido neutral-neutral
+- `Decision final` con vista priorizada antes de la tabla completa
+- `Overlay tecnico` y `Bonos Locales` con capas de sintesis antes del detalle
+- navegacion sticky y detalle colapsable para secciones pesadas
+
+Baseline visual validada:
+
+- mejor jerarquia de lectura
+- menor dominancia de tablas largas
+- menor ruido en cambios de accion
+- tabla completa de decision relegada a segunda capa
 
 ## Principios
 

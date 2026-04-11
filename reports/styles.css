@@ -431,6 +431,27 @@ tbody tr:hover {
   line-height: 1.25;
 }
 
+#decision-table .inline-detail {
+  margin-top: 6px;
+}
+
+#decision-table .inline-detail summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  list-style: none;
+}
+
+#decision-table .inline-detail summary::-webkit-details-marker {
+  display: none;
+}
+
+#decision-table .inline-detail[open] summary {
+  margin-bottom: 4px;
+}
+
 .metric {
   display: inline-flex;
   align-items: center;

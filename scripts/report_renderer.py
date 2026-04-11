@@ -298,6 +298,14 @@ def build_decision_table(
         if racha <= 0 and accion.strip():
             racha = 1
         driver_html = build_driver_chips(row)
+        score_detail = ""
+        if motivo_score not in {"", "-"}:
+            score_detail = (
+                '<details class="inline-detail">'
+                "<summary>Ver criterio de score</summary>"
+                f"<div class=\"muted-inline\">{motivo_score}</div>"
+                "</details>"
+            )
         rows.append(
             "<tr "
             f"data-ticker=\"{ticker}\" "
@@ -314,7 +322,7 @@ def build_decision_table(
             f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
             f"<td>{html.escape('-' if racha <= 0 else str(racha))}</td>"
             f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
-            f"<td><div>{motivo}</div><div class=\"muted-inline\">{motivo_score}</div></td>"
+            f"<td><div>{motivo}</div>{score_detail}</td>"
             "</tr>"
         )
 
