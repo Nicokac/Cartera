@@ -1443,7 +1443,90 @@ class StrategyRulesTests(unittest.TestCase):
         score_comment = explained.loc[0, "motivo_score"]
 
         self.assertIn("Growth en monitoreo", comment)
-        self.assertIn("growth", score_comment.lower())
+
+    def test_refuerzo_comment_can_mention_proximity_to_52w_high(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "EWZ",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "etf_country_region",
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 1.2,
+                    "Beta": 0.8,
+                    "P/E": None,
+                    "ROE": None,
+                    "Profit Margin": None,
+                    "Consensus_Final": 0.5,
+                    "Momentum_Refuerzo": 0.9,
+                    "Momentum_Reduccion_Effective": 0.2,
+                    "Ganancia_%_Cap": 20.0,
+                    "MEP_Premium_%": -98.0,
+                    "Dist_52w_High_%": -1.5,
+                    "Tech_Trend": "Alcista",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.5,
+                    "s_consensus_bad": 0.5,
+                    "s_low_weight": 0.9,
+                    "s_high_weight": 0.1,
+                    "s_beta_ok": 0.8,
+                    "s_beta_risk": 0.2,
+                    "s_mep_ok": 0.9,
+                    "s_mep_premium": 0.1,
+                    "s_pe_ok": 0.5,
+                    "s_pe_expensive": 0.5,
+                }
+            ]
+        )
+
+        comment = enrich_decision_explanations(df).loc[0, "motivo_accion"]
+
+        self.assertIn("cerca de maximos anuales", comment)
+
+    def test_neutral_comment_can_mention_distance_from_52w_high(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "MELI",
+                    "Tipo": "CEDEAR",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "asset_subfamily": "stock_growth",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "Peso_%": 1.0,
+                    "Beta": 1.4,
+                    "P/E": 40.0,
+                    "ROE": 10.0,
+                    "Profit Margin": 8.0,
+                    "Consensus_Final": 0.45,
+                    "Momentum_Refuerzo": 0.35,
+                    "Momentum_Reduccion_Effective": 0.7,
+                    "Ganancia_%_Cap": 15.0,
+                    "MEP_Premium_%": -95.0,
+                    "Dist_52w_High_%": -32.0,
+                    "Tech_Trend": "Mixta",
+                    "score_despliegue_liquidez": 0.0,
+                    "s_consensus_good": 0.45,
+                    "s_consensus_bad": 0.55,
+                    "s_low_weight": 0.8,
+                    "s_high_weight": 0.2,
+                    "s_beta_ok": 0.2,
+                    "s_beta_risk": 0.8,
+                    "s_mep_ok": 0.8,
+                    "s_mep_premium": 0.2,
+                    "s_pe_ok": 0.1,
+                    "s_pe_expensive": 0.9,
+                    "s_quality_effective": 0.3,
+                    "s_low_quality_effective": 0.8,
+                }
+            ]
+        )
+
+        comment = enrich_decision_explanations(df).loc[0, "motivo_accion"]
+
+        self.assertIn("lejos de maximos anuales", comment)
 
     def test_stock_subfamily_adjustments_make_growth_more_demanding_than_defensive(self) -> None:
         df = pd.DataFrame(

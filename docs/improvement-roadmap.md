@@ -106,6 +106,9 @@ Priorizacion combinando:
   - peso prudente
   - efecto confirmatorio, no dominante
   - validado en corrida real sin rotacion artificial de senales
+- narrativa enriquecida con `52w high`:
+  - `Dist_52w_High_%` ya puede aparecer como contexto textual
+  - confirma fortaleza cerca de maximos y debilidad cuando el activo sigue lejos
 - calibracion conservadora de Finviz validada en corrida real:
   - `24/24` fundamentals
   - `17/24` ratings

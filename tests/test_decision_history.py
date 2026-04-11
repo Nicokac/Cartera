@@ -14,6 +14,7 @@ from decision.history import (
     build_decision_history_observation,
     build_temporal_memory_summary,
     enrich_with_temporal_memory,
+    resolve_market_run_date,
     upsert_daily_decision_history,
 )
 
@@ -184,6 +185,14 @@ class DecisionHistoryTests(unittest.TestCase):
             observation.loc[0, "market_regime_active_flags"],
             "tasas_ust_altas,inflacion_local_alta",
         )
+
+    def test_resolve_market_run_date_maps_weekend_to_previous_business_day(self) -> None:
+        self.assertEqual(resolve_market_run_date("2026-04-11 09:30:00"), "2026-04-10")
+        self.assertEqual(resolve_market_run_date("2026-04-12 18:00:00"), "2026-04-10")
+
+    def test_resolve_market_run_date_maps_preopen_weekday_to_previous_business_day(self) -> None:
+        self.assertEqual(resolve_market_run_date("2026-04-13 09:59:00"), "2026-04-10")
+        self.assertEqual(resolve_market_run_date("2026-04-13 10:00:00"), "2026-04-13")
 
     def test_temporal_memory_summary_excludes_liquidity_rows_from_aggregate_counts(self) -> None:
         final_decision = pd.DataFrame(

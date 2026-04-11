@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.offsets import BDay
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_DIR = ROOT / "data" / "runtime"
@@ -47,6 +48,25 @@ def _empty_history_frame() -> pd.DataFrame:
 
 def _normalize_run_date(run_date: object) -> str:
     return pd.Timestamp(run_date).strftime("%Y-%m-%d")
+
+
+def resolve_market_run_date(run_date: object, *, market_open_hour: int = 10) -> str:
+    raw = run_date
+    ts = pd.Timestamp(run_date)
+
+    has_explicit_time = False
+    if isinstance(raw, pd.Timestamp):
+        has_explicit_time = raw.hour != 0 or raw.minute != 0 or raw.second != 0 or raw.microsecond != 0 or raw.nanosecond != 0
+    elif isinstance(raw, str):
+        has_explicit_time = ":" in raw or "T" in raw
+
+    market_ts = ts
+    if ts.dayofweek >= 5:
+        market_ts = (ts.normalize() - BDay(1))
+    elif has_explicit_time and ts.hour < int(market_open_hour):
+        market_ts = (ts.normalize() - BDay(1))
+
+    return market_ts.strftime("%Y-%m-%d")
 
 
 def _normalize_action_bucket(action: object) -> str:
@@ -119,7 +139,7 @@ def build_decision_history_observation(
 
     regime = market_regime or {}
     active_flags = regime.get("active_flags", []) or []
-    observation["run_date"] = _normalize_run_date(run_date)
+    observation["run_date"] = resolve_market_run_date(run_date)
     observation["market_regime_any_active"] = bool(regime.get("any_active", False))
     observation["market_regime_active_flags"] = ",".join(str(flag) for flag in active_flags)
 
@@ -213,7 +233,7 @@ def enrich_with_temporal_memory(
             out[column] = pd.Series(dtype="object")
         return out
 
-    run_date_norm = _normalize_run_date(run_date)
+    run_date_norm = resolve_market_run_date(run_date)
     prior_history = history.copy()
     if not prior_history.empty:
         prior_history["run_date"] = prior_history["run_date"].map(_normalize_run_date)

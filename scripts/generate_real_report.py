@@ -47,6 +47,7 @@ from decision.history import (
     build_temporal_memory_summary,
     enrich_with_temporal_memory,
     load_decision_history,
+    resolve_market_run_date,
     save_decision_history,
     upsert_daily_decision_history,
 )
@@ -518,7 +519,7 @@ def main() -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
-    run_date = run_ts.strftime("%Y-%m-%d")
+    run_date = resolve_market_run_date(run_ts)
 
     username, password = resolve_iol_credentials()
 

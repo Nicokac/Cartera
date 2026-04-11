@@ -752,6 +752,7 @@ def build_technical_overlay_scores(
         "Dist_SMA200_%",
         "Dist_EMA20_%",
         "Dist_EMA50_%",
+        "Dist_52w_High_%",
         "RSI_14",
         "Momentum_20d_%",
         "Momentum_60d_%",

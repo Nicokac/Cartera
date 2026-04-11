@@ -102,6 +102,7 @@ def enrich_decision_explanations(
     consensus_good_min = float(positive_thresholds.get("consensus_min", 0.70))
     momentum_good_min = float(positive_thresholds.get("momentum_refuerzo_min", 0.65))
     mep_good_max = float(positive_thresholds.get("mep_premium_max", mep_rules.get("good_max", -90.0)))
+    near_52w_high_max = float(positive_thresholds.get("dist_52w_high_max", -5.0))
 
     high_weight_min = float(negative_thresholds.get("peso_min", 4.0))
     beta_risk_min = float(negative_thresholds.get("beta_min", beta_rules.get("bad_min", 1.3)))
@@ -112,6 +113,7 @@ def enrich_decision_explanations(
     consensus_bad_max = float(negative_thresholds.get("consensus_max", 0.35))
     momentum_bad_min = float(negative_thresholds.get("momentum_reduccion_min", 0.60))
     gain_extended_min = float(negative_thresholds.get("ganancia_pct_cap_min", gain_rules.get("bad_min", 80.0)))
+    far_52w_high_min = float(negative_thresholds.get("dist_52w_high_min", -25.0))
 
     def _is_country_region_etf(row: pd.Series) -> bool:
         return row.get("asset_subfamily") == "etf_country_region"
@@ -151,6 +153,19 @@ def enrich_decision_explanations(
         visible = clean[:3]
         return ", ".join(visible[:-1]) + " y " + visible[-1]
 
+    def _near_52w_high(row: pd.Series) -> bool:
+        return _metric_available(row, "Dist_52w_High_%") and float(row.get("Dist_52w_High_%", -100.0)) >= near_52w_high_max
+
+    def _far_from_52w_high(row: pd.Series) -> bool:
+        return _metric_available(row, "Dist_52w_High_%") and float(row.get("Dist_52w_High_%", 0.0)) <= far_52w_high_min
+
+    def _market_position_suffix(row: pd.Series) -> str:
+        if _near_52w_high(row):
+            return " Ademas, cotiza cerca de maximos anuales."
+        if _far_from_52w_high(row):
+            return " Todavia opera lejos de maximos anuales."
+        return ""
+
     def _positive_signals(row: pd.Series) -> list[str]:
         signals: list[str] = []
         if _metric_available(row, "Peso_%") and float(row.get("Peso_%", 0)) <= low_weight_max:
@@ -181,6 +196,8 @@ def enrich_decision_explanations(
             signals.append("tecnico alcista")
         if row.get("Tech_Trend") == "Alcista fuerte":
             signals.append("tecnico alcista fuerte")
+        if _near_52w_high(row):
+            signals.append("cerca de maximos anuales")
         if _metric_available(row, "MEP_Premium_%") and float(row.get("MEP_Premium_%", 0)) <= mep_good_max:
             signals.append("MEP favorable")
         return signals
@@ -205,6 +222,8 @@ def enrich_decision_explanations(
             signals.append("momentum relativo debil")
         if row.get("Tech_Trend") == "Bajista":
             signals.append("tecnico bajista")
+        if _far_from_52w_high(row):
+            signals.append("lejos de maximos anuales")
         if _metric_available(row, "s_beta_risk") and float(row.get("s_beta_risk", 0.5)) >= 0.70:
             signals.append("beta exigente")
         if _metric_available(row, "s_pe_expensive") and float(row.get("s_pe_expensive", 0.5)) >= 0.70:
@@ -256,18 +275,18 @@ def enrich_decision_explanations(
 
         if accion == ACTION_REFUERZO:
             if _is_sector_etf(row):
-                return f"Refuerzo sectorial por {positive_summary}."
+                return f"Refuerzo sectorial por {positive_summary}.{_market_position_suffix(row)}"
             if _is_core_etf(row):
-                return f"Refuerzo tactico de ETF core por {positive_summary}."
+                return f"Refuerzo tactico de ETF core por {positive_summary}.{_market_position_suffix(row)}"
             if _is_country_region_etf(row):
-                return f"Refuerzo tactico de ETF pais o region por {positive_summary}."
+                return f"Refuerzo tactico de ETF pais o region por {positive_summary}.{_market_position_suffix(row)}"
             if _is_defensive_dividend_stock(row):
-                return f"Refuerzo defensivo por {positive_summary}."
+                return f"Refuerzo defensivo por {positive_summary}.{_market_position_suffix(row)}"
             if _is_growth_stock(row):
-                return f"Refuerzo growth por {positive_summary}."
+                return f"Refuerzo growth por {positive_summary}.{_market_position_suffix(row)}"
             if _is_commodity_stock(row):
-                return f"Refuerzo ligado a commodities por {positive_summary}."
-            return f"Refuerzo por {positive_summary}."
+                return f"Refuerzo ligado a commodities por {positive_summary}.{_market_position_suffix(row)}"
+            return f"Refuerzo por {positive_summary}.{_market_position_suffix(row)}"
 
         if accion == ACTION_REDUCIR:
             if _is_core_etf(row):
@@ -288,43 +307,43 @@ def enrich_decision_explanations(
 
         if _is_core_etf(row):
             if negative_signals:
-                return f"ETF core en monitoreo: pesan {negative_summary}, pero se preserva su rol de cartera."
-            return "ETF core en monitoreo por rol estructural dentro de la cartera."
+                return f"ETF core en monitoreo: pesan {negative_summary}, pero se preserva su rol de cartera.{_market_position_suffix(row)}"
+            return f"ETF core en monitoreo por rol estructural dentro de la cartera.{_market_position_suffix(row)}"
 
         if _is_country_region_etf(row):
             if positive_signals and not row.get("has_fundamental_support", False):
-                return f"ETF pais o region con {positive_summary}, pero con soporte fundamental limitado."
-            return "ETF pais o region en monitoreo por senales tacticas mixtas."
+                return f"ETF pais o region con {positive_summary}, pero con soporte fundamental limitado.{_market_position_suffix(row)}"
+            return f"ETF pais o region en monitoreo por senales tacticas mixtas.{_market_position_suffix(row)}"
 
         if _is_sector_etf(row):
             if positive_signals and negative_signals:
-                return f"ETF sectorial en monitoreo: conviven {positive_summary} con {negative_summary}."
-            return "ETF sectorial en monitoreo por falta de senal dominante."
+                return f"ETF sectorial en monitoreo: conviven {positive_summary} con {negative_summary}.{_market_position_suffix(row)}"
+            return f"ETF sectorial en monitoreo por falta de senal dominante.{_market_position_suffix(row)}"
 
         if _is_growth_stock(row):
             if positive_signals and negative_signals:
-                return f"Growth en monitoreo: conviven {positive_summary} con {negative_summary}."
-            return "Growth en monitoreo por equilibrio inestable entre potencial y riesgo."
+                return f"Growth en monitoreo: conviven {positive_summary} con {negative_summary}.{_market_position_suffix(row)}"
+            return f"Growth en monitoreo por equilibrio inestable entre potencial y riesgo.{_market_position_suffix(row)}"
 
         if _is_defensive_dividend_stock(row):
             if positive_signals and negative_signals:
-                return f"Defensivo o dividendos en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}."
-            return "Defensivo o dividendos en monitoreo por falta de senal dominante."
+                return f"Defensivo o dividendos en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}.{_market_position_suffix(row)}"
+            return f"Defensivo o dividendos en monitoreo por falta de senal dominante.{_market_position_suffix(row)}"
 
         if _is_commodity_stock(row):
             if positive_signals and negative_signals:
-                return f"Commodities en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}."
-            return "Commodities en monitoreo por senales ciclicas mixtas."
+                return f"Commodities en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}.{_market_position_suffix(row)}"
+            return f"Commodities en monitoreo por senales ciclicas mixtas.{_market_position_suffix(row)}"
 
         if _is_argentina_stock(row):
             if positive_signals and negative_signals:
-                return f"Accion local en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}."
-            return "Accion local en monitoreo por senales locales aun mixtas."
+                return f"Accion local en monitoreo: destacan {positive_summary}, pero pesan {negative_summary}.{_market_position_suffix(row)}"
+            return f"Accion local en monitoreo por senales locales aun mixtas.{_market_position_suffix(row)}"
 
         if positive_signals and negative_signals:
-            return f"Mantener por senales mixtas: destacan {positive_summary}, pero pesan {negative_summary}."
+            return f"Mantener por senales mixtas: destacan {positive_summary}, pero pesan {negative_summary}.{_market_position_suffix(row)}"
 
-        return "Sin senal dominante; mantener y monitorear."
+        return f"Sin senal dominante; mantener y monitorear.{_market_position_suffix(row)}"
 
     drivers = out.apply(top_drivers, axis=1)
     out["driver_1"] = drivers.apply(lambda x: x[0] if len(x) > 0 else None)
