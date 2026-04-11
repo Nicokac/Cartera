@@ -415,6 +415,22 @@ tbody tr:hover {
   line-height: 1.35;
 }
 
+#decision-table th,
+#decision-table td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+#decision-table td:last-child {
+  min-width: 280px;
+}
+
+#decision-table .muted-inline {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
 .metric {
   display: inline-flex;
   align-items: center;

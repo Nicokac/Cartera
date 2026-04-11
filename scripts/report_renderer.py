@@ -54,6 +54,15 @@ def fmt_label(value: object) -> str:
     return str(value)
 
 
+def fmt_count_label(value: object, singular: str, plural: str | None = None) -> str:
+    try:
+        count = int(value or 0)
+    except Exception:
+        count = 0
+    plural = plural or f"{singular}s"
+    return f"{count} {singular if count == 1 else plural}"
+
+
 def esc_text(value: object) -> str:
     return html.escape(fmt_label(value))
 
@@ -383,17 +392,42 @@ def build_decision_priority_board(
             )
         return items
 
-    nuevos = work[work["_cambio_accion"]]
+    material_previous = {
+        ACTION_REFUERZO,
+        ACTION_REDUCIR,
+        ACTION_MANTENER_NEUTRAL,
+        "Mantener / monitorear",
+    }
+    material_current = {
+        ACTION_REFUERZO,
+        ACTION_REDUCIR,
+        ACTION_MANTENER_NEUTRAL,
+        "Mantener / monitorear",
+    }
+
+    nuevos = work[
+        work["_cambio_accion"]
+        & work["_accion_previa"].isin(material_previous)
+        & work["_accion_actual"].isin(material_current)
+        & ~(
+            work["_accion_previa"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+            & work["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+        )
+    ]
     refuerzos = work[work["_accion_actual"] == ACTION_REFUERZO]
     reducciones = work[work["_accion_actual"] == ACTION_REDUCIR]
-    neutrales = work[work["_accion_actual"].isin(NEUTRAL_ACTIONS)]
+    nuevos_tickers = set(nuevos["Ticker_IOL"].astype(str).tolist())
+    neutrales = work[
+        work["_accion_actual"].isin(NEUTRAL_ACTIONS)
+        & ~work["Ticker_IOL"].astype(str).isin(nuevos_tickers)
+    ]
 
     return f"""
     <section class="decision-priority">
       <div class="focus-columns focus-columns-wide">
         <div>
-          <h3>Senales nuevas</h3>
-          {build_focus_list(_build_items(nuevos, ascending=False), empty_message='Sin cambios de accion nuevos.', tone='neutral')}
+          <h3>Cambios materiales</h3>
+          {build_focus_list(_build_items(nuevos, ascending=False), empty_message='Sin cambios materiales respecto de la corrida previa.', tone='neutral')}
         </div>
         <div>
           <h3>Refuerzos activos</h3>
@@ -674,6 +708,18 @@ def render_report(
             & (changed_view["_accion_actual"].str.strip() != "")
             & (changed_view["_accion_previa"] != changed_view["_accion_actual"])
         ]
+        changed_view = changed_view[
+            changed_view["_accion_previa"].isin(
+                {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+            )
+            & changed_view["_accion_actual"].isin(
+                {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+            )
+            & ~(
+                changed_view["_accion_previa"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+                & changed_view["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+            )
+        ]
         for _, row in changed_view.head(6).iterrows():
             changed_actions.append(
                 {
@@ -730,9 +776,9 @@ def render_report(
 
     active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
     executive_summary = (
-        f"{int(action_counts.get(ACTION_REFUERZO, 0))} refuerzos, "
-        f"{int(action_counts.get(ACTION_REDUCIR, 0))} reducciones, "
-        f"{int(decision_memory.get('senales_nuevas', 0))} senales nuevas y "
+        f"{fmt_count_label(action_counts.get(ACTION_REFUERZO, 0), 'refuerzo')}, "
+        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reduccion')}, "
+        f"{fmt_count_label(decision_memory.get('senales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
         f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignacion'}."
     )
 
@@ -771,7 +817,7 @@ def render_report(
     if decision_memory:
         memory_summary = f"""
     <section class="action-strip compact-strip">
-      <article class="action-card neutral"><span>Senales nuevas</span><strong>{int(decision_memory.get('senales_nuevas', 0))}</strong></article>
+      <article class="action-card neutral"><span>Cambios materiales</span><strong>{int(decision_memory.get('senales_nuevas', 0))}</strong></article>
       <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
       <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
       <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>

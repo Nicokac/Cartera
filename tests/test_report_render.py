@@ -106,6 +106,38 @@ def _build_minimal_result(
 
 
 class ReportRenderTests(unittest.TestCase):
+    def test_render_report_filters_non_material_neutral_to_neutral_changes(self) -> None:
+        result = _build_minimal_result()
+        result["decision_bundle"]["final_decision"] = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AL30",
+                    "Tipo": "Bono",
+                    "asset_family": "bond",
+                    "asset_subfamily": "bond_sov_ar",
+                    "Peso_%": 1.0,
+                    "score_unificado": 0.01,
+                    "accion_sugerida_v2": "Mantener / monitorear",
+                    "motivo_accion": "Cambio menor.",
+                    "motivo_score": "Score.",
+                    "driver_1": "peso",
+                    "driver_2": "momentum",
+                    "driver_3": "consenso",
+                    "accion_previa": "Mantener / Neutral",
+                    "score_delta_vs_dia_anterior": 0.001,
+                    "dias_consecutivos_refuerzo": 0,
+                    "dias_consecutivos_reduccion": 0,
+                    "dias_consecutivos_mantener": 2,
+                }
+            ]
+        )
+
+        html = render_report(result)
+
+        self.assertIn("Cambios de accion", html)
+        self.assertIn("Sin cambios de accion respecto de la corrida previa.", html)
+        self.assertNotIn("Mantener / Neutral -&gt; Mantener / monitorear", html)
+
     def test_render_report_hides_bonistas_section_when_bundle_is_empty(self) -> None:
         html = render_report(_build_minimal_result())
 
@@ -141,7 +173,7 @@ class ReportRenderTests(unittest.TestCase):
             )
         )
 
-        self.assertIn("Senales nuevas", html)
+        self.assertIn("Cambios materiales", html)
         self.assertIn("Refuerzos persistentes", html)
         self.assertIn("Sin historial", html)
 
@@ -181,11 +213,16 @@ class ReportRenderTests(unittest.TestCase):
     def test_render_report_shows_priority_decision_board(self) -> None:
         html = render_report(_build_minimal_result())
 
-        self.assertIn("Senales nuevas", html)
+        self.assertIn("Cambios materiales", html)
         self.assertIn("Refuerzos activos", html)
         self.assertIn("Reducciones activas", html)
         self.assertIn("Neutrales relevantes", html)
         self.assertIn("Ver tabla completa de decision", html)
+
+    def test_render_report_deduplicates_new_signals_from_neutral_board(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Sin neutrales relevantes.", html)
 
     def test_render_report_shows_technical_summary_layer(self) -> None:
         result = _build_minimal_result()
