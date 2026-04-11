@@ -187,6 +187,48 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Neutrales relevantes", html)
         self.assertIn("Tabla completa", html)
 
+    def test_render_report_shows_technical_summary_layer(self) -> None:
+        result = _build_minimal_result()
+        result["portfolio_bundle"]["df_cedears"] = pd.DataFrame([{"Ticker_IOL": "SPY"}])
+        result["technical_overlay"] = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "SPY",
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": 4.2,
+                    "Dist_52w_High_%": -2.1,
+                    "Dist_SMA200_%": 5.5,
+                }
+            ]
+        )
+
+        html = render_report(result)
+
+        self.assertIn("Mas fuertes", html)
+        self.assertIn("Mas debiles", html)
+        self.assertIn("Cerca de maximos 52w", html)
+        self.assertIn("Por debajo de SMA200", html)
+
+    def test_render_report_shows_bond_summary_layer(self) -> None:
+        html = render_report(
+            _build_minimal_result(
+                bonistas_bundle={
+                    "bond_monitor": pd.DataFrame([{"Ticker_IOL": "GD30"}]),
+                    "bond_subfamily_summary": pd.DataFrame(
+                        [{"asset_subfamily": "bond_sov_ar", "Instrumentos": 1, "TIR_Promedio": 12.4, "Paridad_Promedio": 77.8, "MD_Promedio": 3.2}]
+                    ),
+                    "bond_local_subfamily_summary": pd.DataFrame(
+                        [{"bonistas_local_subfamily": "bond_hard_dollar", "Instrumentos": 1, "TIR_Promedio": 12.4, "Paridad_Promedio": 77.8, "MD_Promedio": 3.2}]
+                    ),
+                    "macro_variables": {"cer_diario": 1.2, "reservas_bcra_musd": 28384.0, "a3500_mayorista": 1387.72, "ust_5y_pct": 4.0, "ust_10y_pct": 4.2},
+                }
+            )
+        )
+
+        self.assertIn("Contexto macro", html)
+        self.assertIn("Subfamilias", html)
+        self.assertIn("Taxonomia local", html)
+
     def test_render_report_escapes_untrusted_decision_and_macro_text(self) -> None:
         result = _build_minimal_result(
             bonistas_bundle={

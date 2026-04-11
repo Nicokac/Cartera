@@ -412,6 +412,118 @@ def build_decision_priority_board(
     """
 
 
+def build_technical_summary(technical_view: pd.DataFrame) -> str:
+    if technical_view.empty:
+        return '<div class="empty compact-empty">Sin resumen tecnico disponible.</div>'
+
+    work = technical_view.copy()
+
+    def _items(source: pd.DataFrame, *, title_fn) -> list[dict[str, str]]:
+        items: list[dict[str, str]] = []
+        for _, row in source.head(3).iterrows():
+            items.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": title_fn(row),
+                    "detail": f"Tendencia {row.get('Tech_Trend', '-')}",
+                }
+            )
+        return items
+
+    momentum_col = "Momentum_20d_%"
+    high52_col = "Dist_52w_High_%"
+    sma200_col = "Dist_SMA200_%"
+
+    fuertes = work.sort_values(momentum_col, ascending=False) if momentum_col in work.columns else work
+    debiles = work.sort_values(momentum_col, ascending=True) if momentum_col in work.columns else work
+    cerca_max = work.sort_values(high52_col, ascending=False) if high52_col in work.columns else pd.DataFrame()
+    bajo_sma = work[work[sma200_col].notna()].sort_values(sma200_col, ascending=True) if sma200_col in work.columns else pd.DataFrame()
+
+    if not cerca_max.empty and high52_col in cerca_max.columns:
+        cerca_max = cerca_max[cerca_max[high52_col] >= -10]
+    if not bajo_sma.empty and sma200_col in bajo_sma.columns:
+        bajo_sma = bajo_sma[bajo_sma[sma200_col] < 0]
+
+    return f"""
+    <div class="focus-columns focus-columns-wide">
+      <div>
+        <h3>Mas fuertes</h3>
+        {build_focus_list(_items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d"), empty_message='Sin datos de fortaleza.', tone='buy')}
+      </div>
+      <div>
+        <h3>Mas debiles</h3>
+        {build_focus_list(_items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d"), empty_message='Sin datos de debilidad.', tone='sell')}
+      </div>
+      <div>
+        <h3>Cerca de maximos 52w</h3>
+        {build_focus_list(_items(cerca_max, title_fn=lambda row: f"{fmt_pct(row.get(high52_col))} vs maximo anual"), empty_message='Sin nombres cerca de maximos anuales.', tone='neutral')}
+      </div>
+      <div>
+        <h3>Por debajo de SMA200</h3>
+        {build_focus_list(_items(bajo_sma, title_fn=lambda row: f"{fmt_pct(row.get(sma200_col))} vs SMA200"), empty_message='Sin nombres relevantes por debajo de SMA200.', tone='neutral')}
+      </div>
+    </div>
+    """
+
+
+def build_bond_summary(
+    bond_subfamily_summary: pd.DataFrame,
+    bond_local_subfamily_summary: pd.DataFrame,
+    bonistas_macro: dict[str, object],
+) -> str:
+    macro_items = [
+        {
+            "kicker": "Macro local",
+            "title": f"Riesgo pais {esc_text(bonistas_macro.get('riesgo_pais_bps'))} | A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))}",
+            "detail": f"CER {esc_text(bonistas_macro.get('cer_diario'))} | REM mensual {esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}",
+        },
+        {
+            "kicker": "Curva UST",
+            "title": f"UST 5y {esc_text(bonistas_macro.get('ust_5y_pct'))} | UST 10y {esc_text(bonistas_macro.get('ust_10y_pct'))}",
+            "detail": f"Reservas BCRA {esc_text(bonistas_macro.get('reservas_bcra_musd'))}",
+        },
+    ]
+
+    subfamily_items: list[dict[str, str]] = []
+    if isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty:
+        for _, row in bond_subfamily_summary.head(3).iterrows():
+            subfamily_items.append(
+                {
+                    "kicker": str(row.get("asset_subfamily", "-")),
+                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {row.get('TIR_Promedio', '-')}",
+                    "detail": f"Paridad {row.get('Paridad_Promedio', '-')} | MD {row.get('MD_Promedio', '-')}",
+                }
+            )
+
+    local_items: list[dict[str, str]] = []
+    if isinstance(bond_local_subfamily_summary, pd.DataFrame) and not bond_local_subfamily_summary.empty:
+        for _, row in bond_local_subfamily_summary.head(3).iterrows():
+            local_items.append(
+                {
+                    "kicker": str(row.get("bonistas_local_subfamily", "-")),
+                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {row.get('TIR_Promedio', '-')}",
+                    "detail": f"Paridad {row.get('Paridad_Promedio', '-')} | MD {row.get('MD_Promedio', '-')}",
+                }
+            )
+
+    return f"""
+    <div class="focus-columns focus-columns-wide">
+      <div>
+        <h3>Contexto macro</h3>
+        {build_focus_list(macro_items, empty_message='Sin contexto macro disponible.', tone='neutral')}
+      </div>
+      <div>
+        <h3>Subfamilias</h3>
+        {build_focus_list(subfamily_items, empty_message='Sin resumen por subfamilia.', tone='neutral')}
+      </div>
+      <div>
+        <h3>Taxonomia local</h3>
+        {build_focus_list(local_items, empty_message='Sin resumen por taxonomia local.', tone='neutral')}
+      </div>
+    </div>
+    """
+
+
 def render_report(
     result: dict[str, object],
     *,
@@ -753,6 +865,7 @@ def render_report(
         <span>UST 10y: <strong>{esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></span>
         {ust_note}
       </div>
+      {build_bond_summary(bond_subfamily_summary, bond_local_subfamily_summary, bonistas_macro)}
       <h3>Resumen por subfamilia</h3>
       {build_table(bond_subfamily_summary, formatters={})}
       <h3>Resumen por taxonomia local</h3>
@@ -869,6 +982,8 @@ def render_report(
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
+      {build_technical_summary(technical_view)}
+      <h3>Tabla completa</h3>
       {build_technical_table(technical_view)}
     </section>
 
