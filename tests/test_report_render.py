@@ -170,6 +170,14 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("stress_soberano_local", html)
         self.assertIn("tasas_ust_altas", html)
 
+    def test_render_report_shows_phase_one_sections(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn("Panorama", html)
+        self.assertIn("Cambios", html)
+        self.assertIn("Sizing activo", html)
+        self.assertIn("Cambios de accion", html)
+
     def test_render_report_escapes_untrusted_decision_and_macro_text(self) -> None:
         result = _build_minimal_result(
             bonistas_bundle={

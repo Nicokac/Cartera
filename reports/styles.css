@@ -60,6 +60,13 @@ body {
   max-width: 72ch;
 }
 
+.summary-lede {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
 .quick-nav {
   display: flex;
   flex-wrap: wrap;
@@ -82,6 +89,10 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 14px;
   margin: 20px 0;
+}
+
+.cards-secondary {
+  margin-top: 0;
 }
 
 .card,
@@ -108,6 +119,10 @@ body {
 .card strong {
   font-size: 24px;
   line-height: 1.1;
+}
+
+.card.compact strong {
+  font-size: 18px;
 }
 
 .action-strip {
@@ -159,6 +174,10 @@ body {
   gap: 18px;
 }
 
+.spotlight-grid {
+  align-items: start;
+}
+
 .panel {
   padding: 20px;
   margin-top: 18px;
@@ -201,6 +220,82 @@ body {
   margin-bottom: 14px;
   color: var(--muted);
   font-size: 14px;
+}
+
+.spotlight {
+  background:
+    linear-gradient(135deg, rgba(15, 108, 92, 0.10), rgba(255, 253, 248, 0.96));
+}
+
+.spotlight-side {
+  background:
+    linear-gradient(135deg, rgba(176, 126, 15, 0.10), rgba(255, 253, 248, 0.96));
+}
+
+.focus-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.focus-columns h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.focus-list {
+  display: grid;
+  gap: 10px;
+}
+
+.focus-item {
+  padding: 14px;
+  border: 1px solid rgba(15, 108, 92, 0.10);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.focus-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.focus-title {
+  font: 700 13px/1.4 var(--mono);
+  color: var(--ink);
+}
+
+.focus-detail {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tone-buy .focus-item {
+  border-color: rgba(18, 132, 94, 0.18);
+}
+
+.tone-sell .focus-item {
+  border-color: rgba(177, 57, 45, 0.18);
+}
+
+.tone-fund .focus-item {
+  border-color: rgba(176, 126, 15, 0.18);
+}
+
+.compact-empty {
+  padding: 14px;
+}
+
+.compact-strip {
+  margin-top: 0;
 }
 
 .table-wrap {
@@ -337,6 +432,10 @@ code {
 
 @media (max-width: 860px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-columns {
     grid-template-columns: 1fr;
   }
 

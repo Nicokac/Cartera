@@ -316,6 +316,32 @@ def build_decision_table(
     )
 
 
+def build_focus_list(
+    items: list[dict[str, str]],
+    *,
+    empty_message: str,
+    tone: str = "neutral",
+) -> str:
+    if not items:
+        return f'<div class="empty compact-empty">{html.escape(empty_message)}</div>'
+
+    rows = []
+    for item in items:
+        kicker = html.escape(item.get("kicker", "-"))
+        title = html.escape(item.get("title", ""))
+        detail = html.escape(item.get("detail", ""))
+        badge = item.get("badge")
+        badge_html = f'<span class="{badge_class(badge)}">{html.escape(str(badge))}</span>' if badge else ""
+        rows.append(
+            '<article class="focus-item">'
+            f'<div class="focus-top"><strong>{kicker}</strong>{badge_html}</div>'
+            f'<div class="focus-title">{title}</div>'
+            f'<div class="focus-detail">{detail}</div>'
+            "</article>"
+        )
+    return f'<div class="focus-list tone-{tone}">{"".join(rows)}</div>'
+
+
 def render_report(
     result: dict[str, object],
     *,
@@ -437,21 +463,100 @@ def render_report(
             .sort_values(["asset_family", "asset_subfamily"], na_position="last")
         )
 
-    summary_cards = f"""
-    <section class="cards">
+    changed_actions: list[dict[str, str]] = []
+    buy_focus: list[dict[str, str]] = []
+    sell_focus: list[dict[str, str]] = []
+    if isinstance(decision_view, pd.DataFrame) and not decision_view.empty:
+        changed_view = decision_view.copy()
+        changed_view["_accion_actual"] = changed_view[action_col].fillna("").astype(str)
+        changed_view["_accion_previa"] = changed_view.get("accion_previa", pd.Series(index=changed_view.index, dtype=object)).fillna("").astype(str)
+        changed_view = changed_view[
+            (changed_view["_accion_previa"].str.strip() != "")
+            & (changed_view["_accion_actual"].str.strip() != "")
+            & (changed_view["_accion_previa"] != changed_view["_accion_actual"])
+        ]
+        for _, row in changed_view.head(6).iterrows():
+            changed_actions.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": f"{row['_accion_previa']} -> {row['_accion_actual']}",
+                    "detail": str(row.get(motive_col, ""))[:140],
+                    "badge": str(row["_accion_actual"]),
+                }
+            )
+
+        refuerzo_view = decision_view[decision_view[action_col].astype(str) == ACTION_REFUERZO].sort_values(
+            "score_unificado", ascending=False
+        )
+        reducir_view = decision_view[decision_view[action_col].astype(str) == ACTION_REDUCIR].sort_values(
+            "score_unificado", ascending=True
+        )
+        for _, row in refuerzo_view.head(3).iterrows():
+            buy_focus.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": f"Score {fmt_score(row.get('score_unificado'))}",
+                    "detail": str(row.get(motive_col, ""))[:140],
+                    "badge": ACTION_REFUERZO,
+                }
+            )
+        for _, row in reducir_view.head(3).iterrows():
+            sell_focus.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": f"Score {fmt_score(row.get('score_unificado'))}",
+                    "detail": str(row.get(motive_col, ""))[:140],
+                    "badge": ACTION_REDUCIR,
+                }
+            )
+
+    sizing_preview = ""
+    if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty:
+        sizing_items = []
+        for _, row in asignacion_final.head(3).iterrows():
+            sizing_items.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": f"{fmt_pct(row.get('Peso_Fondeo_%'))} del fondeo",
+                    "detail": f"{fmt_ars(row.get('Monto_ARS'))} | {fmt_usd(row.get('Monto_USD'))}",
+                }
+            )
+        sizing_preview = build_focus_list(
+            sizing_items,
+            empty_message="Sin sizing sugerido.",
+            tone="fund",
+        )
+    else:
+        sizing_preview = '<div class="empty compact-empty">Sin sizing sugerido.</div>'
+
+    active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
+    executive_summary = (
+        f"{int(action_counts.get(ACTION_REFUERZO, 0))} refuerzos, "
+        f"{int(action_counts.get(ACTION_REDUCIR, 0))} reducciones, "
+        f"{int(decision_memory.get('senales_nuevas', 0))} senales nuevas y "
+        f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignacion'}."
+    )
+
+    primary_cards = f"""
+    <section class="cards cards-primary">
       <article class="card"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
-      <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
-      <article class="card"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
-      <article class="card"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
-      <article class="card"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
-      <article class="card"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
       <article class="card"><span class="label">Liquidez</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
-      <article class="card"><span class="label">Liquidez USD en ARS</span><strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></article>
-      <article class="card"><span class="label">Overlay tecnico</span><strong>{tech_enabled}</strong></article>
-      <article class="card"><span class="label">Cobertura tecnica</span><strong>{tech_covered}/{tech_total}</strong></article>
-      <article class="card"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
-      <article class="card"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
+      <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
+      <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
+      <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
+    </section>
+    """
+
+    secondary_cards = f"""
+    <section class="cards cards-secondary">
+      <article class="card compact"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
+      <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
+      <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
+      <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
+      <article class="card compact"><span class="label">Cobertura tecnica</span><strong>{tech_covered}/{tech_total}</strong></article>
+      <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
+      <article class="card compact"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
     </section>
     """
 
@@ -466,11 +571,73 @@ def render_report(
     memory_summary = ""
     if decision_memory:
         memory_summary = f"""
-    <section class="action-strip">
+    <section class="action-strip compact-strip">
       <article class="action-card neutral"><span>Senales nuevas</span><strong>{int(decision_memory.get('senales_nuevas', 0))}</strong></article>
       <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
       <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
       <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
+    </section>
+    """
+    panorama_section = f"""
+    <section class="grid spotlight-grid" id="panorama">
+      <section class="panel spotlight">
+        <h2>Panorama</h2>
+        <p class="summary-lede">{esc_text(executive_summary)}</p>
+        <div class="meta">
+          <span>Regimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activacion'}</strong></span>
+          <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
+          <span>Overlay tecnico: <strong>{tech_enabled}</strong></span>
+        </div>
+        <div class="focus-columns">
+          <div>
+            <h3>Prioridades de refuerzo</h3>
+            {build_focus_list(buy_focus, empty_message='Sin refuerzos activos.', tone='buy')}
+          </div>
+          <div>
+            <h3>Prioridades de reduccion</h3>
+            {build_focus_list(sell_focus, empty_message='Sin reducciones activas.', tone='sell')}
+          </div>
+        </div>
+      </section>
+      <section class="panel spotlight spotlight-side" id="sizing-resumen">
+        <h2>Sizing activo</h2>
+        <div class="meta">
+          <span>Fuente: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
+          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
+          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+        </div>
+        {sizing_preview}
+      </section>
+    </section>
+    """
+
+    changes_section = f"""
+    <section class="panel" id="cambios">
+      <div class="panel-head">
+        <h2>Cambios</h2>
+      </div>
+      {memory_summary}
+      <div class="focus-columns">
+        <div>
+          <h3>Cambios de accion</h3>
+          {build_focus_list(changed_actions, empty_message='Sin cambios de accion respecto de la corrida previa.', tone='neutral')}
+        </div>
+        <div>
+          <h3>Observaciones de cobertura</h3>
+          <div class="focus-list tone-neutral">
+            <article class="focus-item">
+              <div class="focus-top"><strong>Finviz</strong></div>
+              <div class="focus-title">{finviz_fund_covered}/{finviz_total} fundamentals | {finviz_ratings_covered}/{finviz_total} ratings</div>
+              <div class="focus-detail">Cobertura visible para la capa fundamental y de consenso.</div>
+            </article>
+            <article class="focus-item">
+              <div class="focus-top"><strong>Tecnico</strong></div>
+              <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
+              <div class="focus-detail">Cobertura tecnica efectiva para la lectura de tendencia y momentum.</div>
+            </article>
+          </div>
+        </div>
+      </div>
     </section>
     """
     regime_flags = market_regime.get("flags", {}) or {}
@@ -557,25 +724,24 @@ def render_report(
     </header>
 
     <nav class="quick-nav">
-      <a href="#integridad">Integridad</a>
-      <a href="#resumen">Resumen</a>
+      <a href="#panorama">Panorama</a>
+      <a href="#cambios">Cambios</a>
       <a href="#decision">Decision</a>
+      <a href="#sizing">Sizing</a>
       <a href="#regimen">Regimen</a>
+      <a href="#resumen">Resumen</a>
       <a href="#tecnico">Tecnico</a>
       {bonistas_nav}
-      <a href="#sizing">Sizing</a>
       <a href="#cartera">Cartera</a>
+      <a href="#integridad">Integridad</a>
     </nav>
 
-    {summary_cards}
+    {primary_cards}
+    {secondary_cards}
     {action_summary}
-    {memory_summary}
+    {panorama_section}
+    {changes_section}
     {regime_summary}
-
-    <section class="panel" id="integridad">
-      <h2>Integridad</h2>
-      {build_table(integrity_report)}
-    </section>
 
     <section class="grid">
       <section class="panel" id="resumen">
@@ -667,6 +833,11 @@ def render_report(
               "Peso_%": fmt_pct,
           },
       )}
+    </section>
+
+    <section class="panel" id="integridad">
+      <h2>Integridad</h2>
+      {build_table(integrity_report)}
     </section>
   </main>
   <script>
