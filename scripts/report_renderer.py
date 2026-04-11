@@ -184,6 +184,7 @@ def build_table(
 
     formatters = formatters or {}
     headers = "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
+    score_notes: list[str] = []
     rows = []
     for _, row in df.iterrows():
         cells = []
@@ -281,6 +282,7 @@ def build_decision_table(
     if df.empty:
         return '<div class="empty">Sin decisiones para mostrar.</div>'
 
+    score_notes: list[str] = []
     rows = []
     ordered = df.sort_values("score_unificado", ascending=False)
     for _, row in ordered.iterrows():
@@ -298,14 +300,8 @@ def build_decision_table(
         if racha <= 0 and accion.strip():
             racha = 1
         driver_html = build_driver_chips(row)
-        score_detail = ""
-        if motivo_score not in {"", "-"}:
-            score_detail = (
-                '<details class="inline-detail">'
-                "<summary>Ver criterio de score</summary>"
-                f"<div class=\"muted-inline\">{motivo_score}</div>"
-                "</details>"
-            )
+        if motivo_score not in {"", "-"} and motivo_score not in score_notes:
+            score_notes.append(motivo_score)
         rows.append(
             "<tr "
             f"data-ticker=\"{ticker}\" "
@@ -322,12 +318,22 @@ def build_decision_table(
             f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
             f"<td>{html.escape('-' if racha <= 0 else str(racha))}</td>"
             f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
-            f"<td><div>{motivo}</div>{score_detail}</td>"
+            f"<td><div>{motivo}</div></td>"
             "</tr>"
         )
 
+    score_notes_html = ""
+    if score_notes:
+        items = "".join(f"<li>{note}</li>" for note in score_notes)
+        score_notes_html = (
+            '<details class="score-notes">'
+            "<summary>Ver criterios generales de score</summary>"
+            f"<div class=\"muted-inline\"><ul>{items}</ul></div>"
+            "</details>"
+        )
+
     return (
-        '<div class="table-wrap"><table id="decision-table">'
+        f'{score_notes_html}<div class="table-wrap"><table id="decision-table">'
         "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Accion</th><th>Accion previa</th><th>Δ Score</th><th>Racha</th><th>Drivers</th><th>Motivo</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )

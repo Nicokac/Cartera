@@ -431,25 +431,34 @@ tbody tr:hover {
   line-height: 1.25;
 }
 
-#decision-table .inline-detail {
-  margin-top: 6px;
+.score-notes {
+  margin: 0 0 12px;
 }
 
-#decision-table .inline-detail summary {
+.score-notes summary {
   cursor: pointer;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
   list-style: none;
 }
 
-#decision-table .inline-detail summary::-webkit-details-marker {
+.score-notes summary::-webkit-details-marker {
   display: none;
 }
 
-#decision-table .inline-detail[open] summary {
+.score-notes[open] summary {
   margin-bottom: 4px;
+}
+
+.score-notes ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.score-notes li + li {
+  margin-top: 4px;
 }
 
 .metric {

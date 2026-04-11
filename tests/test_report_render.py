@@ -325,7 +325,7 @@ class ReportRenderTests(unittest.TestCase):
     def test_render_report_hides_score_criteria_behind_inline_detail(self) -> None:
         html = render_report(_build_minimal_result())
 
-        self.assertIn("Ver criterio de score", html)
+        self.assertIn("Ver criterios generales de score", html)
         self.assertIn("Score de bono calculado con sesgo prudencial y control de rebalanceo.", html)
 
 
