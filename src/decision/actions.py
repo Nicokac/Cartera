@@ -196,8 +196,6 @@ def enrich_decision_explanations(
             signals.append("tecnico alcista")
         if row.get("Tech_Trend") == "Alcista fuerte":
             signals.append("tecnico alcista fuerte")
-        if _near_52w_high(row):
-            signals.append("cerca de maximos anuales")
         if _metric_available(row, "MEP_Premium_%") and float(row.get("MEP_Premium_%", 0)) <= mep_good_max:
             signals.append("MEP favorable")
         return signals
@@ -222,8 +220,6 @@ def enrich_decision_explanations(
             signals.append("momentum relativo debil")
         if row.get("Tech_Trend") == "Bajista":
             signals.append("tecnico bajista")
-        if _far_from_52w_high(row):
-            signals.append("lejos de maximos anuales")
         if _metric_available(row, "s_beta_risk") and float(row.get("s_beta_risk", 0.5)) >= 0.70:
             signals.append("beta exigente")
         if _metric_available(row, "s_pe_expensive") and float(row.get("s_pe_expensive", 0.5)) >= 0.70:
