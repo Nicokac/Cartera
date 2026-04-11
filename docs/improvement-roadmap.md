@@ -70,6 +70,8 @@ Priorizacion combinando:
   - `FINVIZ_MAX_WORKERS` y `FINVIZ_WORKER_TIMEOUT_SECONDS` expuestos desde `config.py`
   - timeout explicito de futures
   - errores por timeout aislados por ticker
+  - `FINVIZ_SUBMIT_DELAY_SECONDS` para espaciar submits y reducir `429`
+  - paralelismo por defecto bajado a un valor mas prudente para corridas reales
 - bootstrap de clones limpios alineado con la taxonomia local de bonos:
   - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
 - `pypdf` movido fuera de dependencias base:

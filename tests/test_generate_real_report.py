@@ -256,6 +256,8 @@ class GenerateRealReportTests(unittest.TestCase):
             "generate_real_report.wait", return_value=({finished}, {pending})
         ), patch("generate_real_report.project_config.FINVIZ_MAX_WORKERS", 2), patch(
             "generate_real_report.project_config.FINVIZ_WORKER_TIMEOUT_SECONDS", 7
+        ), patch(
+            "generate_real_report.project_config.FINVIZ_SUBMIT_DELAY_SECONDS", 0.0
         ):
             enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
 
@@ -264,6 +266,37 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertIn("KO: timeout after 7s", stats["errors"])
         self.assertEqual(ratings.loc["AAPL", "consenso"], "Buy")
         self.assertTrue(pd.isna(enriched.loc[1, "Beta"]))
+
+    def test_enrich_real_cedears_uses_submit_delay_between_tasks(self) -> None:
+        df_cedears = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
+                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
+            ]
+        )
+        finished_a = Future()
+        finished_a.set_result((0, {}, None, None))
+        finished_b = Future()
+        finished_b.set_result((1, {}, None, None))
+
+        class FakeExecutor:
+            def __init__(self, *_args, **_kwargs) -> None:
+                self._futures = [finished_a, finished_b]
+
+            def submit(self, *_args, **_kwargs):
+                return self._futures.pop(0)
+
+            def shutdown(self, *args, **kwargs) -> None:
+                return None
+
+        with patch("generate_real_report.ThreadPoolExecutor", FakeExecutor), patch(
+            "generate_real_report.wait", return_value=({finished_a, finished_b}, set())
+        ), patch(
+            "generate_real_report.project_config.FINVIZ_SUBMIT_DELAY_SECONDS", 0.25
+        ), patch("generate_real_report.time.sleep") as sleep_mock:
+            _enriched, _ratings, _stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
+
+        sleep_mock.assert_called_once_with(0.25)
 
     def test_real_report_bond_context_columns_include_bcra_macro_fields(self) -> None:
         bond_analytics = pd.DataFrame(

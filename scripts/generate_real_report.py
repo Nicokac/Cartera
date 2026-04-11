@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from getpass import getpass
 from pathlib import Path
@@ -277,11 +278,14 @@ def enrich_real_cedears(
     if tasks:
         max_workers = min(project_config.FINVIZ_MAX_WORKERS, len(tasks))
         timeout_seconds = float(project_config.FINVIZ_WORKER_TIMEOUT_SECONDS)
+        submit_delay_seconds = max(float(getattr(project_config, "FINVIZ_SUBMIT_DELAY_SECONDS", 0.0)), 0.0)
         executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="finviz")
-        future_map = {
-            executor.submit(_enrich_cedear_row_payload, idx, row_data=row_data, mep_real=mep_real): (idx, row_data)
-            for idx, row_data in tasks
-        }
+        future_map = {}
+        for task_index, (idx, row_data) in enumerate(tasks):
+            future = executor.submit(_enrich_cedear_row_payload, idx, row_data=row_data, mep_real=mep_real)
+            future_map[future] = (idx, row_data)
+            if submit_delay_seconds > 0 and task_index < len(tasks) - 1:
+                time.sleep(submit_delay_seconds)
         done, not_done = wait(future_map.keys(), timeout=timeout_seconds)
         for future in done:
             idx, updates, rating_row, error = future.result()

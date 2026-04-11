@@ -58,6 +58,7 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
   - fallas transitorias mas tolerables sin cambiar la interfaz del cliente
   - concurrencia parametrizada desde config
   - timeout explicito de futures en enriquecimiento real
+  - pacing corto entre submits para bajar la probabilidad de `429`
 - el overlay tecnico ya absorbio mejor la capa Yahoo:
   - `SMA200`, `52w` y `Avg_Volume_20d` visibles en reporte
   - `Dist_SMA200_%` ya integrado a scoring con peso prudente
