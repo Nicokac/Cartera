@@ -6,6 +6,8 @@
   },
   "technical_overlay": {
     "enabled": true,
+    "history_period": "18mo",
+    "interval": "1d",
     "blend_base": 0.75,
     "blend_tech": 0.25
   },

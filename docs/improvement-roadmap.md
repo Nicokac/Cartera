@@ -95,6 +95,8 @@ Priorizacion combinando:
   - `High_52w` / `Low_52w`
   - `Dist_52w_High_%` / `Dist_52w_Low_%`
   - `Avg_Volume_20d`
+- ventana tecnica ampliada a `18mo`:
+  - `SMA200` ya puede poblarse en corridas reales normales
 
 ## Reproducibilidad
 
