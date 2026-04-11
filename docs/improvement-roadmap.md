@@ -97,6 +97,10 @@ Priorizacion combinando:
   - `Avg_Volume_20d`
 - ventana tecnica ampliada a `18mo`:
   - `SMA200` ya puede poblarse en corridas reales normales
+- `Dist_SMA200_%` integrado al scoring tecnico:
+  - peso prudente
+  - efecto confirmatorio, no dominante
+  - validado en corrida real sin rotacion artificial de senales
 
 ## Reproducibilidad
 
@@ -123,7 +127,9 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
 3. seguir monitoreando rotacion de refuerzos con evidencia real:
    - `EWZ` afirmado
    - `VIST` fuera de refuerzo
-   - `KO`, `EWZ`, `EEM` como sizing defensivo vigente al `2026-04-09 23:33`
+   - `XLU` ya fuera de refuerzo
+   - `NEM`, `KO`, `EWZ` como sizing defensivo vigente al `2026-04-11 00:16`
 4. observar la variabilidad de cobertura Finviz en corridas reales aun con retry y paralelizacion
-5. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
-6. limpiar deuda menor solo si aparece evidencia real
+5. decidir mas adelante si `Dist_52w_High_%` o `Dist_52w_Low_%` merecen entrar al scoring, solo con evidencia real
+6. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
+7. limpiar deuda menor solo si aparece evidencia real

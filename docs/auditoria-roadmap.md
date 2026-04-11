@@ -58,6 +58,10 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
   - fallas transitorias mas tolerables sin cambiar la interfaz del cliente
   - concurrencia parametrizada desde config
   - timeout explicito de futures en enriquecimiento real
+- el overlay tecnico ya absorbio mejor la capa Yahoo:
+  - `SMA200`, `52w` y `Avg_Volume_20d` visibles en reporte
+  - `Dist_SMA200_%` ya integrado a scoring con peso prudente
+  - validado en corrida real sin rotacion espuria de recomendaciones
 - el dead code de `analytics` ya quedo recortado:
   - removidos modulos sin consumidores activos en pipeline, scripts y tests
 - la observabilidad minima ya quedo mejorada:
@@ -219,15 +223,18 @@ Trabajo cerrado:
 
 ## Evidencia real reciente
 
-- corrida `2026-04-09 23:33`:
-  - `6` refuerzos: `KO`, `EWZ`, `EEM`, `GOOGL`, `NEM`, `XLU`
-  - `2` reducciones: `MELI`, `AAPL`
-  - sizing defensivo con `$600,000`: `KO`, `EWZ`, `EEM`
-  - `VIST` salio de `Refuerzo`
-  - la cobertura Finviz bajo a `20/24` fundamentals y `15/24` ratings sin romper el flujo
+- corrida `2026-04-11 00:16`:
+  - `5` refuerzos: `NEM`, `KO`, `EWZ`, `EEM`, `GOOGL`
+  - `1` reduccion: `MELI`
+  - sizing defensivo con `$600,000`: `NEM`, `KO`, `EWZ`
+  - `AAPL` quedo en `Mantener / Neutral`
+  - `XLU` quedo en `Mantener / Neutral`
+  - `Dist_SMA200_%` ya se poblo y movio los scores en la direccion esperada
+  - la cobertura Finviz se sostuvo en `20/24` fundamentals y `15/24` ratings sin romper el flujo
 - lectura:
   - la auditoria ya no deja trabajo correctivo urgente
   - el foco real pasa a calibracion y seguimiento de corridas productivas
+  - la siguiente evolucion razonable ya no es hardening, sino calibracion fina con evidencia nueva
 
 ## Criterio de cierre
 
