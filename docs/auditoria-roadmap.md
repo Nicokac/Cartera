@@ -60,6 +60,7 @@ Estos puntos siguen siendo razonables, pero no son bugs P0:
   - timeout explicito de futures en enriquecimiento real
   - pacing corto entre submits para bajar la probabilidad de `429`
   - calibracion mas conservadora del runner real para priorizar cobertura sobre velocidad
+  - corrida real posterior validada con cobertura completa de fundamentals
 - el overlay tecnico ya absorbio mejor la capa Yahoo:
   - `SMA200`, `52w` y `Avg_Volume_20d` visibles en reporte
   - `Dist_SMA200_%` ya integrado a scoring con peso prudente
@@ -225,17 +226,18 @@ Trabajo cerrado:
 
 ## Evidencia real reciente
 
-- corrida `2026-04-11 00:16`:
-  - `5` refuerzos: `NEM`, `KO`, `EWZ`, `EEM`, `GOOGL`
+- corrida `2026-04-11 00:48`:
+  - `6` refuerzos: `XLU`, `NEM`, `KO`, `EWZ`, `VIST`, `GOOGL`
   - `1` reduccion: `MELI`
-  - sizing defensivo con `$600,000`: `NEM`, `KO`, `EWZ`
-  - `AAPL` quedo en `Mantener / Neutral`
-  - `XLU` quedo en `Mantener / Neutral`
-  - `Dist_SMA200_%` ya se poblo y movio los scores en la direccion esperada
-  - la cobertura Finviz se sostuvo en `20/24` fundamentals y `15/24` ratings sin romper el flujo
+  - sizing defensivo con `$600,000`: `XLU`, `NEM`, `KO`
+  - `XLU` y `VIST` volvieron a `Refuerzo`
+  - `EEM` salio de `Refuerzo`
+  - `Dist_SMA200_%` sigue operativo con efecto prudente
+  - la cobertura Finviz subio a `24/24` fundamentals y `17/24` ratings
 - lectura:
   - la auditoria ya no deja trabajo correctivo urgente
   - el foco real pasa a calibracion y seguimiento de corridas productivas
+  - la mitigacion de Finviz ya demostro impacto directo en la calidad de decision
   - la siguiente evolucion razonable ya no es hardening, sino calibracion fina con evidencia nueva
 
 ## Criterio de cierre
