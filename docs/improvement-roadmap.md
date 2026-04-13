@@ -119,6 +119,13 @@ Priorizacion combinando:
 - memoria temporal anclada a fecha efectiva de mercado:
   - fin de semana y preapertura ya no inflan rachas artificiales
   - validado luego en corrida habil real
+- rediseño UX/UI del reporte HTML cerrado en primera iteracion:
+  - portada ejecutiva con `Panorama`, `Cambios materiales` y `Sizing activo`
+  - `Decision final` priorizada antes de la tabla completa
+  - sintesis tecnica y de bonos antes del detalle
+  - navegacion sticky y secciones pesadas colapsables
+  - limpieza de ruido en cambios de accion
+  - criterios generales de score consolidados en un bloque unico
 
 ## Reproducibilidad
 
@@ -146,8 +153,8 @@ Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
    - `XLU` afirmado de nuevo
    - `VIST` de vuelta en `Refuerzo`
    - `EEM` fuera de refuerzo
-   - `XLU`, `NEM`, `KO` como sizing defensivo vigente al `2026-04-11 12:34`
+   - `XLU`, `NEM`, `KO` como sizing defensivo vigente al `2026-04-11 15:37`
 4. observar si la nueva calibracion de Finviz mantiene `24/24` de forma estable en varias corridas
 5. decidir mas adelante si `Dist_52w_High_%` o `Dist_52w_Low_%` merecen entrar al scoring, solo con evidencia real
 6. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
-7. limpiar deuda menor solo si aparece evidencia real
+7. retomar UX/UI solo si aparece evidencia real de friccion en corridas nuevas

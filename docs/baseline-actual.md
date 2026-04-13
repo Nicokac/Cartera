@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Estado operativo vigente al `2026-04-11 15:13` en `America/Buenos_Aires`.
+Estado operativo vigente al `2026-04-11 15:37` en `America/Buenos_Aires`.
 
 ## Resumen
 
@@ -26,7 +26,7 @@ Estado operativo vigente al `2026-04-11 15:13` en `America/Buenos_Aires`.
 - la narrativa de ETF/regiones ya quedo compactada sin duplicaciones con contexto `52w`
 - la nueva arquitectura UX/UI del reporte quedo validada en corrida real
 - `Panorama`, `Cambios materiales` y la vista priorizada de `Decision final` ya funcionan como baseline visual
-- la tabla completa de decision se mantiene como segunda capa y el criterio de score queda disponible en detalle expandible
+- la tabla completa de decision se mantiene como segunda capa y los criterios generales de score ya no se repiten fila por fila
 
 ## Memoria temporal
 
@@ -97,6 +97,10 @@ Estado operativo vigente al `2026-04-11 15:13` en `America/Buenos_Aires`.
   - `Reducciones activas`
   - `Neutrales relevantes`
   - tabla completa colapsable
+- detalle fino validado:
+  - microcopy estable en `Panorama`
+  - `Cambios materiales` como label canonico
+  - criterios generales de score en bloque unico arriba de la tabla completa
 - capa analitica validada:
   - sintesis tecnica
   - sintesis de bonos

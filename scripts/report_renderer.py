@@ -67,6 +67,17 @@ def esc_text(value: object) -> str:
     return html.escape(fmt_label(value))
 
 
+def truncate_text(value: object, limit: int) -> str:
+    text = fmt_label(value)
+    if text == "-" or len(text) <= limit:
+        return text
+    trimmed = text[:limit].rstrip()
+    if " " in trimmed:
+        trimmed = trimmed.rsplit(" ", 1)[0]
+    trimmed = trimmed.rstrip(".,;: ")
+    return f"{trimmed}..."
+
+
 def metric_class(column: str, value: object) -> str:
     if pd.isna(value):
         return "metric metric-neutral"
@@ -400,7 +411,7 @@ def build_decision_priority_board(
                 {
                     "kicker": str(row.get("Ticker_IOL", "-")),
                     "title": f"{fmt_score(row.get('score_unificado'))} | Racha {racha}",
-                    "detail": str(row.get(motive_col, ""))[:160],
+                    "detail": truncate_text(row.get(motive_col, ""), 160),
                     "badge": accion if badge_from_action else None,
                 }
             )
@@ -739,7 +750,7 @@ def render_report(
                 {
                     "kicker": str(row.get("Ticker_IOL", "-")),
                     "title": f"{row['_accion_previa']} -> {row['_accion_actual']}",
-                    "detail": str(row.get(motive_col, ""))[:140],
+                    "detail": truncate_text(row.get(motive_col, ""), 140),
                     "badge": str(row["_accion_actual"]),
                 }
             )
@@ -755,7 +766,7 @@ def render_report(
                 {
                     "kicker": str(row.get("Ticker_IOL", "-")),
                     "title": f"Score {fmt_score(row.get('score_unificado'))}",
-                    "detail": str(row.get(motive_col, ""))[:140],
+                    "detail": truncate_text(row.get(motive_col, ""), 140),
                     "badge": ACTION_REFUERZO,
                 }
             )
@@ -764,7 +775,7 @@ def render_report(
                 {
                     "kicker": str(row.get("Ticker_IOL", "-")),
                     "title": f"Score {fmt_score(row.get('score_unificado'))}",
-                    "detail": str(row.get(motive_col, ""))[:140],
+                    "detail": truncate_text(row.get(motive_col, ""), 140),
                     "badge": ACTION_REDUCIR,
                 }
             )
@@ -791,7 +802,7 @@ def render_report(
     active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
     executive_summary = (
         f"{fmt_count_label(action_counts.get(ACTION_REFUERZO, 0), 'refuerzo')}, "
-        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reduccion')}, "
+        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reduccion', 'reducciones')}, "
         f"{fmt_count_label(decision_memory.get('senales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
         f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignacion'}."
     )

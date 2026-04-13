@@ -28,6 +28,19 @@ Baseline visual validada:
 - menor dominancia de tablas largas
 - menor ruido en cambios de accion
 - tabla completa de decision relegada a segunda capa
+- criterio de score consolidado en un bloque general, no repetido por fila
+
+## Cierre de iteracion
+
+La iteracion inicial de UX/UI puede considerarse cerrada con estos puntos:
+
+- arquitectura de cuatro capas ya implementada
+- validacion con corridas reales sucesivas
+- cleanup de ruido en cambios de accion
+- microcopy estabilizado
+- tabla completa de decision compactada hasta un nivel aceptable
+
+Lo que queda a futuro ya no es rediseño base. Es polish menor o una nueva fase si aparece evidencia real de friccion.
 
 ## Principios
 
