@@ -307,7 +307,11 @@ def run_smoke_pipeline() -> dict[str, object]:
         sizing_rules=project_config.SIZING_RULES,
     )
 
-    dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
+    dashboard_bundle = build_dashboard_bundle(
+        df_total,
+        mep_real=mep_real,
+        liquidity_contract=portfolio_bundle.get("liquidity_contract"),
+    )
 
     return {
         "mep_real": mep_real,

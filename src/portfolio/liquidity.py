@@ -22,16 +22,26 @@ def extract_estado_cuenta_components(estado_payload: dict[str, Any]) -> dict[str
     cash_pending_usd = 0.0
     fallback_cash_ars = 0.0
     fallback_cash_usd = 0.0
+    cash_saldo_ars = 0.0
+    cash_saldo_usd = 0.0
+    cash_comprometido_ars = 0.0
+    cash_comprometido_usd = 0.0
     total_broker_en_pesos = float(estado_payload.get("totalEnPesos", 0) or 0)
 
     for cuenta in estado_payload.get("cuentas", []):
         moneda = normalize_account_currency(cuenta.get("moneda"))
         disponible = float(cuenta.get("disponible", 0) or 0)
+        saldo = float(cuenta.get("saldo", 0) or 0)
+        comprometido = float(cuenta.get("comprometido", 0) or 0)
 
         if moneda == "ARS":
             fallback_cash_ars += disponible
+            cash_saldo_ars += saldo
+            cash_comprometido_ars += comprometido
         else:
             fallback_cash_usd += disponible
+            cash_saldo_usd += saldo
+            cash_comprometido_usd += comprometido
 
         saldos = cuenta.get("saldos", []) or []
         if not saldos:
@@ -73,6 +83,10 @@ def extract_estado_cuenta_components(estado_payload: dict[str, Any]) -> dict[str
         "cash_pending_usd": cash_pending_usd,
         "cash_disponible_ars": fallback_cash_ars,
         "cash_disponible_usd": fallback_cash_usd,
+        "cash_saldo_ars": cash_saldo_ars,
+        "cash_saldo_usd": cash_saldo_usd,
+        "cash_comprometido_ars": cash_comprometido_ars,
+        "cash_comprometido_usd": cash_comprometido_usd,
         "total_broker_en_pesos": total_broker_en_pesos,
     }
 
@@ -205,10 +219,12 @@ def rebuild_liquidity(
 
     liquidity_contract = {
         "cash_operativo_ars": round(cash_disponible_broker_ars, 2),
+        "cash_comprometido_ars": round(cash_components["cash_comprometido_ars"], 2),
         "caucion_tactica_ars": round(caucion_colocada_ars, 2),
         "fci_estrategico_ars": round(liquidez_estrategica_ars, 2),
         "liquidez_desplegable_total_ars": round(liquidez_desplegable_total_ars, 2),
         "cash_operativo_usd": round(cash_disponible_broker_ars / mep_value, 2) if mep_value is not None else np.nan,
+        "cash_comprometido_usd": round(cash_components["cash_comprometido_usd"], 2),
         "caucion_tactica_usd": round(caucion_colocada_ars / mep_value, 2) if mep_value is not None else np.nan,
         "fci_estrategico_usd": round(liquidez_estrategica_ars / mep_value, 2) if mep_value is not None else np.nan,
         "liquidez_desplegable_total_usd": (

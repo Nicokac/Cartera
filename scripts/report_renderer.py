@@ -30,6 +30,15 @@ def fmt_usd(value: object) -> str:
     return f"USD {float(value):,.2f}"
 
 
+def fmt_money_by_currency(value: object, currency: object) -> str:
+    currency_text = str(currency or "ARS").strip().upper()
+    if pd.isna(value):
+        return "-"
+    if currency_text == "USD":
+        return fmt_usd(value)
+    return fmt_ars(value)
+
+
 def fmt_pct(value: object) -> str:
     if pd.isna(value):
         return "-"
@@ -54,6 +63,24 @@ def fmt_label(value: object) -> str:
     return str(value)
 
 
+def fmt_quantity(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+    numeric = float(value)
+    if abs(numeric - round(numeric)) < 1e-9:
+        return f"{int(round(numeric)):,}"
+    return f"{numeric:,.2f}".rstrip("0").rstrip(".")
+
+
+def fmt_datetime_short(value: object) -> str:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return "-"
+    ts = pd.to_datetime(value, errors="coerce")
+    if pd.isna(ts):
+        return "-"
+    return ts.strftime("%Y-%m-%d %H:%M")
+
+
 def fmt_count_label(value: object, singular: str, plural: str | None = None) -> str:
     try:
         count = int(value or 0)
@@ -61,6 +88,18 @@ def fmt_count_label(value: object, singular: str, plural: str | None = None) -> 
         count = 0
     plural = plural or f"{singular}s"
     return f"{count} {singular if count == 1 else plural}"
+
+
+def safe_int(value: object, default: int = 0) -> int:
+    try:
+        if pd.isna(value):
+            return default
+    except Exception:
+        pass
+    try:
+        return int(value)
+    except Exception:
+        return default
 
 
 def esc_text(value: object) -> str:
@@ -376,6 +415,362 @@ def build_focus_list(
     return f'<div class="focus-list tone-{tone}">{"".join(rows)}</div>'
 
 
+def describe_action_shift(previous_action: object, current_action: object) -> str:
+    previous = str(previous_action or "").strip()
+    current = str(current_action or "").strip()
+    neutral_actions = {ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+
+    if current == ACTION_REFUERZO and previous in neutral_actions:
+        return "Sube de conviccion"
+    if current == ACTION_REFUERZO and previous == ACTION_REDUCIR:
+        return "Giro desde reduccion a refuerzo"
+    if current == ACTION_REDUCIR and previous in neutral_actions:
+        return "Pasa de monitoreo a reduccion"
+    if current == ACTION_REDUCIR and previous == ACTION_REFUERZO:
+        return "Giro desde refuerzo a reduccion"
+    if current in neutral_actions and previous == ACTION_REFUERZO:
+        return "Vuelve a monitoreo desde refuerzo"
+    if current in neutral_actions and previous == ACTION_REDUCIR:
+        return "Vuelve a monitoreo desde reduccion"
+    return f"{previous} -> {current}"
+
+
+def build_executive_summary(
+    *,
+    action_counts: dict[object, object],
+    decision_memory: dict[str, object],
+    changed_actions: list[dict[str, str]],
+    operations_bundle: dict[str, object],
+    asignacion_final: pd.DataFrame,
+    current_tickers: set[str],
+) -> str:
+    summary_parts: list[str] = []
+
+    if changed_actions:
+        tickers = [str(item.get("kicker", "")).strip() for item in changed_actions[:3] if str(item.get("kicker", "")).strip()]
+        if tickers:
+            summary_parts.append(f"Cambios de señal en {', '.join(tickers)}")
+
+    transition_summary = operations_bundle.get("position_transitions", {}) or {}
+    transition_df = transition_summary.get("summary", pd.DataFrame())
+    if isinstance(transition_df, pd.DataFrame) and not transition_df.empty:
+        visibles = transition_df["simbolo"].dropna().astype(str).head(3).tolist()
+        if visibles:
+            summary_parts.append(f"Movimientos ya visibles en cartera: {', '.join(visibles)}")
+
+    recent_trades = operations_bundle.get("recent_trades", pd.DataFrame())
+    unresolved: list[str] = []
+    if isinstance(recent_trades, pd.DataFrame) and not recent_trades.empty:
+        for simbolo in recent_trades.get("simbolo", pd.Series(dtype=object)).dropna().astype(str).tolist():
+            symbol_upper = simbolo.strip().upper()
+            if symbol_upper and symbol_upper not in current_tickers and symbol_upper not in unresolved:
+                unresolved.append(symbol_upper)
+    if unresolved:
+        summary_parts.append(f"Pendiente de consolidación en cartera: {', '.join(unresolved[:3])}")
+
+    if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty:
+        sizing_names = asignacion_final["Ticker_IOL"].dropna().astype(str).head(3).tolist()
+        if sizing_names:
+            summary_parts.append(f"Sizing activo en {', '.join(sizing_names)}")
+
+    if summary_parts:
+        return ". ".join(summary_parts) + "."
+
+    return (
+        f"{fmt_count_label(action_counts.get(ACTION_REFUERZO, 0), 'refuerzo')}, "
+        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reduccion', 'reducciones')}, "
+        f"{fmt_count_label(decision_memory.get('senales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
+        f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignacion'}."
+    )
+
+
+def build_operations_explanations(
+    recent_operations: pd.DataFrame,
+    *,
+    current_portfolio: pd.DataFrame,
+    skip_symbols: set[str] | None = None,
+    fallback_window_days: int = 3,
+    limit: int = 6,
+) -> list[dict[str, str]]:
+    if not isinstance(recent_operations, pd.DataFrame) or recent_operations.empty:
+        return []
+
+    portfolio_view = current_portfolio.copy() if isinstance(current_portfolio, pd.DataFrame) else pd.DataFrame()
+    if not portfolio_view.empty:
+        portfolio_view["Ticker_IOL"] = portfolio_view["Ticker_IOL"].astype(str).str.strip().str.upper()
+        portfolio_view = portfolio_view.drop_duplicates(subset=["Ticker_IOL"], keep="first").set_index("Ticker_IOL")
+
+    items: list[dict[str, str]] = []
+    seen_keys: set[tuple[str, str]] = set()
+    skip_symbols = {str(symbol).strip().upper() for symbol in (skip_symbols or set()) if str(symbol).strip()}
+    latest_event_ts = pd.to_datetime(recent_operations.get("fecha_evento"), errors="coerce").max()
+    fallback_cutoff_ts = (
+        latest_event_ts - pd.Timedelta(days=fallback_window_days)
+        if pd.notna(latest_event_ts)
+        else pd.NaT
+    )
+
+    for _, row in recent_operations.iterrows():
+        symbol = str(row.get("simbolo", "-")).strip().upper()
+        if not symbol or symbol == "-":
+            continue
+        if symbol in skip_symbols:
+            continue
+
+        bucket = str(row.get("operation_bucket", "")).strip().lower()
+        if not bucket:
+            tipo_text = str(row.get("tipo", "")).strip()
+            if tipo_text in {"Compra", "Venta"}:
+                bucket = "trading"
+            elif tipo_text in {"Pago de Dividendos", "Pago de Amortización", "Pago de AmortizaciÃ³n"}:
+                bucket = "evento"
+            else:
+                bucket = "otro"
+        unique_key = (bucket, symbol)
+        if unique_key in seen_keys:
+            continue
+        seen_keys.add(unique_key)
+
+        tipo_operacion = str(row.get("tipo", "-"))
+        event_ts = pd.to_datetime(row.get("fecha_evento"), errors="coerce")
+        fecha = fmt_datetime_short(event_ts)
+        monto = fmt_money_by_currency(row.get("monto_final"), row.get("operation_currency"))
+
+        if bucket == "trading":
+            if symbol in portfolio_view.index:
+                if pd.notna(fallback_cutoff_ts) and pd.notna(event_ts) and event_ts < fallback_cutoff_ts:
+                    continue
+                current_row = portfolio_view.loc[symbol]
+                tipo_actual = fmt_label(current_row.get("Tipo"))
+                bloque_actual = fmt_label(current_row.get("Bloque"))
+                peso_actual = fmt_pct(current_row.get("Peso_%"))
+                if tipo_operacion == "Compra":
+                    title = f"Compra reciente ya reflejada en cartera | {fecha}"
+                else:
+                    title = f"Venta reciente sobre una posicion que sigue abierta | {fecha}"
+                detail = f"{symbol} hoy sigue en cartera como {tipo_actual} / {bloque_actual}. Peso actual {peso_actual}."
+                badge = tipo_operacion
+            else:
+                title = f"Movimiento reciente aun no reflejado en cartera | {fecha}"
+                detail = f"{symbol} tuvo una {tipo_operacion.lower()} reciente, pero todavia no figura en /portafolio actual."
+                badge = tipo_operacion
+            items.append(
+                {
+                    "kicker": symbol,
+                    "title": title,
+                    "detail": detail,
+                    "badge": badge,
+                }
+            )
+        elif bucket == "evento":
+            if pd.notna(fallback_cutoff_ts) and pd.notna(event_ts) and event_ts < fallback_cutoff_ts:
+                continue
+            detail = f"Se acredito {tipo_operacion.lower()} de {symbol}. Monto informado {monto}."
+            items.append(
+                {
+                    "kicker": symbol,
+                    "title": f"Cobro o acreditacion reciente | {fecha}",
+                    "detail": detail,
+                }
+            )
+
+        if len(items) >= limit:
+            break
+
+    return items
+
+
+def build_operations_summary(
+    operations_bundle: dict[str, object],
+    *,
+    current_tickers: set[str] | None = None,
+    current_portfolio: pd.DataFrame | None = None,
+) -> str:
+    recent_trades = operations_bundle.get("recent_trades", pd.DataFrame())
+    recent_events = operations_bundle.get("recent_events", pd.DataFrame())
+    recent_operations = operations_bundle.get("recent_operations", pd.DataFrame())
+    symbol_summary = operations_bundle.get("symbol_summary", pd.DataFrame())
+    position_transitions = operations_bundle.get("position_transitions", {}) or {}
+    transition_items = position_transitions.get("items", []) or []
+    transition_summary = position_transitions.get("summary", pd.DataFrame())
+    previous_snapshot_date = operations_bundle.get("previous_snapshot_date")
+    stats = operations_bundle.get("stats", {}) or {}
+    current_tickers = {str(ticker).strip().upper() for ticker in (current_tickers or set()) if str(ticker).strip()}
+
+    trade_items = []
+    if isinstance(recent_trades, pd.DataFrame) and not recent_trades.empty:
+        for _, row in recent_trades.head(4).iterrows():
+            trade_items.append(
+                {
+                    "kicker": str(row.get("simbolo", "-")),
+                    "title": f"{fmt_label(row.get('tipo'))} | {fmt_datetime_short(row.get('fecha_evento'))}",
+                    "detail": f"{fmt_money_by_currency(row.get('monto_final'), row.get('operation_currency'))} | Cantidad {fmt_quantity(row.get('cantidad_final'))}",
+                    "badge": row.get("tipo"),
+                }
+            )
+
+    event_items = []
+    if isinstance(recent_events, pd.DataFrame) and not recent_events.empty:
+        for _, row in recent_events.head(4).iterrows():
+            event_items.append(
+                {
+                    "kicker": str(row.get("simbolo", "-")),
+                    "title": f"{fmt_label(row.get('tipo'))} | {fmt_datetime_short(row.get('fecha_evento'))}",
+                    "detail": f"Monto {fmt_money_by_currency(row.get('monto_final'), row.get('operation_currency'))} | Estado {fmt_label(row.get('estado'))}",
+                }
+            )
+
+    summary_table = ""
+    if isinstance(symbol_summary, pd.DataFrame) and not symbol_summary.empty:
+        summary_table = build_collapsible(
+            "Ver resumen por símbolo",
+            build_table(
+                ensure_table_columns(
+                    symbol_summary,
+                    ["simbolo", "tipo", "operaciones", "ultima_fecha", "monto_total", "cantidad_total"],
+                ),
+                formatters={
+                    "ultima_fecha": fmt_datetime_short,
+                    "monto_total": fmt_ars,
+                    "cantidad_total": fmt_quantity,
+                },
+            ),
+            compact=True,
+        )
+
+    unresolved_symbols: list[str] = []
+    if isinstance(recent_trades, pd.DataFrame) and not recent_trades.empty:
+        for simbolo in recent_trades["simbolo"].dropna().astype(str).tolist():
+            symbol_upper = simbolo.strip().upper()
+            if symbol_upper and symbol_upper not in current_tickers and symbol_upper not in unresolved_symbols:
+                unresolved_symbols.append(symbol_upper)
+
+    unresolved_note = ""
+    if unresolved_symbols:
+        joined = ", ".join(unresolved_symbols)
+        unresolved_note = (
+            '<div class="meta">'
+            f'<span>Operaciones recientes fuera de cartera actual: <strong>{html.escape(joined)}</strong></span>'
+            '<span>Esto suele indicar una operacion ejecutada que todavia no se refleja en <strong>/portafolio</strong> o una especie transitoria no consolidada en la foto de tenencias.</span>'
+            "</div>"
+        )
+
+    explanations_html = build_focus_list(
+        transition_items
+        + build_operations_explanations(
+            recent_operations,
+            current_portfolio=current_portfolio if isinstance(current_portfolio, pd.DataFrame) else pd.DataFrame(),
+            skip_symbols={item.get("kicker", "") for item in transition_items},
+        ),
+        empty_message="Sin lectura operacional adicional para esta ventana.",
+        tone="neutral",
+    )
+
+    transition_table = ""
+    if isinstance(transition_summary, pd.DataFrame) and not transition_summary.empty:
+        transition_table = build_collapsible(
+            "Ver cambios contra snapshot previo",
+            build_table(
+                ensure_table_columns(
+                    transition_summary,
+                    ["simbolo", "cambio", "detalle"],
+                ),
+            ),
+            compact=True,
+        )
+
+    recent_operations_view = ensure_table_columns(
+        recent_operations,
+        [
+            "numero",
+            "fecha_evento",
+            "tipo",
+            "estado",
+            "mercado",
+            "simbolo",
+            "operation_currency",
+            "cantidad_final",
+            "precio_final",
+            "monto_final",
+            "plazo",
+        ],
+    ).copy()
+    if not recent_operations_view.empty:
+        recent_operations_view["precio_final_label"] = recent_operations_view.apply(
+            lambda row: fmt_money_by_currency(row.get("precio_final"), row.get("operation_currency")),
+            axis=1,
+        )
+        recent_operations_view["monto_final_label"] = recent_operations_view.apply(
+            lambda row: fmt_money_by_currency(row.get("monto_final"), row.get("operation_currency")),
+            axis=1,
+        )
+        recent_operations_view = recent_operations_view.rename(
+            columns={
+                "operation_currency": "Moneda",
+                "cantidad_final": "Cantidad final",
+                "precio_final_label": "Precio final",
+                "monto_final_label": "Monto final",
+            }
+        )
+
+    return f"""
+    <section class="panel" id="operaciones">
+      <h2>Operaciones recientes</h2>
+      <div class="meta">
+        <span>Total: <strong>{int(stats.get('total', 0))}</strong></span>
+        <span>Trading: <strong>{int(stats.get('trading', 0))}</strong></span>
+        <span>Eventos: <strong>{int(stats.get('events', 0))}</strong></span>
+        <span>Terminadas: <strong>{int(stats.get('completed', 0))}</strong></span>
+        <span>Snapshot previo: <strong>{html.escape(str(previous_snapshot_date or '-'))}</strong></span>
+      </div>
+      {unresolved_note}
+      <h3>Lectura operacional</h3>
+      {explanations_html}
+      <div class="focus-columns">
+        <div>
+          <h3>Compras y ventas recientes</h3>
+          {build_focus_list(trade_items, empty_message='Sin operaciones activas recientes.', tone='buy')}
+        </div>
+        <div>
+          <h3>Dividendos y amortizaciones</h3>
+          {build_focus_list(event_items, empty_message='Sin eventos pasivos recientes.', tone='neutral')}
+        </div>
+      </div>
+      {summary_table}
+      {transition_table}
+      {build_collapsible(
+          "Ver tabla completa de operaciones",
+          build_table(
+              ensure_table_columns(
+                  recent_operations_view,
+                  [
+                      "numero",
+                      "fecha_evento",
+                      "tipo",
+                      "estado",
+                      "mercado",
+                      "simbolo",
+                      "Moneda",
+                      "Cantidad final",
+                      "Precio final",
+                      "Monto final",
+                      "plazo",
+                  ],
+              ),
+              formatters={
+                  "fecha_evento": fmt_datetime_short,
+                  "Moneda": fmt_label,
+                  "Precio final": fmt_label,
+                  "Monto final": fmt_label,
+                  "Cantidad final": fmt_quantity,
+              },
+          ),
+          compact=True,
+      )}
+    </section>
+    """
+
+
 def build_decision_priority_board(
     df: pd.DataFrame,
     *,
@@ -388,11 +783,7 @@ def build_decision_priority_board(
     work = df.copy()
     work["_accion_actual"] = work[action_col].fillna("").astype(str)
     work["_accion_previa"] = work.get("accion_previa", pd.Series(index=work.index, dtype=object)).fillna("").astype(str)
-    work["_cambio_accion"] = (
-        (work["_accion_previa"].str.strip() != "")
-        & (work["_accion_actual"].str.strip() != "")
-        & (work["_accion_previa"] != work["_accion_actual"])
-    )
+    work["_asset_family"] = work.get("asset_family", pd.Series(index=work.index, dtype=object)).fillna("").astype(str)
 
     def _build_items(source: pd.DataFrame, *, ascending: bool = False, limit: int = 3, badge_from_action: bool = True) -> list[dict[str, str]]:
         if source.empty:
@@ -417,54 +808,33 @@ def build_decision_priority_board(
             )
         return items
 
-    material_previous = {
-        ACTION_REFUERZO,
-        ACTION_REDUCIR,
-        ACTION_MANTENER_NEUTRAL,
-        "Mantener / monitorear",
-    }
-    material_current = {
-        ACTION_REFUERZO,
-        ACTION_REDUCIR,
-        ACTION_MANTENER_NEUTRAL,
-        "Mantener / monitorear",
-    }
-
-    nuevos = work[
-        work["_cambio_accion"]
-        & work["_accion_previa"].isin(material_previous)
-        & work["_accion_actual"].isin(material_current)
-        & ~(
-            work["_accion_previa"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
-            & work["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
-        )
-    ]
     refuerzos = work[work["_accion_actual"] == ACTION_REFUERZO]
     reducciones = work[work["_accion_actual"] == ACTION_REDUCIR]
-    nuevos_tickers = set(nuevos["Ticker_IOL"].astype(str).tolist())
     neutrales = work[
         work["_accion_actual"].isin(NEUTRAL_ACTIONS)
-        & ~work["Ticker_IOL"].astype(str).isin(nuevos_tickers)
     ]
+
+    top_scores = refuerzos.sort_values("score_unificado", ascending=False)
+    bottom_scores = work[
+        (pd.to_numeric(work.get("score_unificado"), errors="coerce") < 0)
+        & (work["_asset_family"].str.lower() != "liquidity")
+        & (~work["_accion_actual"].str.lower().str.contains("liquidez", na=False))
+    ].sort_values("score_unificado", ascending=True)
 
     return f"""
     <section class="decision-priority">
       <div class="focus-columns focus-columns-wide">
         <div>
-          <h3>Cambios materiales</h3>
-          {build_focus_list(_build_items(nuevos, ascending=False), empty_message='Sin cambios materiales respecto de la corrida previa.', tone='neutral')}
+          <h3>Convicciones alcistas</h3>
+          {build_focus_list(_build_items(top_scores, ascending=False), empty_message='Sin convicciones alcistas destacadas.', tone='buy')}
         </div>
         <div>
-          <h3>Refuerzos activos</h3>
-          {build_focus_list(_build_items(refuerzos, ascending=False), empty_message='Sin refuerzos activos.', tone='buy')}
+          <h3>Riesgos a recortar</h3>
+          {build_focus_list(_build_items(bottom_scores, ascending=True), empty_message='Sin riesgos destacados para recorte.', tone='sell')}
         </div>
         <div>
-          <h3>Reducciones activas</h3>
-          {build_focus_list(_build_items(reducciones, ascending=True), empty_message='Sin reducciones activas.', tone='sell')}
-        </div>
-        <div>
-          <h3>Neutrales relevantes</h3>
-          {build_focus_list(_build_items(neutrales, ascending=False, badge_from_action=True), empty_message='Sin neutrales relevantes.', tone='neutral')}
+          <h3>Monitoreo destacado</h3>
+          {build_focus_list(_build_items(neutrales, ascending=False, badge_from_action=True), empty_message='Sin monitoreo destacado.', tone='neutral')}
         </div>
       </div>
     </section>
@@ -616,10 +986,12 @@ def render_report(
     technical_overlay = result.get("technical_overlay", pd.DataFrame())
     finviz_stats = result.get("finviz_stats", {}) or {}
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
+    operations_bundle = result.get("operations_bundle", {}) or {}
     decision_memory = decision_bundle.get("decision_memory", {}) or {}
     market_regime = decision_bundle.get("market_regime", {}) or {}
 
     df_total = portfolio_bundle["df_total"].copy()
+    current_tickers = set(df_total.get("Ticker_IOL", pd.Series(dtype=object)).dropna().astype(str).tolist())
     integrity_report = portfolio_bundle["integrity_report"].copy()
     final_decision = decision_bundle["final_decision"].copy()
     propuesta = sizing_bundle.get("propuesta", pd.DataFrame()).copy()
@@ -722,6 +1094,7 @@ def render_report(
         )
 
     changed_actions: list[dict[str, str]] = []
+    changes_direction_summary = ""
     buy_focus: list[dict[str, str]] = []
     sell_focus: list[dict[str, str]] = []
     if isinstance(decision_view, pd.DataFrame) and not decision_view.empty:
@@ -745,13 +1118,42 @@ def render_report(
                 & changed_view["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
             )
         ]
+        changed_view["_score_delta_abs"] = pd.to_numeric(
+            changed_view.get("score_delta_vs_dia_anterior", pd.Series(index=changed_view.index, dtype=float)),
+            errors="coerce",
+        ).abs()
+        changed_view = changed_view.sort_values(
+            ["_score_delta_abs", "score_unificado"],
+            ascending=[False, False],
+            na_position="last",
+        )
+
+        cambios_hacia_refuerzo = int((changed_view["_accion_actual"] == ACTION_REFUERZO).sum())
+        cambios_hacia_reduccion = int((changed_view["_accion_actual"] == ACTION_REDUCIR).sum())
+        cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
+        changes_direction_summary = f"""
+      <section class="action-strip compact-strip">
+        <article class="action-card buy"><span>Suben de conviccion</span><strong>{cambios_hacia_refuerzo}</strong></article>
+        <article class="action-card sell"><span>Bajan a reduccion</span><strong>{cambios_hacia_reduccion}</strong></article>
+        <article class="action-card neutral"><span>Vuelven a monitoreo</span><strong>{cambios_hacia_neutral}</strong></article>
+      </section>
+    """
+
         for _, row in changed_view.head(6).iterrows():
+            previous_action = str(row["_accion_previa"])
+            current_action = str(row["_accion_actual"])
+            score_delta = row.get("score_delta_vs_dia_anterior")
+            score_delta_label = fmt_delta_score(score_delta)
+            delta_fragment = f" Δ score {score_delta_label}." if score_delta_label != "-" else ""
             changed_actions.append(
                 {
                     "kicker": str(row.get("Ticker_IOL", "-")),
-                    "title": f"{row['_accion_previa']} -> {row['_accion_actual']}",
-                    "detail": truncate_text(row.get(motive_col, ""), 140),
-                    "badge": str(row["_accion_actual"]),
+                    "title": describe_action_shift(previous_action, current_action),
+                    "detail": truncate_text(
+                        f"Antes: {previous_action}. Ahora: {current_action}.{delta_fragment} {fmt_label(row.get(motive_col, ''))}",
+                        180,
+                    ),
+                    "badge": current_action,
                 }
             )
 
@@ -800,18 +1202,20 @@ def render_report(
         sizing_preview = '<div class="empty compact-empty">Sin sizing sugerido.</div>'
 
     active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
-    executive_summary = (
-        f"{fmt_count_label(action_counts.get(ACTION_REFUERZO, 0), 'refuerzo')}, "
-        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reduccion', 'reducciones')}, "
-        f"{fmt_count_label(decision_memory.get('senales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
-        f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignacion'}."
+    executive_summary = build_executive_summary(
+        action_counts=action_counts,
+        decision_memory=decision_memory,
+        changed_actions=changed_actions,
+        operations_bundle=operations_bundle,
+        asignacion_final=asignacion_final if isinstance(asignacion_final, pd.DataFrame) else pd.DataFrame(),
+        current_tickers=current_tickers,
     )
 
     primary_cards = f"""
     <section class="cards cards-primary">
       <article class="card"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
-      <article class="card"><span class="label">Liquidez</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
+      <article class="card"><span class="label">Liquidez broker</span><strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></article>
       <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
       <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
       <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
@@ -821,6 +1225,7 @@ def render_report(
     secondary_cards = f"""
     <section class="cards cards-secondary">
       <article class="card compact"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
+      <article class="card compact"><span class="label">Liquidez ampliada</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
       <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
       <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
       <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
@@ -887,6 +1292,7 @@ def render_report(
         <h2>Cambios</h2>
       </div>
       {memory_summary}
+      {changes_direction_summary}
       <div class="focus-columns">
         <div>
           <h3>Cambios de accion</h3>
@@ -935,6 +1341,7 @@ def render_report(
     """
 
     bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
+    operations_nav = '<a href="#operaciones">Operaciones</a>' if operations_bundle else ""
     bonistas_section = ""
     if show_bonistas:
         bond_summary_tables = (
@@ -1001,6 +1408,7 @@ def render_report(
     <nav class="quick-nav">
       <a href="#panorama">Panorama</a>
       <a href="#cambios">Cambios</a>
+      {operations_nav}
       <a href="#decision">Decision</a>
       <a href="#sizing">Sizing</a>
       <a href="#regimen">Regimen</a>
@@ -1016,6 +1424,7 @@ def render_report(
     {action_summary}
     {panorama_section}
     {changes_section}
+    {build_operations_summary(operations_bundle, current_tickers=current_tickers, current_portfolio=df_total) if operations_bundle else ""}
     {regime_summary}
 
     <section class="grid">
@@ -1024,6 +1433,8 @@ def render_report(
         <div class="meta">
           <span>Total consolidado: <strong>{fmt_ars(kpis['total_ars'])}</strong></span>
           <span>Total estilo IOL: <strong>{fmt_ars(kpis['total_ars_iol'])}</strong></span>
+          <span>Liquidez broker: <strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></span>
+          <span>Liquidez ampliada: <strong>{fmt_ars(kpis['liquidez_ars'])}</strong></span>
           <span>Liquidez USD convertida: <strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></span>
           <span>Finviz fundamentals: <strong>{finviz_fund_covered}/{finviz_total}</strong></span>
           <span>Finviz ratings: <strong>{finviz_ratings_covered}/{finviz_total}</strong></span>

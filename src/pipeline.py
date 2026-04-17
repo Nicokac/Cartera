@@ -95,8 +95,26 @@ def build_portfolio_bundle(
     }
 
 
-def build_dashboard_bundle(df_total: pd.DataFrame, *, mep_real: float | None) -> dict[str, Any]:
-    return build_executive_dashboard_data(df_total, mep_real=mep_real)
+def build_dashboard_bundle(
+    df_total: pd.DataFrame,
+    *,
+    mep_real: float | None,
+    liquidity_contract: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    broker_total_ars = None
+    broker_cash_ars = None
+    broker_cash_committed_ars = None
+    if liquidity_contract:
+        broker_total_ars = liquidity_contract.get("total_broker_en_pesos")
+        broker_cash_ars = liquidity_contract.get("cash_operativo_ars")
+        broker_cash_committed_ars = liquidity_contract.get("cash_comprometido_ars")
+    return build_executive_dashboard_data(
+        df_total,
+        mep_real=mep_real,
+        broker_total_ars=broker_total_ars,
+        broker_cash_ars=broker_cash_ars,
+        broker_cash_committed_ars=broker_cash_committed_ars,
+    )
 
 
 def build_decision_bundle(

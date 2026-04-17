@@ -19,6 +19,8 @@ class LiquidityTests(unittest.TestCase):
                 {
                     "moneda": "Pesos",
                     "disponible": 150000,
+                    "saldo": 180000,
+                    "comprometido": 30000,
                     "saldos": [
                         {"liquidacion": "inmediato", "disponible": 100000},
                         {"liquidacion": "48hs", "disponible": 50000},
@@ -27,6 +29,8 @@ class LiquidityTests(unittest.TestCase):
                 {
                     "moneda": "Dolares",
                     "disponible": 200,
+                    "saldo": 225,
+                    "comprometido": 25,
                     "saldos": [
                         {"liquidacion": "inmediato", "disponible": 120},
                         {"liquidacion": "24hs", "disponible": 80},
@@ -41,6 +45,10 @@ class LiquidityTests(unittest.TestCase):
         self.assertEqual(result["cash_pending_ars"], 50000)
         self.assertEqual(result["cash_immediate_usd"], 120)
         self.assertEqual(result["cash_pending_usd"], 80)
+        self.assertEqual(result["cash_saldo_ars"], 180000)
+        self.assertEqual(result["cash_saldo_usd"], 225)
+        self.assertEqual(result["cash_comprometido_ars"], 30000)
+        self.assertEqual(result["cash_comprometido_usd"], 25)
         self.assertEqual(result["total_broker_en_pesos"], 250000)
 
     def test_rebuild_liquidity_builds_contract_and_converts_usd(self) -> None:
@@ -95,6 +103,7 @@ class LiquidityTests(unittest.TestCase):
         self.assertNotIn("PEND_ARS", df_liquidez["Ticker_IOL"].tolist())
         self.assertNotIn("PEND_USD", df_liquidez["Ticker_IOL"].tolist())
         self.assertTrue(math.isclose(contract["cash_operativo_ars"], 150000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(contract["cash_comprometido_ars"], 0, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(contract["caucion_tactica_ars"], 50000, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 100000, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(contract["liquidez_desplegable_total_ars"], 300000, rel_tol=0, abs_tol=0.01))

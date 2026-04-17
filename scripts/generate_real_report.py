@@ -37,6 +37,7 @@ from clients.finviz_client import fetch_finviz_bundle
 from clients.fred_client import get_ust_latest
 from clients.iol import (
     iol_get_estado_cuenta,
+    iol_get_operaciones,
     iol_get_portafolio,
     iol_get_quote_with_reauth,
     iol_login,
@@ -52,6 +53,7 @@ from decision.history import (
     upsert_daily_decision_history,
 )
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
+from portfolio.operations import build_operations_bundle, build_position_transition_bundle
 from report_renderer import REPORTS_DIR, render_report
 
 
@@ -402,6 +404,37 @@ def write_real_snapshots(
     return paths
 
 
+def load_previous_portfolio_snapshot(
+    run_date: object,
+    *,
+    snapshots_dir: Path = SNAPSHOTS_DIR,
+) -> tuple[pd.DataFrame, str | None]:
+    run_ts = pd.to_datetime(run_date, errors="coerce")
+    if pd.isna(run_ts):
+        return pd.DataFrame(), None
+    run_ts = run_ts.normalize()
+
+    if not snapshots_dir.exists():
+        return pd.DataFrame(), None
+
+    snapshot_paths = sorted(snapshots_dir.glob("*_real_portfolio_master.csv"))
+    candidates: list[tuple[pd.Timestamp, Path]] = []
+    for path in snapshot_paths:
+        stamp = path.name.split("_real_portfolio_master.csv", 1)[0]
+        ts = pd.to_datetime(stamp, errors="coerce")
+        if pd.isna(ts):
+            continue
+        if ts.normalize() < run_ts:
+            candidates.append((ts.normalize(), path))
+
+    if not candidates:
+        return pd.DataFrame(), None
+
+    previous_date, previous_path = max(candidates, key=lambda item: item[0])
+    previous_df = pd.read_csv(previous_path)
+    return previous_df, previous_date.strftime("%Y-%m-%d")
+
+
 def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None = None) -> dict[str, object]:
     if df_bonos.empty:
         return {}
@@ -526,9 +559,10 @@ def main() -> None:
     print("Login IOL...")
     token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)
 
-    print("Descargando portafolio y estado de cuenta...")
+    print("Descargando portafolio, estado de cuenta y operaciones...")
     portfolio_payload = iol_get_portafolio(token, base_url=project_config.IOL_BASE_URL, pais="argentina")
     estado_payload = iol_get_estado_cuenta(token, base_url=project_config.IOL_BASE_URL)
+    operaciones_payload = iol_get_operaciones(token, base_url=project_config.IOL_BASE_URL, pais="argentina", estado="todas")
     activos = portfolio_payload.get("activos", []) or []
 
     print("Definiendo politica de fondeo...")
@@ -648,7 +682,19 @@ def main() -> None:
         action_rules=project_config.ACTION_RULES,
         sizing_rules=project_config.SIZING_RULES,
     )
-    dashboard_bundle = build_dashboard_bundle(df_total, mep_real=mep_real)
+    dashboard_bundle = build_dashboard_bundle(
+        df_total,
+        mep_real=mep_real,
+        liquidity_contract=portfolio_bundle.get("liquidity_contract"),
+    )
+    operations_bundle = build_operations_bundle(operaciones_payload)
+    previous_portfolio, previous_snapshot_date = load_previous_portfolio_snapshot(run_date)
+    operations_bundle["position_transitions"] = build_position_transition_bundle(
+        portfolio_bundle["df_total"],
+        previous_portfolio,
+        recent_operations=operations_bundle.get("recent_operations"),
+    )
+    operations_bundle["previous_snapshot_date"] = previous_snapshot_date
 
     report = {
         "mep_real": mep_real or 0.0,
@@ -662,6 +708,7 @@ def main() -> None:
         "technical_overlay": technical_overlay,
         "finviz_stats": finviz_stats,
         "bonistas_bundle": bonistas_bundle,
+        "operations_bundle": operations_bundle,
     }
     html_body = render_report(
         report,

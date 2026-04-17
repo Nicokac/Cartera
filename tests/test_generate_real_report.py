@@ -14,6 +14,7 @@ if str(SCRIPTS) not in sys.path:
 from generate_real_report import (
     build_real_bonistas_bundle,
     enrich_real_cedears,
+    load_previous_portfolio_snapshot,
     load_local_env,
     prompt_money_ars,
     prompt_yes_no,
@@ -351,6 +352,18 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertEqual(merged.loc[0, "bonistas_reservas_bcra_musd"], 43381.0)
         self.assertAlmostEqual(merged.loc[0, "bonistas_a3500_mayorista"], 1387.72, places=2)
+
+    def test_load_previous_portfolio_snapshot_picks_latest_prior_day(self) -> None:
+        snapshots_dir = ROOT / "tests" / "snapshots"
+
+        previous_df, previous_date = load_previous_portfolio_snapshot(
+            pd.Timestamp("2026-04-16"),
+            snapshots_dir=snapshots_dir,
+        )
+
+        self.assertEqual(previous_date, "2026-04-15")
+        self.assertFalse(previous_df.empty)
+        self.assertIn("Ticker_IOL", previous_df.columns)
 
 
 if __name__ == "__main__":

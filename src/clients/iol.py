@@ -105,3 +105,35 @@ def iol_get_estado_cuenta(
     )
     resp.raise_for_status()
     return resp.json()
+
+
+def iol_get_operaciones(
+    token: str,
+    *,
+    base_url: str,
+    estado: str = "todas",
+    pais: str = "argentina",
+    numero: int | None = None,
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    timeout: int = DEFAULT_TIMEOUT,
+) -> list[dict[str, Any]]:
+    params: dict[str, Any] = {
+        "filtro.estado": estado,
+        "filtro.pais": pais,
+    }
+    if numero is not None:
+        params["filtro.numero"] = numero
+    if fecha_desde:
+        params["filtro.fechaDesde"] = fecha_desde
+    if fecha_hasta:
+        params["filtro.fechaHasta"] = fecha_hasta
+
+    resp = requests.get(
+        f"{base_url}/api/v2/operaciones",
+        headers={"Authorization": f"Bearer {token}"},
+        params=params,
+        timeout=timeout,
+    )
+    resp.raise_for_status()
+    return resp.json()

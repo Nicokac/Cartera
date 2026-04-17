@@ -10,7 +10,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from clients.iol import iol_get_quote_with_reauth, iol_login
+from clients.iol import iol_get_operaciones, iol_get_quote_with_reauth, iol_login
 
 
 class IolClientTests(unittest.TestCase):
@@ -70,6 +70,28 @@ class IolClientTests(unittest.TestCase):
         self.assertEqual(token, "same-token")
         get_mock.assert_called_once()
         login_mock.assert_not_called()
+
+    def test_get_operaciones_passes_filters_and_returns_payload(self) -> None:
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{"numero": 123, "tipo": "Compra"}]
+
+        with patch("clients.iol.requests.get", return_value=response) as get_mock:
+            payload = iol_get_operaciones(
+                "token-demo",
+                base_url="https://iol.example",
+                estado="todas",
+                pais="argentina",
+                fecha_desde="2026-04-01T00:00:00",
+                fecha_hasta="2026-04-16T23:59:59",
+            )
+
+        self.assertEqual(payload[0]["numero"], 123)
+        get_mock.assert_called_once()
+        self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.estado"], "todas")
+        self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.pais"], "argentina")
+        self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.fechaDesde"], "2026-04-01T00:00:00")
+        self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.fechaHasta"], "2026-04-16T23:59:59")
 
 
 if __name__ == "__main__":

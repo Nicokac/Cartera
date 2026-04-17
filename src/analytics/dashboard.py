@@ -2,17 +2,26 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from common.numeric import positive_float_or_none
+
 import pandas as pd
 
 
-def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | None) -> dict:
+def build_executive_dashboard_data(
+    df_total: pd.DataFrame,
+    *,
+    mep_real: float | None,
+    broker_total_ars: float | None = None,
+    broker_cash_ars: float | None = None,
+    broker_cash_committed_ars: float | None = None,
+) -> dict:
     work = df_total.copy()
     if "Es_Liquidez" not in work.columns:
         work["Es_Liquidez"] = work["Tipo"].eq("Liquidez")
     if "Moneda" not in work.columns:
         work["Moneda"] = pd.NA
 
-    total_ars = work["Valorizado_ARS"].sum()
+    total_ars_model = work["Valorizado_ARS"].sum()
     total_usd = work["Valor_USD"].sum()
     ganancia_total = work["Ganancia_ARS"].sum()
 
@@ -25,6 +34,10 @@ def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | 
     liquidez_ars = df_liquidez_total["Valorizado_ARS"].sum()
     liquidez_usd = df_liquidez_total["Valor_USD"].sum()
     liquidez_usd_ars = df_liquidez_usd["Valorizado_ARS"].sum()
+    broker_total_ars_value = positive_float_or_none(broker_total_ars)
+    broker_cash_ars_value = positive_float_or_none(broker_cash_ars)
+    broker_cash_committed_ars_value = positive_float_or_none(broker_cash_committed_ars)
+    total_ars = broker_total_ars_value if broker_total_ars_value is not None else total_ars_model
     total_ars_iol = total_ars - liquidez_usd_ars
     liquidez_ars_iol = liquidez_ars - liquidez_usd_ars
 
@@ -75,6 +88,7 @@ def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | 
     kpis = {
         "fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
         "total_ars": total_ars,
+        "total_ars_model": total_ars_model,
         "total_ars_iol": total_ars_iol,
         "total_usd": total_usd,
         "ganancia_total": ganancia_total,
@@ -82,6 +96,10 @@ def build_executive_dashboard_data(df_total: pd.DataFrame, *, mep_real: float | 
         "invertido_ars": invertido_ars,
         "invertido_usd": invertido_usd,
         "liquidez_ars": liquidez_ars,
+        "liquidez_broker_ars": broker_cash_ars_value if broker_cash_ars_value is not None else liquidez_ars,
+        "liquidez_broker_comprometida_ars": (
+            broker_cash_committed_ars_value if broker_cash_committed_ars_value is not None else 0.0
+        ),
         "liquidez_ars_iol": liquidez_ars_iol,
         "liquidez_usd": liquidez_usd,
         "liquidez_usd_ars": liquidez_usd_ars,
