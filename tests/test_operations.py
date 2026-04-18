@@ -9,7 +9,12 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from portfolio.operations import build_operations_bundle, build_position_transition_bundle, normalize_iol_operations
+from portfolio.operations import (
+    build_operations_bundle,
+    enrich_operations_bundle,
+    build_position_transition_bundle,
+    normalize_iol_operations,
+)
 
 
 class OperationsBundleTests(unittest.TestCase):
@@ -45,6 +50,41 @@ class OperationsBundleTests(unittest.TestCase):
         self.assertEqual(df.loc[1, "operation_bucket"], "evento")
         self.assertEqual(df.loc[0, "cantidad_final"], 14)
         self.assertEqual(df.loc[0, "monto_final"], 118160)
+
+    def test_normalize_iol_operations_handles_missing_numero(self) -> None:
+        df = normalize_iol_operations(
+            [
+                {
+                    "fechaOperada": "2026-04-16T12:54:19",
+                    "tipo": "Compra",
+                    "estado": "terminada",
+                    "simbolo": "GOOGL",
+                    "cantidadOperada": 14,
+                    "montoOperado": 118160,
+                }
+            ]
+        )
+
+        self.assertEqual(len(df), 1)
+        self.assertTrue(pd.isna(df.loc[0, "numero"]))
+        self.assertEqual(df.loc[0, "operation_bucket"], "trading")
+
+    def test_normalize_iol_operations_normalizes_amortizacion_label(self) -> None:
+        df = normalize_iol_operations(
+            [
+                {
+                    "numero": 3,
+                    "fechaOperada": "2026-04-13T15:39:56",
+                    "tipo": "Pago de AmortizaciÃ³n",
+                    "estado": "terminada",
+                    "simbolo": "AL30",
+                    "montoOperado": 1200,
+                }
+            ]
+        )
+
+        self.assertEqual(df.loc[0, "tipo"], "Pago de Amortización")
+        self.assertEqual(df.loc[0, "operation_bucket"], "evento")
 
     def test_build_operations_bundle_separates_trades_events_and_summary(self) -> None:
         bundle = build_operations_bundle(
@@ -83,6 +123,42 @@ class OperationsBundleTests(unittest.TestCase):
         self.assertFalse(bundle["recent_events"].empty)
         self.assertFalse(bundle["symbol_summary"].empty)
         self.assertEqual(bundle["symbol_summary"].iloc[0]["simbolo"], "GOOGL")
+
+    def test_enrich_operations_bundle_populates_transitions_and_snapshot_date(self) -> None:
+        operations_bundle = build_operations_bundle(
+            [
+                {
+                    "numero": 170860042,
+                    "fechaOperada": "2026-04-16T12:54:19",
+                    "tipo": "Compra",
+                    "estado": "terminada",
+                    "simbolo": "GOOGL",
+                    "cantidadOperada": 14,
+                    "montoOperado": 118160,
+                }
+            ]
+        )
+        current_portfolio = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GOOGL", "Tipo": "CEDEAR", "Bloque": "Growth", "Cantidad": 34, "Peso_%": 1.17, "Valorizado_ARS": 285940},
+            ]
+        )
+        previous_portfolio = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GOOGL", "Tipo": "CEDEAR", "Bloque": "Growth", "Cantidad": 20, "Peso_%": 0.69, "Valorizado_ARS": 169200},
+            ]
+        )
+
+        enriched = enrich_operations_bundle(
+            operations_bundle,
+            current_portfolio=current_portfolio,
+            previous_portfolio=previous_portfolio,
+            previous_snapshot_date="2026-04-15",
+        )
+
+        self.assertEqual(enriched["previous_snapshot_date"], "2026-04-15")
+        self.assertFalse(enriched["position_transitions"]["summary"].empty)
+        self.assertEqual(enriched["position_transitions"]["summary"].iloc[0]["simbolo"], "GOOGL")
 
     def test_build_position_transition_bundle_detects_new_increase_and_exit(self) -> None:
         current_portfolio = pd.DataFrame(

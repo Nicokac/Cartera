@@ -24,7 +24,7 @@ from generate_real_report import (
 
 class GenerateRealReportTests(unittest.TestCase):
     def test_load_local_env_parses_simple_env_file_without_overriding_existing_env(self) -> None:
-        env_path = ROOT / "tests" / "snapshots" / "tmp_test.env"
+        env_path = ROOT / "tmp_test.env"
         env_path.write_text(
             "# comment\n"
             "IOL_USERNAME=usuario@example.com\n"
@@ -364,6 +364,47 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(previous_date, "2026-04-15")
         self.assertFalse(previous_df.empty)
         self.assertIn("Ticker_IOL", previous_df.columns)
+
+    def test_load_previous_portfolio_snapshot_skips_invalid_schema(self) -> None:
+        snapshots_dir = ROOT / "tmp_snapshots_schema"
+        snapshots_dir.mkdir(exist_ok=True)
+        invalid_path = snapshots_dir / "2026-04-15_real_portfolio_master.csv"
+        valid_path = snapshots_dir / "2026-04-14_real_portfolio_master.csv"
+        invalid_path.write_text("Ticker,Tipo\nGOOGL,CEDEAR\n", encoding="utf-8")
+        valid_path.write_text("Ticker_IOL,Tipo\nGOOGL,CEDEAR\n", encoding="utf-8")
+        self.addCleanup(lambda: snapshots_dir.rmdir())
+        self.addCleanup(lambda: [path.unlink(missing_ok=True) for path in snapshots_dir.glob("*")])
+        self.addCleanup(lambda: valid_path.unlink(missing_ok=True))
+        self.addCleanup(lambda: invalid_path.unlink(missing_ok=True))
+
+        previous_df, previous_date = load_previous_portfolio_snapshot(
+            pd.Timestamp("2026-04-16"),
+            snapshots_dir=snapshots_dir,
+        )
+
+        self.assertEqual(previous_date, "2026-04-14")
+        self.assertFalse(previous_df.empty)
+        self.assertIn("Ticker_IOL", previous_df.columns)
+
+    def test_load_previous_portfolio_snapshot_skips_corrupt_csv(self) -> None:
+        snapshots_dir = ROOT / "tmp_snapshots_corrupt"
+        snapshots_dir.mkdir(exist_ok=True)
+        corrupt_path = snapshots_dir / "2026-04-15_real_portfolio_master.csv"
+        valid_path = snapshots_dir / "2026-04-14_real_portfolio_master.csv"
+        corrupt_path.write_bytes(b"\x00\x01\x02\x03")
+        valid_path.write_text("Ticker_IOL,Tipo\nGOOGL,CEDEAR\n", encoding="utf-8")
+        self.addCleanup(lambda: snapshots_dir.rmdir())
+        self.addCleanup(lambda: [path.unlink(missing_ok=True) for path in snapshots_dir.glob("*")])
+        self.addCleanup(lambda: valid_path.unlink(missing_ok=True))
+        self.addCleanup(lambda: corrupt_path.unlink(missing_ok=True))
+
+        previous_df, previous_date = load_previous_portfolio_snapshot(
+            pd.Timestamp("2026-04-16"),
+            snapshots_dir=snapshots_dir,
+        )
+
+        self.assertEqual(previous_date, "2026-04-14")
+        self.assertFalse(previous_df.empty)
 
 
 if __name__ == "__main__":

@@ -53,14 +53,17 @@ from decision.history import (
     upsert_daily_decision_history,
 )
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
-from portfolio.operations import build_operations_bundle, build_position_transition_bundle
+from portfolio.operations import build_operations_bundle, enrich_operations_bundle
 from report_renderer import REPORTS_DIR, render_report
 
 
 HTML_PATH = REPORTS_DIR / "real-report.html"
-SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
+SNAPSHOTS_DIR = ROOT / "data" / "snapshots"
+LEGACY_SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
 ENV_PATH = ROOT / ".env"
 logger = logging.getLogger(__name__)
+
+REQUIRED_SNAPSHOT_COLUMNS = {"Ticker_IOL"}
 
 
 def configure_logging() -> None:
@@ -239,6 +242,40 @@ def fetch_prices(
     return prices, current_token
 
 
+def fetch_iol_payloads(
+    *,
+    token: str,
+    username: str,
+    password: str,
+) -> tuple[dict[str, object], dict[str, object], list[dict[str, object]], str]:
+    current_token = token
+    try:
+        portfolio_payload = iol_get_portafolio(current_token, base_url=project_config.IOL_BASE_URL, pais="argentina")
+        estado_payload = iol_get_estado_cuenta(current_token, base_url=project_config.IOL_BASE_URL)
+        operaciones_payload = iol_get_operaciones(
+            current_token,
+            base_url=project_config.IOL_BASE_URL,
+            pais="argentina",
+            estado="todas",
+        )
+        return portfolio_payload, estado_payload, operaciones_payload, current_token
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else None
+        if status != 401:
+            raise
+        logger.info("IOL token expirado durante descarga inicial. Reautenticando y reintentando.")
+        current_token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)
+        portfolio_payload = iol_get_portafolio(current_token, base_url=project_config.IOL_BASE_URL, pais="argentina")
+        estado_payload = iol_get_estado_cuenta(current_token, base_url=project_config.IOL_BASE_URL)
+        operaciones_payload = iol_get_operaciones(
+            current_token,
+            base_url=project_config.IOL_BASE_URL,
+            pais="argentina",
+            estado="todas",
+        )
+        return portfolio_payload, estado_payload, operaciones_payload, current_token
+
+
 def enrich_real_cedears(
     df_cedears: pd.DataFrame,
     *,
@@ -404,35 +441,64 @@ def write_real_snapshots(
     return paths
 
 
+def _load_snapshot_csv(path: Path) -> pd.DataFrame:
+    try:
+        previous_df = pd.read_csv(path)
+    except Exception as exc:
+        logger.warning("No se pudo leer snapshot previo %s: %s", path, exc)
+        return pd.DataFrame()
+
+    missing_columns = REQUIRED_SNAPSHOT_COLUMNS - set(previous_df.columns)
+    if missing_columns:
+        logger.warning(
+            "Snapshot previo invalido %s. Faltan columnas requeridas: %s",
+            path,
+            ", ".join(sorted(missing_columns)),
+        )
+        return pd.DataFrame()
+    return previous_df
+
+
 def load_previous_portfolio_snapshot(
     run_date: object,
     *,
-    snapshots_dir: Path = SNAPSHOTS_DIR,
+    snapshots_dir: Path | None = None,
 ) -> tuple[pd.DataFrame, str | None]:
     run_ts = pd.to_datetime(run_date, errors="coerce")
     if pd.isna(run_ts):
         return pd.DataFrame(), None
     run_ts = run_ts.normalize()
 
-    if not snapshots_dir.exists():
-        return pd.DataFrame(), None
+    candidate_dirs: list[Path] = []
+    if snapshots_dir is not None:
+        candidate_dirs.append(snapshots_dir)
+    else:
+        candidate_dirs.extend([SNAPSHOTS_DIR, LEGACY_SNAPSHOTS_DIR])
 
-    snapshot_paths = sorted(snapshots_dir.glob("*_real_portfolio_master.csv"))
     candidates: list[tuple[pd.Timestamp, Path]] = []
-    for path in snapshot_paths:
-        stamp = path.name.split("_real_portfolio_master.csv", 1)[0]
-        ts = pd.to_datetime(stamp, errors="coerce")
-        if pd.isna(ts):
+    seen_paths: set[Path] = set()
+    for base_dir in candidate_dirs:
+        if not base_dir.exists():
             continue
-        if ts.normalize() < run_ts:
-            candidates.append((ts.normalize(), path))
+        for path in sorted(base_dir.glob("*_real_portfolio_master.csv")):
+            if path in seen_paths:
+                continue
+            seen_paths.add(path)
+            stamp = path.name.split("_real_portfolio_master.csv", 1)[0]
+            ts = pd.to_datetime(stamp, errors="coerce")
+            if pd.isna(ts):
+                continue
+            if ts.normalize() < run_ts:
+                candidates.append((ts.normalize(), path))
 
     if not candidates:
         return pd.DataFrame(), None
 
-    previous_date, previous_path = max(candidates, key=lambda item: item[0])
-    previous_df = pd.read_csv(previous_path)
-    return previous_df, previous_date.strftime("%Y-%m-%d")
+    for previous_date, previous_path in sorted(candidates, key=lambda item: item[0], reverse=True):
+        previous_df = _load_snapshot_csv(previous_path)
+        if not previous_df.empty:
+            return previous_df, previous_date.strftime("%Y-%m-%d")
+    return pd.DataFrame(), None
 
 
 def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None = None) -> dict[str, object]:
@@ -560,9 +626,11 @@ def main() -> None:
     token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)
 
     print("Descargando portafolio, estado de cuenta y operaciones...")
-    portfolio_payload = iol_get_portafolio(token, base_url=project_config.IOL_BASE_URL, pais="argentina")
-    estado_payload = iol_get_estado_cuenta(token, base_url=project_config.IOL_BASE_URL)
-    operaciones_payload = iol_get_operaciones(token, base_url=project_config.IOL_BASE_URL, pais="argentina", estado="todas")
+    portfolio_payload, estado_payload, operaciones_payload, token = fetch_iol_payloads(
+        token=token,
+        username=username,
+        password=password,
+    )
     activos = portfolio_payload.get("activos", []) or []
 
     print("Definiendo politica de fondeo...")
@@ -687,14 +755,13 @@ def main() -> None:
         mep_real=mep_real,
         liquidity_contract=portfolio_bundle.get("liquidity_contract"),
     )
-    operations_bundle = build_operations_bundle(operaciones_payload)
     previous_portfolio, previous_snapshot_date = load_previous_portfolio_snapshot(run_date)
-    operations_bundle["position_transitions"] = build_position_transition_bundle(
-        portfolio_bundle["df_total"],
-        previous_portfolio,
-        recent_operations=operations_bundle.get("recent_operations"),
+    operations_bundle = enrich_operations_bundle(
+        build_operations_bundle(operaciones_payload),
+        current_portfolio=portfolio_bundle["df_total"],
+        previous_portfolio=previous_portfolio,
+        previous_snapshot_date=previous_snapshot_date,
     )
-    operations_bundle["previous_snapshot_date"] = previous_snapshot_date
 
     report = {
         "mep_real": mep_real or 0.0,
@@ -710,6 +777,7 @@ def main() -> None:
         "bonistas_bundle": bonistas_bundle,
         "operations_bundle": operations_bundle,
     }
+    render_started = time.perf_counter()
     html_body = render_report(
         report,
         title="Real Run",
@@ -717,6 +785,7 @@ def main() -> None:
         lede="Reporte generado con login por terminal. Las credenciales no se guardan en disco.",
     )
     HTML_PATH.write_text(html_body, encoding="utf-8")
+    logger.info("Report rendered in %.2fs", time.perf_counter() - render_started)
     snapshot_paths = write_real_snapshots(
         portfolio_bundle=portfolio_bundle,
         dashboard_bundle=dashboard_bundle,

@@ -17,10 +17,23 @@ from decision.scoring import (
     build_decision_base,
     build_technical_overlay_scores,
     consensus_to_score,
+    rank_score,
 )
 
 
 class StrategyRulesTests(unittest.TestCase):
+    def test_rank_score_returns_neutral_for_single_name_cohort(self) -> None:
+        score = rank_score(pd.Series([42.0]))
+
+        self.assertEqual(score.iloc[0], 0.5)
+
+    def test_rank_score_reduces_confidence_for_two_name_cohort(self) -> None:
+        higher = rank_score(pd.Series([10.0, 20.0]), higher_is_better=True)
+        lower = rank_score(pd.Series([10.0, 20.0]), higher_is_better=False)
+
+        self.assertEqual(higher.round(3).tolist(), [0.5, 0.75])
+        self.assertEqual(lower.round(3).tolist(), [0.5, 0.25])
+
     def test_consensus_taxonomy_can_be_overridden_from_external_rules(self) -> None:
         default_score = consensus_to_score("accumulate")
         custom_score = consensus_to_score(

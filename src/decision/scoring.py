@@ -12,7 +12,15 @@ def rank_score(series: pd.Series, higher_is_better: bool = True, neutral: float 
     valid = s.notna()
     if valid.any():
         ranks = s[valid].rank(pct=True, method="average")
-        out.loc[valid] = ranks if higher_is_better else (1 - ranks)
+        relative_scores = ranks if higher_is_better else (1 - ranks)
+        valid_count = int(valid.sum())
+        if valid_count <= 1:
+            out.loc[valid] = neutral
+        elif valid_count == 2:
+            # Two-name cohorts are too small for a fully relative percentile.
+            out.loc[valid] = ((relative_scores - neutral) * 0.5) + neutral
+        else:
+            out.loc[valid] = relative_scores
     return out
 
 

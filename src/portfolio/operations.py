@@ -1,14 +1,32 @@
 from __future__ import annotations
 
+import logging
+
 import pandas as pd
 
 
+logger = logging.getLogger(__name__)
+
 ACTIVE_OPERATION_TYPES = {"Compra", "Venta"}
-PASSIVE_OPERATION_TYPES = {"Pago de Dividendos", "Pago de Amortización", "Pago de AmortizaciÃ³n"}
+PASSIVE_OPERATION_TYPES = {"Pago de Dividendos", "Pago de Amortización"}
+
+_MOJIBAKE_FIXES = {
+    "AmortizaciÃ³n": "Amortización",
+    "AmortizaciÃƒÂ³n": "Amortización",
+    "AcciÃ³n": "Acción",
+    "sÃ­": "sí",
+}
+
+
+def normalize_text(value: object) -> str:
+    text = str(value or "").strip()
+    for broken, fixed in _MOJIBAKE_FIXES.items():
+        text = text.replace(broken, fixed)
+    return text
 
 
 def classify_operation_bucket(tipo: object) -> str:
-    tipo_text = str(tipo or "").strip()
+    tipo_text = normalize_text(tipo)
     if tipo_text in ACTIVE_OPERATION_TYPES:
         return "trading"
     if tipo_text in PASSIVE_OPERATION_TYPES:
@@ -17,14 +35,14 @@ def classify_operation_bucket(tipo: object) -> str:
 
 
 def infer_operation_currency(simbolo: object) -> str:
-    simbolo_text = str(simbolo or "").strip().upper()
+    simbolo_text = normalize_text(simbolo).upper()
     if simbolo_text.endswith("US$"):
         return "USD"
     return "ARS"
 
 
 def normalize_symbol(value: object) -> str:
-    return str(value or "").strip().upper()
+    return normalize_text(value).upper()
 
 
 def resolve_position_quantity(row: pd.Series | None) -> float | None:
@@ -44,7 +62,10 @@ def prepare_portfolio_for_compare(df: pd.DataFrame | None) -> pd.DataFrame:
     view = df.copy()
     view["Ticker_IOL"] = view["Ticker_IOL"].map(normalize_symbol)
     if "Tipo" in view.columns:
+        view["Tipo"] = view["Tipo"].map(normalize_text)
         view = view[view["Tipo"].fillna("").astype(str).str.lower() != "liquidez"].copy()
+    if "Bloque" in view.columns:
+        view["Bloque"] = view["Bloque"].map(normalize_text)
     view = view[view["Ticker_IOL"] != ""].copy()
     if view.empty:
         return view
@@ -76,20 +97,23 @@ def build_position_transition_bundle(
         if not trades.empty:
             trades["simbolo"] = trades["simbolo"].map(normalize_symbol)
             trades = trades.sort_values("fecha_evento", ascending=False, na_position="last")
-            for _, row in trades.iterrows():
-                symbol = row["simbolo"]
+            trade_rows = list(trades.itertuples(index=False))
+            trade_columns = list(trades.columns)
+            for row in trade_rows:
+                row_series = pd.Series(row, index=trade_columns)
+                symbol = row_series.get("simbolo", "")
                 if symbol and symbol not in latest_trade_by_symbol:
-                    latest_trade_by_symbol[symbol] = row
+                    latest_trade_by_symbol[symbol] = row_series
 
     def operation_tail(symbol: str) -> str:
         trade = latest_trade_by_symbol.get(symbol)
         if trade is None:
             return ""
-        tipo = str(trade.get("tipo", "")).strip().lower()
+        tipo = normalize_text(trade.get("tipo", "")).lower()
         fecha = pd.to_datetime(trade.get("fecha_evento"), errors="coerce")
         fecha_label = fecha.strftime("%Y-%m-%d %H:%M") if pd.notna(fecha) else "-"
         monto = pd.to_numeric(pd.Series([trade.get("monto_final")]), errors="coerce").iloc[0]
-        currency = str(trade.get("operation_currency") or "ARS").strip().upper()
+        currency = normalize_text(trade.get("operation_currency") or "ARS").upper()
         if pd.isna(monto):
             return f" Se alinea con una {tipo} reciente del {fecha_label}."
         monto_label = f"USD {float(monto):,.2f}" if currency == "USD" else f"${float(monto):,.0f}"
@@ -177,6 +201,7 @@ def normalize_iol_operations(operations: list[dict[str, object]] | None) -> pd.D
             df[col] = pd.NaT
 
     numeric_cols = [
+        "numero",
         "cantidad",
         "monto",
         "precio",
@@ -196,16 +221,16 @@ def normalize_iol_operations(operations: list[dict[str, object]] | None) -> pd.D
     if "estado" not in df.columns:
         df["estado"] = None
 
+    df["tipo"] = df["tipo"].map(normalize_text).replace("", "-")
+    df["simbolo"] = df["simbolo"].map(normalize_text).replace("", "-")
+    df["estado"] = df["estado"].map(normalize_text).replace("", "-")
+    df["mercado"] = df.get("mercado", pd.Series(index=df.index, dtype=object)).map(normalize_text).replace("", "-")
+    df["plazo"] = df.get("plazo", pd.Series(index=df.index, dtype=object)).map(normalize_text).replace("", "-")
     df["operation_bucket"] = df["tipo"].map(classify_operation_bucket)
     df["fecha_evento"] = df["fechaOperada"].where(df["fechaOperada"].notna(), df["fechaOrden"])
     df["cantidad_final"] = df["cantidadOperada"].where(df["cantidadOperada"].notna(), df["cantidad"])
     df["precio_final"] = df["precioOperado"].where(df["precioOperado"].notna(), df["precio"])
     df["monto_final"] = df["montoOperado"].where(df["montoOperado"].notna(), df["monto"])
-    df["simbolo"] = df["simbolo"].fillna("-").astype(str)
-    df["estado"] = df["estado"].fillna("-").astype(str)
-    df["tipo"] = df["tipo"].fillna("-").astype(str)
-    df["mercado"] = df.get("mercado", pd.Series(index=df.index, dtype=object)).fillna("-").astype(str)
-    df["plazo"] = df.get("plazo", pd.Series(index=df.index, dtype=object)).fillna("-").astype(str)
     df["operation_currency"] = df["simbolo"].map(infer_operation_currency)
     df = df.sort_values(["fecha_evento", "numero"], ascending=[False, False], na_position="last").reset_index(drop=True)
     return df
@@ -237,6 +262,13 @@ def build_operations_bundle(
             },
         }
 
+    logger.info(
+        "Operations bundle built: total=%s trading=%s events=%s",
+        len(df),
+        int((df["operation_bucket"] == "trading").sum()),
+        int((df["operation_bucket"] == "evento").sum()),
+    )
+
     recent_operations = df.head(recent_limit).copy()
     recent_trades = recent_operations[recent_operations["operation_bucket"] == "trading"].copy()
     recent_events = recent_operations[recent_operations["operation_bucket"] == "evento"].copy()
@@ -256,17 +288,18 @@ def build_operations_bundle(
 
     def _highlight_items(source: pd.DataFrame) -> list[dict[str, object]]:
         items: list[dict[str, object]] = []
-        for _, row in source.head(highlight_limit).iterrows():
+        for row in source.head(highlight_limit).itertuples(index=False):
+            row_series = pd.Series(row, index=source.columns)
             items.append(
                 {
-                    "simbolo": row.get("simbolo", "-"),
-                    "tipo": row.get("tipo", "-"),
-                    "fecha": row.get("fecha_evento"),
-                    "monto": row.get("monto_final"),
-                    "currency": row.get("operation_currency", "ARS"),
-                    "cantidad": row.get("cantidad_final"),
-                    "estado": row.get("estado", "-"),
-                    "plazo": row.get("plazo", "-"),
+                    "simbolo": row_series.get("simbolo", "-"),
+                    "tipo": row_series.get("tipo", "-"),
+                    "fecha": row_series.get("fecha_evento"),
+                    "monto": row_series.get("monto_final"),
+                    "currency": row_series.get("operation_currency", "ARS"),
+                    "cantidad": row_series.get("cantidad_final"),
+                    "estado": row_series.get("estado", "-"),
+                    "plazo": row_series.get("plazo", "-"),
                 }
             )
         return items
@@ -288,3 +321,23 @@ def build_operations_bundle(
             "events": _highlight_items(recent_events),
         },
     }
+
+
+def enrich_operations_bundle(
+    operations_bundle: dict[str, object],
+    *,
+    current_portfolio: pd.DataFrame | None = None,
+    previous_portfolio: pd.DataFrame | None = None,
+    previous_snapshot_date: str | None = None,
+    transition_limit: int = 6,
+) -> dict[str, object]:
+    bundle = dict(operations_bundle or {})
+    recent_operations = bundle.get("recent_operations", pd.DataFrame())
+    bundle["position_transitions"] = build_position_transition_bundle(
+        current_portfolio,
+        previous_portfolio,
+        recent_operations=recent_operations if isinstance(recent_operations, pd.DataFrame) else None,
+        limit=transition_limit,
+    )
+    bundle["previous_snapshot_date"] = previous_snapshot_date
+    return bundle

@@ -18,6 +18,7 @@ from analytics.bond_analytics import (
     enrich_bond_analytics,
 )
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
+from portfolio.operations import build_operations_bundle, enrich_operations_bundle
 
 
 def build_mock_inputs() -> tuple[list[dict], dict, dict[str, float], float]:
@@ -130,6 +131,54 @@ def build_mock_inputs() -> tuple[list[dict], dict, dict[str, float], float]:
     return activos, estado_payload, precios_iol, mep_real
 
 
+def build_mock_operations() -> list[dict[str, object]]:
+    return [
+        {
+            "numero": 170860152,
+            "fechaOperada": "2026-04-16T12:54:19",
+            "tipo": "Compra",
+            "estado": "terminada",
+            "mercado": "BCBA",
+            "simbolo": "GOOGL",
+            "cantidadOperada": 14,
+            "precioOperado": 8440,
+            "montoOperado": 118160,
+            "plazo": "a24horas",
+        },
+        {
+            "numero": 170859929,
+            "fechaOperada": "2026-04-16T12:53:40",
+            "tipo": "Compra",
+            "estado": "terminada",
+            "mercado": "BCBA",
+            "simbolo": "PAMP",
+            "cantidadOperada": 42,
+            "precioOperado": 4800,
+            "montoOperado": 201600,
+            "plazo": "a24horas",
+        },
+        {
+            "numero": 170443236,
+            "fechaOperada": "2026-04-13T15:39:56",
+            "tipo": "Pago de Dividendos",
+            "estado": "terminada",
+            "mercado": "BCBA",
+            "simbolo": "DIA US$",
+            "montoOperado": 0.06,
+            "plazo": "inmediata",
+        },
+    ]
+
+
+def build_mock_previous_portfolio() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"Ticker_IOL": "GOOGL", "Tipo": "CEDEAR", "Bloque": "Growth", "Cantidad": 20, "Peso_%": 0.69, "Valorizado_ARS": 169200},
+            {"Ticker_IOL": "T", "Tipo": "CEDEAR", "Bloque": "Dividendos", "Cantidad": 80, "Peso_%": 41.00, "Valorizado_ARS": 1117600},
+        ]
+    )
+
+
 def enrich_mock_cedears(df_cedears: pd.DataFrame, *, mep_real: float) -> pd.DataFrame:
     if df_cedears.empty:
         return df_cedears
@@ -213,6 +262,7 @@ def print_section(title: str) -> None:
 
 def run_smoke_pipeline() -> dict[str, object]:
     activos, estado_payload, precios_iol, mep_real = build_mock_inputs()
+    operations_payload = build_mock_operations()
 
     portfolio_bundle = build_portfolio_bundle(
         activos=activos,
@@ -312,6 +362,12 @@ def run_smoke_pipeline() -> dict[str, object]:
         mep_real=mep_real,
         liquidity_contract=portfolio_bundle.get("liquidity_contract"),
     )
+    operations_bundle = enrich_operations_bundle(
+        build_operations_bundle(operations_payload),
+        current_portfolio=portfolio_bundle["df_total"],
+        previous_portfolio=build_mock_previous_portfolio(),
+        previous_snapshot_date="2026-04-15",
+    )
 
     return {
         "mep_real": mep_real,
@@ -320,6 +376,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
         "finviz_stats": finviz_stats,
+        "operations_bundle": operations_bundle,
         "bonistas_bundle": {
             "bond_monitor": bond_monitor,
             "bond_subfamily_summary": bond_subfamily_summary,
@@ -336,6 +393,7 @@ def main() -> None:
     dashboard_bundle = result["dashboard_bundle"]
     decision_bundle = result["decision_bundle"]
     sizing_bundle = result["sizing_bundle"]
+    operations_bundle = result["operations_bundle"]
 
     df_total = portfolio_bundle["df_total"]
     final_decision = decision_bundle["final_decision"]
@@ -367,6 +425,13 @@ def main() -> None:
     else:
         cols = ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"]
         print(asignacion[cols].to_string(index=False))
+
+    print_section("Operaciones")
+    print(f"Snapshot previo: {operations_bundle.get('previous_snapshot_date')}")
+    print(pd.Series(operations_bundle["stats"]).to_string())
+    if not operations_bundle["recent_operations"].empty:
+        cols = ["simbolo", "tipo", "estado", "fecha_evento", "monto_final"]
+        print(operations_bundle["recent_operations"][cols].to_string(index=False))
 
 
 if __name__ == "__main__":

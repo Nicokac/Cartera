@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 import pandas as pd
 
@@ -13,6 +15,8 @@ from decision.action_constants import (
     ACTION_REDUCIR,
     ACTION_REFUERZO,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _fmt_pct_short(value: object) -> str | None:
@@ -403,6 +407,51 @@ def build_operational_proposal(
         .copy()
     )
 
+    descartados_reforzar = (
+        propuesta[propuesta["accion_operativa"] == ACTION_REFUERZO]
+        .sort_values("score_unificado", ascending=False)
+        .iloc[top_candidates:]
+        .copy()
+    )
+    descartados_reducir = (
+        propuesta[propuesta["accion_operativa"] == ACTION_REDUCIR]
+        .sort_values("score_unificado", ascending=True)
+        .iloc[top_candidates:]
+        .copy()
+    )
+    descartados_rebalancear = (
+        propuesta[propuesta["accion_operativa"] == ACTION_REBALANCEAR]
+        .sort_values("score_unificado", ascending=True)
+        .iloc[top_candidates:]
+        .copy()
+    )
+    descartados_fondeo = (
+        propuesta[propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ]
+        .sort_values(["score_despliegue_liquidez", "Valorizado_ARS"], ascending=[False, False])
+        .iloc[top_candidates:]
+        .copy()
+    )
+
+    logger.info(
+        "Sizing proposal: top_candidates=%s refuerzos=%s/%s reducir=%s/%s rebalancear=%s/%s fondeo=%s/%s",
+        top_candidates,
+        len(top_reforzar_final),
+        int((propuesta["accion_operativa"] == ACTION_REFUERZO).sum()),
+        len(top_reducir_final),
+        int((propuesta["accion_operativa"] == ACTION_REDUCIR).sum()),
+        len(top_bonos_rebalancear),
+        int((propuesta["accion_operativa"] == ACTION_REBALANCEAR).sum()),
+        len(top_fondeo),
+        int((propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ).sum()),
+    )
+    logger.info(
+        "Sizing discarded candidates: refuerzos=%s reducir=%s rebalancear=%s fondeo=%s",
+        ",".join(descartados_reforzar["Ticker_IOL"].astype(str).tolist()) or "-",
+        ",".join(descartados_reducir["Ticker_IOL"].astype(str).tolist()) or "-",
+        ",".join(descartados_rebalancear["Ticker_IOL"].astype(str).tolist()) or "-",
+        ",".join(descartados_fondeo["Ticker_IOL"].astype(str).tolist()) or "-",
+    )
+
     monto_fondeo_liquidez_ars = 0.0
     monto_fondeo_liquidez_usd = 0.0
     fuente_liquidez = None
@@ -462,6 +511,10 @@ def build_operational_proposal(
         "top_reducir_final": top_reducir_final,
         "top_bonos_rebalancear": top_bonos_rebalancear,
         "top_fondeo": top_fondeo,
+        "descartados_reforzar": descartados_reforzar,
+        "descartados_reducir": descartados_reducir,
+        "descartados_rebalancear": descartados_rebalancear,
+        "descartados_fondeo": descartados_fondeo,
         "fuente_fondeo": fuente_fondeo,
         "usar_liquidez_iol": usar_liquidez_iol,
         "pct_fondeo": pct_fondeo,

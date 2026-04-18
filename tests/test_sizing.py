@@ -89,6 +89,77 @@ class SizingTests(unittest.TestCase):
         self.assertTrue(math.isclose(result["monto_fondeo_ars"], 200000, rel_tol=0, abs_tol=0.01))
         self.assertEqual(result["top_reforzar_final"]["Ticker_IOL"].tolist(), ["T", "VIST"])
         self.assertEqual(result["top_bonos_rebalancear"]["Ticker_IOL"].tolist(), ["GD30"])
+        self.assertTrue(result["descartados_reforzar"].empty)
+        self.assertTrue(result["descartados_reducir"].empty)
+        self.assertTrue(result["descartados_rebalancear"].empty)
+        self.assertTrue(result["descartados_fondeo"].empty)
+
+    def test_build_operational_proposal_exposes_discarded_candidates_beyond_top_limit(self) -> None:
+        extra_rows = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "KO",
+                    "Descripcion": "Coca Cola",
+                    "Tipo": "CEDEAR",
+                    "accion_sugerida_v2": "Refuerzo",
+                    "score_unificado": 0.30,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                    "Tech_Trend": "Alcista",
+                    "Beta": 0.8,
+                },
+                {
+                    "Ticker_IOL": "MELI",
+                    "Descripcion": "Mercado Libre",
+                    "Tipo": "CEDEAR",
+                    "accion_sugerida_v2": "Reducir",
+                    "score_unificado": -0.40,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                    "Tech_Trend": "Bajista",
+                    "Beta": 1.9,
+                },
+                {
+                    "Ticker_IOL": "AL30",
+                    "Descripcion": "Bono AL30",
+                    "Tipo": "Bono",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_unificado": -0.27,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                    "Tech_Trend": None,
+                    "Beta": None,
+                },
+                {
+                    "Ticker_IOL": "IOLPORA",
+                    "Descripcion": "Liquidez adicional",
+                    "Tipo": "Liquidez",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_unificado": 0.0,
+                    "score_despliegue_liquidez": 0.8,
+                    "Valorizado_ARS": 500000.0,
+                    "Valor_USD": 500.0,
+                    "Tech_Trend": None,
+                    "Beta": None,
+                },
+            ]
+        )
+        extra_rows = extra_rows.astype(self.final_decision.dtypes.to_dict())
+        final_decision = pd.concat([self.final_decision, extra_rows], ignore_index=True)
+
+        result = build_operational_proposal(final_decision, mep_real=1000, sizing_rules={"top_candidates": 1})
+
+        self.assertEqual(result["top_reforzar_final"]["Ticker_IOL"].tolist(), ["T"])
+        self.assertEqual(result["descartados_reforzar"]["Ticker_IOL"].tolist(), ["VIST", "KO"])
+        self.assertEqual(result["top_reducir_final"]["Ticker_IOL"].tolist(), ["MELI"])
+        self.assertEqual(result["descartados_reducir"]["Ticker_IOL"].tolist(), ["NVDA"])
+        self.assertEqual(result["top_bonos_rebalancear"]["Ticker_IOL"].tolist(), ["AL30"])
+        self.assertEqual(result["descartados_rebalancear"]["Ticker_IOL"].tolist(), ["GD30"])
+        self.assertEqual(result["top_fondeo"]["Ticker_IOL"].tolist(), ["CAUCION"])
+        self.assertEqual(result["descartados_fondeo"]["Ticker_IOL"].tolist(), ["IOLPORA"])
 
     def test_build_operational_proposal_supports_external_funding_without_using_iol_liquidity(self) -> None:
         result = build_operational_proposal(
