@@ -14,6 +14,7 @@ if str(SCRIPTS) not in sys.path:
 from generate_real_report import (
     build_real_bonistas_bundle,
     enrich_real_cedears,
+    legacy_snapshots_enabled,
     load_previous_portfolio_snapshot,
     load_local_env,
     prompt_money_ars,
@@ -363,7 +364,30 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertEqual(previous_date, "2026-04-15")
         self.assertFalse(previous_df.empty)
-        self.assertIn("Ticker_IOL", previous_df.columns)
+
+    def test_legacy_snapshots_enabled_can_be_disabled_from_env(self) -> None:
+        with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "0"}, clear=False):
+            self.assertFalse(legacy_snapshots_enabled())
+
+        with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "1"}, clear=False):
+            self.assertTrue(legacy_snapshots_enabled())
+
+    def test_load_previous_portfolio_snapshot_warns_when_using_legacy_dir(self) -> None:
+        with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "1"}, clear=False), patch(
+            "generate_real_report.logger.warning"
+        ) as warning_mock:
+            previous_df, previous_date = load_previous_portfolio_snapshot(pd.Timestamp("2026-04-16"))
+
+        self.assertEqual(previous_date, "2026-04-15")
+        self.assertFalse(previous_df.empty)
+        warning_mock.assert_called()
+
+    def test_load_previous_portfolio_snapshot_can_skip_legacy_dir(self) -> None:
+        with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "0"}, clear=False):
+            previous_df, previous_date = load_previous_portfolio_snapshot(pd.Timestamp("2026-04-16"))
+
+        self.assertTrue(previous_df.empty)
+        self.assertIsNone(previous_date)
 
     def test_load_previous_portfolio_snapshot_skips_invalid_schema(self) -> None:
         snapshots_dir = ROOT / "tmp_snapshots_schema"

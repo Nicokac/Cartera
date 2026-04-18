@@ -66,6 +66,11 @@ logger = logging.getLogger(__name__)
 REQUIRED_SNAPSHOT_COLUMNS = {"Ticker_IOL"}
 
 
+def legacy_snapshots_enabled() -> bool:
+    raw = str(os.environ.get("ENABLE_LEGACY_SNAPSHOTS", "1")).strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
 def configure_logging() -> None:
     if logging.getLogger().handlers:
         return
@@ -473,7 +478,9 @@ def load_previous_portfolio_snapshot(
     if snapshots_dir is not None:
         candidate_dirs.append(snapshots_dir)
     else:
-        candidate_dirs.extend([SNAPSHOTS_DIR, LEGACY_SNAPSHOTS_DIR])
+        candidate_dirs.append(SNAPSHOTS_DIR)
+        if legacy_snapshots_enabled():
+            candidate_dirs.append(LEGACY_SNAPSHOTS_DIR)
 
     candidates: list[tuple[pd.Timestamp, Path]] = []
     seen_paths: set[Path] = set()
@@ -497,6 +504,12 @@ def load_previous_portfolio_snapshot(
     for previous_date, previous_path in sorted(candidates, key=lambda item: item[0], reverse=True):
         previous_df = _load_snapshot_csv(previous_path)
         if not previous_df.empty:
+            if previous_path.parent == LEGACY_SNAPSHOTS_DIR:
+                logger.warning(
+                    "Usando snapshot legacy desde %s. Migra snapshots operativos a %s o desactiva el fallback con ENABLE_LEGACY_SNAPSHOTS=0.",
+                    previous_path,
+                    SNAPSHOTS_DIR,
+                )
             return previous_df, previous_date.strftime("%Y-%m-%d")
     return pd.DataFrame(), None
 

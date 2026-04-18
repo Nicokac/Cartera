@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import html
+import logging
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -41,6 +43,7 @@ from decision.action_constants import (
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = ROOT / "reports"
+logger = logging.getLogger(__name__)
 
 
 def build_decision_table(
@@ -312,6 +315,410 @@ def build_bond_summary(
     """
 
 
+def build_summary_section(
+    *,
+    kpis: dict[str, object],
+    resumen_tipos: pd.DataFrame,
+    family_summary: pd.DataFrame,
+    finviz_fund_covered: int,
+    finviz_total: int,
+    finviz_ratings_covered: int,
+) -> str:
+    return f"""
+    <section class="panel" id="resumen">
+      <h2>Resumen por tipo</h2>
+      <div class="meta">
+        <span>Total consolidado: <strong>{fmt_ars(kpis['total_ars'])}</strong></span>
+        <span>Total estilo IOL: <strong>{fmt_ars(kpis['total_ars_iol'])}</strong></span>
+        <span>Liquidez broker: <strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></span>
+        <span>Liquidez ampliada: <strong>{fmt_ars(kpis['liquidez_ars'])}</strong></span>
+        <span>Liquidez USD convertida: <strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></span>
+        <span>Finviz fundamentals: <strong>{finviz_fund_covered}/{finviz_total}</strong></span>
+        <span>Finviz ratings: <strong>{finviz_ratings_covered}/{finviz_total}</strong></span>
+      </div>
+      {build_table(
+          resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]],
+          formatters={
+              "Valorizado_ARS": fmt_ars,
+              "Valor_USD": fmt_usd,
+              "Ganancia_ARS": fmt_ars,
+              "Peso_%": fmt_pct,
+          },
+      )}
+      <h3>Taxonomia operativa</h3>
+      {build_table(
+          family_summary[["asset_family", "asset_subfamily", "Instrumentos", "Score_Promedio"]]
+          if not family_summary.empty else family_summary,
+          formatters={"Score_Promedio": fmt_score},
+      )}
+    </section>
+    """
+
+
+def build_sizing_section(sizing_bundle: dict[str, object], asignacion_final: pd.DataFrame) -> str:
+    return f"""
+    <section class="panel" id="sizing">
+      <h2>Sizing</h2>
+      <div class="meta">
+        <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
+        <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+        <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
+        <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
+        <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
+      </div>
+      {build_table(
+          ensure_table_columns(
+              asignacion_final,
+              ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"],
+          ),
+          formatters={
+              "Peso_Fondeo_%": fmt_pct,
+              "Monto_ARS": fmt_ars,
+              "Monto_USD": fmt_usd,
+          },
+      )}
+    </section>
+    """
+
+
+def build_header_cards(
+    *,
+    generated_at_label: object,
+    kpis: dict[str, object],
+    mep_real: float,
+    action_counts: dict[object, object],
+    neutrales: int,
+    tech_covered: int,
+    tech_total: int,
+    finviz_fund_covered: int,
+    finviz_total: int,
+    finviz_ratings_covered: int,
+) -> tuple[str, str, str]:
+    primary_cards = f"""
+    <section class="cards cards-primary">
+      <article class="card"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
+      <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
+      <article class="card"><span class="label">Liquidez broker</span><strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></article>
+      <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
+      <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
+      <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
+    </section>
+    """
+
+    secondary_cards = f"""
+    <section class="cards cards-secondary">
+      <article class="card compact"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
+      <article class="card compact"><span class="label">Liquidez ampliada</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
+      <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
+      <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
+      <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
+      <article class="card compact"><span class="label">Cobertura tecnica</span><strong>{tech_covered}/{tech_total}</strong></article>
+      <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
+      <article class="card compact"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
+    </section>
+    """
+
+    action_summary = f"""
+    <section class="action-strip">
+      <article class="action-card buy"><span>Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
+      <article class="action-card sell"><span>Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
+      <article class="action-card fund"><span>Despliegue</span><strong>{int(action_counts.get(ACTION_DESPLEGAR_LIQUIDEZ, 0))}</strong></article>
+      <article class="action-card neutral"><span>Neutrales</span><strong>{neutrales}</strong></article>
+    </section>
+    """
+    return primary_cards, secondary_cards, action_summary
+
+
+def build_panorama_section(
+    *,
+    executive_summary: str,
+    market_regime: dict[str, object],
+    active_flags_label: str,
+    tech_enabled: str,
+    buy_focus: list[dict[str, str]],
+    sell_focus: list[dict[str, str]],
+    sizing_bundle: dict[str, object],
+    sizing_preview: str,
+) -> str:
+    return f"""
+    <section class="grid spotlight-grid" id="panorama">
+      <section class="panel spotlight">
+        <h2>Panorama</h2>
+        <p class="summary-lede">{esc_text(executive_summary)}</p>
+        <div class="meta">
+          <span>Regimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activacion'}</strong></span>
+          <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
+          <span>Overlay tecnico: <strong>{tech_enabled}</strong></span>
+        </div>
+        <div class="focus-columns">
+          <div>
+            <h3>Prioridades de refuerzo</h3>
+            {build_focus_list(buy_focus, empty_message='Sin refuerzos activos.', tone='buy')}
+          </div>
+          <div>
+            <h3>Prioridades de reduccion</h3>
+            {build_focus_list(sell_focus, empty_message='Sin reducciones activas.', tone='sell')}
+          </div>
+        </div>
+      </section>
+      <section class="panel spotlight spotlight-side" id="sizing-resumen">
+        <h2>Sizing activo</h2>
+        <div class="meta">
+          <span>Fuente: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
+          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
+          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+        </div>
+        {sizing_preview}
+      </section>
+    </section>
+    """
+
+
+def build_changes_section(
+    *,
+    decision_memory: dict[str, object],
+    changes_direction_summary: str,
+    changed_actions: list[dict[str, str]],
+    finviz_fund_covered: int,
+    finviz_total: int,
+    finviz_ratings_covered: int,
+    tech_covered: int,
+    tech_total: int,
+) -> str:
+    memory_summary = ""
+    if decision_memory:
+        memory_summary = f"""
+    <section class="action-strip compact-strip">
+      <article class="action-card neutral"><span>Cambios materiales</span><strong>{int(decision_memory.get('senales_nuevas', 0))}</strong></article>
+      <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
+      <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
+      <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
+    </section>
+    """
+
+    return f"""
+    <section class="panel" id="cambios">
+      <div class="panel-head">
+        <h2>Cambios</h2>
+      </div>
+      {memory_summary}
+      {changes_direction_summary}
+      <div class="focus-columns">
+        <div>
+          <h3>Cambios de accion</h3>
+          {build_focus_list(changed_actions, empty_message='Sin cambios de accion respecto de la corrida previa.', tone='neutral')}
+        </div>
+        <div>
+          <h3>Observaciones de cobertura</h3>
+          <div class="focus-list tone-neutral">
+            <article class="focus-item">
+              <div class="focus-top"><strong>Finviz</strong></div>
+              <div class="focus-title">{finviz_fund_covered}/{finviz_total} fundamentals | {finviz_ratings_covered}/{finviz_total} ratings</div>
+              <div class="focus-detail">Cobertura visible para la capa fundamental y de consenso.</div>
+            </article>
+            <article class="focus-item">
+              <div class="focus-top"><strong>Tecnico</strong></div>
+              <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
+              <div class="focus-detail">Cobertura tecnica efectiva para la lectura de tendencia y momentum.</div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+    """
+
+
+def build_quick_nav(*, show_bonistas: bool, show_operations: bool) -> str:
+    bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
+    operations_nav = '<a href="#operaciones">Operaciones</a>' if show_operations else ""
+    return f"""
+    <nav class="quick-nav">
+      <a href="#panorama">Panorama</a>
+      <a href="#cambios">Cambios</a>
+      {operations_nav}
+      <a href="#decision">Decision</a>
+      <a href="#sizing">Sizing</a>
+      <a href="#regimen">Regimen</a>
+      <a href="#resumen">Resumen</a>
+      <a href="#tecnico">Tecnico</a>
+      {bonistas_nav}
+      <a href="#cartera">Cartera</a>
+      <a href="#integridad">Integridad</a>
+    </nav>
+    """
+
+
+def build_report_body(
+    *,
+    title: str,
+    headline: str,
+    lede: str,
+    quick_nav: str,
+    primary_cards: str,
+    secondary_cards: str,
+    action_summary: str,
+    panorama_section: str,
+    changes_section: str,
+    operations_section: str,
+    regime_summary: str,
+    summary_section: str,
+    sizing_section: str,
+    tech_enabled: str,
+    tech_covered: int,
+    tech_total: int,
+    technical_view: pd.DataFrame,
+    bonistas_section: str,
+    decision_section: str,
+    portfolio_section: str,
+    integrity_section: str,
+) -> str:
+    return f"""<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smoke Report</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">{esc_text(title)}</p>
+        <h1>{esc_text(headline)}</h1>
+        <p class="lede">{lede}</p>
+      </div>
+    </header>
+
+    {quick_nav}
+
+    {primary_cards}
+    {secondary_cards}
+    {action_summary}
+    {panorama_section}
+    {changes_section}
+    {operations_section}
+    {regime_summary}
+
+    <section class="grid">
+      {summary_section}
+      {sizing_section}
+    </section>
+
+    <section class="panel" id="tecnico">
+      <h2>Overlay tecnico</h2>
+      <div class="meta">
+        <span>Activo: <strong>{tech_enabled}</strong></span>
+        <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
+      </div>
+      {build_technical_summary(technical_view)}
+      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view), compact=True)}
+    </section>
+
+    {bonistas_section}
+    {decision_section}
+    {portfolio_section}
+    {integrity_section}
+  </main>
+  <script>
+    const tickerInput = document.getElementById('ticker-filter');
+    const actionSelect = document.getElementById('action-filter');
+    const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
+    const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
+    const observedSections = navLinks
+      .map((link) => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+
+    function applyDecisionFilter() {{
+      const tickerNeedle = (tickerInput?.value || '').toLowerCase().trim();
+      const actionNeedle = actionSelect?.value || '';
+      rows.forEach((row) => {{
+        const ticker = (row.dataset.ticker || '').toLowerCase();
+        const action = row.dataset.action || '';
+        const matchesTicker = !tickerNeedle || ticker.includes(tickerNeedle);
+        const matchesAction = !actionNeedle || action === actionNeedle;
+        row.style.display = matchesTicker && matchesAction ? '' : 'none';
+      }});
+    }}
+
+    tickerInput?.addEventListener('input', applyDecisionFilter);
+    actionSelect?.addEventListener('change', applyDecisionFilter);
+
+    const observer = new IntersectionObserver((entries) => {{
+      entries.forEach((entry) => {{
+        if (!entry.isIntersecting) return;
+        const id = `#${{entry.target.id}}`;
+        navLinks.forEach((link) => {{
+          link.classList.toggle('active', link.getAttribute('href') === id);
+        }});
+      }});
+    }}, {{ rootMargin: '-35% 0px -55% 0px', threshold: 0.01 }});
+
+    observedSections.forEach((section) => observer.observe(section));
+  </script>
+</body>
+</html>
+"""
+
+
+def build_decision_section(
+    *,
+    decision_view: pd.DataFrame,
+    action_col: str,
+    motive_col: str,
+) -> str:
+    return f"""
+    <section class="panel" id="decision">
+      <div class="panel-head">
+      <h2>Decision final</h2>
+        <div class="filters">
+          <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
+          <select id="action-filter">
+            <option value="">Todas las acciones</option>
+            <option value="{ACTION_REFUERZO}">{ACTION_REFUERZO}</option>
+            <option value="{ACTION_REDUCIR}">{ACTION_REDUCIR}</option>
+            <option value="{ACTION_DESPLEGAR_LIQUIDEZ}">{ACTION_DESPLEGAR_LIQUIDEZ}</option>
+            <option value="{ACTION_MANTENER_NEUTRAL}">{ACTION_MANTENER_NEUTRAL}</option>
+          </select>
+        </div>
+      </div>
+      {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
+      {build_collapsible("Ver tabla completa de decision", build_decision_table(decision_view, action_col=action_col, motive_col=motive_col), open_by_default=True)}
+    </section>
+    """
+
+
+def build_portfolio_section(df_total: pd.DataFrame) -> str:
+    return f"""
+    <section class="panel" id="cartera">
+      <h2>Cartera maestra</h2>
+      {build_collapsible(
+          "Ver cartera completa",
+          build_table(
+              df_total[["Ticker_IOL", "Tipo", "Bloque", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]]
+              .sort_values("Valorizado_ARS", ascending=False),
+              formatters={
+                  "Valorizado_ARS": fmt_ars,
+                  "Valor_USD": fmt_usd,
+                  "Ganancia_ARS": fmt_ars,
+                  "Peso_%": fmt_pct,
+              },
+          ),
+          compact=True,
+      )}
+    </section>
+    """
+
+
+def build_integrity_section(integrity_report: pd.DataFrame) -> str:
+    return f"""
+    <section class="panel" id="integridad">
+      <h2>Integridad</h2>
+      {build_collapsible("Ver chequeos de integridad", build_table(integrity_report), compact=True)}
+    </section>
+    """
+
+
 def render_report(
     result: dict[str, object],
     *,
@@ -319,6 +726,15 @@ def render_report(
     headline: str = "Prueba visual del pipeline",
     lede: str = "Reporte generado desde <code>scripts/generate_smoke_report.py</code> sin depender del notebook.",
 ) -> str:
+    render_started = time.perf_counter()
+    section_timings: dict[str, float] = {}
+
+    def _time_section(name: str, fn):
+        started = time.perf_counter()
+        result = fn()
+        section_timings[name] = round(time.perf_counter() - started, 4)
+        return result
+
     mep_real = float(result["mep_real"])
     generated_at_label = result.get("generated_at_label")
     portfolio_bundle = result["portfolio_bundle"]
@@ -544,120 +960,58 @@ def render_report(
         sizing_preview = '<div class="empty compact-empty">Sin sizing sugerido.</div>'
 
     active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
-    executive_summary = build_executive_summary(
-        action_counts=action_counts,
-        decision_memory=decision_memory,
-        changed_actions=changed_actions,
-        operations_bundle=operations_bundle,
-        asignacion_final=asignacion_final if isinstance(asignacion_final, pd.DataFrame) else pd.DataFrame(),
-        current_tickers=current_tickers,
+    executive_summary = _time_section(
+        "executive_summary",
+        lambda: build_executive_summary(
+            action_counts=action_counts,
+            decision_memory=decision_memory,
+            changed_actions=changed_actions,
+            operations_bundle=operations_bundle,
+            asignacion_final=asignacion_final if isinstance(asignacion_final, pd.DataFrame) else pd.DataFrame(),
+            current_tickers=current_tickers,
+        ),
     )
-
-    primary_cards = f"""
-    <section class="cards cards-primary">
-      <article class="card"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
-      <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
-      <article class="card"><span class="label">Liquidez broker</span><strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></article>
-      <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
-      <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
-      <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
-    </section>
-    """
-
-    secondary_cards = f"""
-    <section class="cards cards-secondary">
-      <article class="card compact"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
-      <article class="card compact"><span class="label">Liquidez ampliada</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
-      <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
-      <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
-      <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
-      <article class="card compact"><span class="label">Cobertura tecnica</span><strong>{tech_covered}/{tech_total}</strong></article>
-      <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
-      <article class="card compact"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
-    </section>
-    """
-
-    action_summary = f"""
-    <section class="action-strip">
-      <article class="action-card buy"><span>Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
-      <article class="action-card sell"><span>Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
-      <article class="action-card fund"><span>Despliegue</span><strong>{int(action_counts.get(ACTION_DESPLEGAR_LIQUIDEZ, 0))}</strong></article>
-      <article class="action-card neutral"><span>Neutrales</span><strong>{neutrales}</strong></article>
-    </section>
-    """
-    memory_summary = ""
-    if decision_memory:
-        memory_summary = f"""
-    <section class="action-strip compact-strip">
-      <article class="action-card neutral"><span>Cambios materiales</span><strong>{int(decision_memory.get('senales_nuevas', 0))}</strong></article>
-      <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
-      <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
-      <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
-    </section>
-    """
-    panorama_section = f"""
-    <section class="grid spotlight-grid" id="panorama">
-      <section class="panel spotlight">
-        <h2>Panorama</h2>
-        <p class="summary-lede">{esc_text(executive_summary)}</p>
-        <div class="meta">
-          <span>Regimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activacion'}</strong></span>
-          <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
-          <span>Overlay tecnico: <strong>{tech_enabled}</strong></span>
-        </div>
-        <div class="focus-columns">
-          <div>
-            <h3>Prioridades de refuerzo</h3>
-            {build_focus_list(buy_focus, empty_message='Sin refuerzos activos.', tone='buy')}
-          </div>
-          <div>
-            <h3>Prioridades de reduccion</h3>
-            {build_focus_list(sell_focus, empty_message='Sin reducciones activas.', tone='sell')}
-          </div>
-        </div>
-      </section>
-      <section class="panel spotlight spotlight-side" id="sizing-resumen">
-        <h2>Sizing activo</h2>
-        <div class="meta">
-          <span>Fuente: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
-          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
-          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
-        </div>
-        {sizing_preview}
-      </section>
-    </section>
-    """
-
-    changes_section = f"""
-    <section class="panel" id="cambios">
-      <div class="panel-head">
-        <h2>Cambios</h2>
-      </div>
-      {memory_summary}
-      {changes_direction_summary}
-      <div class="focus-columns">
-        <div>
-          <h3>Cambios de accion</h3>
-          {build_focus_list(changed_actions, empty_message='Sin cambios de accion respecto de la corrida previa.', tone='neutral')}
-        </div>
-        <div>
-          <h3>Observaciones de cobertura</h3>
-          <div class="focus-list tone-neutral">
-            <article class="focus-item">
-              <div class="focus-top"><strong>Finviz</strong></div>
-              <div class="focus-title">{finviz_fund_covered}/{finviz_total} fundamentals | {finviz_ratings_covered}/{finviz_total} ratings</div>
-              <div class="focus-detail">Cobertura visible para la capa fundamental y de consenso.</div>
-            </article>
-            <article class="focus-item">
-              <div class="focus-top"><strong>Tecnico</strong></div>
-              <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
-              <div class="focus-detail">Cobertura tecnica efectiva para la lectura de tendencia y momentum.</div>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-    """
+    primary_cards, secondary_cards, action_summary = _time_section(
+        "header_cards",
+        lambda: build_header_cards(
+            generated_at_label=generated_at_label,
+            kpis=kpis,
+            mep_real=mep_real,
+            action_counts=action_counts,
+            neutrales=neutrales,
+            tech_covered=tech_covered,
+            tech_total=tech_total,
+            finviz_fund_covered=finviz_fund_covered,
+            finviz_total=finviz_total,
+            finviz_ratings_covered=finviz_ratings_covered,
+        ),
+    )
+    panorama_section = _time_section(
+        "panorama",
+        lambda: build_panorama_section(
+            executive_summary=executive_summary,
+            market_regime=market_regime,
+            active_flags_label=active_flags_label,
+            tech_enabled=tech_enabled,
+            buy_focus=buy_focus,
+            sell_focus=sell_focus,
+            sizing_bundle=sizing_bundle,
+            sizing_preview=sizing_preview,
+        ),
+    )
+    changes_section = _time_section(
+        "changes",
+        lambda: build_changes_section(
+            decision_memory=decision_memory,
+            changes_direction_summary=changes_direction_summary,
+            changed_actions=changed_actions,
+            finviz_fund_covered=finviz_fund_covered,
+            finviz_total=finviz_total,
+            finviz_ratings_covered=finviz_ratings_covered,
+            tech_covered=tech_covered,
+            tech_total=tech_total,
+        ),
+    )
     regime_flags = market_regime.get("flags", {}) or {}
     regime_active_flags = market_regime.get("active_flags", []) or []
     regime_summary = ""
@@ -682,8 +1036,6 @@ def render_report(
     </section>
     """
 
-    bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
-    operations_nav = '<a href="#operaciones">Operaciones</a>' if operations_bundle else ""
     bonistas_section = ""
     if show_bonistas:
         bond_summary_tables = (
@@ -728,190 +1080,69 @@ def render_report(
       {bond_summary_tables}
     </section>
     """
-
-    html_body = f"""<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smoke Report</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main class="page">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">{esc_text(title)}</p>
-        <h1>{esc_text(headline)}</h1>
-        <p class="lede">{lede}</p>
-      </div>
-    </header>
-
-    <nav class="quick-nav">
-      <a href="#panorama">Panorama</a>
-      <a href="#cambios">Cambios</a>
-      {operations_nav}
-      <a href="#decision">Decision</a>
-      <a href="#sizing">Sizing</a>
-      <a href="#regimen">Regimen</a>
-      <a href="#resumen">Resumen</a>
-      <a href="#tecnico">Tecnico</a>
-      {bonistas_nav}
-      <a href="#cartera">Cartera</a>
-      <a href="#integridad">Integridad</a>
-    </nav>
-
-    {primary_cards}
-    {secondary_cards}
-    {action_summary}
-    {panorama_section}
-    {changes_section}
-    {build_operations_summary(operations_bundle, current_tickers=current_tickers, current_portfolio=df_total) if operations_bundle else ""}
-    {regime_summary}
-
-    <section class="grid">
-      <section class="panel" id="resumen">
-        <h2>Resumen por tipo</h2>
-        <div class="meta">
-          <span>Total consolidado: <strong>{fmt_ars(kpis['total_ars'])}</strong></span>
-          <span>Total estilo IOL: <strong>{fmt_ars(kpis['total_ars_iol'])}</strong></span>
-          <span>Liquidez broker: <strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></span>
-          <span>Liquidez ampliada: <strong>{fmt_ars(kpis['liquidez_ars'])}</strong></span>
-          <span>Liquidez USD convertida: <strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></span>
-          <span>Finviz fundamentals: <strong>{finviz_fund_covered}/{finviz_total}</strong></span>
-          <span>Finviz ratings: <strong>{finviz_ratings_covered}/{finviz_total}</strong></span>
-        </div>
-        {build_table(
-            resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]],
-            formatters={
-                "Valorizado_ARS": fmt_ars,
-                "Valor_USD": fmt_usd,
-                "Ganancia_ARS": fmt_ars,
-                "Peso_%": fmt_pct,
-            },
-        )}
-        <h3>Taxonomia operativa</h3>
-        {build_table(
-            family_summary[["asset_family", "asset_subfamily", "Instrumentos", "Score_Promedio"]]
-            if not family_summary.empty else family_summary,
-            formatters={"Score_Promedio": fmt_score},
-        )}
-      </section>
-
-      <section class="panel" id="sizing">
-        <h2>Sizing</h2>
-        <div class="meta">
-          <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
-          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
-          <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
-          <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
-          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
-        </div>
-        {build_table(
-            ensure_table_columns(
-                asignacion_final,
-                ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"],
-            ),
-            formatters={
-                "Peso_Fondeo_%": fmt_pct,
-                "Monto_ARS": fmt_ars,
-                "Monto_USD": fmt_usd,
-            },
-        )}
-      </section>
-    </section>
-
-    <section class="panel" id="tecnico">
-      <h2>Overlay tecnico</h2>
-      <div class="meta">
-        <span>Activo: <strong>{tech_enabled}</strong></span>
-        <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
-      </div>
-      {build_technical_summary(technical_view)}
-      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view), compact=True)}
-    </section>
-
-    {bonistas_section}
-
-    <section class="panel" id="decision">
-      <div class="panel-head">
-      <h2>Decision final</h2>
-        <div class="filters">
-          <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
-          <select id="action-filter">
-            <option value="">Todas las acciones</option>
-            <option value="{ACTION_REFUERZO}">{ACTION_REFUERZO}</option>
-            <option value="{ACTION_REDUCIR}">{ACTION_REDUCIR}</option>
-            <option value="{ACTION_DESPLEGAR_LIQUIDEZ}">{ACTION_DESPLEGAR_LIQUIDEZ}</option>
-            <option value="{ACTION_MANTENER_NEUTRAL}">{ACTION_MANTENER_NEUTRAL}</option>
-          </select>
-        </div>
-      </div>
-      {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
-      {build_collapsible("Ver tabla completa de decision", build_decision_table(decision_view, action_col=action_col, motive_col=motive_col), open_by_default=True)}
-    </section>
-
-    <section class="panel" id="cartera">
-      <h2>Cartera maestra</h2>
-      {build_collapsible(
-          "Ver cartera completa",
-          build_table(
-              df_total[["Ticker_IOL", "Tipo", "Bloque", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]]
-              .sort_values("Valorizado_ARS", ascending=False),
-              formatters={
-                  "Valorizado_ARS": fmt_ars,
-                  "Valor_USD": fmt_usd,
-                  "Ganancia_ARS": fmt_ars,
-                  "Peso_%": fmt_pct,
-              },
-          ),
-          compact=True,
-      )}
-    </section>
-
-    <section class="panel" id="integridad">
-      <h2>Integridad</h2>
-      {build_collapsible("Ver chequeos de integridad", build_table(integrity_report), compact=True)}
-    </section>
-  </main>
-  <script>
-    const tickerInput = document.getElementById('ticker-filter');
-    const actionSelect = document.getElementById('action-filter');
-    const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
-    const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
-    const observedSections = navLinks
-      .map((link) => document.querySelector(link.getAttribute('href')))
-      .filter(Boolean);
-
-    function applyDecisionFilter() {{
-      const tickerNeedle = (tickerInput?.value || '').toLowerCase().trim();
-      const actionNeedle = actionSelect?.value || '';
-      rows.forEach((row) => {{
-        const ticker = (row.dataset.ticker || '').toLowerCase();
-        const action = row.dataset.action || '';
-        const matchesTicker = !tickerNeedle || ticker.includes(tickerNeedle);
-        const matchesAction = !actionNeedle || action === actionNeedle;
-        row.style.display = matchesTicker && matchesAction ? '' : 'none';
-      }});
-    }}
-
-    tickerInput?.addEventListener('input', applyDecisionFilter);
-    actionSelect?.addEventListener('change', applyDecisionFilter);
-
-    const observer = new IntersectionObserver((entries) => {{
-      entries.forEach((entry) => {{
-        if (!entry.isIntersecting) return;
-        const id = `#${{entry.target.id}}`;
-        navLinks.forEach((link) => {{
-          link.classList.toggle('active', link.getAttribute('href') === id);
-        }});
-      }});
-    }}, {{ rootMargin: '-35% 0px -55% 0px', threshold: 0.01 }});
-
-    observedSections.forEach((section) => observer.observe(section));
-  </script>
-</body>
-</html>
-"""
-
+    quick_nav = _time_section(
+        "quick_nav",
+        lambda: build_quick_nav(show_bonistas=show_bonistas, show_operations=bool(operations_bundle)),
+    )
+    operations_section = _time_section(
+        "operations",
+        lambda: (
+            build_operations_summary(operations_bundle, current_tickers=current_tickers, current_portfolio=df_total)
+            if operations_bundle
+            else ""
+        ),
+    )
+    summary_section = _time_section(
+        "summary",
+        lambda: build_summary_section(
+            kpis=kpis,
+            resumen_tipos=resumen_tipos,
+            family_summary=family_summary,
+            finviz_fund_covered=finviz_fund_covered,
+            finviz_total=finviz_total,
+            finviz_ratings_covered=finviz_ratings_covered,
+        ),
+    )
+    sizing_section = _time_section("sizing", lambda: build_sizing_section(sizing_bundle, asignacion_final))
+    decision_section = _time_section(
+        "decision",
+        lambda: build_decision_section(
+            decision_view=decision_view,
+            action_col=action_col,
+            motive_col=motive_col,
+        ),
+    )
+    portfolio_section = _time_section("portfolio", lambda: build_portfolio_section(df_total))
+    integrity_section = _time_section("integrity", lambda: build_integrity_section(integrity_report))
+    html_body = _time_section(
+        "body",
+        lambda: build_report_body(
+            title=title,
+            headline=headline,
+            lede=lede,
+            quick_nav=quick_nav,
+            primary_cards=primary_cards,
+            secondary_cards=secondary_cards,
+            action_summary=action_summary,
+            panorama_section=panorama_section,
+            changes_section=changes_section,
+            operations_section=operations_section,
+            regime_summary=regime_summary,
+            summary_section=summary_section,
+            sizing_section=sizing_section,
+            tech_enabled=tech_enabled,
+            tech_covered=tech_covered,
+            tech_total=tech_total,
+            technical_view=technical_view,
+            bonistas_section=bonistas_section,
+            decision_section=decision_section,
+            portfolio_section=portfolio_section,
+            integrity_section=integrity_section,
+        ),
+    )
+    logger.info(
+        "Report section timings: total=%.4fs %s",
+        time.perf_counter() - render_started,
+        " ".join(f"{name}={value:.4f}s" for name, value in section_timings.items()),
+    )
     return html_body

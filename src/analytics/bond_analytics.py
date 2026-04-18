@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 import pandas as pd
 
 import config as project_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def _infer_bond_subfamily_from_block(value: object) -> str | None:
@@ -82,6 +86,7 @@ def enrich_bond_analytics(
 ) -> pd.DataFrame:
     work = df_bonds.copy()
     if work.empty:
+        logger.info("Bond analytics skipped: empty bonds frame")
         return work
 
     if df_bonistas is not None and not df_bonistas.empty:
@@ -89,6 +94,13 @@ def enrich_bond_analytics(
         if "bonistas_ticker" in bonistas.columns and "Ticker_IOL" not in bonistas.columns:
             bonistas = bonistas.rename(columns={"bonistas_ticker": "Ticker_IOL"})
         work = work.merge(bonistas, on="Ticker_IOL", how="left")
+        logger.info(
+            "Bond analytics merged bonistas context: bonds=%s bonistas=%s",
+            len(df_bonds),
+            len(bonistas),
+        )
+    else:
+        logger.info("Bond analytics without bonistas instruments context: bonds=%s", len(df_bonds))
 
     if "asset_subfamily" not in work.columns:
         work["asset_subfamily"] = None
@@ -205,6 +217,12 @@ def enrich_bond_analytics(
             ust_reference.loc[uses_ust_context & ust_reference.isna()] = ust_5y_value
         work["bonistas_spread_vs_ust_pct"] = tir_value - ust_reference
 
+    logger.info(
+        "Bond analytics ready: rows=%s local_subfamilies=%s ust_context=%s",
+        len(work),
+        int(work.get("bonistas_local_subfamily", pd.Series(dtype=object)).notna().sum()),
+        bool(pd.notna(ust_5y_value) or pd.notna(ust_10y_value)),
+    )
     return work
 
 

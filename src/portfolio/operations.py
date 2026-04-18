@@ -249,7 +249,6 @@ def build_operations_bundle(
             "recent_trades": pd.DataFrame(),
             "recent_events": pd.DataFrame(),
             "symbol_summary": pd.DataFrame(),
-            "position_transitions": {"items": [], "summary": pd.DataFrame()},
             "stats": {
                 "total": 0,
                 "trading": 0,
@@ -309,7 +308,6 @@ def build_operations_bundle(
         "recent_trades": recent_trades,
         "recent_events": recent_events,
         "symbol_summary": symbol_summary,
-        "position_transitions": {"items": [], "summary": pd.DataFrame()},
         "stats": {
             "total": int(len(recent_operations)),
             "trading": int((recent_operations["operation_bucket"] == "trading").sum()),

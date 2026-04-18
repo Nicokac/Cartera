@@ -35,6 +35,8 @@ jobs:
             tests.test_config \
             tests.test_dashboard \
             tests.test_pipeline \
+            tests.test_smoke_run \
+            tests.test_smoke_output \
             tests.test_strategy_rules \
             tests.test_technical \
             tests.test_sizing \

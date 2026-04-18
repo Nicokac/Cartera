@@ -123,6 +123,12 @@ class OperationsBundleTests(unittest.TestCase):
         self.assertFalse(bundle["recent_events"].empty)
         self.assertFalse(bundle["symbol_summary"].empty)
         self.assertEqual(bundle["symbol_summary"].iloc[0]["simbolo"], "GOOGL")
+        self.assertNotIn("position_transitions", bundle)
+
+    def test_build_operations_bundle_no_longer_includes_position_transitions_stub(self) -> None:
+        bundle = build_operations_bundle([])
+
+        self.assertNotIn("position_transitions", bundle)
 
     def test_enrich_operations_bundle_populates_transitions_and_snapshot_date(self) -> None:
         operations_bundle = build_operations_bundle(

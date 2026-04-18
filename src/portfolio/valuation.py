@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
 from common.numeric import positive_float_or_none
+
+
+logger = logging.getLogger(__name__)
 
 MASTER_PORTFOLIO_COLUMNS = [
     "Ticker_IOL",
@@ -63,9 +67,11 @@ def build_cedears_df(
 
     df = pd.DataFrame(registros)
     if df.empty:
+        logger.info("Valuation skipped CEDEAR build: empty portfolio slice")
         return df
     df["Ratio"] = df["Ticker_IOL"].map(ratios)
     df["Peso_%"] = _compute_weight_pct(df["Valorizado_ARS"])
+    logger.info("Valuation built CEDEAR frame: rows=%s priced=%s", len(df), int(df["Precio_ARS"].notna().sum()))
     return df
 
 
@@ -93,8 +99,10 @@ def build_local_df(acciones_locales: list[tuple], precios_iol: dict[str, float])
 
     df_local = pd.DataFrame(registros)
     if df_local.empty:
+        logger.info("Valuation skipped local equity build: empty portfolio slice")
         return df_local
     df_local["Peso_%"] = _compute_weight_pct(df_local["Valorizado_ARS"])
+    logger.info("Valuation built local equity frame: rows=%s priced=%s", len(df_local), int(df_local["Precio_ARS"].notna().sum()))
     return df_local
 
 
@@ -123,8 +131,10 @@ def build_bonos_df(bonos: list[tuple], precios_iol: dict[str, float]) -> pd.Data
 
     df_bonos = pd.DataFrame(registros)
     if df_bonos.empty:
+        logger.info("Valuation skipped bonds build: empty portfolio slice")
         return df_bonos
     df_bonos["Peso_%"] = _compute_weight_pct(df_bonos["Valorizado_ARS"])
+    logger.info("Valuation built bonds frame: rows=%s priced=%s", len(df_bonos), int(df_bonos["Precio_ARS"].notna().sum()))
     return df_bonos
 
 
@@ -135,6 +145,7 @@ def attach_value_usd(
     default_columns: list[str] | None = None,
 ) -> pd.DataFrame:
     if df.empty:
+        logger.debug("USD attachment skipped: empty frame")
         return df
     out = df.copy()
     mep_value = positive_float_or_none(mep_real)
@@ -144,6 +155,7 @@ def attach_value_usd(
         for col in default_columns:
             if col not in out.columns:
                 out[col] = np.nan
+    logger.debug("USD attachment completed: rows=%s mep_available=%s", len(out), mep_value is not None)
     return out
 
 
@@ -164,6 +176,7 @@ def build_portfolio_master(
         frames.append(normalized)
 
     if not frames:
+        logger.info("Portfolio master skipped: no frames to merge")
         return pd.DataFrame()
 
     dynamic_cols = []
@@ -190,5 +203,14 @@ def build_portfolio_master(
             df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"] / mep_value
 
     df_total["Peso_%"] = _compute_weight_pct(df_total["Valorizado_ARS"])
+
+    logger.info(
+        "Portfolio master built: rows=%s cedears=%s local=%s bonos=%s liquidez=%s",
+        len(df_total),
+        0 if df_cedears is None else len(df_cedears),
+        0 if df_local is None else len(df_local),
+        0 if df_bonos is None else len(df_bonos),
+        0 if df_liquidez is None else len(df_liquidez),
+    )
 
     return df_total

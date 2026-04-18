@@ -16,9 +16,11 @@ def rank_score(series: pd.Series, higher_is_better: bool = True, neutral: float 
         valid_count = int(valid.sum())
         if valid_count <= 1:
             out.loc[valid] = neutral
-        elif valid_count == 2:
-            # Two-name cohorts are too small for a fully relative percentile.
-            out.loc[valid] = ((relative_scores - neutral) * 0.5) + neutral
+        elif valid_count <= 4:
+            # Small cohorts are too thin for a fully relative percentile.
+            # Damp the relative spread toward neutral while still preserving order.
+            damping = (valid_count - 1) / valid_count
+            out.loc[valid] = ((relative_scores - neutral) * damping) + neutral
         else:
             out.loc[valid] = relative_scores
     return out

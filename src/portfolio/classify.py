@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+
+logger = logging.getLogger(__name__)
 
 
 def classify_iol_portfolio(
@@ -72,9 +76,18 @@ def classify_iol_portfolio(
                 )
             )
 
-    return {
+    result = {
         "PORTAFOLIO": sorted(portafolio, key=lambda x: x[0]),
         "ACCIONES_LOCALES": sorted(acciones_locales, key=lambda x: x[0]),
         "BONOS": sorted(bonos, key=lambda x: x[0]),
         "LIQUIDEZ": sorted(liquidez, key=lambda x: x[0]),
     }
+    logger.info(
+        "Portfolio classified: activos=%s cedears=%s acciones_locales=%s bonos=%s liquidez=%s",
+        len(activos),
+        len(result["PORTAFOLIO"]),
+        len(result["ACCIONES_LOCALES"]),
+        len(result["BONOS"]),
+        len(result["LIQUIDEZ"]),
+    )
+    return result
