@@ -1,37 +1,35 @@
 # Cartera de Activos
 
-Motor de analisis de cartera con foco en:
+Motor de analisis de cartera para IOL con foco en:
 
-- consolidacion y valuacion desde IOL
+- consolidacion y valuacion de cartera
 - scoring operativo para CEDEARs, acciones locales, bonos y liquidez
 - overlay tecnico y contexto macro
-- memoria temporal diaria
-- reporte HTML reproducible
+- memoria temporal diaria entre corridas
+- reporte HTML reproducible para smoke y real run
 
-## Estado actual
+## Estado del proyecto
 
-Baseline operativa vigente al `2026-04-11 12:34`:
+El repo esta en una etapa operativa estable:
 
-- overlay tecnico `24/24`
-- Finviz fundamentals `24/24`
-- Finviz ratings `17/24`
-- regimen de mercado visible en HTML
-- memoria temporal diaria validada con fecha efectiva de mercado
-- `6` refuerzos: `XLU`, `NEM`, `KO`, `EWZ`, `VIST`, `GOOGL`
-- `1` reduccion: `MELI`
-- sizing vigente con fondeo externo de `$600,000`: `XLU`, `NEM`, `KO`
+- pipeline canonico concentrado en `src/`
+- renderer HTML modularizado en `report_primitives`, `report_operations` y `report_renderer`
+- flujo de operaciones reales integrado al reporte
+- snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
+- CI basada en `unittest` con `27` suites declaradas en `.github/workflows/ci.yml`
 
-Detalle completo:
+Resumen funcional vigente:
 
 - [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
 
 ## Estructura
 
-- `src/`: logica canonica del proyecto
-- `scripts/`: runners y generacion de reportes
-- `data/`: mappings, reglas, runtime y ejemplos
-- `docs/`: documentacion activa e historica
-- `tests/`: suite de regresion y snapshots
+- `src/`: logica canonica del motor
+- `scripts/`: runners, renderer y utilitarios de soporte
+- `data/`: snapshots, referencias y ejemplos de configuracion
+- `docs/`: documentacion activa
+- `docs/archive/`: historico y material absorbido
+- `tests/`: suite de regresion y fixtures
 - `reports/`: HTMLs generados
 
 ## Requisitos
@@ -48,11 +46,21 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+Instalacion alternativa desde metadata del proyecto:
+
+```powershell
+pip install .
+```
+
+Extra opcional para herramientas BYMA:
+
+```powershell
+pip install .[byma]
+```
+
 ## Clone limpio
 
-Los JSON reales de `data/mappings/` y `data/strategy/` no se versionan.
-
-Bootstrap minimo:
+Los JSON reales de `data/mappings/` y `data/strategy/` no se versionan. Para bootstrap minimo:
 
 ```powershell
 python scripts\bootstrap_example_config.py
@@ -60,7 +68,7 @@ python scripts\bootstrap_example_config.py
 
 Eso copia los `.json.example` de `data/examples/` a sus rutas reales si todavia no existen.
 
-Documentacion asociada:
+Mas detalle:
 
 - [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
 
@@ -70,16 +78,37 @@ Documentacion asociada:
 IOL_USERNAME=tu_usuario_iol@example.com
 IOL_PASSWORD=tu_password_iol
 FRED_API_KEY=tu_fred_api_key
+ENABLE_LEGACY_SNAPSHOTS=1
 ```
+
+Notas:
+
+- `ENABLE_LEGACY_SNAPSHOTS=0` fuerza el uso exclusivo de `data/snapshots/`
+- el runner real puede pedir credenciales por terminal si no estan cargadas
 
 ## Uso rapido
 
+Smoke report:
+
 ```powershell
 python scripts\generate_smoke_report.py
+```
+
+Validacion smoke interna:
+
+```powershell
+python scripts\smoke_run.py
+```
+
+Real run:
+
+```powershell
 python scripts\generate_real_report.py
 ```
 
 ## Tests
+
+Suite completa:
 
 ```powershell
 python -m unittest discover -s tests -v
@@ -90,6 +119,9 @@ Suites utiles:
 ```powershell
 python -m unittest tests.test_strategy_rules -v
 python -m unittest tests.test_sizing -v
+python -m unittest tests.test_technical -v
+python -m unittest tests.test_report_primitives -v
+python -m unittest tests.test_report_operations -v
 python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
 ```
@@ -97,8 +129,8 @@ python -m unittest tests.test_generate_real_report -v
 CI actual:
 
 - workflow: `.github/workflows/ci.yml`
-- corre la bateria estable completa del repo activo sin red real ni credenciales
-- hace bootstrap automatico de configuracion de ejemplo antes de ejecutar tests
+- bootstrap automatico de configuracion de ejemplo antes de testear
+- bateria estable del repo sin red real ni credenciales
 
 ## Memoria temporal
 
@@ -108,7 +140,7 @@ CI actual:
 - corridas de fin de semana o preapertura no inflan persistencia artificial
 - el HTML expone:
   - `Accion previa`
-  - `Δ Score`
+  - `Delta Score`
   - `Racha`
 
 ## Documentacion
@@ -117,6 +149,6 @@ Entrada canonica:
 
 - [docs/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\README.md)
 
-Configuracion de ejemplo para clones limpios:
+Configuracion de ejemplo:
 
 - [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)

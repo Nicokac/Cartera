@@ -2,159 +2,85 @@
 
 ## Criterio
 
-Priorizacion combinando:
+La priorizacion activa combina:
 
 - impacto funcional en corridas reales
-- complejidad de implementacion
 - riesgo de regresion
+- costo de mantenimiento futuro
 
-## Resuelto
+## Estado general
 
-- documentacion y `.json.example` para clones limpios
-- script de bootstrap para configuracion de ejemplo
-- `pyproject.toml` minimo del proyecto
-- CI minima con GitHub Actions ampliada a suites estables del pipeline y clientes
-- CI ampliada a la bateria local completa del repo:
-  - `bond_analytics`
-  - `bonistas_client`
+El proyecto ya salio de la fase de hardening basico. El backlog vigente se concentra en:
+
+1. bajar complejidad estructural del renderer
+2. terminar de separar fixtures de smoke del codigo productivo
+3. seguir calibrando scoring y reporte con evidencia real
+
+## Resuelto recientemente
+
+- snapshots operativos canonicos en `data/snapshots/`
+- fallback legacy controlado por `ENABLE_LEGACY_SNAPSHOTS`
+- README de snapshots con criterio de migracion explicito
+- `rank_score` con damping progresivo para cohorts chicos
+- cobertura directa de `report_primitives` y `report_operations`
+- logging estructurado en:
+  - `valuation`
   - `classify`
-  - `dashboard`
-  - `liquidity`
-  - `numeric_utils`
-  - `valuation_and_checks`
-- gate absoluto suave para limitar `Refuerzo` en setups no alcistas con momentum corto negativo
-- curva propia de RSI para reduccion tecnica en casos `oversold` y `overbought`
-- fallback visible de `FRED UST` en bundle real y reporte HTML
-- narrativa alineada con scoring relativo sin perder brevedad
-- hardening del CLI real para respuestas invalidas y montos negativos
-- guardas de `Peso_%` en valuacion
-- CEDEARs sin `finviz_map`
-- contrato explicito de `mep_real`
-- lazy loading de `config.py`
-- cache acotado en Bonistas
-- hardening de render HTML con escape consistente
-- constantes canonicas para acciones
-- helpers numericos comunes para scoring, liquidez, valuacion y sizing
-- exclusion de liquidez en el resumen agregado de memoria temporal
-- continuidad temporal compartida entre `CASH_ARS` y `CAUCION` para liquidez operativa diaria
-- warnings de pandas en `tests/test_sizing.py`
-- cobertura base de clientes externos:
-  - `iol`
-  - `argentinadatos`
-  - `market_data`
-  - `finviz_client`
-- cobertura reforzada en integraciones secundarias:
-  - `bcra`
-  - `fred_client`
-  - `pyobd_client`
-- cobertura expandida del universo BYMA:
-  - `364 / 407` tickers con cobertura completa
-  - `340` candidatos automaticos integrados
-  - `1` rescate manual razonable (`VRSN`)
-  - `43` casos restantes formalizados como exclusion versionada en `unsupported_byma_tickers.json`
-- enriquecimiento real de CEDEARs con Finviz paralelizado por ticker:
-  - fetch concurrente acotado
-  - errores aislados por activo
-  - sin mutacion concurrente de DataFrame
-- renderer HTML desacoplado de los runners:
-  - `report_renderer.py` como capa comun
-  - `generate_smoke_report.py` y `generate_real_report.py` quedan como runners finos
-- taxonomia local de bonos externalizada:
-  - reglas de `bonistas_local_subfamily` movidas a `bond_local_subfamily_rules.json`
-  - override configurable sin editar codigo
-- cliente Finviz endurecido:
-  - retry con backoff corto por seccion
-  - mismo contrato de salida del bundle
-  - tolerancia mejor a fallas transitorias
-- concurrencia Finviz endurecida en corrida real:
-  - `FINVIZ_MAX_WORKERS` y `FINVIZ_WORKER_TIMEOUT_SECONDS` expuestos desde `config.py`
-  - timeout explicito de futures
-  - errores por timeout aislados por ticker
-  - `FINVIZ_SUBMIT_DELAY_SECONDS` para espaciar submits y reducir `429`
-  - paralelismo por defecto bajado a un valor mas prudente para corridas reales
-  - segunda calibracion conservadora:
-    - `FINVIZ_MAX_WORKERS = 2`
-    - `FINVIZ_SUBMIT_DELAY_SECONDS = 0.75`
-- bootstrap de clones limpios alineado con la taxonomia local de bonos:
-  - `bond_local_subfamily_rules.json.example` agregado a `data/examples/mappings/`
-- `pypdf` movido fuera de dependencias base:
-  - extra opcional `byma`
-  - el extractor BYMA informa como instalarlo si falta
-- limpieza de `analytics` no usado:
-  - removidos `fundamentals.py`, `ratings.py`, `news.py` e `insiders.py`
-  - el pipeline queda alineado con la superficie activa real
-- logging estructurado minimo en flujo real y clientes sensibles:
-  - `logging.getLogger(__name__)`
-  - warnings en fallas de Finviz y Bonistas
-  - sin perder los mensajes de UX en terminal
-- limpieza de config no usada:
-  - removidos `ALERTA_MEP_DESVIO_PCT` y `ALERTA_PERDIDA_MINIMA`
-  - `load_runtime_config()` queda alineado con consumidores reales
-- memoria temporal optimizada:
-  - lookup previo por ticker
-  - sin filtrado repetido de toda la historia por cada fila
-  - rachas calculadas sobre buckets ya normalizados
-- overlay tecnico enriquecido con Yahoo:
-  - `SMA_200`
-  - `Dist_SMA200_%`
-  - `High_52w` / `Low_52w`
-  - `Dist_52w_High_%` / `Dist_52w_Low_%`
-  - `Avg_Volume_20d`
-- ventana tecnica ampliada a `18mo`:
-  - `SMA200` ya puede poblarse en corridas reales normales
-- `Dist_SMA200_%` integrado al scoring tecnico:
-  - peso prudente
-  - efecto confirmatorio, no dominante
-  - validado en corrida real sin rotacion artificial de senales
-- narrativa enriquecida con `52w high`:
-  - `Dist_52w_High_%` ya puede aparecer como contexto textual
-  - confirma fortaleza cerca de maximos y debilidad cuando el activo sigue lejos
-- narrativa de ETF/regiones compactada:
-  - menos comentarios largos
-  - sin duplicaciones con el sufijo de `52w`
-- calibracion conservadora de Finviz validada en corrida real:
-  - `24/24` fundamentals
-  - `17/24` ratings
-  - recuperacion de cobertura con impacto real en decisiones
-- memoria temporal anclada a fecha efectiva de mercado:
-  - fin de semana y preapertura ya no inflan rachas artificiales
-  - validado luego en corrida habil real
-- rediseño UX/UI del reporte HTML cerrado en primera iteracion:
-  - portada ejecutiva con `Panorama`, `Cambios materiales` y `Sizing activo`
-  - `Decision final` priorizada antes de la tabla completa
-  - sintesis tecnica y de bonos antes del detalle
-  - navegacion sticky y secciones pesadas colapsables
-  - limpieza de ruido en cambios de accion
-  - criterios generales de score consolidados en un bloque unico
+  - `bond_analytics`
+  - `technical`
+- smoke split en:
+  - `smoke_run`
+  - `smoke_fixtures`
+  - `smoke_output`
+- CI ampliada a las suites activas del repo
+- renderer desacoplado en modulos de primitives, operations y orquestacion
+- flujo de operaciones IOL integrado al reporte con explicaciones operativas
 
-## Reproducibilidad
+## Backlog activo
 
-### Configuracion de clone limpio
+### P1. Reducir deuda del renderer
 
-- estado: `Resuelto`
-- complejidad: `Baja`
-- impacto: `Alto`
+- extraer mas secciones de `render_report()` a helpers puros
+- reducir tamaño y complejidad cognitiva de `scripts/report_renderer.py`
+- mantener contratos estables con `generate_smoke_report.py` y `generate_real_report.py`
 
-Trabajo hecho:
+### P2. Reubicar fixtures de smoke
 
-- documentacion formal de JSON no versionados
-- ejemplos `.json.example` para mappings y strategy
-- bootstrap minimo desde clone limpio
-- metadata base del proyecto en `pyproject.toml`
-- workflow de CI con `unittest` para rutas estables
+- mover `scripts/smoke_fixtures.py` a una zona de fixtures de test
+- evitar que mocks de pruebas vivan dentro del arbol de scripts operativos
+- simplificar imports de `test_smoke_run.py` y `test_smoke_output.py`
 
-## Proximo foco
+### P3. Afinar calibraciones con evidencia real
 
-Si seguimos mejorando, el trabajo ya pasa de hardening a evolucion de producto:
+- monitorear cohortes chicas luego del damping de `rank_score`
+- revisar scoring y sizing solo cuando aparezcan corridas reales borderline
+- mantener la narrativa del reporte alineada con cambios efectivos de decision
 
-1. ajustar scoring o persistencia con evidencia de nuevas corridas reales
-2. revisar calibraciones futuras por subfamilia si aparecen nuevas corridas borderline
-3. seguir monitoreando rotacion de refuerzos con evidencia real:
-   - `XLU` afirmado de nuevo
-   - `VIST` de vuelta en `Refuerzo`
-   - `EEM` fuera de refuerzo
-   - `XLU`, `NEM`, `KO` como sizing defensivo vigente al `2026-04-11 15:37`
-4. observar si la nueva calibracion de Finviz mantiene `24/24` de forma estable en varias corridas
-5. decidir mas adelante si `Dist_52w_High_%` o `Dist_52w_Low_%` merecen entrar al scoring, solo con evidencia real
-6. si alguna vez se quiere ampliar el remanente de `43`, hacerlo como frente nuevo con fuente alternativa o revision ticker por ticker
-7. retomar UX/UI solo si aparece evidencia real de friccion en corridas nuevas
+### P4. Cerrar migracion de snapshots
+
+- retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente
+- mantener documentado el criterio de retiro
+- evitar que vuelvan a aparecer snapshots operativos nuevos en `tests/snapshots/`
+
+## Frentes ya absorbidos
+
+Estos temas ya no son backlog activo salvo que reaparezcan con evidencia nueva:
+
+- bootstrap de clones limpios
+- metadata base del proyecto
+- cobertura base y secundaria de clientes
+- hardening del CLI real
+- memoria temporal diaria
+- taxonomia local de bonos externalizada
+- calibracion prudente de Finviz
+- UX base del reporte HTML
+
+## Regla de mantenimiento
+
+Si una mejora no cambia:
+
+- la decision final
+- la resiliencia operativa
+- la trazabilidad del pipeline
+
+entonces no deberia competir por prioridad contra deuda estructural real.

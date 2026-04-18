@@ -44,6 +44,11 @@ class StrategyRulesTests(unittest.TestCase):
 
         self.assertEqual(score.round(4).tolist(), [0.3125, 0.5, 0.6875, 0.875])
 
+    def test_rank_score_is_fully_relative_for_five_name_cohort(self) -> None:
+        score = rank_score(pd.Series([10.0, 20.0, 30.0, 40.0, 50.0]), higher_is_better=True)
+
+        self.assertEqual(score.round(3).tolist(), [0.2, 0.4, 0.6, 0.8, 1.0])
+
     def test_consensus_taxonomy_can_be_overridden_from_external_rules(self) -> None:
         default_score = consensus_to_score("accumulate")
         custom_score = consensus_to_score(

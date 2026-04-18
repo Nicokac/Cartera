@@ -1,6 +1,6 @@
 # Tests
 
-Esta carpeta contiene tests deterministas para la logica extraida a `src/`.
+Esta carpeta contiene tests deterministas para la logica extraida a `src/` y para los runners de reporte.
 
 ## Ejecucion
 
@@ -14,17 +14,23 @@ Suites utiles:
 
 ```powershell
 python -m unittest tests.test_pipeline -v
+python -m unittest tests.test_smoke_run -v
+python -m unittest tests.test_smoke_output -v
 python -m unittest tests.test_strategy_rules -v
 python -m unittest tests.test_technical -v
 python -m unittest tests.test_sizing -v
 python -m unittest tests.test_decision_history -v
+python -m unittest tests.test_operations -v
+python -m unittest tests.test_report_primitives -v
+python -m unittest tests.test_report_operations -v
 python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
 ```
 
-CI actual:
+## CI actual
 
 - workflow: `.github/workflows/ci.yml`
+- bootstrap automatico de configuracion de ejemplo antes de correr tests
 - suites incluidas:
   - `tests.test_bond_analytics`
   - `tests.test_bonistas_client`
@@ -32,32 +38,38 @@ CI actual:
   - `tests.test_config`
   - `tests.test_dashboard`
   - `tests.test_pipeline`
+  - `tests.test_smoke_run`
+  - `tests.test_smoke_output`
   - `tests.test_strategy_rules`
   - `tests.test_technical`
   - `tests.test_sizing`
   - `tests.test_decision_history`
+  - `tests.test_operations`
+  - `tests.test_report_primitives`
+  - `tests.test_report_operations`
   - `tests.test_report_render`
   - `tests.test_generate_real_report`
-  - `tests.test_liquidity`
-  - `tests.test_numeric_utils`
   - `tests.test_iol_client`
   - `tests.test_argentinadatos_client`
+  - `tests.test_liquidity`
   - `tests.test_market_data_client`
   - `tests.test_finviz_client`
   - `tests.test_bcra_client`
   - `tests.test_fred_client`
+  - `tests.test_numeric_utils`
   - `tests.test_pyobd_client`
   - `tests.test_valuation_and_checks`
 
 ## Cobertura actual
 
 - cartera y valuacion
+- smoke pipeline y salida formateada
 - liquidez y sizing
 - scoring, acciones y memoria temporal
+- operaciones y snapshots
 - render HTML
-- clientes principales
-- clientes secundarios
-- smoke pipeline sin APIs vivas
+- clientes principales y secundarios
+- validacion de runners sin APIs vivas
 
 ## Snapshots
 

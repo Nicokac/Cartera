@@ -1,33 +1,33 @@
 # Documentacion
 
-Este indice concentra la documentacion activa y separa el historico.
+Indice de la documentacion activa del proyecto.
 
-## Operacion
+## Puntos de entrada
 
+- [README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\README.md)
 - [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
 - [improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
 - [report-ux-architecture.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\report-ux-architecture.md)
-
-## Referencia
-
 - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
+
+## Soporte operativo
+
+- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
+- [data/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\snapshots\README.md)
+- [tests/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\README.md)
 - [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
+- [data/reference/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\reference\README.md)
 
-## Criterio
+## Criterio de mantenimiento
 
-- `README.md` raiz: instalacion y uso
-- `baseline-actual.md`: estado operativo vigente
-- `improvement-roadmap.md`: backlog tecnico activo y proximo foco
-- `report-ux-architecture.md`: arquitectura objetivo del reporte y plan por fases
-- `asset-taxonomy.md`: familias y subfamilias efectivas del motor
-- `tests/snapshots/README.md`: contrato de snapshots y fixtures visibles
+- `README.md`: instalacion, uso y layout del repo
+- `baseline-actual.md`: capacidades vigentes y baseline funcional, sin depender de una corrida puntual
+- `improvement-roadmap.md`: backlog tecnico activo y deuda real
+- `report-ux-architecture.md`: arquitectura actual del reporte y deuda de renderer
+- `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
+- `data/snapshots/README.md`: directorio canonico de snapshots operativos
+- `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
 
 ## Historico
 
-Todo lo que ya no es punto de entrada, pero sigue siendo util para trazabilidad, queda en `docs/archive/`.
-
-Incluye:
-
-- roadmaps absorbidos
-- auditorias ya cerradas
-- notas de exploracion o refactors historicos
+`docs/archive/` guarda roadmaps absorbidos, auditorias cerradas y notas historicas. No es punto de entrada operativo y no debe tomarse como estado actual salvo que se lo consulte por trazabilidad.

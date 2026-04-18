@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import numpy as np
 import pandas as pd
 
@@ -7,6 +8,9 @@ try:
     from ..clients.market_data import fetch_price_history
 except ImportError:
     from clients.market_data import fetch_price_history
+
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_technical_overlay(df_tech: pd.DataFrame) -> pd.DataFrame:
@@ -31,6 +35,7 @@ def build_technical_overlay(
     scoring_rules: dict[str, object] | None = None,
 ) -> pd.DataFrame:
     if df_cedears is None or df_cedears.empty:
+        logger.info("Technical overlay skipped: empty CEDEAR frame")
         return pd.DataFrame()
 
     scoring_rules = scoring_rules or {}
@@ -128,6 +133,14 @@ def build_technical_overlay(
                 }
             )
         except Exception as exc:
+            logger.warning("Technical overlay failed for %s: %s", ticker_finviz, exc)
             rows.append({"Ticker_IOL": ticker_iol, "Ticker_Finviz": ticker_finviz, "Tech_Trend": f"Error: {exc}"})
 
+    error_count = sum(1 for row in rows if str(row.get("Tech_Trend", "")).startswith("Error"))
+    logger.info(
+        "Technical overlay completed: tickers=%s ok=%s errors=%s",
+        len(rows),
+        len(rows) - error_count,
+        error_count,
+    )
     return normalize_technical_overlay(pd.DataFrame(rows))

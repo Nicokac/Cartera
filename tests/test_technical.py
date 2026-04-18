@@ -45,6 +45,18 @@ class TechnicalOverlayTests(unittest.TestCase):
         self.assertTrue(pd.notna(row["Dist_52w_Low_%"]))
         self.assertTrue(pd.notna(row["Avg_Volume_20d"]))
 
+    def test_build_technical_overlay_logs_failures_and_summary(self) -> None:
+        df_cedears = pd.DataFrame([{"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL"}])
+
+        with patch("analytics.technical.fetch_price_history", side_effect=RuntimeError("boom")), patch(
+            "analytics.technical.logger.warning"
+        ) as warning_mock, patch("analytics.technical.logger.info") as info_mock:
+            out = build_technical_overlay(df_cedears)
+
+        self.assertEqual(out.loc[0, "Tech_Trend"], "Error: boom")
+        warning_mock.assert_called_once()
+        self.assertTrue(any("Technical overlay completed" in str(call.args[0]) for call in info_mock.call_args_list))
+
 
 if __name__ == "__main__":
     unittest.main()

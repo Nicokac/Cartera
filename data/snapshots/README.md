@@ -7,6 +7,7 @@
 - guardar snapshots diarios usados por `generate_real_report.py`
 - comparar la cartera actual contra la ultima foto valida previa
 - sostener la feature de `position_transitions` fuera del arbol de tests
+- mantener el historial operativo real separado de fixtures y snapshots legacy
 
 ## Convencion de nombres
 
@@ -27,6 +28,7 @@
 - toda corrida real nueva debe escribir en `data/snapshots/`
 - no agregar snapshots operativos nuevos en `tests/snapshots/`
 - si se necesita comparar contra snapshots historicos, el fallback legacy sigue habilitado temporalmente
+- si un snapshot esta corrupto o no cumple el schema minimo, el runner debe descartarlo y seguir buscando uno valido
 
 ## Control del fallback legacy
 

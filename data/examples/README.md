@@ -37,3 +37,8 @@ Sirven para:
 - mostrar estructura esperada
 - facilitar bootstrap desde un clone limpio
 - explicar el contrato de configuracion del proyecto
+
+## Regla de mantenimiento
+
+- si cambia el contrato esperado por `src/` o `scripts/`, primero se actualiza el `.json.example`
+- los ejemplos deben seguir siendo suficientes para que CI y un clone limpio puedan bootstrapping sin credenciales reales

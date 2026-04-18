@@ -8,6 +8,7 @@
 - el path canonico actual es `data/snapshots/`
 - `generate_real_report.py` puede leer estos archivos solo como fallback historico
 - no deberian agregarse snapshots operativos nuevos en esta carpeta
+- no debe usarse este directorio como verdad principal para nuevas corridas
 
 ## Control explicito
 
@@ -29,34 +30,13 @@ Se conserva para no romper comparaciones historicas durante la transicion al nue
 - `YYYY-MM-DD_real_kpis.json`
 - `YYYY-MM-DD_real_liquidity_contract.json`
 
-## Objetivo
+## Uso esperado
 
-- comparar salidas entre iteraciones del motor
-- detectar regresiones sin depender de APIs vivas
+Estos archivos se conservan solo para:
 
-## Baseline vigente
-
-La baseline funcional actual es la corrida real del `2026-04-09 07:31`.
-
-Lectura operativa:
-
-- overlay tecnico activo `24/24`
-- Finviz fundamentals `24/24`
-- Finviz ratings `17/24`
-- regimen de mercado activo por `inflacion_local_alta`
-- memoria temporal diaria validada con cambio de fecha efectiva
-- refuerzos actuales:
-  - `XLU`
-  - `NEM`
-  - `KO`
-  - `EEM`
-  - `VIST`
-  - `GOOGL`
-- reducciones actuales:
-  - `MELI`
-  - `AAPL`
-- `GD30` sigue en `Rebalancear / tomar ganancia`
-- con fondeo externo de `$600,000`, el sizing prioriza `XLU`, `NEM` y `KO`
+- comparaciones historicas durante la transicion
+- fixtures de regresion
+- validaciones puntuales del fallback legacy
 
 ## Contrato de memoria temporal
 

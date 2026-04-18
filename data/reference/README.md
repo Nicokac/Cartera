@@ -63,11 +63,7 @@ python scripts\validate_byma_manual_backlog.py
 
 ## Estado actual
 
-- `340` candidatos directos ya fueron integrados en `finviz_map.json` e `instrument_profile_map.json`
-- `1` caso fue rescatado manualmente (`VRSN`)
-- `43` casos restantes conforman el backlog manual real
-- `364 / 407` tickers tienen cobertura completa contra el catalogo BYMA
-- el remanente ya no corresponde a batches automaticos y queda formalmente excluido por politica
+Este directorio documenta el circuito de auditoria y actualizacion de referencias externas. Los numeros de cobertura pueden cambiar a medida que se regeneran artefactos; la fuente de verdad es siempre la salida mas reciente de los scripts de auditoria y comparacion.
 
 ## Criterio actual
 

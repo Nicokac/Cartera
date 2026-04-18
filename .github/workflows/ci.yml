@@ -42,6 +42,8 @@ jobs:
             tests.test_sizing \
             tests.test_decision_history \
             tests.test_operations \
+            tests.test_report_primitives \
+            tests.test_report_operations \
             tests.test_report_render \
             tests.test_generate_real_report \
             tests.test_iol_client \
