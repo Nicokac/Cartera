@@ -137,7 +137,7 @@ Persistir cada prediccion en un historial estructurado bajo `data/runtime/`.
 
 ### Fase 2. Configuracion de pesos y umbrales
 
-**Estado:** `pendiente`
+**Estado:** `completada`
 
 **Objetivo**
 
@@ -146,6 +146,13 @@ Externalizar pesos iniciales y reglas de voto a un JSON.
 **Archivo esperado**
 
 - `data/mappings/prediction_weights.json`
+
+**Archivos implementados**
+
+- `data/mappings/prediction_weights.json`
+- `data/examples/mappings/prediction_weights.json.example`
+- `src/config.py`
+- `tests/test_config.py`
 
 **Contenido esperado**
 
@@ -162,6 +169,13 @@ Los umbrales iniciales pueden ser heuristicas, pero deben quedar documentados en
 
 - el predictor puede correr solo leyendo este JSON
 - tests de carga y defaults minimos
+
+**Estado de salida**
+
+- pesos y umbrales iniciales definidos en archivo canonico
+- ejemplo agregado al bootstrap de clones limpios
+- acceso centralizado disponible via `config.PREDICTION_WEIGHTS`
+- cobertura minima agregada en `tests.test_config`
 
 ### Fase 3. Predictor
 

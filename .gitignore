@@ -12,6 +12,7 @@ __pycache__/
 *.xls
 *.json
 *.log
+!data/mappings/prediction_weights.json
 
 #Notebooks
 *.ipynb

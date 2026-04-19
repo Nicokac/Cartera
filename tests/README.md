@@ -69,6 +69,7 @@ python -m unittest tests.test_generate_real_report -v
 - liquidez y sizing
 - scoring, acciones y memoria temporal
 - persistencia base del motor de prediccion direccional
+- configuracion base del motor de prediccion direccional
 - operaciones y snapshots
 - render HTML
 - clientes principales y secundarios

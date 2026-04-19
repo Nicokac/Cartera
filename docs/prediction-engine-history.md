@@ -33,11 +33,34 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase | Estado | Ultima actualizacion |
 |---|---|---|
 | Fase 1 - Store | completada | 2026-04-19 |
-| Fase 2 - Pesos y umbrales | pendiente | 2026-04-19 |
+| Fase 2 - Pesos y umbrales | completada | 2026-04-19 |
 | Fase 3 - Predictor | pendiente | 2026-04-19 |
 | Fase 4 - Verificador | pendiente | 2026-04-19 |
 | Fase 5 - Calibracion | pendiente | 2026-04-19 |
 | Fase 6 - Integracion y reporte | pendiente | 2026-04-19 |
+
+## 2026-04-19 - Fase 2 - completada
+
+- commit: pendiente
+- alcance:
+  - se define el archivo canonico de pesos y umbrales iniciales
+  - se integra la configuracion nueva al sistema de mappings del proyecto
+- decisiones:
+  - `prediction_weights.json` vive en `data/mappings/`
+  - se versiona tambien su `.json.example` para bootstrap de clones limpios
+  - el acceso canonico queda en `config.PREDICTION_WEIGHTS`
+- archivos:
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `src/config.py`
+  - `tests/test_config.py`
+  - `.gitignore`
+- tests:
+  - carga del mapping desde `config`
+  - validacion minima de estructura base
+- deuda / notas:
+  - Fase 3 debe consumir esta configuracion sin hardcodes paralelos
+  - la semantica exacta de cada `vote_rule` se cierra cuando exista `predictor.py`
 
 ## 2026-04-19 - Fase 1 - completada
 

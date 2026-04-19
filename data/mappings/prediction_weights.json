@@ -1,0 +1,58 @@
+{
+  "horizon_days": 5,
+  "direction_threshold": 0.15,
+  "neutral_return_band": 0.01,
+  "signals": {
+    "rsi": {
+      "weight": 0.8,
+      "vote_rules": {
+        "oversold_threshold": 35,
+        "overbought_threshold": 65
+      }
+    },
+    "momentum_20d": {
+      "weight": 0.6,
+      "vote_rules": {
+        "positive_threshold": 2.0,
+        "negative_threshold": -2.0
+      }
+    },
+    "momentum_60d": {
+      "weight": 0.5,
+      "vote_rules": {
+        "positive_threshold": 5.0,
+        "negative_threshold": -5.0
+      }
+    },
+    "sma_trend": {
+      "weight": 0.4,
+      "vote_rules": {
+        "bullish_values": [
+          "Alcista",
+          "Alcista fuerte"
+        ],
+        "bearish_values": [
+          "Bajista",
+          "Bajista fuerte"
+        ]
+      }
+    },
+    "score_unificado": {
+      "weight": 0.7,
+      "vote_rules": {
+        "high_threshold": 0.65,
+        "low_threshold": 0.35
+      }
+    },
+    "market_regime": {
+      "weight": 0.5,
+      "vote_rules": {
+        "bearish_flags": [
+          "stress_soberano_local",
+          "tasas_ust_altas"
+        ],
+        "bullish_when_no_flags": true
+      }
+    }
+  }
+}

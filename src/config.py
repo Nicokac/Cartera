@@ -36,6 +36,7 @@ _MAPPING_FILES = {
     "BOND_LOCAL_SUBFAMILY_RULES": "bond_local_subfamily_rules.json",
     "RATIOS": "ratios.json",
     "VN_FACTOR_MAP": "vn_factor_map.json",
+    "PREDICTION_WEIGHTS": "prediction_weights.json",
 }
 
 _STRATEGY_FILES = {
@@ -128,4 +129,5 @@ def load_portfolio_mappings() -> dict[str, dict[str, Any]]:
         "BOND_LOCAL_SUBFAMILY_RULES": dict(_load_cached_config("BOND_LOCAL_SUBFAMILY_RULES")),
         "RATIOS": dict(_load_cached_config("RATIOS")),
         "VN_FACTOR_MAP": dict(_load_cached_config("VN_FACTOR_MAP")),
+        "PREDICTION_WEIGHTS": dict(_load_cached_config("PREDICTION_WEIGHTS")),
     }

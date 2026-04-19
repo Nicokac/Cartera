@@ -36,3 +36,15 @@ class ConfigTests(unittest.TestCase):
         self.assertIn("FINVIZ_WORKER_TIMEOUT_SECONDS", runtime_config)
         self.assertIsInstance(runtime_config["SCORING_RULES"], dict)
         self.assertIsInstance(runtime_config["BUCKET_WEIGHTS"], dict)
+
+    def test_load_portfolio_mappings_exposes_prediction_weights(self) -> None:
+        project_config = importlib.import_module("config")
+        project_config.clear_config_cache()
+
+        mappings = project_config.load_portfolio_mappings()
+
+        self.assertIn("PREDICTION_WEIGHTS", mappings)
+        self.assertIsInstance(mappings["PREDICTION_WEIGHTS"], dict)
+        self.assertEqual(mappings["PREDICTION_WEIGHTS"]["horizon_days"], 5)
+        self.assertIn("signals", mappings["PREDICTION_WEIGHTS"])
+        self.assertIn("rsi", mappings["PREDICTION_WEIGHTS"]["signals"])

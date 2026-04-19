@@ -21,6 +21,10 @@ Eso crea, si faltan:
 - `data/mappings/*.json`
 - `data/strategy/*.json`
 
+Incluye tambien:
+
+- `data/mappings/prediction_weights.json`
+
 Opciones utiles:
 
 ```powershell
