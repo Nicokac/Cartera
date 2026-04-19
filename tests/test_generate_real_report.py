@@ -430,6 +430,52 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(previous_date, "2026-04-14")
         self.assertFalse(previous_df.empty)
 
+    def test_load_previous_portfolio_snapshot_skips_snapshot_without_usable_tickers(self) -> None:
+        snapshots_dir = ROOT / "tmp_snapshots_empty_tickers"
+        snapshots_dir.mkdir(exist_ok=True)
+        invalid_path = snapshots_dir / "2026-04-15_real_portfolio_master.csv"
+        valid_path = snapshots_dir / "2026-04-14_real_portfolio_master.csv"
+        invalid_path.write_text("Ticker_IOL,Tipo\n,CEDEAR\n   ,Bono\n", encoding="utf-8")
+        valid_path.write_text("Ticker_IOL,Tipo\nGOOGL,CEDEAR\n", encoding="utf-8")
+        self.addCleanup(lambda: snapshots_dir.rmdir())
+        self.addCleanup(lambda: [path.unlink(missing_ok=True) for path in snapshots_dir.glob("*")])
+        self.addCleanup(lambda: valid_path.unlink(missing_ok=True))
+        self.addCleanup(lambda: invalid_path.unlink(missing_ok=True))
+
+        previous_df, previous_date = load_previous_portfolio_snapshot(
+            pd.Timestamp("2026-04-16"),
+            snapshots_dir=snapshots_dir,
+        )
+
+        self.assertEqual(previous_date, "2026-04-14")
+        self.assertFalse(previous_df.empty)
+        self.assertEqual(previous_df["Ticker_IOL"].tolist(), ["GOOGL"])
+
+    def test_load_previous_portfolio_snapshot_coerces_optional_numeric_columns(self) -> None:
+        snapshots_dir = ROOT / "tmp_snapshots_numeric"
+        snapshots_dir.mkdir(exist_ok=True)
+        snapshot_path = snapshots_dir / "2026-04-15_real_portfolio_master.csv"
+        snapshot_path.write_text(
+            "Ticker_IOL,Tipo,Peso_%,Valorizado_ARS,Cantidad,Cantidad_Real\n"
+            "GOOGL,CEDEAR,1.25,285940,14,14\n"
+            "AL30,Bono,no-num,621209,133,133\n",
+            encoding="utf-8",
+        )
+        self.addCleanup(lambda: snapshots_dir.rmdir())
+        self.addCleanup(lambda: [path.unlink(missing_ok=True) for path in snapshots_dir.glob("*")])
+        self.addCleanup(lambda: snapshot_path.unlink(missing_ok=True))
+
+        previous_df, previous_date = load_previous_portfolio_snapshot(
+            pd.Timestamp("2026-04-16"),
+            snapshots_dir=snapshots_dir,
+        )
+
+        self.assertEqual(previous_date, "2026-04-15")
+        self.assertFalse(previous_df.empty)
+        self.assertAlmostEqual(float(previous_df.loc[0, "Peso_%"]), 1.25, places=2)
+        self.assertTrue(pd.isna(previous_df.loc[1, "Peso_%"]))
+        self.assertEqual(float(previous_df.loc[0, "Cantidad_Real"]), 14.0)
+
 
 if __name__ == "__main__":
     unittest.main()

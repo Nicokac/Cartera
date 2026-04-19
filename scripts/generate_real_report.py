@@ -71,6 +71,7 @@ ENV_PATH = ROOT / ".env"
 logger = logging.getLogger(__name__)
 
 REQUIRED_SNAPSHOT_COLUMNS = {"Ticker_IOL"}
+SNAPSHOT_OPTIONAL_NUMERIC_COLUMNS = ("Peso_%", "Valorizado_ARS", "Cantidad", "Cantidad_Real")
 
 
 def legacy_snapshots_enabled() -> bool:
@@ -468,6 +469,20 @@ def _load_snapshot_csv(path: Path) -> pd.DataFrame:
             ", ".join(sorted(missing_columns)),
         )
         return pd.DataFrame()
+
+    previous_df = previous_df.copy()
+    previous_df["Ticker_IOL"] = previous_df["Ticker_IOL"].fillna("").astype(str).str.strip()
+    previous_df = previous_df.loc[previous_df["Ticker_IOL"] != ""].copy()
+    if previous_df.empty:
+        logger.warning(
+            "Snapshot previo invalido %s. No contiene filas utilizables con Ticker_IOL.",
+            path,
+        )
+        return pd.DataFrame()
+
+    for column in SNAPSHOT_OPTIONAL_NUMERIC_COLUMNS:
+        if column in previous_df.columns:
+            previous_df[column] = pd.to_numeric(previous_df[column], errors="coerce")
     return previous_df
 
 
