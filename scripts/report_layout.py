@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import pandas as pd
 
 from report_decision import build_decision_priority_board, build_decision_table
@@ -21,6 +22,41 @@ from decision.action_constants import (
     ACTION_REDUCIR,
     ACTION_REFUERZO,
 )
+
+
+def build_integrity_strip(
+    integrity_report: pd.DataFrame,
+    generated_at_label: object,
+) -> str:
+    status = "ok"
+    n_checks = 0
+    n_warn = 0
+    if isinstance(integrity_report, pd.DataFrame) and not integrity_report.empty and "estado" in integrity_report.columns:
+        n_checks = len(integrity_report)
+        estados = integrity_report["estado"].str.upper()
+        n_warn = int(estados.isin({"WARN", "ERROR"}).sum())
+        if (estados == "ERROR").any():
+            status = "error"
+        elif n_warn > 0:
+            status = "warn"
+
+    status_label = {"ok": "OK", "warn": "WARN", "error": "ERROR"}[status]
+    time_part = str(generated_at_label or "")
+    if " " in time_part:
+        time_part = time_part.split(" ", 1)[1]
+    warn_part = (
+        f' &middot; <span class="integrity-warn-count">{n_warn} alerta{"s" if n_warn != 1 else ""}</span>'
+        if n_warn > 0
+        else ""
+    )
+    return (
+        f'<div class="integrity-strip integrity-{html.escape(status)}">'
+        f'<span class="integrity-dot"></span>'
+        f'<span>Integridad: <strong>{html.escape(status_label)}</strong>'
+        f" &middot; {n_checks} checks{warn_part}</span>"
+        f'<span class="integrity-time">{html.escape(time_part)}</span>'
+        f"</div>"
+    )
 
 
 def build_header_cards(
@@ -305,6 +341,7 @@ def build_report_body(
     title: str,
     headline: str,
     lede: str,
+    integrity_strip: str = "",
     quick_nav: str,
     primary_cards: str,
     secondary_cards: str,
@@ -343,6 +380,7 @@ def build_report_body(
       </div>
     </header>
 
+    {integrity_strip}
     {quick_nav}
 
     {primary_cards}

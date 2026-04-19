@@ -37,6 +37,7 @@ def render_report(
             title=title,
             headline=headline,
             lede=lede,
+            integrity_strip=sections.get("integrity_strip", ""),
             quick_nav=sections["quick_nav"],
             primary_cards=sections["primary_cards"],
             secondary_cards=sections["secondary_cards"],

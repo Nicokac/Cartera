@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import pandas as pd
 
 from report_primitives import (
@@ -19,6 +20,160 @@ from report_primitives import (
 )
 
 from decision.action_constants import ACTION_REDUCIR, ACTION_REFUERZO
+
+
+# ── Signal matrix helpers ──────────────────────────────────────────────────────
+
+_VOTE_KEYS = [
+    ("rsi", "RSI"),
+    ("momentum_20d", "m20"),
+    ("momentum_60d", "m60"),
+    ("sma_trend", "SMA"),
+    ("score_unificado", "Sc"),
+    ("market_regime", "Rg"),
+]
+
+
+def _parse_votes(value: object) -> dict[str, int]:
+    if isinstance(value, dict):
+        out: dict[str, int] = {}
+        for k, v in value.items():
+            try:
+                out[str(k)] = int(v)
+            except Exception:
+                out[str(k)] = 0
+        return out
+    if isinstance(value, str) and value and value != "-":
+        out = {}
+        for part in value.split("|"):
+            part = part.strip()
+            if ":" in part:
+                k, v = part.rsplit(":", 1)
+                try:
+                    out[k.strip()] = int(v.strip().replace("+", ""))
+                except ValueError:
+                    pass
+        return out
+    return {}
+
+
+def _sig_cell(vote: int) -> str:
+    if vote > 0:
+        return '<span class="sig sig-pos">+</span>'
+    if vote < 0:
+        return '<span class="sig sig-neg">\u2212</span>'
+    return '<span class="sig sig-neu">\u25cb</span>'
+
+
+def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
+    if not isinstance(predictions_view, pd.DataFrame) or predictions_view.empty:
+        return '<div class="empty">Sin datos para mostrar.</div>'
+
+    vote_headers = "".join(
+        f'<th class="sig-th" title="{html.escape(key)}">{html.escape(label)}</th>'
+        for key, label in _VOTE_KEYS
+    )
+    header = (
+        "<tr><th>ticker</th><th>dir</th><th>conf</th>"
+        + vote_headers
+        + "<th>accion</th><th>outcome</th></tr>"
+    )
+
+    rows_html: list[str] = []
+    for _, row in predictions_view.iterrows():
+        votes = _parse_votes(row.get("signal_votes"))
+        sig_cells = "".join(
+            f"<td>{_sig_cell(votes.get(key, 0))}</td>" for key, _ in _VOTE_KEYS
+        )
+        ticker = html.escape(str(row.get("ticker", "-")))
+        direction = html.escape(str(row.get("direction", "-")).strip().lower())
+        conf_raw = row.get("confidence")
+        conf_html = html.escape(fmt_pct(float(conf_raw) * 100.0)) if pd.notna(conf_raw) else "-"
+        accion = html.escape(str(row.get("accion_sugerida_v2", "-")))
+        outcome = html.escape(str(row.get("outcome_date", "-")))
+        rows_html.append(
+            f"<tr>"
+            f"<td><strong>{ticker}</strong></td>"
+            f"<td>{direction}</td>"
+            f"<td>{conf_html}</td>"
+            f"{sig_cells}"
+            f"<td>{accion}</td>"
+            f"<td>{outcome}</td>"
+            f"</tr>"
+        )
+
+    return (
+        '<div class="table-wrap">'
+        '<table class="signal-table">'
+        f"<thead>{header}</thead>"
+        f"<tbody>{''.join(rows_html)}</tbody>"
+        "</table></div>"
+    )
+
+
+# ── Allocation bar helpers ─────────────────────────────────────────────────────
+
+_TIPO_COLOR: dict[str, str] = {
+    "cedear": "#0f6c5c",
+    "liquidez": "#b07e0f",
+    "bono": "#5b6ead",
+    "accion-local": "#22895c",
+}
+_TIPO_COLOR_FALLBACKS = ["#8a9ba8", "#6c7a89", "#4e5f70", "#3d5166"]
+
+
+def _tipo_slug(tipo: str) -> str:
+    s = tipo.lower().strip()
+    for src, dst in [("á","a"),("é","e"),("í","i"),("ó","o"),("ú","u"),("ñ","n"),(" ","-")]:
+        s = s.replace(src, dst)
+    return "".join(c for c in s if c.isalnum() or c == "-")
+
+
+def build_allocation_bar(resumen_tipos: pd.DataFrame) -> str:
+    if not isinstance(resumen_tipos, pd.DataFrame) or resumen_tipos.empty:
+        return ""
+    if "Peso_%" not in resumen_tipos.columns or "Tipo" not in resumen_tipos.columns:
+        return ""
+
+    work = resumen_tipos[["Tipo", "Peso_%"]].dropna(subset=["Peso_%"]).copy()
+    total = float(work["Peso_%"].sum())
+    if total <= 0:
+        return ""
+
+    work = work.sort_values("Peso_%", ascending=False)
+    used: dict[str, str] = {}
+    fallback_idx = 0
+    segments: list[str] = []
+    legend: list[str] = []
+
+    for _, row in work.iterrows():
+        tipo = str(row["Tipo"])
+        slug = _tipo_slug(tipo)
+        peso = float(row["Peso_%"])
+        if slug not in used:
+            color = _TIPO_COLOR.get(slug, _TIPO_COLOR_FALLBACKS[fallback_idx % len(_TIPO_COLOR_FALLBACKS)])
+            if slug not in _TIPO_COLOR:
+                fallback_idx += 1
+            used[slug] = color
+        color = used[slug]
+        pct = peso / total * 100
+        segments.append(
+            f'<div class="alloc-seg" style="width:{pct:.2f}%;background:{color}" '
+            f'title="{html.escape(tipo)} {html.escape(fmt_pct(peso))}"></div>'
+        )
+        legend.append(
+            f'<span class="alloc-legend-item">'
+            f'<span class="alloc-dot" style="background:{color}"></span>'
+            f'{html.escape(tipo)} <strong>{html.escape(fmt_pct(peso))}</strong>'
+            f'</span>'
+        )
+
+    return (
+        '<div class="alloc-bar-wrap">'
+        f'<div class="alloc-bar">{"".join(segments)}</div>'
+        f'<div class="alloc-legend">{"".join(legend)}</div>'
+        '</div>'
+    )
 
 
 def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
@@ -124,15 +279,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
       </div>
       {build_collapsible(
           "Ver tabla completa de prediccion",
-          build_table(
-              predictions_view,
-              formatters={
-                  "confidence": lambda value: fmt_pct(float(value) * 100.0) if pd.notna(value) else "-",
-                  "consensus_raw": lambda value: "-" if pd.isna(value) else f"{float(value):+.3f}",
-                  "score_unificado": fmt_score,
-                  "signal_votes": _votes_label,
-              },
-          ),
+          build_prediction_signal_table(predictions_view),
           compact=True,
       )}
     </section>
@@ -272,6 +419,7 @@ def build_summary_section(
         <span>Finviz fundamentals: <strong>{finviz_fund_covered}/{finviz_total}</strong></span>
         <span>Finviz ratings: <strong>{finviz_ratings_covered}/{finviz_total}</strong></span>
       </div>
+      {build_allocation_bar(resumen_tipos)}
       {build_table(
           resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]],
           formatters={

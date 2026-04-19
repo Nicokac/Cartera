@@ -12,6 +12,7 @@ from report_layout import (
     build_decision_section,
     build_header_cards,
     build_integrity_section,
+    build_integrity_strip,
     build_panorama_section,
     build_portfolio_section,
     build_quick_nav,
@@ -283,6 +284,7 @@ def build_render_sections(
     )
     portfolio_section = time_section("portfolio", lambda: build_portfolio_section(context["df_total"]))
     integrity_section = time_section("integrity", lambda: build_integrity_section(context["integrity_report"]))
+    integrity_strip = build_integrity_strip(context["integrity_report"], context["generated_at_label"])
     return {
         "primary_cards": primary_cards,
         "secondary_cards": secondary_cards,
@@ -299,4 +301,5 @@ def build_render_sections(
         "decision_section": decision_section,
         "portfolio_section": portfolio_section,
         "integrity_section": integrity_section,
+        "integrity_strip": integrity_strip,
     }
