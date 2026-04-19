@@ -52,8 +52,15 @@ from decision.history import (
     save_decision_history,
     upsert_daily_decision_history,
 )
-from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
+from pipeline import (
+    build_dashboard_bundle,
+    build_decision_bundle,
+    build_portfolio_bundle,
+    build_prediction_bundle,
+    build_sizing_bundle,
+)
 from portfolio.operations import build_operations_bundle, enrich_operations_bundle
+from prediction.store import load_prediction_history, save_prediction_history, upsert_prediction_history
 from report_renderer import REPORTS_DIR, render_report
 
 
@@ -754,6 +761,18 @@ def main() -> None:
     )
     decision_bundle["decision_memory"] = build_temporal_memory_summary(decision_bundle["final_decision"])
     save_decision_history(history)
+    prediction_bundle = build_prediction_bundle(
+        final_decision=decision_bundle["final_decision"],
+        weights=project_config.PREDICTION_WEIGHTS,
+        run_date=run_date,
+        market_regime=decision_bundle.get("market_regime"),
+    )
+    prediction_history = upsert_prediction_history(
+        load_prediction_history(),
+        prediction_bundle.get("history_observation", pd.DataFrame()),
+    )
+    save_prediction_history(prediction_history)
+    prediction_bundle["history_size"] = int(len(prediction_history))
     sizing_bundle = build_sizing_bundle(
         final_decision=decision_bundle["final_decision"],
         mep_real=mep_real,
@@ -789,6 +808,7 @@ def main() -> None:
         "finviz_stats": finviz_stats,
         "bonistas_bundle": bonistas_bundle,
         "operations_bundle": operations_bundle,
+        "prediction_bundle": prediction_bundle,
     }
     render_started = time.perf_counter()
     html_body = render_report(

@@ -104,6 +104,7 @@ def _build_minimal_result(
         "finviz_stats": {},
         "bonistas_bundle": bonistas_bundle or {},
         "operations_bundle": {},
+        "prediction_bundle": {},
     }
 
 
@@ -218,6 +219,48 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Liquidez ampliada", html)
         self.assertIn("Vuelve a monitoreo desde reduccion", html)
         self.assertIn("Antes: Reducir. Ahora: Mantener / monitorear.", html)
+
+    def test_render_report_shows_prediction_section_when_bundle_has_data(self) -> None:
+        result = _build_minimal_result()
+        result["prediction_bundle"] = {
+            "summary": {"total": 2, "up": 1, "down": 1, "neutral": 0, "mean_confidence": 0.625},
+            "config": {"horizon_days": 5, "direction_threshold": 0.15},
+            "predictions": pd.DataFrame(
+                [
+                    {
+                        "ticker": "XLV",
+                        "direction": "up",
+                        "confidence": 0.75,
+                        "consensus_raw": 0.75,
+                        "score_unificado": 0.248,
+                        "accion_sugerida_v2": "Refuerzo",
+                        "outcome_date": "2026-04-24",
+                        "signal_votes": {"rsi": 1, "momentum_20d": 1, "sma_trend": 0},
+                    },
+                    {
+                        "ticker": "MELI",
+                        "direction": "down",
+                        "confidence": 0.50,
+                        "consensus_raw": -0.50,
+                        "score_unificado": -0.186,
+                        "accion_sugerida_v2": "Reducir",
+                        "outcome_date": "2026-04-24",
+                        "signal_votes": {"rsi": -1, "momentum_20d": 0, "sma_trend": -1},
+                    },
+                ]
+            ),
+        }
+
+        html = render_report(result)
+
+        self.assertIn('href="#prediccion"', html)
+        self.assertIn('<section class="panel" id="prediccion">', html)
+        self.assertIn("Ver tabla completa de prediccion", html)
+        self.assertIn("Confianza media", html)
+        self.assertIn("XLV", html)
+        self.assertIn("MELI", html)
+        self.assertIn("rsi:+1", html)
+        self.assertIn("sma_trend:-1", html)
 
     def test_render_report_shows_operations_section_when_bundle_has_data(self) -> None:
         result = _build_minimal_result()

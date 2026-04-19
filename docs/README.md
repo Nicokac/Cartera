@@ -31,6 +31,10 @@ Indice de la documentacion activa del proyecto.
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos
 - `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
+- el track de prediccion ya llego a Fase 6:
+  - integrado al pipeline experimental
+  - visible en el renderer HTML
+  - con runner propio de verificacion y recalibracion
 
 ## Historico
 

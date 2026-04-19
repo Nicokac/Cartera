@@ -19,7 +19,13 @@ from analytics.bond_analytics import (
     build_bond_subfamily_summary,
     enrich_bond_analytics,
 )
-from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
+from pipeline import (
+    build_dashboard_bundle,
+    build_decision_bundle,
+    build_portfolio_bundle,
+    build_prediction_bundle,
+    build_sizing_bundle,
+)
 from portfolio.operations import build_operations_bundle, enrich_operations_bundle
 from tests.smoke_fixtures import (
     build_mock_bonistas,
@@ -120,6 +126,12 @@ def run_smoke_pipeline() -> dict[str, object]:
             how="left",
         )
     final_decision = decision_bundle["final_decision"]
+    prediction_bundle = build_prediction_bundle(
+        final_decision=final_decision,
+        weights=project_config.PREDICTION_WEIGHTS,
+        run_date="2026-04-16",
+        market_regime=decision_bundle.get("market_regime"),
+    )
 
     sizing_bundle = build_sizing_bundle(
         final_decision=final_decision,
@@ -147,6 +159,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         "dashboard_bundle": dashboard_bundle,
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
+        "prediction_bundle": prediction_bundle,
         "finviz_stats": finviz_stats,
         "operations_bundle": operations_bundle,
         "bonistas_bundle": {

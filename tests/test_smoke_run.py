@@ -27,6 +27,7 @@ class SmokeRunTests(unittest.TestCase):
         output = buffer.getvalue()
         self.assertIn("Smoke Run", output)
         self.assertIn("Dashboard", output)
+        self.assertIn("Prediccion", output)
         self.assertIn("Operaciones", output)
 
 

@@ -16,7 +16,8 @@ El repo esta en una etapa operativa estable:
 - renderer HTML modularizado en `report_primitives`, `report_operations` y `report_renderer`
 - flujo de operaciones reales integrado al reporte
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
-- CI basada en `unittest` con `27` suites declaradas en `.github/workflows/ci.yml`
+- capa experimental de prediccion direccional integrada al smoke y al real run
+- CI basada en `unittest` con `32` suites declaradas en `.github/workflows/ci.yml`
 
 Resumen funcional vigente:
 
@@ -165,3 +166,11 @@ Estado actual del track:
 - Fase 3 cerrada: predictor heuristico en `src/prediction/predictor.py`
 - Fase 4 cerrada: verificador de outcomes en `src/prediction/verifier.py`
 - Fase 5 cerrada: calibracion de pesos en `src/prediction/calibration.py`
+- Fase 6 cerrada: integracion experimental al pipeline, renderer y runner `scripts/run_prediction_cycle.py`
+
+Comandos utiles del track:
+
+```powershell
+python -m unittest tests.test_prediction_store tests.test_prediction_predictor tests.test_prediction_verifier tests.test_prediction_calibration tests.test_prediction_cycle -v
+python scripts\run_prediction_cycle.py
+```

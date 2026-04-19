@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
+Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
 ## Capacidades activas
 
@@ -13,6 +13,7 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
 - memoria temporal diaria entre corridas
 - reporte HTML comun para smoke y real run
 - lectura operativa de operaciones recientes y transiciones de posicion
+- capa experimental de prediccion direccional con historial, verificacion y recalibracion
 
 ## Estado tecnico vigente
 
@@ -83,7 +84,7 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
 - seguir fragmentando `render_report()` para bajar complejidad del renderer principal
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
 
-## Frentes preparados pero no activos
+## Capa experimental integrada
 
 - motor de prediccion direccional auditada:
   - Fase 1 completada: store y trazabilidad documental
@@ -91,8 +92,9 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
   - Fase 3 completada: predictor puro por consenso ponderado en `src/prediction/predictor.py`
   - Fase 4 completada: verificador de outcomes en `src/prediction/verifier.py`
   - Fase 5 completada: calibracion de pesos en `src/prediction/calibration.py`
-  - todavia no forma parte de la baseline funcional del pipeline
-  - se va a implementar como capa separada del scoring y sizing actuales
+  - Fase 6 completada: integracion experimental al pipeline, renderer y runner de mantenimiento
+  - ya forma parte del smoke y del real run como capa observacional
+  - sigue separada del scoring y sizing operativos
   - su arquitectura y trazabilidad viven en:
     - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
     - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)

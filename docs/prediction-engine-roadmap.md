@@ -8,8 +8,8 @@ Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion 
 
 ## Estado actual
 
-- estado: `planificado`
-- baseline funcional: el motor todavia no forma parte del pipeline productivo
+- estado: `fase 6 completada`
+- baseline funcional: el motor ya forma parte del pipeline experimental y del renderer
 - dependencias nuevas: `ninguna`
 - acoplamiento permitido: solo por integracion con `pipeline.py`, `market_data` y el renderer cuando la fase de exposicion llegue
 
@@ -323,7 +323,7 @@ No recalibrar con menos de `30` outcomes utiles salvo que se documente una excep
 
 ### Fase 6. Integracion al pipeline y al reporte
 
-**Estado:** `pendiente`
+**Estado:** `completada`
 
 **Objetivo**
 
@@ -334,6 +334,21 @@ Integrar el motor como capa experimental visible, sin alterar el motor de decisi
 - `src/pipeline.py`
 - `scripts/report_renderer.py`
 - `scripts/run_prediction_cycle.py`
+
+**Archivos implementados**
+
+- `src/pipeline.py`
+- `src/__init__.py`
+- `scripts/generate_real_report.py`
+- `scripts/smoke_run.py`
+- `scripts/smoke_output.py`
+- `scripts/report_renderer.py`
+- `scripts/run_prediction_cycle.py`
+- `tests/test_pipeline.py`
+- `tests/test_smoke_run.py`
+- `tests/test_smoke_output.py`
+- `tests/test_report_render.py`
+- `tests/test_prediction_cycle.py`
 
 **Reglas**
 
@@ -349,6 +364,24 @@ Integrar el motor como capa experimental visible, sin alterar el motor de decisi
 
 - la corrida genera predicciones persistidas
 - el reporte puede mostrarlas sin romper el flujo actual
+
+**Estado de salida**
+
+- `build_prediction_bundle(...)` queda integrado al pipeline canonico
+- `generate_real_report.py` ya:
+  - construye el bundle de prediccion
+  - persiste observaciones en `prediction_history.csv`
+  - expone la seccion `Prediccion` en el HTML
+- `smoke_run.py` y `smoke_output.py` incluyen la capa experimental para validar el flujo sin APIs reales
+- `report_renderer.py` agrega:
+  - navegacion condicional a `Prediccion`
+  - resumen ejecutivo de predicciones
+  - tabla colapsable con direccion, confianza, score y votos por senal
+- `scripts/run_prediction_cycle.py` ejecuta el ciclo de mantenimiento:
+  - carga historial
+  - verifica outcomes vencidos
+  - recalibra pesos
+  - persiste historial y pesos
 
 ## Riesgos principales
 

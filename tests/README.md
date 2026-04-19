@@ -24,6 +24,7 @@ python -m unittest tests.test_prediction_store -v
 python -m unittest tests.test_prediction_predictor -v
 python -m unittest tests.test_prediction_verifier -v
 python -m unittest tests.test_prediction_calibration -v
+python -m unittest tests.test_prediction_cycle -v
 python -m unittest tests.test_operations -v
 python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
@@ -52,6 +53,7 @@ python -m unittest tests.test_generate_real_report -v
   - `tests.test_prediction_predictor`
   - `tests.test_prediction_verifier`
   - `tests.test_prediction_calibration`
+  - `tests.test_prediction_cycle`
   - `tests.test_operations`
   - `tests.test_report_primitives`
   - `tests.test_report_operations`
@@ -79,6 +81,7 @@ python -m unittest tests.test_generate_real_report -v
 - predictor base del motor de prediccion direccional
 - verificacion base del motor de prediccion direccional
 - calibracion base del motor de prediccion direccional
+- runner de mantenimiento del motor de prediccion direccional
 - operaciones y snapshots
 - render HTML
 - clientes principales y secundarios

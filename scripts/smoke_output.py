@@ -15,6 +15,7 @@ def render_smoke_output(result: dict[str, object]) -> None:
     decision_bundle = result["decision_bundle"]
     sizing_bundle = result["sizing_bundle"]
     operations_bundle = result["operations_bundle"]
+    prediction_bundle = result.get("prediction_bundle", {}) or {}
 
     df_total = portfolio_bundle["df_total"]
     final_decision = decision_bundle["final_decision"]
@@ -46,6 +47,16 @@ def render_smoke_output(result: dict[str, object]) -> None:
     else:
         sizing_cols = ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"]
         print(asignacion[sizing_cols].to_string(index=False))
+
+    print_section("Prediccion")
+    prediction_summary = prediction_bundle.get("summary", {}) or {}
+    print(pd.Series(prediction_summary).to_string())
+    predictions = prediction_bundle.get("predictions", pd.DataFrame())
+    if isinstance(predictions, pd.DataFrame) and not predictions.empty:
+        prediction_cols = ["ticker", "direction", "confidence", "consensus_raw", "outcome_date"]
+        print(predictions[prediction_cols].head(10).to_string(index=False))
+    else:
+        print("Sin predicciones generadas.")
 
     print_section("Operaciones")
     print(f"Snapshot previo: {operations_bundle.get('previous_snapshot_date')}")

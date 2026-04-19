@@ -37,7 +37,41 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 3 - Predictor | completada | 2026-04-19 |
 | Fase 4 - Verificador | completada | 2026-04-19 |
 | Fase 5 - Calibracion | completada | 2026-04-19 |
-| Fase 6 - Integracion y reporte | pendiente | 2026-04-19 |
+| Fase 6 - Integracion y reporte | completada | 2026-04-19 |
+
+## 2026-04-19 - Fase 6 - completada
+
+- commit: pendiente
+- alcance:
+  - el motor entra al pipeline experimental de smoke y real run
+  - el reporte HTML incorpora una seccion propia de prediccion
+  - se agrega un runner de mantenimiento para verificacion y recalibracion
+- decisiones:
+  - la prediccion sigue desacoplada de scoring y sizing; solo se expone como capa observacional
+  - el reporte oculta la navegacion y la seccion si no hay predicciones disponibles
+  - el real run persiste observaciones nuevas en `prediction_history.csv` al cerrar la corrida
+  - el runner separado se limita a mantenimiento historico: verificar outcomes y recalibrar pesos
+- archivos:
+  - `src/pipeline.py`
+  - `src/__init__.py`
+  - `scripts/generate_real_report.py`
+  - `scripts/smoke_run.py`
+  - `scripts/smoke_output.py`
+  - `scripts/report_renderer.py`
+  - `scripts/run_prediction_cycle.py`
+  - `tests/test_pipeline.py`
+  - `tests/test_smoke_run.py`
+  - `tests/test_smoke_output.py`
+  - `tests/test_report_render.py`
+  - `tests/test_prediction_cycle.py`
+- tests:
+  - export de `build_prediction_bundle`
+  - integracion de `prediction_bundle` en smoke
+  - presencia de la seccion `Prediccion` en renderer
+  - runner de mantenimiento de predicciones
+- deuda / notas:
+  - la siguiente iteracion puede sumar metricas agregadas de acierto historico al HTML
+  - todavia no se usa la prediccion como input operativo para acciones ni sizing
 
 ## 2026-04-19 - Fase 5 - completada
 

@@ -315,6 +315,98 @@ def build_bond_summary(
     """
 
 
+def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
+    predictions = prediction_bundle.get("predictions", pd.DataFrame())
+    if not isinstance(predictions, pd.DataFrame) or predictions.empty:
+        return ""
+
+    work = predictions.copy()
+    summary = prediction_bundle.get("summary", {}) or {}
+    config = prediction_bundle.get("config", {}) or {}
+
+    def _votes_label(value: object) -> str:
+        votes = value if isinstance(value, dict) else {}
+        parts = []
+        for signal_name, vote in votes.items():
+            try:
+                numeric_vote = int(vote)
+            except Exception:
+                numeric_vote = 0
+            sign = f"+{numeric_vote}" if numeric_vote > 0 else str(numeric_vote)
+            parts.append(f"{signal_name}:{sign}")
+        return " | ".join(parts) if parts else "-"
+
+    def _focus_items(source: pd.DataFrame, *, tone: str) -> str:
+        items: list[dict[str, str]] = []
+        for _, row in source.head(3).iterrows():
+            items.append(
+                {
+                    "kicker": str(row.get("ticker", "-")),
+                    "title": f"Confianza {fmt_pct(float(row.get('confidence', 0.0)) * 100.0)}",
+                    "detail": truncate_text(_votes_label(row.get("signal_votes")), 180),
+                    "badge": str(row.get("direction", "")).upper(),
+                }
+            )
+        return build_focus_list(items, empty_message="Sin nombres para mostrar.", tone=tone)
+
+    bullish = work.loc[work["direction"].astype(str) == "up"].sort_values("confidence", ascending=False)
+    bearish = work.loc[work["direction"].astype(str) == "down"].sort_values("confidence", ascending=False)
+    neutral = work.loc[work["direction"].astype(str) == "neutral"].sort_values("confidence", ascending=False)
+    predictions_view = ensure_table_columns(
+        work,
+        [
+            "ticker",
+            "direction",
+            "confidence",
+            "consensus_raw",
+            "score_unificado",
+            "accion_sugerida_v2",
+            "outcome_date",
+            "signal_votes",
+        ],
+    )
+    return f"""
+    <section class="panel" id="prediccion">
+      <h2>Prediccion</h2>
+      <div class="meta">
+        <span>Total: <strong>{int(summary.get('total', len(work)))}</strong></span>
+        <span>Suba: <strong>{int(summary.get('up', 0))}</strong></span>
+        <span>Baja: <strong>{int(summary.get('down', 0))}</strong></span>
+        <span>Neutral: <strong>{int(summary.get('neutral', 0))}</strong></span>
+        <span>Confianza media: <strong>{fmt_pct(float(summary.get('mean_confidence', 0.0)) * 100.0)}</strong></span>
+        <span>Horizonte: <strong>{safe_int(config.get('horizon_days'))} ruedas</strong></span>
+      </div>
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Señales alcistas</h3>
+          {_focus_items(bullish, tone='buy')}
+        </div>
+        <div>
+          <h3>Señales bajistas</h3>
+          {_focus_items(bearish, tone='sell')}
+        </div>
+        <div>
+          <h3>Zona neutral</h3>
+          {_focus_items(neutral, tone='neutral')}
+        </div>
+      </div>
+      {build_collapsible(
+          "Ver tabla completa de prediccion",
+          build_table(
+              predictions_view,
+              formatters={
+                  "confidence": lambda value: fmt_pct(float(value) * 100.0) if pd.notna(value) else "-",
+                  "consensus_raw": lambda value: "-" if pd.isna(value) else f"{float(value):+.3f}",
+                  "score_unificado": fmt_score,
+                  "signal_votes": _votes_label,
+              },
+          ),
+          compact=True,
+      )}
+    </section>
+    """
+
+
 def build_summary_section(
     *,
     kpis: dict[str, object],
@@ -528,14 +620,16 @@ def build_changes_section(
     """
 
 
-def build_quick_nav(*, show_bonistas: bool, show_operations: bool) -> str:
+def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
     bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
     operations_nav = '<a href="#operaciones">Operaciones</a>' if show_operations else ""
+    prediction_nav = '<a href="#prediccion">Prediccion</a>' if show_prediction else ""
     return f"""
     <nav class="quick-nav">
       <a href="#panorama">Panorama</a>
       <a href="#cambios">Cambios</a>
       {operations_nav}
+      {prediction_nav}
       <a href="#decision">Decision</a>
       <a href="#sizing">Sizing</a>
       <a href="#regimen">Regimen</a>
@@ -560,6 +654,7 @@ def build_report_body(
     panorama_section: str,
     changes_section: str,
     operations_section: str,
+    prediction_section: str,
     regime_summary: str,
     summary_section: str,
     sizing_section: str,
@@ -598,6 +693,7 @@ def build_report_body(
     {panorama_section}
     {changes_section}
     {operations_section}
+    {prediction_section}
     {regime_summary}
 
     <section class="grid">
@@ -995,6 +1091,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     finviz_stats = result.get("finviz_stats", {}) or {}
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
     operations_bundle = result.get("operations_bundle", {}) or {}
+    prediction_bundle = result.get("prediction_bundle", {}) or {}
     decision_memory = decision_bundle.get("decision_memory", {}) or {}
     market_regime = decision_bundle.get("market_regime", {}) or {}
 
@@ -1064,6 +1161,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         "operations_bundle": operations_bundle,
         "decision_memory": decision_memory,
         "market_regime": market_regime,
+        "prediction_bundle": prediction_bundle,
         "df_total": df_total,
         "current_tickers": current_tickers,
         "integrity_report": integrity_report,
@@ -1169,6 +1267,7 @@ def build_render_sections(
         lambda: build_quick_nav(
             show_bonistas=bool(context["show_bonistas"]),
             show_operations=bool(context["operations_bundle"]),
+            show_prediction=bool(context["prediction_bundle"]) and not context["prediction_bundle"].get("predictions", pd.DataFrame()).empty,
         ),
     )
     operations_section = time_section(
@@ -1182,6 +1281,10 @@ def build_render_sections(
             if context["operations_bundle"]
             else ""
         ),
+    )
+    prediction_section = time_section(
+        "prediction",
+        lambda: build_prediction_section(context["prediction_bundle"]),
     )
     summary_section = time_section(
         "summary",
@@ -1218,6 +1321,7 @@ def build_render_sections(
         "bonistas_section": bonistas_section,
         "quick_nav": quick_nav,
         "operations_section": operations_section,
+        "prediction_section": prediction_section,
         "summary_section": summary_section,
         "sizing_section": sizing_section,
         "decision_section": decision_section,
@@ -1257,6 +1361,7 @@ def render_report(
             panorama_section=sections["panorama_section"],
             changes_section=sections["changes_section"],
             operations_section=sections["operations_section"],
+            prediction_section=sections["prediction_section"],
             regime_summary=sections["regime_summary"],
             summary_section=sections["summary_section"],
             sizing_section=sections["sizing_section"],

@@ -20,6 +20,8 @@ try:
     from .portfolio.classify import classify_iol_portfolio
     from .portfolio.liquidity import rebuild_liquidity
     from .portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+    from .prediction.predictor import predict
+    from .prediction.store import build_prediction_observation, resolve_prediction_outcome_date
 except ImportError:
     from analytics.dashboard import build_executive_dashboard_data
     from decision.actions import assign_action_v2, assign_base_action, enrich_decision_explanations
@@ -36,6 +38,8 @@ except ImportError:
     from portfolio.classify import classify_iol_portfolio
     from portfolio.liquidity import rebuild_liquidity
     from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+    from prediction.predictor import predict
+    from prediction.store import build_prediction_observation, resolve_prediction_outcome_date
 
 
 def build_portfolio_bundle(
@@ -201,4 +205,122 @@ def build_sizing_bundle(
         **operational_bundle,
         "candidatos_refuerzo": candidatos_refuerzo,
         "asignacion_final": asignacion_final,
+    }
+
+
+def build_prediction_bundle(
+    *,
+    final_decision: pd.DataFrame,
+    weights: dict[str, Any] | None,
+    run_date: object,
+    market_regime: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    weights = dict(weights or {})
+    horizon_days = int(weights.get("horizon_days", 0) or 0)
+    direction_threshold = float(weights.get("direction_threshold", 0.15) or 0.15)
+    market_regime = dict(market_regime or {})
+
+    if final_decision.empty:
+        empty_predictions = pd.DataFrame(
+            columns=[
+                "ticker",
+                "direction",
+                "confidence",
+                "consensus_raw",
+                "signal_votes",
+                "horizon_days",
+                "outcome_date",
+                "asset_family",
+                "asset_subfamily",
+                "accion_sugerida_v2",
+                "score_unificado",
+            ]
+        )
+        return {
+            "predictions": empty_predictions,
+            "history_observation": build_prediction_observation(
+                empty_predictions,
+                run_date=run_date,
+                horizon_days=horizon_days,
+            ),
+            "summary": {
+                "total": 0,
+                "up": 0,
+                "down": 0,
+                "neutral": 0,
+                "mean_confidence": 0.0,
+            },
+            "config": {
+                "horizon_days": horizon_days,
+                "direction_threshold": direction_threshold,
+            },
+        }
+
+    active_flags = market_regime.get("active_flags", []) or []
+    active_flags_text = ",".join(str(flag).strip() for flag in active_flags if str(flag).strip())
+    any_active = bool(market_regime.get("any_active", False))
+    rows: list[dict[str, Any]] = []
+
+    for row in final_decision.to_dict(orient="records"):
+        ticker = str(row.get("Ticker_IOL") or "").strip().upper()
+        if not ticker:
+            continue
+        if str(row.get("asset_family") or "").strip().lower() == "liquidity":
+            continue
+
+        predictor_row = dict(row)
+        regime_any_active = predictor_row.get("market_regime_any_active")
+        if regime_any_active is None or pd.isna(regime_any_active):
+            predictor_row["market_regime_any_active"] = any_active
+        if not str(predictor_row.get("market_regime_active_flags") or "").strip():
+            predictor_row["market_regime_active_flags"] = active_flags_text
+        prediction = predict(predictor_row, weights)
+        rows.append(
+            {
+                "ticker": ticker,
+                "direction": prediction["direction"],
+                "confidence": prediction["confidence"],
+                "consensus_raw": prediction["consensus_raw"],
+                "signal_votes": prediction["votes"],
+                "horizon_days": horizon_days,
+                "outcome_date": resolve_prediction_outcome_date(run_date, horizon_days=horizon_days),
+                "asset_family": row.get("asset_family"),
+                "asset_subfamily": row.get("asset_subfamily"),
+                "accion_sugerida_v2": row.get("accion_sugerida_v2"),
+                "score_unificado": row.get("score_unificado"),
+            }
+        )
+
+    predictions = pd.DataFrame(rows)
+    if not predictions.empty:
+        predictions = predictions.sort_values(
+            ["confidence", "consensus_raw", "ticker"],
+            ascending=[False, False, True],
+        ).reset_index(drop=True)
+
+    history_observation = build_prediction_observation(
+        predictions,
+        run_date=run_date,
+        horizon_days=horizon_days,
+    )
+    direction_counts = predictions.get("direction", pd.Series(dtype=object)).value_counts()
+    mean_confidence = (
+        float(pd.to_numeric(predictions.get("confidence"), errors="coerce").fillna(0.0).mean())
+        if not predictions.empty
+        else 0.0
+    )
+    return {
+        "predictions": predictions,
+        "history_observation": history_observation,
+        "summary": {
+            "total": int(len(predictions)),
+            "up": int(direction_counts.get("up", 0)),
+            "down": int(direction_counts.get("down", 0)),
+            "neutral": int(direction_counts.get("neutral", 0)),
+            "mean_confidence": round(mean_confidence, 6),
+        },
+        "config": {
+            "horizon_days": horizon_days,
+            "direction_threshold": direction_threshold,
+        },
     }

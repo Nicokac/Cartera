@@ -28,6 +28,7 @@ class SmokeOutputTests(unittest.TestCase):
         self.assertIn("Smoke Run", output)
         self.assertIn("Integridad", output)
         self.assertIn("Sizing", output)
+        self.assertIn("Prediccion", output)
         self.assertIn("Operaciones", output)
 
 
