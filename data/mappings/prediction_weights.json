@@ -56,7 +56,14 @@
           "stress_soberano_local",
           "tasas_ust_altas"
         ],
-        "bullish_when_no_flags": true
+        "bullish_when_no_flags": true,
+        "flag_effects": {
+          "inflacion_local_alta": {
+            "bond_cer": 0,
+            "stock_argentina": -1,
+            "default": 0
+          }
+        }
       }
     }
   }

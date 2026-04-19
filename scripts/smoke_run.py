@@ -49,6 +49,7 @@ def run_smoke_pipeline() -> dict[str, object]:
         mep_real=mep_real,
         finviz_map=project_config.FINVIZ_MAP,
         block_map=project_config.BLOCK_MAP,
+        argentina_equity_map=project_config.ARGENTINA_EQUITY_MAP,
         instrument_profile_map=project_config.INSTRUMENT_PROFILE_MAP,
         vn_factor_map=project_config.VN_FACTOR_MAP,
         ratios=project_config.RATIOS,

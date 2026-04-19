@@ -145,6 +145,19 @@ class StrategyRulesTests(unittest.TestCase):
                     "score_reduccion_v2": 0.10,
                     "score_despliegue_liquidez": 0.60,
                 },
+                {
+                    "Ticker_IOL": "PAMP",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Tipo": "AcciÃ³n Local",
+                    "Bloque": "Argentina",
+                    "Peso_%": 1.0,
+                    "Valorizado_ARS": 1000.0,
+                    "Valor_USD": 1.0,
+                    "Ganancia_ARS": 50.0,
+                    "Cantidad_Real": 1.0,
+                    "PPC_ARS": 950.0,
+                },
             ]
         )
 

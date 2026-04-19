@@ -44,7 +44,10 @@ class ConfigTests(unittest.TestCase):
         mappings = project_config.load_portfolio_mappings()
 
         self.assertIn("PREDICTION_WEIGHTS", mappings)
+        self.assertIn("ARGENTINA_EQUITY_MAP", mappings)
         self.assertIsInstance(mappings["PREDICTION_WEIGHTS"], dict)
+        self.assertIsInstance(mappings["ARGENTINA_EQUITY_MAP"], dict)
         self.assertEqual(mappings["PREDICTION_WEIGHTS"]["horizon_days"], 5)
+        self.assertEqual(mappings["ARGENTINA_EQUITY_MAP"]["PAMP"]["asset_subfamily"], "stock_argentina")
         self.assertIn("signals", mappings["PREDICTION_WEIGHTS"])
         self.assertIn("rsi", mappings["PREDICTION_WEIGHTS"]["signals"])

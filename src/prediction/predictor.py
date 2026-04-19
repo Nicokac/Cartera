@@ -26,6 +26,10 @@ def _normalize_text(value: object) -> str:
     return str(value or "").strip()
 
 
+def _normalize_key(value: object) -> str:
+    return _normalize_text(value).lower()
+
+
 def _extract_flags(row: dict[str, Any]) -> set[str]:
     raw = row.get("market_regime_active_flags")
     if raw is None or (isinstance(raw, float) and pd.isna(raw)):
@@ -36,6 +40,30 @@ def _extract_flags(row: dict[str, Any]) -> set[str]:
     if not text:
         return set()
     return {part.strip() for part in text.split(",") if part.strip()}
+
+
+def _resolve_regime_target_keys(row: dict[str, Any]) -> list[str]:
+    keys: list[str] = []
+    asset_subfamily = _normalize_key(row.get("asset_subfamily"))
+    asset_family = _normalize_key(row.get("asset_family"))
+    if asset_subfamily:
+        keys.append(asset_subfamily)
+    if asset_family and asset_family not in keys:
+        keys.append(asset_family)
+    keys.append("default")
+    return keys
+
+
+def _coerce_vote(value: object) -> int:
+    try:
+        numeric = int(value)
+    except Exception:
+        return 0
+    if numeric > 0:
+        return 1
+    if numeric < 0:
+        return -1
+    return 0
 
 
 def _vote_rsi(value: object, rules: dict[str, Any]) -> int:
@@ -93,6 +121,22 @@ def _vote_market_regime(row: dict[str, Any], rules: dict[str, Any]) -> int:
     bearish_flags = {str(item).strip() for item in rules.get("bearish_flags", [])}
     if active_flags & bearish_flags:
         return -1
+
+    flag_effects = rules.get("flag_effects", {}) or {}
+    regime_target_keys = _resolve_regime_target_keys(row)
+    contextual_votes: list[int] = []
+    for flag in active_flags:
+        effect_map = flag_effects.get(flag, {}) or {}
+        for target_key in regime_target_keys:
+            if target_key in effect_map:
+                contextual_votes.append(_coerce_vote(effect_map.get(target_key)))
+                break
+
+    if any(vote < 0 for vote in contextual_votes):
+        return -1
+    if any(vote > 0 for vote in contextual_votes):
+        return 1
+
     bullish_when_no_flags = bool(rules.get("bullish_when_no_flags", False))
     any_active = bool(row.get("market_regime_any_active", False))
     if bullish_when_no_flags and not any_active and not active_flags:

@@ -12,6 +12,7 @@ def classify_iol_portfolio(
     *,
     finviz_map: dict[str, str],
     block_map: dict[str, str],
+    argentina_equity_map: dict[str, dict[str, Any]] | None,
     vn_factor_map: dict[str, float | int],
 ) -> dict[str, list[tuple]]:
     portafolio: list[tuple] = []
@@ -43,6 +44,8 @@ def classify_iol_portfolio(
             continue
 
         if tipo_norm in {"ACCIONES", "ACCION"}:
+            if bloque == "Sin clasificar" and argentina_equity_map and simbolo in argentina_equity_map:
+                bloque = str((argentina_equity_map.get(simbolo) or {}).get("block") or "Argentina")
             acciones_locales.append((simbolo, simbolo, bloque, cantidad, ppc))
             continue
 

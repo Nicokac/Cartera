@@ -331,7 +331,9 @@ def build_focus_list(
         title = html.escape(item.get("title", ""))
         detail = html.escape(item.get("detail", ""))
         badge = item.get("badge")
-        badge_html = f'<span class="{badge_class(badge)}">{html.escape(str(badge))}</span>' if badge else ""
+        explicit_badge_class = item.get("badge_class")
+        badge_css_class = str(explicit_badge_class or badge_class(badge))
+        badge_html = f'<span class="{badge_css_class}">{html.escape(str(badge))}</span>' if badge else ""
         rows.append(
             '<article class="focus-item">'
             f'<div class="focus-top"><strong>{kicker}</strong>{badge_html}</div>'

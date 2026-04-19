@@ -79,6 +79,7 @@ class ClassifyPortfolioTests(unittest.TestCase):
             activos,
             finviz_map={"AAPL": "AAPL"},
             block_map={"AAPL": "Tecnologia", "GGAL": "Finanzas", "GD30": "Bonos"},
+            argentina_equity_map={},
             vn_factor_map={"GD30": 100},
         )
 
@@ -109,10 +110,37 @@ class ClassifyPortfolioTests(unittest.TestCase):
             activos,
             finviz_map={},
             block_map={},
+            argentina_equity_map={},
             vn_factor_map={},
         )
 
         self.assertEqual(result["PORTAFOLIO"], [("NEWC", None, "Sin clasificar", 10.0, 1000.0)])
+
+    def test_classify_iol_portfolio_uses_argentina_equity_catalog_for_local_stocks_without_block(self) -> None:
+        activos = [
+            {
+                "cantidad": 42,
+                "ppc": 4800,
+                "valorizado": 201600,
+                "gananciaDinero": -4200,
+                "titulo": {
+                    "simbolo": "PAMP",
+                    "descripcion": "Pampa Energia",
+                    "tipo": "ACCIONES",
+                    "moneda": "Pesos",
+                },
+            }
+        ]
+
+        result = classify_iol_portfolio(
+            activos,
+            finviz_map={},
+            block_map={},
+            argentina_equity_map={"PAMP": {"block": "Argentina"}},
+            vn_factor_map={},
+        )
+
+        self.assertEqual(result["ACCIONES_LOCALES"], [("PAMP", "PAMP", "Argentina", 42.0, 4800.0)])
 
 
 if __name__ == "__main__":

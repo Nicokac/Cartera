@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import pandas as pd
@@ -42,6 +43,9 @@ except ImportError:
     from prediction.store import build_prediction_observation, resolve_prediction_outcome_date
 
 
+logger = logging.getLogger(__name__)
+
+
 def build_portfolio_bundle(
     *,
     activos: list[dict[str, Any]],
@@ -50,6 +54,7 @@ def build_portfolio_bundle(
     mep_real: float | None,
     finviz_map: dict[str, str],
     block_map: dict[str, str],
+    argentina_equity_map: dict[str, dict[str, Any]],
     instrument_profile_map: dict[str, dict[str, Any]],
     vn_factor_map: dict[str, float | int],
     ratios: dict[str, float | int],
@@ -59,6 +64,7 @@ def build_portfolio_bundle(
         activos,
         finviz_map=finviz_map,
         block_map=block_map,
+        argentina_equity_map=argentina_equity_map,
         vn_factor_map=vn_factor_map,
     )
     df_liquidez, liquidity_contract, liquidez_rows = rebuild_liquidity(
@@ -81,6 +87,16 @@ def build_portfolio_bundle(
     df_local = build_local_df(clasificado["ACCIONES_LOCALES"], precios_iol)
     df_bonos = build_bonos_df(clasificado["BONOS"], precios_iol)
     df_total = build_portfolio_master(df_cedears, df_local, df_bonos, df_liquidez, mep_real=mep_real)
+    portfolio_liquidity_count = len(clasificado["LIQUIDEZ"])
+    rendered_liquidity_count = 0 if df_liquidez is None else len(df_liquidez)
+    synthetic_liquidity_count = max(0, rendered_liquidity_count - portfolio_liquidity_count)
+    logger.info(
+        "Portfolio liquidity reconciliation: portfolio=%s synthetic_cash=%s rendered=%s cash_operativo_ars=%s",
+        portfolio_liquidity_count,
+        synthetic_liquidity_count,
+        rendered_liquidity_count,
+        liquidity_contract.get("cash_operativo_ars") if liquidity_contract else None,
+    )
     integrity_report, integrity_summary = build_integrity_report(df_total) if not df_total.empty else (
         pd.DataFrame(),
         {},

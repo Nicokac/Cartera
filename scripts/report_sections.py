@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 
 from report_primitives import (
+    badge_class,
     build_collapsible,
     build_focus_list,
     build_table,
@@ -39,15 +40,25 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
             parts.append(f"{signal_name}:{sign}")
         return " | ".join(parts) if parts else "-"
 
+    def _direction_badge(direction: object) -> str:
+        direction_text = str(direction or "").strip().lower()
+        if direction_text == "up":
+            return "Refuerzo"
+        if direction_text == "down":
+            return "Reducir"
+        return "Mantener / Neutral"
+
     def _focus_items(source: pd.DataFrame, *, tone: str) -> str:
         items: list[dict[str, str]] = []
         for _, row in source.head(3).iterrows():
+            direction_label = str(row.get("direction", "")).upper()
             items.append(
                 {
                     "kicker": str(row.get("ticker", "-")),
                     "title": f"Confianza {fmt_pct(float(row.get('confidence', 0.0)) * 100.0)}",
                     "detail": truncate_text(_votes_label(row.get("signal_votes")), 180),
-                    "badge": str(row.get("direction", "")).upper(),
+                    "badge": direction_label,
+                    "badge_class": badge_class(_direction_badge(row.get("direction"))),
                 }
             )
         return build_focus_list(items, empty_message="Sin nombres para mostrar.", tone=tone)
@@ -78,6 +89,9 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <span>Neutral: <strong>{int(summary.get('neutral', 0))}</strong></span>
         <span>Confianza media: <strong>{fmt_pct(float(summary.get('mean_confidence', 0.0)) * 100.0)}</strong></span>
         <span>Horizonte: <strong>{safe_int(config.get('horizon_days'))} ruedas</strong></span>
+      </div>
+      <div class="meta">
+        <span>La prediccion direccional combina señales tecnicas, <strong>score_unificado</strong> y regimen; puede diferir de la decision final, que pondera ademas criterios de cartera y sizing.</span>
       </div>
       <div class="focus-columns focus-columns-wide">
         <div>

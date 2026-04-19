@@ -127,6 +127,39 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(vote_signal("score_unificado", {"score_unificado": -0.14}, signal_cfg), -1)
         self.assertEqual(vote_signal("score_unificado", {"score_unificado": 0.03}, signal_cfg), 0)
 
+    def test_market_regime_inflacion_local_alta_keeps_bond_cer_non_bearish(self) -> None:
+        signal_cfg = self.weights["signals"]["market_regime"]
+        row = {
+            "asset_family": "bond",
+            "asset_subfamily": "bond_cer",
+            "market_regime_any_active": True,
+            "market_regime_active_flags": "inflacion_local_alta",
+        }
+
+        self.assertEqual(vote_signal("market_regime", row, signal_cfg), 0)
+
+    def test_market_regime_inflacion_local_alta_penalizes_stock_argentina(self) -> None:
+        signal_cfg = self.weights["signals"]["market_regime"]
+        row = {
+            "asset_family": "stock",
+            "asset_subfamily": "stock_argentina",
+            "market_regime_any_active": True,
+            "market_regime_active_flags": "inflacion_local_alta",
+        }
+
+        self.assertEqual(vote_signal("market_regime", row, signal_cfg), -1)
+
+    def test_market_regime_inflacion_local_alta_keeps_stock_growth_neutral(self) -> None:
+        signal_cfg = self.weights["signals"]["market_regime"]
+        row = {
+            "asset_family": "stock",
+            "asset_subfamily": "stock_growth",
+            "market_regime_any_active": True,
+            "market_regime_active_flags": "inflacion_local_alta",
+        }
+
+        self.assertEqual(vote_signal("market_regime", row, signal_cfg), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
