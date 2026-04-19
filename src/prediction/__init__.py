@@ -9,6 +9,7 @@ from .store import (
     upsert_prediction_history,
 )
 from .predictor import predict, vote_signal
+from .verifier import build_verification_period, classify_outcome, resolve_close_on_or_after, verify_prediction_history
 
 __all__ = [
     "PREDICTION_HISTORY_COLUMNS",
@@ -21,4 +22,8 @@ __all__ = [
     upsert_prediction_history,
     "predict",
     "vote_signal",
+    "build_verification_period",
+    "classify_outcome",
+    "resolve_close_on_or_after",
+    "verify_prediction_history",
 ]

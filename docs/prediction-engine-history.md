@@ -35,9 +35,33 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 1 - Store | completada | 2026-04-19 |
 | Fase 2 - Pesos y umbrales | completada | 2026-04-19 |
 | Fase 3 - Predictor | completada | 2026-04-19 |
-| Fase 4 - Verificador | pendiente | 2026-04-19 |
+| Fase 4 - Verificador | completada | 2026-04-19 |
 | Fase 5 - Calibracion | pendiente | 2026-04-19 |
 | Fase 6 - Integracion y reporte | pendiente | 2026-04-19 |
+
+## 2026-04-19 - Fase 4 - completada
+
+- commit: pendiente
+- alcance:
+  - se implementa el verificador de outcomes vencidos sobre `prediction_history.csv`
+  - queda cerrada la semantica minima de resultado real
+- decisiones:
+  - `neutral` se determina con `neutral_return_band`
+  - para fechas no habiles se toma el primer cierre disponible en fecha mayor o igual a la objetivo
+  - si falta precio de entrada o salida, la prediccion queda pendiente y no se fuerza outcome
+- archivos:
+  - `src/prediction/verifier.py`
+  - `src/prediction/__init__.py`
+  - `tests/test_prediction_verifier.py`
+- tests:
+  - `up`
+  - `down`
+  - `neutral`
+  - precio faltante
+  - prediccion aun no vencida
+- deuda / notas:
+  - Fase 5 debe decidir si calibra sobre outcome ternario o binarizacion derivada
+  - todavia no existe runner integrado que ejecute verificacion sobre el CSV real
 
 ## 2026-04-19 - Fase 3 - completada
 

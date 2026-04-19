@@ -235,7 +235,7 @@ def predict(row: dict, weights: dict) -> dict:
 
 ### Fase 4. Verificador
 
-**Estado:** `pendiente`
+**Estado:** `completada`
 
 **Objetivo**
 
@@ -244,6 +244,12 @@ Completar outcomes vencidos comparando precio en `run_date` contra precio en `ou
 **Archivo esperado**
 
 - `src/prediction/verifier.py`
+
+**Archivos implementados**
+
+- `src/prediction/verifier.py`
+- `src/prediction/__init__.py`
+- `tests/test_prediction_verifier.py`
 
 **Decisiones obligatorias**
 
@@ -255,6 +261,19 @@ Completar outcomes vencidos comparando precio en `run_date` contra precio en `ou
 
 - las predicciones vencidas pueden pasar de `pendiente` a `outcome`
 - tests con casos `up`, `down`, `neutral` y datos faltantes
+
+**Estado de salida**
+
+- verificador implementado con:
+  - `classify_outcome`
+  - `build_verification_period`
+  - `resolve_close_on_or_after`
+  - `verify_prediction_history`
+- la banda neutral se toma desde `prediction_weights.json` salvo override explicito
+- politica de fechas no habiles:
+  - se usa la primera rueda disponible `>= fecha objetivo`
+- politica de datos faltantes:
+  - si falta precio de entrada o salida, la prediccion queda pendiente
 
 ### Fase 5. Calibracion de pesos
 

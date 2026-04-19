@@ -89,6 +89,7 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
   - Fase 1 completada: store y trazabilidad documental
   - Fase 2 completada: pesos y umbrales canonicos en `data/mappings/prediction_weights.json`
   - Fase 3 completada: predictor puro por consenso ponderado en `src/prediction/predictor.py`
+  - Fase 4 completada: verificador de outcomes en `src/prediction/verifier.py`
   - todavia no forma parte de la baseline funcional del pipeline
   - se va a implementar como capa separada del scoring y sizing actuales
   - su arquitectura y trazabilidad viven en:
