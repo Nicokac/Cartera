@@ -13,7 +13,7 @@ from report_primitives import (
     fmt_pct,
     fmt_usd,
 )
-from report_sections import build_bond_summary, build_technical_summary
+from report_sections import build_technical_summary
 
 from decision.action_constants import (
     ACTION_DESPLEGAR_LIQUIDEZ,
