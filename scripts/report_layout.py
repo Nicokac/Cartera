@@ -357,6 +357,7 @@ def build_report_body(
     tech_covered: int,
     tech_total: int,
     technical_view: pd.DataFrame,
+    price_history: dict | None = None,
     bonistas_section: str,
     decision_section: str,
     portfolio_section: str,
@@ -404,7 +405,7 @@ def build_report_body(
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
       {build_technical_summary(technical_view)}
-      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view), compact=True)}
+      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
     </section>
 
     {bonistas_section}

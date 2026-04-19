@@ -33,6 +33,7 @@ def build_technical_overlay(
     df_cedears: pd.DataFrame,
     *,
     scoring_rules: dict[str, object] | None = None,
+    price_history_out: dict | None = None,
 ) -> pd.DataFrame:
     if df_cedears is None or df_cedears.empty:
         logger.info("Technical overlay skipped: empty CEDEAR frame")
@@ -58,6 +59,9 @@ def build_technical_overlay(
             if close.empty:
                 rows.append({"Ticker_IOL": ticker_iol, "Ticker_Finviz": ticker_finviz, "Tech_Trend": "Close vacío"})
                 continue
+
+            if price_history_out is not None:
+                price_history_out[ticker_iol] = close.tail(60).tolist()
 
             last_close = float(close.iloc[-1])
             sma9 = float(close.rolling(9).mean().iloc[-1]) if len(close) >= 9 else np.nan

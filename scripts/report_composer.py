@@ -70,6 +70,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     decision_bundle = result["decision_bundle"]
     sizing_bundle = result["sizing_bundle"]
     technical_overlay = result.get("technical_overlay", pd.DataFrame())
+    price_history: dict[str, list[float]] = result.get("price_history", {}) or {}
     finviz_stats = result.get("finviz_stats", {}) or {}
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
     operations_bundle = result.get("operations_bundle", {}) or {}
@@ -165,6 +166,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         "action_counts": action_counts,
         "neutrales": neutrales,
         "technical_view": technical_view,
+        "price_history": price_history,
         "family_summary": family_summary,
         "changed_actions": changed_actions,
         "changes_direction_summary": changes_direction_summary,

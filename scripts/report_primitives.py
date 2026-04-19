@@ -247,10 +247,33 @@ def ensure_table_columns(df: pd.DataFrame | None, columns: list[str]) -> pd.Data
     return df.reindex(columns=columns)
 
 
-def build_technical_table(df: pd.DataFrame) -> str:
+def build_sparkline_svg(closes: list[float], *, width: int = 60, height: int = 20) -> str:
+    vals = [v for v in closes if isinstance(v, (int, float)) and v == v]
+    if len(vals) < 2:
+        return ""
+    lo, hi = min(vals), max(vals)
+    if hi == lo:
+        return ""
+    x_step = width / (len(vals) - 1)
+    points = " ".join(
+        f"{i * x_step:.1f},{height - (v - lo) / (hi - lo) * height:.1f}"
+        for i, v in enumerate(vals)
+    )
+    color = "#0f6c5c" if vals[-1] >= vals[0] else "#9f3a22"
+    return (
+        f'<svg class="sparkline" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">'
+        f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="1.5" '
+        f'stroke-linejoin="round" stroke-linecap="round"/>'
+        f"</svg>"
+    )
+
+
+def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None) -> str:
     if df.empty:
         return '<div class="empty">Sin datos para mostrar.</div>'
 
+    price_history = price_history or {}
     formatters = {
         "Peso_%": fmt_pct,
         "RSI_14": lambda x: "-" if pd.isna(x) else f"{float(x):.1f}",
@@ -284,10 +307,16 @@ def build_technical_table(df: pd.DataFrame) -> str:
         "Drawdown_desde_Max3m_%",
         "Peso_%",
     }
-    headers = "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
+    has_sparks = bool(price_history)
+    spark_th = "<th>Spark</th>" if has_sparks else ""
+    headers = spark_th + "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
     rows = []
     for _, row in df.iterrows():
         cells = []
+        if has_sparks:
+            ticker = str(row.get("Ticker_IOL", "")) if "Ticker_IOL" in df.columns else ""
+            spark = build_sparkline_svg(price_history.get(ticker, []))
+            cells.append(f'<td style="line-height:0;padding:4px 8px;">{spark}</td>')
         for col in df.columns:
             if col in metric_columns:
                 cells.append(f"<td>{render_metric(col, row[col], formatters.get(col))}</td>")

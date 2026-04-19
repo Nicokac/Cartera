@@ -53,6 +53,7 @@ def render_report(
             tech_covered=int(context["tech_covered"]),
             tech_total=int(context["tech_total"]),
             technical_view=context["technical_view"],
+            price_history=context.get("price_history", {}),
             bonistas_section=sections["bonistas_section"],
             decision_section=sections["decision_section"],
             portfolio_section=sections["portfolio_section"],

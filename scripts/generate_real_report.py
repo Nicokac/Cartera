@@ -696,7 +696,8 @@ def main() -> None:
 
     df_total = portfolio_bundle["df_total"]
     df_cedears, df_ratings_res, finviz_stats = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
-    technical_overlay = build_technical_overlay(df_cedears, scoring_rules=project_config.SCORING_RULES)
+    price_history: dict[str, list[float]] = {}
+    technical_overlay = build_technical_overlay(df_cedears, scoring_rules=project_config.SCORING_RULES, price_history_out=price_history)
     tech_metric_cols = [
         "Dist_SMA20_%",
         "Dist_SMA50_%",
@@ -823,6 +824,7 @@ def main() -> None:
         "decision_bundle": decision_bundle,
         "sizing_bundle": sizing_bundle,
         "technical_overlay": technical_overlay,
+        "price_history": price_history,
         "finviz_stats": finviz_stats,
         "bonistas_bundle": bonistas_bundle,
         "operations_bundle": operations_bundle,

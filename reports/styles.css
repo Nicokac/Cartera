@@ -696,6 +696,14 @@ tbody tr:hover td:first-child {
   color: #fffdf8;
 }
 
+/* ── Sparklines ──────────────────────────────────────────────────────────── */
+
+.sparkline {
+  display: block;
+  overflow: visible;
+  vertical-align: middle;
+}
+
 /* ── Score distribution ──────────────────────────────────────────────────── */
 
 .score-dist-wrap {
