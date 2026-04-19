@@ -1,0 +1,305 @@
+from __future__ import annotations
+
+import html
+
+import pandas as pd
+
+from report_primitives import (
+    badge_class,
+    build_driver_chips,
+    build_focus_list,
+    esc_text,
+    fmt_delta_score,
+    fmt_label,
+    fmt_pct,
+    fmt_score,
+    render_metric,
+    truncate_text,
+)
+
+from decision.action_constants import (
+    ACTION_MANTENER_NEUTRAL,
+    ACTION_REDUCIR,
+    ACTION_REFUERZO,
+    NEUTRAL_ACTIONS,
+)
+
+
+def build_decision_table(
+    df: pd.DataFrame,
+    *,
+    action_col: str,
+    motive_col: str,
+) -> str:
+    if df.empty:
+        return '<div class="empty">Sin decisiones para mostrar.</div>'
+
+    score_notes: list[str] = []
+    rows = []
+    ordered = df.sort_values("score_unificado", ascending=False)
+    for _, row in ordered.iterrows():
+        ticker = esc_text(row["Ticker_IOL"])
+        tipo = esc_text(row["Tipo"])
+        accion = str(row.get(action_col, ""))
+        motivo = esc_text(row.get(motive_col, ""))
+        motivo_score = esc_text(row.get("motivo_score", ""))
+        accion_previa = row.get("accion_previa")
+        delta_score = row.get("score_delta_vs_dia_anterior")
+        racha_refuerzo = int(row.get("dias_consecutivos_refuerzo", 0) or 0)
+        racha_reduccion = int(row.get("dias_consecutivos_reduccion", 0) or 0)
+        racha_mantener = int(row.get("dias_consecutivos_mantener", 0) or 0)
+        racha = max(racha_refuerzo, racha_reduccion, racha_mantener)
+        if racha <= 0 and accion.strip():
+            racha = 1
+        driver_html = build_driver_chips(row)
+        if motivo_score not in {"", "-"} and motivo_score not in score_notes:
+            score_notes.append(motivo_score)
+        rows.append(
+            "<tr "
+            f"data-ticker=\"{ticker}\" "
+            f"data-action=\"{html.escape(accion)}\" "
+            f"data-type=\"{tipo}\">"
+            f"<td><strong>{ticker}</strong></td>"
+            f"<td>{tipo}</td>"
+            f"<td>{render_metric('asset_family', row.get('asset_family'), fmt_label)}</td>"
+            f"<td>{render_metric('asset_subfamily', row.get('asset_subfamily'), fmt_label)}</td>"
+            f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
+            f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
+            f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
+            f"<td>{esc_text(accion_previa)}</td>"
+            f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
+            f"<td>{html.escape('-' if racha <= 0 else str(racha))}</td>"
+            f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
+            f"<td><div>{motivo}</div></td>"
+            "</tr>"
+        )
+
+    score_notes_html = ""
+    if score_notes:
+        items = "".join(f"<li>{note}</li>" for note in score_notes)
+        score_notes_html = (
+            '<details class="score-notes">'
+            "<summary>Ver criterios generales de score</summary>"
+            f"<div class=\"muted-inline\"><ul>{items}</ul></div>"
+            "</details>"
+        )
+
+    return (
+        f'{score_notes_html}<div class="table-wrap"><table id="decision-table">'
+        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Accion</th><th>Accion previa</th><th>Δ Score</th><th>Racha</th><th>Drivers</th><th>Motivo</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
+    )
+
+
+def describe_action_shift(previous_action: object, current_action: object) -> str:
+    previous = str(previous_action or "").strip()
+    current = str(current_action or "").strip()
+    neutral_actions = {ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+
+    if current == ACTION_REFUERZO and previous in neutral_actions:
+        return "Sube de conviccion"
+    if current == ACTION_REFUERZO and previous == ACTION_REDUCIR:
+        return "Giro desde reduccion a refuerzo"
+    if current == ACTION_REDUCIR and previous in neutral_actions:
+        return "Pasa de monitoreo a reduccion"
+    if current == ACTION_REDUCIR and previous == ACTION_REFUERZO:
+        return "Giro desde refuerzo a reduccion"
+    if current in neutral_actions and previous == ACTION_REFUERZO:
+        return "Vuelve a monitoreo desde refuerzo"
+    if current in neutral_actions and previous == ACTION_REDUCIR:
+        return "Vuelve a monitoreo desde reduccion"
+    return f"{previous} -> {current}"
+
+
+def build_decision_priority_board(
+    df: pd.DataFrame,
+    *,
+    action_col: str,
+    motive_col: str,
+) -> str:
+    if df.empty:
+        return '<div class="empty">Sin decisiones para priorizar.</div>'
+
+    work = df.copy()
+    work["_accion_actual"] = work[action_col].fillna("").astype(str)
+    work["_asset_family"] = work.get("asset_family", pd.Series(index=work.index, dtype=object)).fillna("").astype(str)
+
+    def _build_items(source: pd.DataFrame, *, ascending: bool = False, limit: int = 3, badge_from_action: bool = True) -> list[dict[str, str]]:
+        if source.empty:
+            return []
+        ordered = source.sort_values("score_unificado", ascending=ascending).head(limit)
+        items: list[dict[str, str]] = []
+        for _, row in ordered.iterrows():
+            racha = max(
+                int(row.get("dias_consecutivos_refuerzo", 0) or 0),
+                int(row.get("dias_consecutivos_reduccion", 0) or 0),
+                int(row.get("dias_consecutivos_mantener", 0) or 0),
+                1,
+            )
+            accion = str(row.get(action_col, ""))
+            items.append(
+                {
+                    "kicker": str(row.get("Ticker_IOL", "-")),
+                    "title": f"{fmt_score(row.get('score_unificado'))} | Racha {racha}",
+                    "detail": truncate_text(row.get(motive_col, ""), 160),
+                    "badge": accion if badge_from_action else None,
+                }
+            )
+        return items
+
+    top_scores = work[work["_accion_actual"] == ACTION_REFUERZO].sort_values("score_unificado", ascending=False)
+    bottom_scores = work[
+        (pd.to_numeric(work.get("score_unificado"), errors="coerce") < 0)
+        & (work["_asset_family"].str.lower() != "liquidity")
+        & (~work["_accion_actual"].str.lower().str.contains("liquidez", na=False))
+    ].sort_values("score_unificado", ascending=True)
+    neutrales = work[work["_accion_actual"].isin(NEUTRAL_ACTIONS)]
+
+    return f"""
+    <section class="decision-priority">
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Convicciones alcistas</h3>
+          {build_focus_list(_build_items(top_scores, ascending=False), empty_message='Sin convicciones alcistas destacadas.', tone='buy')}
+        </div>
+        <div>
+          <h3>Riesgos a recortar</h3>
+          {build_focus_list(_build_items(bottom_scores, ascending=True), empty_message='Sin riesgos destacados para recorte.', tone='sell')}
+        </div>
+        <div>
+          <h3>Monitoreo destacado</h3>
+          {build_focus_list(_build_items(neutrales, ascending=False, badge_from_action=True), empty_message='Sin monitoreo destacado.', tone='neutral')}
+        </div>
+      </div>
+    </section>
+    """
+
+
+def select_decision_view(
+    final_decision: pd.DataFrame,
+    propuesta: pd.DataFrame,
+) -> tuple[pd.DataFrame, str, str]:
+    if not propuesta.empty and "accion_operativa" in propuesta.columns:
+        motive_col = "comentario_operativo" if "comentario_operativo" in propuesta.columns else "motivo_accion"
+        return propuesta, "accion_operativa", motive_col
+    return final_decision, "accion_sugerida_v2", "motivo_accion"
+
+
+def build_family_summary(decision_view: pd.DataFrame) -> pd.DataFrame:
+    if not isinstance(decision_view, pd.DataFrame) or decision_view.empty:
+        return pd.DataFrame()
+
+    family_base = decision_view.copy()
+    if "asset_family" not in family_base.columns:
+        family_base["asset_family"] = None
+    if "asset_subfamily" not in family_base.columns:
+        family_base["asset_subfamily"] = None
+    return (
+        family_base.groupby(["asset_family", "asset_subfamily"], dropna=False)
+        .agg(
+            Instrumentos=("Ticker_IOL", "count"),
+            Score_Promedio=("score_unificado", "mean"),
+        )
+        .reset_index()
+        .sort_values(["asset_family", "asset_subfamily"], na_position="last")
+    )
+
+
+def build_change_highlights(
+    decision_view: pd.DataFrame,
+    *,
+    action_col: str,
+    motive_col: str,
+) -> tuple[list[dict[str, str]], str, list[dict[str, str]], list[dict[str, str]]]:
+    changed_actions: list[dict[str, str]] = []
+    changes_direction_summary = ""
+    buy_focus: list[dict[str, str]] = []
+    sell_focus: list[dict[str, str]] = []
+    if not isinstance(decision_view, pd.DataFrame) or decision_view.empty:
+        return changed_actions, changes_direction_summary, buy_focus, sell_focus
+
+    changed_view = decision_view.copy()
+    changed_view["_accion_actual"] = changed_view[action_col].fillna("").astype(str)
+    changed_view["_accion_previa"] = changed_view.get("accion_previa", pd.Series(index=changed_view.index, dtype=object)).fillna("").astype(str)
+    changed_view = changed_view[
+        (changed_view["_accion_previa"].str.strip() != "")
+        & (changed_view["_accion_actual"].str.strip() != "")
+        & (changed_view["_accion_previa"] != changed_view["_accion_actual"])
+    ]
+    changed_view = changed_view[
+        changed_view["_accion_previa"].isin(
+            {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+        )
+        & changed_view["_accion_actual"].isin(
+            {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+        )
+        & ~(
+            changed_view["_accion_previa"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+            & changed_view["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+        )
+    ]
+    changed_view["_score_delta_abs"] = pd.to_numeric(
+        changed_view.get("score_delta_vs_dia_anterior", pd.Series(index=changed_view.index, dtype=float)),
+        errors="coerce",
+    ).abs()
+    changed_view = changed_view.sort_values(
+        ["_score_delta_abs", "score_unificado"],
+        ascending=[False, False],
+        na_position="last",
+    )
+
+    cambios_hacia_refuerzo = int((changed_view["_accion_actual"] == ACTION_REFUERZO).sum())
+    cambios_hacia_reduccion = int((changed_view["_accion_actual"] == ACTION_REDUCIR).sum())
+    cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
+    changes_direction_summary = f"""
+      <section class="action-strip compact-strip">
+        <article class="action-card buy"><span>Suben de conviccion</span><strong>{cambios_hacia_refuerzo}</strong></article>
+        <article class="action-card sell"><span>Bajan a reduccion</span><strong>{cambios_hacia_reduccion}</strong></article>
+        <article class="action-card neutral"><span>Vuelven a monitoreo</span><strong>{cambios_hacia_neutral}</strong></article>
+      </section>
+    """
+
+    for _, row in changed_view.head(6).iterrows():
+        previous_action = str(row["_accion_previa"])
+        current_action = str(row["_accion_actual"])
+        score_delta = row.get("score_delta_vs_dia_anterior")
+        score_delta_label = fmt_delta_score(score_delta)
+        delta_fragment = f" Δ score {score_delta_label}." if score_delta_label != "-" else ""
+        changed_actions.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": describe_action_shift(previous_action, current_action),
+                "detail": truncate_text(
+                    f"Antes: {previous_action}. Ahora: {current_action}.{delta_fragment} {fmt_label(row.get(motive_col, ''))}",
+                    180,
+                ),
+                "badge": current_action,
+            }
+        )
+
+    refuerzo_view = decision_view[decision_view[action_col].astype(str) == ACTION_REFUERZO].sort_values(
+        "score_unificado", ascending=False
+    )
+    reducir_view = decision_view[decision_view[action_col].astype(str) == ACTION_REDUCIR].sort_values(
+        "score_unificado", ascending=True
+    )
+    for _, row in refuerzo_view.head(3).iterrows():
+        buy_focus.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Score {fmt_score(row.get('score_unificado'))}",
+                "detail": truncate_text(row.get(motive_col, ""), 140),
+                "badge": ACTION_REFUERZO,
+            }
+        )
+    for _, row in reducir_view.head(3).iterrows():
+        sell_focus.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Score {fmt_score(row.get('score_unificado'))}",
+                "detail": truncate_text(row.get(motive_col, ""), 140),
+                "badge": ACTION_REDUCIR,
+            }
+        )
+
+    return changed_actions, changes_direction_summary, buy_focus, sell_focus
