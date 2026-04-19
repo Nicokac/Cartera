@@ -27,7 +27,7 @@ Indice de la documentacion activa del proyecto.
 - `improvement-roadmap.md`: backlog tecnico activo y deuda real
 - `prediction-engine-roadmap.md`: arquitectura, fases, contratos y criterios de avance del motor de prediccion direccional
 - `prediction-engine-history.md`: bitacora de implementacion y cambios por fase del motor de prediccion
-- `report-ux-architecture.md`: arquitectura actual del reporte y deuda de renderer
+- `report-ux-architecture.md`: arquitectura vigente del reporte ya modularizado y criterio de evolucion visual
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos
 - `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
@@ -38,6 +38,11 @@ Indice de la documentacion activa del proyecto.
   - con separacion operativa explicita:
     - `generate_real_report.py` crea observaciones nuevas
     - `run_prediction_cycle.py` solo verifica y recalibra
+
+## Regla de limpieza documental
+
+- si una deuda tecnica ya fue cerrada en codigo y tests, no debe seguir figurando como backlog activo
+- si un doc historico sigue siendo util solo por trazabilidad, debe vivir en `docs/archive/`
 
 ## Historico
 

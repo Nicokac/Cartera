@@ -12,10 +12,9 @@ La priorizacion activa combina:
 
 El proyecto ya salio de la fase de hardening basico. El backlog vigente se concentra en:
 
-1. bajar complejidad estructural del renderer
-2. seguir calibrando scoring y reporte con evidencia real
-3. cerrar la migracion operativa de snapshots
-4. consolidar el track de prediccion direccional auditada ya integrado sin tocar el motor de decision existente
+1. seguir calibrando scoring y reporte con evidencia real
+2. cerrar la migracion operativa de snapshots
+3. consolidar el track de prediccion direccional auditada ya integrado sin tocar el motor de decision existente
 
 ## Resuelto recientemente
 
@@ -23,6 +22,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - fallback legacy controlado por `ENABLE_LEGACY_SNAPSHOTS`
 - README de snapshots con criterio de migracion explicito
 - `rank_score` con damping progresivo para cohorts chicos
+- tests de borde explicitos para `rank_score` en cohorts `N=3` y `N=4`
 - cobertura directa de `report_primitives` y `report_operations`
 - logging estructurado en:
   - `valuation`
@@ -35,37 +35,43 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
   - `smoke_output`
 - `smoke_fixtures` reubicado bajo `tests/` para separar fixtures del arbol de scripts operativos
 - CI ampliada a las suites activas del repo
-- renderer desacoplado en modulos de primitives, operations y orquestacion
+- renderer desacoplado en:
+  - `report_renderer`
+  - `report_composer`
+  - `report_layout`
+  - `report_sections`
+  - `report_decision`
 - flujo de operaciones IOL integrado al reporte con explicaciones operativas
+- snapshots endurecidos con:
+  - filas utilizables de `Ticker_IOL`
+  - coercion numerica defensiva en columnas opcionales
+- contrato operativo explicito entre:
+  - `generate_real_report.py`
+  - `run_prediction_cycle.py`
 
 ## Backlog activo
 
-### P1. Reducir deuda del renderer
-
-- extraer mas secciones de `render_report()` a helpers puros
-- reducir tamaño y complejidad cognitiva de `scripts/report_renderer.py`
-- mantener contratos estables con `generate_smoke_report.py` y `generate_real_report.py`
-
-### P2. Afinar calibraciones con evidencia real
+### P1. Afinar calibraciones con evidencia real
 
 - monitorear cohortes chicas luego del damping de `rank_score`
 - revisar scoring y sizing solo cuando aparezcan corridas reales borderline
 - mantener la narrativa del reporte alineada con cambios efectivos de decision
 
-### P3. Cerrar migracion de snapshots
+### P2. Cerrar migracion de snapshots
 
 - retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente
 - mantener documentado el criterio de retiro
 - evitar que vuelvan a aparecer snapshots operativos nuevos en `tests/snapshots/`
 
-### P4. Motor de prediccion direccional
+### P3. Motor de prediccion direccional
 
-- fase 6 ya cerrada:
+- fase 6.1 ya cerrada:
   - store
   - predictor
   - verificacion
   - calibracion
   - integracion experimental a pipeline, reporte y runner
+  - correccion de escala de `score_unificado`
 - mantener el motor desacoplado de `decision/` y del scoring operativo vigente
 - proximo objetivo:
   - sumar metricas historicas de acierto al HTML
@@ -79,6 +85,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 
 Estos temas ya no son backlog activo salvo que reaparezcan con evidencia nueva:
 
+- deuda estructural del renderer principal
 - bootstrap de clones limpios
 - metadata base del proyecto
 - cobertura base y secundaria de clientes

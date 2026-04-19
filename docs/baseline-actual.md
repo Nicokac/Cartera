@@ -18,6 +18,10 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
 ## Estado tecnico vigente
 
 - renderer dividido en:
+  - `scripts/report_decision.py`
+  - `scripts/report_sections.py`
+  - `scripts/report_layout.py`
+  - `scripts/report_composer.py`
   - `scripts/report_primitives.py`
   - `scripts/report_operations.py`
   - `scripts/report_renderer.py`
@@ -54,6 +58,10 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
   - reducciones
   - movimientos recientes no consolidados todavia en cartera
 - los snapshots previos se validan antes de usarse
+- la validacion previa ahora exige:
+  - columna `Ticker_IOL`
+  - al menos una fila utilizable con ticker no vacio
+  - coercion numerica defensiva en columnas opcionales relevantes para comparacion
 - si el sistema recurre a un snapshot legacy, emite un warning explicito
 
 ## Baseline de UX del reporte
@@ -81,8 +89,8 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
 
 ## Deuda real aun abierta
 
-- seguir fragmentando `render_report()` para bajar complejidad del renderer principal
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
+- seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
 
 ## Capa experimental integrada
 

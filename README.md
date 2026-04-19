@@ -13,7 +13,14 @@ Motor de analisis de cartera para IOL con foco en:
 El repo esta en una etapa operativa estable:
 
 - pipeline canonico concentrado en `src/`
-- renderer HTML modularizado en `report_primitives`, `report_operations` y `report_renderer`
+- renderer HTML modularizado en:
+  - `report_renderer`
+  - `report_composer`
+  - `report_layout`
+  - `report_sections`
+  - `report_decision`
+  - `report_primitives`
+  - `report_operations`
 - flujo de operaciones reales integrado al reporte
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
 - capa experimental de prediccion direccional integrada al smoke y al real run
@@ -132,6 +139,20 @@ CI actual:
 - workflow: `.github/workflows/ci.yml`
 - bootstrap automatico de configuracion de ejemplo antes de testear
 - bateria estable del repo sin red real ni credenciales
+
+## Estado de deuda tecnica
+
+Pendientes reales abiertos:
+
+- retirar el fallback legacy cuando `data/snapshots/` tenga una ventana operativa suficiente
+- seguir calibrando scoring, sizing y prediccion con corridas reales antes de endurecer nuevas reglas
+
+Frentes ya cerrados recientemente:
+
+- `report_renderer.py` ya quedo como orquestador puro
+- `rank_score` ya tiene tests de borde explicitos para cohorts `N=3` y `N=4`
+- snapshots previos ahora validan filas utilizables de `Ticker_IOL` y coercion numerica defensiva
+- el ciclo operativo entre `generate_real_report.py` y `run_prediction_cycle.py` ya quedo documentado
 
 ## Memoria temporal
 

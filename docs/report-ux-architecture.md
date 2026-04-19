@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Documentar la arquitectura vigente del reporte HTML y la deuda de diseño que todavia queda abierta.
+Documentar la arquitectura vigente del reporte HTML despues del refactor estructural del renderer.
 
 ## Estado actual
 
@@ -14,6 +14,14 @@ La arquitectura base del reporte ya esta implementada y estable:
 - `Sizing` y `Regimen` en primera capa
 - capas analiticas separadas para tecnico y bonos
 - detalle completo relegado a bloques secundarios
+
+La arquitectura tecnica actual del renderer quedo separada en:
+
+- `report_renderer`: orquestacion y timing
+- `report_composer`: armado de contexto y composicion de secciones
+- `report_layout`: layout principal y shell HTML
+- `report_sections`: bloques reutilizables
+- `report_decision`: presentacion de tablas y narrativa de decision
 
 ## Capas vigentes
 
@@ -71,21 +79,19 @@ Reservado para auditoria y revision profunda:
 
 ## Deuda abierta
 
-La mayor deuda ya no es de producto sino de estructura:
+La deuda principal ya no es de estructura del renderer. Hoy la deuda relevante es de calibracion de contenido:
 
-- `scripts/report_renderer.py` sigue siendo el orquestador mas grande del repo
-- `render_report()` todavia concentra demasiado ensamblado
-- parte del crecimiento del renderer se explica por sumar secciones nuevas sin seguir fragmentando helpers
+- evitar duplicacion visual entre resumen ejecutivo y tablas
+- seguir afinando la narrativa con corridas reales
+- mantener la capa de prediccion como observacional mientras no tenga historico suficiente
 
-## Objetivo de la proxima iteracion
+## Proxima iteracion razonable
 
-La siguiente mejora razonable no es rediseñar la UX base. Es seguir partiendo el renderer por secciones:
+La siguiente mejora razonable no es volver a partir el renderer. Es mejorar la lectura con evidencia real:
 
-1. header y KPIs
-2. decision
-3. operaciones
-4. analitica
-5. detalle y tablas
+1. narrativa ejecutiva
+2. metricas historicas utiles
+3. consistencia entre paneles y tablas
 
 ## Restricciones tecnicas
 
@@ -102,4 +108,4 @@ La arquitectura se considera sana si:
 - los cambios materiales dominan la lectura
 - el sizing no queda enterrado
 - el detalle sigue disponible sin contaminar la portada
-- el renderer principal baja de tamaño sin repartir logica de negocio de forma caotica
+- la modularizacion se mantiene estable sin volver a concentrar logica de negocio en `report_renderer.py`
