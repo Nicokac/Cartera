@@ -11,6 +11,11 @@ if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
 import src
+import analytics
+import clients
+import common
+import decision
+import prediction
 from pipeline import (
     build_dashboard_bundle,
     build_decision_bundle,
@@ -35,6 +40,60 @@ class PipelineSmokeTests(unittest.TestCase):
         self.assertTrue(callable(src.build_decision_bundle))
         self.assertTrue(callable(src.build_prediction_bundle))
         self.assertTrue(callable(src.build_sizing_bundle))
+
+    def test_subpackage_exports_are_importable(self) -> None:
+        self.assertTrue(callable(prediction.predict))
+        self.assertTrue(callable(prediction.build_prediction_observation))
+        self.assertTrue(callable(decision.assign_action_v2))
+        self.assertTrue(callable(decision.build_operational_proposal))
+        self.assertTrue(callable(analytics.enrich_bond_analytics))
+        self.assertTrue(callable(clients.get_macro_variables))
+        self.assertTrue(callable(common.to_float_or_none))
+
+    def test_build_portfolio_bundle_classifies_local_stock_from_argentina_catalog(self) -> None:
+        activos = [
+            {
+                "titulo": {
+                    "simbolo": "PAMP",
+                    "descripcion": "Pampa Energia S.A.",
+                    "tipo": "ACCIONES",
+                    "moneda": "ARS",
+                },
+                "cantidad": 42,
+                "ppc": 4800,
+                "valorizado": 201600,
+                "gananciaDinero": 0,
+            }
+        ]
+
+        bundle = build_portfolio_bundle(
+            activos=activos,
+            estado_payload={"cuentas": [], "totalEnPesos": 0},
+            precios_iol={"PAMP": 4800.0},
+            mep_real=1412.0,
+            finviz_map={},
+            block_map={},
+            argentina_equity_map={
+                "PAMP": {
+                    "block": "Argentina",
+                    "asset_family": "stock",
+                    "asset_subfamily": "stock_argentina",
+                }
+            },
+            instrument_profile_map={},
+            vn_factor_map={},
+            ratios={},
+            fci_cash_management=set(),
+        )
+
+        df_local = bundle["df_local"]
+        df_total = bundle["df_total"]
+
+        self.assertEqual(len(df_local), 1)
+        self.assertEqual(df_local.iloc[0]["Ticker_IOL"], "PAMP")
+        self.assertEqual(df_local.iloc[0]["Bloque"], "Argentina")
+        self.assertEqual(df_total.iloc[0]["Ticker_IOL"], "PAMP")
+        self.assertEqual(df_total.iloc[0]["Bloque"], "Argentina")
 
     def test_smoke_pipeline_returns_coherent_bundles(self) -> None:
         result = run_smoke_pipeline()
