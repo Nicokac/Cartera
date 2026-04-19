@@ -180,12 +180,12 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#cambios">Cambios</a>
       {operations_nav}
       {prediction_nav}
-      <a href="#decision">Decision</a>
-      <a href="#sizing">Sizing</a>
       <a href="#regimen">Regimen</a>
       <a href="#resumen">Resumen</a>
+      <a href="#sizing">Sizing</a>
       <a href="#tecnico">Tecnico</a>
       {bonistas_nav}
+      <a href="#decision">Decision</a>
       <a href="#cartera">Cartera</a>
       <a href="#integridad">Integridad</a>
     </nav>
@@ -257,6 +257,9 @@ def build_decision_section(
             <option value="{ACTION_REDUCIR}">{ACTION_REDUCIR}</option>
             <option value="{ACTION_DESPLEGAR_LIQUIDEZ}">{ACTION_DESPLEGAR_LIQUIDEZ}</option>
             <option value="{ACTION_MANTENER_NEUTRAL}">{ACTION_MANTENER_NEUTRAL}</option>
+          </select>
+          <select id="type-filter">
+            <option value="">Todos los tipos</option>
           </select>
         </div>
       </div>
@@ -374,26 +377,79 @@ def build_report_body(
   <script>
     const tickerInput = document.getElementById('ticker-filter');
     const actionSelect = document.getElementById('action-filter');
+    const typeSelect = document.getElementById('type-filter');
     const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
     const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
     const observedSections = navLinks
       .map((link) => document.querySelector(link.getAttribute('href')))
       .filter(Boolean);
 
+    if (typeSelect) {{
+      const types = [...new Set(rows.map((r) => r.dataset.type).filter(Boolean))].sort();
+      types.forEach((t) => {{
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        typeSelect.appendChild(opt);
+      }});
+    }}
+
     function applyDecisionFilter() {{
       const tickerNeedle = (tickerInput?.value || '').toLowerCase().trim();
       const actionNeedle = actionSelect?.value || '';
+      const typeNeedle = typeSelect?.value || '';
       rows.forEach((row) => {{
         const ticker = (row.dataset.ticker || '').toLowerCase();
         const action = row.dataset.action || '';
+        const type = row.dataset.type || '';
         const matchesTicker = !tickerNeedle || ticker.includes(tickerNeedle);
         const matchesAction = !actionNeedle || action === actionNeedle;
-        row.style.display = matchesTicker && matchesAction ? '' : 'none';
+        const matchesType = !typeNeedle || type === typeNeedle;
+        row.style.display = matchesTicker && matchesAction && matchesType ? '' : 'none';
       }});
     }}
 
     tickerInput?.addEventListener('input', applyDecisionFilter);
     actionSelect?.addEventListener('change', applyDecisionFilter);
+    typeSelect?.addEventListener('change', applyDecisionFilter);
+
+    let sortState = {{ col: null, dir: 'asc' }};
+
+    function sortRows(col) {{
+      sortState.dir = sortState.col === col && sortState.dir === 'asc' ? 'desc' : 'asc';
+      sortState.col = col;
+      const tbody = document.querySelector('#decision-table tbody');
+      const sorted = [...rows].sort((a, b) => {{
+        const av = parseFloat(a.dataset[col] ?? 0);
+        const bv = parseFloat(b.dataset[col] ?? 0);
+        return sortState.dir === 'asc' ? av - bv : bv - av;
+      }});
+      sorted.forEach((r) => tbody.appendChild(r));
+      document.querySelectorAll('#decision-table th.sortable').forEach((th) => {{
+        th.dataset.dir = th.dataset.sort === col ? sortState.dir : '';
+      }});
+      applyDecisionFilter();
+    }}
+
+    document.querySelectorAll('#decision-table th.sortable').forEach((th) => {{
+      th.addEventListener('click', () => sortRows(th.dataset.sort));
+    }});
+
+    const copySizingBtn = document.getElementById('copy-sizing');
+    if (copySizingBtn) {{
+      copySizingBtn.addEventListener('click', () => {{
+        const table = document.getElementById('sizing-table');
+        if (!table) return;
+        const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
+        const dataRows = Array.from(table.querySelectorAll('tbody tr')).map((r) =>
+          Array.from(r.querySelectorAll('td')).map((td) => td.textContent.trim()).join('\t')
+        );
+        navigator.clipboard.writeText([headers.join('\t'), ...dataRows].join('\n')).then(() => {{
+          copySizingBtn.textContent = '\u2713 Copiado';
+          setTimeout(() => {{ copySizingBtn.textContent = 'Copiar'; }}, 2000);
+        }});
+      }});
+    }}
 
     const observer = new IntersectionObserver((entries) => {{
       entries.forEach((entry) => {{

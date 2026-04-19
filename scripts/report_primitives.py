@@ -221,6 +221,7 @@ def build_table(
     *,
     formatters: dict[str, callable] | None = None,
     table_class: str = "",
+    table_id: str = "",
 ) -> str:
     if df.empty:
         return '<div class="empty">Sin datos para mostrar.</div>'
@@ -236,7 +237,8 @@ def build_table(
             rendered = formatter(value)
             cells.append(f"<td>{html.escape(str(rendered))}</td>")
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    return f'<div class="table-wrap"><table class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+    id_attr = f' id="{html.escape(table_id)}"' if table_id else ""
+    return f'<div class="table-wrap"><table{id_attr} class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
 
 
 def ensure_table_columns(df: pd.DataFrame | None, columns: list[str]) -> pd.DataFrame:

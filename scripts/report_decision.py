@@ -34,6 +34,12 @@ def build_decision_table(
     if df.empty:
         return '<div class="empty">Sin decisiones para mostrar.</div>'
 
+    def _racha_badge(n: int) -> str:
+        if n <= 0:
+            return "-"
+        css = "metric metric-positive" if n >= 7 else ("metric metric-warn" if n >= 4 else "metric metric-neutral")
+        return f'<span class="{css}">{n}</span>'
+
     score_notes: list[str] = []
     rows = []
     ordered = df.sort_values("score_unificado", ascending=False)
@@ -54,11 +60,16 @@ def build_decision_table(
         driver_html = build_driver_chips(row)
         if motivo_score not in {"", "-"} and motivo_score not in score_notes:
             score_notes.append(motivo_score)
+        score_val = float(row["score_unificado"]) if pd.notna(row.get("score_unificado")) else -999
+        peso_val = float(row["Peso_%"]) if pd.notna(row.get("Peso_%")) else 0
         rows.append(
             "<tr "
             f"data-ticker=\"{ticker}\" "
             f"data-action=\"{html.escape(accion)}\" "
-            f"data-type=\"{tipo}\">"
+            f"data-type=\"{tipo}\" "
+            f"data-score=\"{score_val:.6f}\" "
+            f"data-racha=\"{racha}\" "
+            f"data-peso=\"{peso_val:.6f}\">"
             f"<td><strong>{ticker}</strong></td>"
             f"<td>{tipo}</td>"
             f"<td>{render_metric('asset_family', row.get('asset_family'), fmt_label)}</td>"
@@ -68,7 +79,7 @@ def build_decision_table(
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
             f"<td>{esc_text(accion_previa)}</td>"
             f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
-            f"<td>{html.escape('-' if racha <= 0 else str(racha))}</td>"
+            f"<td>{_racha_badge(racha)}</td>"
             f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
             f"<td><div>{motivo}</div></td>"
             "</tr>"
@@ -86,7 +97,12 @@ def build_decision_table(
 
     return (
         f'{score_notes_html}<div class="table-wrap"><table id="decision-table">'
-        "<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th><th>Peso_%</th><th>Score</th><th>Accion</th><th>Accion previa</th><th>Δ Score</th><th>Racha</th><th>Drivers</th><th>Motivo</th></tr></thead>"
+        '<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th>'
+        '<th class="sortable" data-sort="peso">Peso_%</th>'
+        '<th class="sortable" data-sort="score">Score</th>'
+        '<th>Accion</th><th>Accion previa</th><th>\u0394 Score</th>'
+        '<th class="sortable" data-sort="racha">Racha</th>'
+        '<th>Drivers</th><th>Motivo</th></tr></thead>'
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 

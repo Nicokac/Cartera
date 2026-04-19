@@ -18,6 +18,8 @@ from report_primitives import (
     truncate_text,
 )
 
+from decision.action_constants import ACTION_REDUCIR, ACTION_REFUERZO
+
 
 def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     predictions = prediction_bundle.get("predictions", pd.DataFrame())
@@ -66,6 +68,19 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     bullish = work.loc[work["direction"].astype(str) == "up"].sort_values("confidence", ascending=False)
     bearish = work.loc[work["direction"].astype(str) == "down"].sort_values("confidence", ascending=False)
     neutral = work.loc[work["direction"].astype(str) == "neutral"].sort_values("confidence", ascending=False)
+    def _accion_con_advertencia(row: object) -> str:
+        direction = str(row.get("direction", "")).strip().lower()
+        accion = str(row.get("accion_sugerida_v2", "")).strip()
+        if not accion or accion == "-":
+            return accion
+        contradice = (direction == "down" and accion == ACTION_REFUERZO) or (
+            direction == "up" and accion == ACTION_REDUCIR
+        )
+        return f"\u26a0 {accion}" if contradice else accion
+
+    work = work.copy()
+    work["accion_sugerida_v2"] = work.apply(_accion_con_advertencia, axis=1)
+
     predictions_view = ensure_table_columns(
         work,
         [
@@ -279,7 +294,10 @@ def build_summary_section(
 def build_sizing_section(sizing_bundle: dict[str, object], asignacion_final: pd.DataFrame) -> str:
     return f"""
     <section class="panel" id="sizing">
-      <h2>Sizing</h2>
+      <div class="panel-head">
+        <h2>Sizing</h2>
+        <button id="copy-sizing" class="copy-btn">Copiar</button>
+      </div>
       <div class="meta">
         <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
         <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
@@ -297,6 +315,7 @@ def build_sizing_section(sizing_bundle: dict[str, object], asignacion_final: pd.
               "Monto_ARS": fmt_ars,
               "Monto_USD": fmt_usd,
           },
+          table_id="sizing-table",
       )}
     </section>
     """
