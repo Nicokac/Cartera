@@ -44,6 +44,7 @@ jobs:
             tests.test_prediction_store \
             tests.test_prediction_predictor \
             tests.test_prediction_verifier \
+            tests.test_prediction_calibration \
             tests.test_operations \
             tests.test_report_primitives \
             tests.test_report_operations \

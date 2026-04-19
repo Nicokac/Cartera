@@ -36,8 +36,36 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 2 - Pesos y umbrales | completada | 2026-04-19 |
 | Fase 3 - Predictor | completada | 2026-04-19 |
 | Fase 4 - Verificador | completada | 2026-04-19 |
-| Fase 5 - Calibracion | pendiente | 2026-04-19 |
+| Fase 5 - Calibracion | completada | 2026-04-19 |
 | Fase 6 - Integracion y reporte | pendiente | 2026-04-19 |
+
+## 2026-04-19 - Fase 5 - completada
+
+- commit: pendiente
+- alcance:
+  - se implementa la calibracion de pesos basada en historial verificado
+  - queda cerrada la politica minima de recalibracion
+- decisiones:
+  - la calibracion se hace contra outcome ternario `up / neutral / down`, no contra `correct`
+  - el outcome se proyecta a `1 / 0 / -1`
+  - si no hay `min_samples`, el peso no cambia
+  - si `IC <= 0`, la senal cae a `min_weight`
+- archivos:
+  - `src/prediction/calibration.py`
+  - `src/prediction/__init__.py`
+  - `tests/test_prediction_calibration.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+- tests:
+  - mapeo de outcomes
+  - extraccion de `signal_votes`
+  - calculo de IC
+  - recalibracion con muestra suficiente
+  - conservacion de peso con muestra insuficiente
+  - persistencia del JSON recalibrado
+- deuda / notas:
+  - Fase 6 debe decidir cuando ejecutar calibracion automatica dentro del runner
+  - aun no existe integracion con `prediction_history.csv` real desde un ciclo completo
 
 ## 2026-04-19 - Fase 4 - completada
 

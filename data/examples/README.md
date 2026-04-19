@@ -25,6 +25,12 @@ Incluye tambien:
 
 - `data/mappings/prediction_weights.json`
 
+Ese archivo ahora tambien define el bloque:
+
+- `calibration.min_samples`
+- `calibration.min_weight`
+- `calibration.max_weight`
+
 Opciones utiles:
 
 ```powershell

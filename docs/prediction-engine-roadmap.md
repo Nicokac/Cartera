@@ -277,7 +277,7 @@ Completar outcomes vencidos comparando precio en `run_date` contra precio en `ou
 
 ### Fase 5. Calibracion de pesos
 
-**Estado:** `pendiente`
+**Estado:** `completada`
 
 **Objetivo**
 
@@ -286,6 +286,14 @@ Ajustar pesos con evidencia historica usando IC o una metrica equivalente.
 **Archivo esperado**
 
 - `src/prediction/calibration.py`
+
+**Archivos implementados**
+
+- `src/prediction/calibration.py`
+- `src/prediction/__init__.py`
+- `tests/test_prediction_calibration.py`
+- `data/mappings/prediction_weights.json`
+- `data/examples/mappings/prediction_weights.json.example`
 
 **Regla de seguridad**
 
@@ -300,6 +308,18 @@ No recalibrar con menos de `30` outcomes utiles salvo que se documente una excep
 
 - los pesos cambian con datos reales
 - se versiona una estrategia explicita de recalibracion
+
+**Estado de salida**
+
+- calibracion implementada contra outcome ternario `-1 / 0 / 1`
+- si no hay muestra minima, el peso se conserva y la senal queda marcada como `insufficient_samples`
+- si hay muestra suficiente:
+  - `IC > 0` ajusta el peso dentro de `[min_weight, max_weight]`
+  - `IC <= 0` manda la senal al peso minimo
+- la configuracion ahora incluye:
+  - `calibration.min_samples`
+  - `calibration.min_weight`
+  - `calibration.max_weight`
 
 ### Fase 6. Integracion al pipeline y al reporte
 

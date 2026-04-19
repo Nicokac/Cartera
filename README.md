@@ -164,3 +164,4 @@ Estado actual del track:
 - Fase 2 cerrada: pesos y umbrales canonicos en `data/mappings/prediction_weights.json`
 - Fase 3 cerrada: predictor heuristico en `src/prediction/predictor.py`
 - Fase 4 cerrada: verificador de outcomes en `src/prediction/verifier.py`
+- Fase 5 cerrada: calibracion de pesos en `src/prediction/calibration.py`

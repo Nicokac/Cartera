@@ -10,6 +10,14 @@ from .store import (
 )
 from .predictor import predict, vote_signal
 from .verifier import build_verification_period, classify_outcome, resolve_close_on_or_after, verify_prediction_history
+from .calibration import (
+    PREDICTION_WEIGHTS_PATH,
+    calibrate_prediction_weights,
+    compute_signal_ic,
+    extract_signal_vote_frame,
+    outcome_to_numeric,
+    save_prediction_weights,
+)
 
 __all__ = [
     "PREDICTION_HISTORY_COLUMNS",
@@ -26,4 +34,10 @@ __all__ = [
     "classify_outcome",
     "resolve_close_on_or_after",
     "verify_prediction_history",
+    "PREDICTION_WEIGHTS_PATH",
+    "calibrate_prediction_weights",
+    "compute_signal_ic",
+    "extract_signal_vote_frame",
+    "outcome_to_numeric",
+    "save_prediction_weights",
 ]
