@@ -7,6 +7,8 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
@@ -19,7 +21,7 @@ from analytics.bond_analytics import (
 )
 from pipeline import build_dashboard_bundle, build_decision_bundle, build_portfolio_bundle, build_sizing_bundle
 from portfolio.operations import build_operations_bundle, enrich_operations_bundle
-from smoke_fixtures import (
+from tests.smoke_fixtures import (
     build_mock_bonistas,
     build_mock_inputs,
     build_mock_operations,

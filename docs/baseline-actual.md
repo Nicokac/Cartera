@@ -22,8 +22,8 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
   - `scripts/report_renderer.py`
 - flujo smoke dividido en:
   - `scripts/smoke_run.py`
-  - `scripts/smoke_fixtures.py`
   - `scripts/smoke_output.py`
+  - `tests/smoke_fixtures.py`
 - snapshots operativos canonicos en `data/snapshots/`
 - fallback legacy a `tests/snapshots/` controlado por `ENABLE_LEGACY_SNAPSHOTS`
 - logging agregado en capas criticas:
@@ -81,5 +81,4 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
 ## Deuda real aun abierta
 
 - seguir fragmentando `render_report()` para bajar complejidad del renderer principal
-- mover `smoke_fixtures.py` fuera de `scripts/` hacia una zona de fixtures de test
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy

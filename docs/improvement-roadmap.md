@@ -13,8 +13,8 @@ La priorizacion activa combina:
 El proyecto ya salio de la fase de hardening basico. El backlog vigente se concentra en:
 
 1. bajar complejidad estructural del renderer
-2. terminar de separar fixtures de smoke del codigo productivo
-3. seguir calibrando scoring y reporte con evidencia real
+2. seguir calibrando scoring y reporte con evidencia real
+3. cerrar la migracion operativa de snapshots
 
 ## Resuelto recientemente
 
@@ -32,6 +32,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
   - `smoke_run`
   - `smoke_fixtures`
   - `smoke_output`
+- `smoke_fixtures` reubicado bajo `tests/` para separar fixtures del arbol de scripts operativos
 - CI ampliada a las suites activas del repo
 - renderer desacoplado en modulos de primitives, operations y orquestacion
 - flujo de operaciones IOL integrado al reporte con explicaciones operativas
@@ -44,19 +45,13 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - reducir tamaño y complejidad cognitiva de `scripts/report_renderer.py`
 - mantener contratos estables con `generate_smoke_report.py` y `generate_real_report.py`
 
-### P2. Reubicar fixtures de smoke
-
-- mover `scripts/smoke_fixtures.py` a una zona de fixtures de test
-- evitar que mocks de pruebas vivan dentro del arbol de scripts operativos
-- simplificar imports de `test_smoke_run.py` y `test_smoke_output.py`
-
-### P3. Afinar calibraciones con evidencia real
+### P2. Afinar calibraciones con evidencia real
 
 - monitorear cohortes chicas luego del damping de `rank_score`
 - revisar scoring y sizing solo cuando aparezcan corridas reales borderline
 - mantener la narrativa del reporte alineada con cambios efectivos de decision
 
-### P4. Cerrar migracion de snapshots
+### P3. Cerrar migracion de snapshots
 
 - retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente
 - mantener documentado el criterio de retiro

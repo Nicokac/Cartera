@@ -719,22 +719,272 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
     """
 
 
-def render_report(
-    result: dict[str, object],
+def select_decision_view(
+    final_decision: pd.DataFrame,
+    propuesta: pd.DataFrame,
+) -> tuple[pd.DataFrame, str, str]:
+    if not propuesta.empty and "accion_operativa" in propuesta.columns:
+        motive_col = "comentario_operativo" if "comentario_operativo" in propuesta.columns else "motivo_accion"
+        return propuesta, "accion_operativa", motive_col
+    return final_decision, "accion_sugerida_v2", "motivo_accion"
+
+
+def build_technical_view(technical_overlay: pd.DataFrame) -> pd.DataFrame:
+    technical_cols = [
+        col
+        for col in [
+            "Ticker_IOL",
+            "Peso_%",
+            "Tech_Trend",
+            "RSI_14",
+            "Momentum_20d_%",
+            "Momentum_60d_%",
+            "Dist_SMA20_%",
+            "Dist_SMA50_%",
+            "Dist_SMA200_%",
+            "Dist_EMA20_%",
+            "Dist_EMA50_%",
+            "Dist_52w_High_%",
+            "Dist_52w_Low_%",
+            "Vol_20d_Anual_%",
+            "Avg_Volume_20d",
+            "Drawdown_desde_Max3m_%",
+        ]
+        if col in technical_overlay.columns
+    ]
+    if not isinstance(technical_overlay, pd.DataFrame) or technical_overlay.empty:
+        return pd.DataFrame()
+
+    technical_view = technical_overlay[technical_cols].copy()
+    if "Momentum_20d_%" in technical_view.columns:
+        technical_view = technical_view.sort_values("Momentum_20d_%", ascending=False)
+    return technical_view
+
+
+def build_family_summary(decision_view: pd.DataFrame) -> pd.DataFrame:
+    if not isinstance(decision_view, pd.DataFrame) or decision_view.empty:
+        return pd.DataFrame()
+
+    family_base = decision_view.copy()
+    if "asset_family" not in family_base.columns:
+        family_base["asset_family"] = None
+    if "asset_subfamily" not in family_base.columns:
+        family_base["asset_subfamily"] = None
+    return (
+        family_base.groupby(["asset_family", "asset_subfamily"], dropna=False)
+        .agg(
+            Instrumentos=("Ticker_IOL", "count"),
+            Score_Promedio=("score_unificado", "mean"),
+        )
+        .reset_index()
+        .sort_values(["asset_family", "asset_subfamily"], na_position="last")
+    )
+
+
+def build_change_highlights(
+    decision_view: pd.DataFrame,
     *,
-    title: str = "Smoke Run",
-    headline: str = "Prueba visual del pipeline",
-    lede: str = "Reporte generado desde <code>scripts/generate_smoke_report.py</code> sin depender del notebook.",
+    action_col: str,
+    motive_col: str,
+) -> tuple[list[dict[str, str]], str, list[dict[str, str]], list[dict[str, str]]]:
+    changed_actions: list[dict[str, str]] = []
+    changes_direction_summary = ""
+    buy_focus: list[dict[str, str]] = []
+    sell_focus: list[dict[str, str]] = []
+    if not isinstance(decision_view, pd.DataFrame) or decision_view.empty:
+        return changed_actions, changes_direction_summary, buy_focus, sell_focus
+
+    changed_view = decision_view.copy()
+    changed_view["_accion_actual"] = changed_view[action_col].fillna("").astype(str)
+    changed_view["_accion_previa"] = changed_view.get("accion_previa", pd.Series(index=changed_view.index, dtype=object)).fillna("").astype(str)
+    changed_view = changed_view[
+        (changed_view["_accion_previa"].str.strip() != "")
+        & (changed_view["_accion_actual"].str.strip() != "")
+        & (changed_view["_accion_previa"] != changed_view["_accion_actual"])
+    ]
+    changed_view = changed_view[
+        changed_view["_accion_previa"].isin(
+            {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+        )
+        & changed_view["_accion_actual"].isin(
+            {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
+        )
+        & ~(
+            changed_view["_accion_previa"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+            & changed_view["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
+        )
+    ]
+    changed_view["_score_delta_abs"] = pd.to_numeric(
+        changed_view.get("score_delta_vs_dia_anterior", pd.Series(index=changed_view.index, dtype=float)),
+        errors="coerce",
+    ).abs()
+    changed_view = changed_view.sort_values(
+        ["_score_delta_abs", "score_unificado"],
+        ascending=[False, False],
+        na_position="last",
+    )
+
+    cambios_hacia_refuerzo = int((changed_view["_accion_actual"] == ACTION_REFUERZO).sum())
+    cambios_hacia_reduccion = int((changed_view["_accion_actual"] == ACTION_REDUCIR).sum())
+    cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
+    changes_direction_summary = f"""
+      <section class="action-strip compact-strip">
+        <article class="action-card buy"><span>Suben de conviccion</span><strong>{cambios_hacia_refuerzo}</strong></article>
+        <article class="action-card sell"><span>Bajan a reduccion</span><strong>{cambios_hacia_reduccion}</strong></article>
+        <article class="action-card neutral"><span>Vuelven a monitoreo</span><strong>{cambios_hacia_neutral}</strong></article>
+      </section>
+    """
+
+    for _, row in changed_view.head(6).iterrows():
+        previous_action = str(row["_accion_previa"])
+        current_action = str(row["_accion_actual"])
+        score_delta = row.get("score_delta_vs_dia_anterior")
+        score_delta_label = fmt_delta_score(score_delta)
+        delta_fragment = f" Î” score {score_delta_label}." if score_delta_label != "-" else ""
+        changed_actions.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": describe_action_shift(previous_action, current_action),
+                "detail": truncate_text(
+                    f"Antes: {previous_action}. Ahora: {current_action}.{delta_fragment} {fmt_label(row.get(motive_col, ''))}",
+                    180,
+                ),
+                "badge": current_action,
+            }
+        )
+
+    refuerzo_view = decision_view[decision_view[action_col].astype(str) == ACTION_REFUERZO].sort_values(
+        "score_unificado", ascending=False
+    )
+    reducir_view = decision_view[decision_view[action_col].astype(str) == ACTION_REDUCIR].sort_values(
+        "score_unificado", ascending=True
+    )
+    for _, row in refuerzo_view.head(3).iterrows():
+        buy_focus.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Score {fmt_score(row.get('score_unificado'))}",
+                "detail": truncate_text(row.get(motive_col, ""), 140),
+                "badge": ACTION_REFUERZO,
+            }
+        )
+    for _, row in reducir_view.head(3).iterrows():
+        sell_focus.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Score {fmt_score(row.get('score_unificado'))}",
+                "detail": truncate_text(row.get(motive_col, ""), 140),
+                "badge": ACTION_REDUCIR,
+            }
+        )
+
+    return changed_actions, changes_direction_summary, buy_focus, sell_focus
+
+
+def build_regime_section(market_regime: dict[str, object]) -> str:
+    if not market_regime:
+        return ""
+
+    regime_flags = market_regime.get("flags", {}) or {}
+    regime_active_flags = market_regime.get("active_flags", []) or []
+    regime_items = []
+    for flag_name, is_active in regime_flags.items():
+        regime_items.append(
+            f"<span>{esc_text(flag_name)}: <strong>{'Activo' if is_active else 'Inactivo'}</strong></span>"
+        )
+    active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
+    regime_state = "Activo" if market_regime.get("any_active") else "Sin activacion"
+    return f"""
+    <section class="panel" id="regimen">
+      <h2>Regimen de mercado</h2>
+      <div class="meta">
+        <span>Estado: <strong>{esc_text(regime_state)}</strong></span>
+        <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
+      </div>
+      <div class="meta">
+        {''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>'}
+      </div>
+    </section>
+    """
+
+
+def build_bonistas_section(
+    *,
+    show_bonistas: bool,
+    bond_monitor: pd.DataFrame,
+    bond_subfamily_summary: pd.DataFrame,
+    bond_local_subfamily_summary: pd.DataFrame,
+    bonistas_macro: dict[str, object],
+    ust_note: str,
 ) -> str:
-    render_started = time.perf_counter()
-    section_timings: dict[str, float] = {}
+    if not show_bonistas:
+        return ""
 
-    def _time_section(name: str, fn):
-        started = time.perf_counter()
-        result = fn()
-        section_timings[name] = round(time.perf_counter() - started, 4)
-        return result
+    bond_summary_tables = (
+        build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_summary, formatters={}), open_by_default=True, compact=True)
+        + build_collapsible("Ver resumen por taxonomia local", build_table(bond_local_subfamily_summary, formatters={}), compact=True)
+        + build_collapsible(
+            "Ver monitoreo completo de bonos",
+            build_table(
+                bond_monitor,
+                formatters={
+                    "Peso_%": fmt_pct,
+                    "bonistas_tir_pct": fmt_pct,
+                    "bonistas_paridad_pct": fmt_pct,
+                    "bonistas_md": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
+                    "bonistas_volume_last": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                    "bonistas_volume_avg_20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                    "bonistas_volume_ratio": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
+                    "bonistas_tir_vs_avg_365d_pct": fmt_pct,
+                    "bonistas_parity_gap_pct": fmt_pct,
+                },
+            ),
+            compact=True,
+        )
+    )
+    return f"""
+    <section class="panel" id="bonistas">
+      <h2>Bonos Locales</h2>
+      <div class="meta">
+        <span>CER: <strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></span>
+        <span>TAMAR: <strong>{esc_text(bonistas_macro.get('tamar'))}</strong></span>
+        <span>BADLAR: <strong>{esc_text(bonistas_macro.get('badlar'))}</strong></span>
+        <span>Reservas BCRA: <strong>{esc_text(bonistas_macro.get('reservas_bcra_musd'))}</strong></span>
+        <span>A3500: <strong>{esc_text(bonistas_macro.get('a3500_mayorista'))}</strong></span>
+        <span>Riesgo pais: <strong>{esc_text(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
+        <span>REM inflacion: <strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
+        <span>REM 12m: <strong>{esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>
+        <span>UST 5y: <strong>{esc_text(bonistas_macro.get('ust_5y_pct'))}</strong></span>
+        <span>UST 10y: <strong>{esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></span>
+        {ust_note}
+      </div>
+      {build_bond_summary(bond_subfamily_summary, bond_local_subfamily_summary, bonistas_macro)}
+      {bond_summary_tables}
+    </section>
+    """
 
+
+def build_sizing_preview(asignacion_final: pd.DataFrame) -> str:
+    if not isinstance(asignacion_final, pd.DataFrame) or asignacion_final.empty:
+        return '<div class="empty compact-empty">Sin sizing sugerido.</div>'
+
+    sizing_items = []
+    for _, row in asignacion_final.head(3).iterrows():
+        sizing_items.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"{fmt_pct(row.get('Peso_Fondeo_%'))} del fondeo",
+                "detail": f"{fmt_ars(row.get('Monto_ARS'))} | {fmt_usd(row.get('Monto_USD'))}",
+            }
+        )
+    return build_focus_list(
+        sizing_items,
+        empty_message="Sin sizing sugerido.",
+        tone="fund",
+    )
+
+
+def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     mep_real = float(result["mep_real"])
     generated_at_label = result.get("generated_at_label")
     portfolio_bundle = result["portfolio_bundle"]
@@ -761,9 +1011,7 @@ def render_report(
     bond_local_subfamily_summary = bonistas_bundle.get("bond_local_subfamily_summary", pd.DataFrame())
     bonistas_macro = bonistas_bundle.get("macro_variables", {}) or {}
     ust_status = str(bonistas_macro.get("ust_status") or "").strip().lower()
-    ust_note = ""
-    if ust_status == "error":
-        ust_note = "<span>UST source: <strong>FRED no disponible</strong></span>"
+    ust_note = "<span>UST source: <strong>FRED no disponible</strong></span>" if ust_status == "error" else ""
     show_bonistas = (
         (isinstance(bond_monitor, pd.DataFrame) and not bond_monitor.empty)
         or (isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty)
@@ -793,351 +1041,233 @@ def render_report(
     finviz_fund_covered = int(finviz_stats.get("fundamentals_covered", 0))
     finviz_ratings_covered = int(finviz_stats.get("ratings_covered", 0))
 
-    if not propuesta.empty and "accion_operativa" in propuesta.columns:
-        decision_view = propuesta
-        action_col = "accion_operativa"
-        motive_col = "comentario_operativo" if "comentario_operativo" in propuesta.columns else "motivo_accion"
-    else:
-        decision_view = final_decision
-        action_col = "accion_sugerida_v2"
-        motive_col = "motivo_accion"
-
+    decision_view, action_col, motive_col = select_decision_view(final_decision, propuesta)
     action_counts = decision_view[action_col].value_counts(dropna=False).to_dict()
     neutrales = sum(int(action_counts.get(action_name, 0)) for action_name in NEUTRAL_ACTIONS)
-
-    technical_cols = [
-        col
-        for col in [
-            "Ticker_IOL",
-            "Peso_%",
-            "Tech_Trend",
-            "RSI_14",
-            "Momentum_20d_%",
-            "Momentum_60d_%",
-            "Dist_SMA20_%",
-            "Dist_SMA50_%",
-            "Dist_SMA200_%",
-            "Dist_EMA20_%",
-            "Dist_EMA50_%",
-            "Dist_52w_High_%",
-            "Dist_52w_Low_%",
-            "Vol_20d_Anual_%",
-            "Avg_Volume_20d",
-            "Drawdown_desde_Max3m_%",
-        ]
-        if col in technical_overlay.columns
-    ]
-    if isinstance(technical_overlay, pd.DataFrame) and not technical_overlay.empty:
-        technical_view = technical_overlay[technical_cols].copy()
-        if "Momentum_20d_%" in technical_view.columns:
-            technical_view = technical_view.sort_values("Momentum_20d_%", ascending=False)
-    else:
-        technical_view = pd.DataFrame()
-
-    family_summary = pd.DataFrame()
-    if isinstance(decision_view, pd.DataFrame) and not decision_view.empty:
-        family_base = decision_view.copy()
-        if "asset_family" not in family_base.columns:
-            family_base["asset_family"] = None
-        if "asset_subfamily" not in family_base.columns:
-            family_base["asset_subfamily"] = None
-        family_summary = (
-            family_base.groupby(["asset_family", "asset_subfamily"], dropna=False)
-            .agg(
-                Instrumentos=("Ticker_IOL", "count"),
-                Score_Promedio=("score_unificado", "mean"),
-            )
-            .reset_index()
-            .sort_values(["asset_family", "asset_subfamily"], na_position="last")
-        )
-
-    changed_actions: list[dict[str, str]] = []
-    changes_direction_summary = ""
-    buy_focus: list[dict[str, str]] = []
-    sell_focus: list[dict[str, str]] = []
-    if isinstance(decision_view, pd.DataFrame) and not decision_view.empty:
-        changed_view = decision_view.copy()
-        changed_view["_accion_actual"] = changed_view[action_col].fillna("").astype(str)
-        changed_view["_accion_previa"] = changed_view.get("accion_previa", pd.Series(index=changed_view.index, dtype=object)).fillna("").astype(str)
-        changed_view = changed_view[
-            (changed_view["_accion_previa"].str.strip() != "")
-            & (changed_view["_accion_actual"].str.strip() != "")
-            & (changed_view["_accion_previa"] != changed_view["_accion_actual"])
-        ]
-        changed_view = changed_view[
-            changed_view["_accion_previa"].isin(
-                {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
-            )
-            & changed_view["_accion_actual"].isin(
-                {ACTION_REFUERZO, ACTION_REDUCIR, ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
-            )
-            & ~(
-                changed_view["_accion_previa"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
-                & changed_view["_accion_actual"].isin({ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"})
-            )
-        ]
-        changed_view["_score_delta_abs"] = pd.to_numeric(
-            changed_view.get("score_delta_vs_dia_anterior", pd.Series(index=changed_view.index, dtype=float)),
-            errors="coerce",
-        ).abs()
-        changed_view = changed_view.sort_values(
-            ["_score_delta_abs", "score_unificado"],
-            ascending=[False, False],
-            na_position="last",
-        )
-
-        cambios_hacia_refuerzo = int((changed_view["_accion_actual"] == ACTION_REFUERZO).sum())
-        cambios_hacia_reduccion = int((changed_view["_accion_actual"] == ACTION_REDUCIR).sum())
-        cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
-        changes_direction_summary = f"""
-      <section class="action-strip compact-strip">
-        <article class="action-card buy"><span>Suben de conviccion</span><strong>{cambios_hacia_refuerzo}</strong></article>
-        <article class="action-card sell"><span>Bajan a reduccion</span><strong>{cambios_hacia_reduccion}</strong></article>
-        <article class="action-card neutral"><span>Vuelven a monitoreo</span><strong>{cambios_hacia_neutral}</strong></article>
-      </section>
-    """
-
-        for _, row in changed_view.head(6).iterrows():
-            previous_action = str(row["_accion_previa"])
-            current_action = str(row["_accion_actual"])
-            score_delta = row.get("score_delta_vs_dia_anterior")
-            score_delta_label = fmt_delta_score(score_delta)
-            delta_fragment = f" Δ score {score_delta_label}." if score_delta_label != "-" else ""
-            changed_actions.append(
-                {
-                    "kicker": str(row.get("Ticker_IOL", "-")),
-                    "title": describe_action_shift(previous_action, current_action),
-                    "detail": truncate_text(
-                        f"Antes: {previous_action}. Ahora: {current_action}.{delta_fragment} {fmt_label(row.get(motive_col, ''))}",
-                        180,
-                    ),
-                    "badge": current_action,
-                }
-            )
-
-        refuerzo_view = decision_view[decision_view[action_col].astype(str) == ACTION_REFUERZO].sort_values(
-            "score_unificado", ascending=False
-        )
-        reducir_view = decision_view[decision_view[action_col].astype(str) == ACTION_REDUCIR].sort_values(
-            "score_unificado", ascending=True
-        )
-        for _, row in refuerzo_view.head(3).iterrows():
-            buy_focus.append(
-                {
-                    "kicker": str(row.get("Ticker_IOL", "-")),
-                    "title": f"Score {fmt_score(row.get('score_unificado'))}",
-                    "detail": truncate_text(row.get(motive_col, ""), 140),
-                    "badge": ACTION_REFUERZO,
-                }
-            )
-        for _, row in reducir_view.head(3).iterrows():
-            sell_focus.append(
-                {
-                    "kicker": str(row.get("Ticker_IOL", "-")),
-                    "title": f"Score {fmt_score(row.get('score_unificado'))}",
-                    "detail": truncate_text(row.get(motive_col, ""), 140),
-                    "badge": ACTION_REDUCIR,
-                }
-            )
-
-    sizing_preview = ""
-    if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty:
-        sizing_items = []
-        for _, row in asignacion_final.head(3).iterrows():
-            sizing_items.append(
-                {
-                    "kicker": str(row.get("Ticker_IOL", "-")),
-                    "title": f"{fmt_pct(row.get('Peso_Fondeo_%'))} del fondeo",
-                    "detail": f"{fmt_ars(row.get('Monto_ARS'))} | {fmt_usd(row.get('Monto_USD'))}",
-                }
-            )
-        sizing_preview = build_focus_list(
-            sizing_items,
-            empty_message="Sin sizing sugerido.",
-            tone="fund",
-        )
-    else:
-        sizing_preview = '<div class="empty compact-empty">Sin sizing sugerido.</div>'
-
+    technical_view = build_technical_view(technical_overlay)
+    family_summary = build_family_summary(decision_view)
+    changed_actions, changes_direction_summary, buy_focus, sell_focus = build_change_highlights(
+        decision_view,
+        action_col=action_col,
+        motive_col=motive_col,
+    )
+    sizing_preview = build_sizing_preview(asignacion_final)
     active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
-    executive_summary = _time_section(
+
+    return {
+        "mep_real": mep_real,
+        "generated_at_label": generated_at_label,
+        "portfolio_bundle": portfolio_bundle,
+        "dashboard_bundle": dashboard_bundle,
+        "decision_bundle": decision_bundle,
+        "sizing_bundle": sizing_bundle,
+        "operations_bundle": operations_bundle,
+        "decision_memory": decision_memory,
+        "market_regime": market_regime,
+        "df_total": df_total,
+        "current_tickers": current_tickers,
+        "integrity_report": integrity_report,
+        "asignacion_final": asignacion_final,
+        "resumen_tipos": resumen_tipos,
+        "kpis": kpis,
+        "bond_monitor": bond_monitor,
+        "bond_subfamily_summary": bond_subfamily_summary,
+        "bond_local_subfamily_summary": bond_local_subfamily_summary,
+        "bonistas_macro": bonistas_macro,
+        "ust_note": ust_note,
+        "show_bonistas": show_bonistas,
+        "tech_total": tech_total,
+        "tech_covered": tech_covered,
+        "tech_enabled": tech_enabled,
+        "finviz_total": finviz_total,
+        "finviz_fund_covered": finviz_fund_covered,
+        "finviz_ratings_covered": finviz_ratings_covered,
+        "decision_view": decision_view,
+        "action_col": action_col,
+        "motive_col": motive_col,
+        "action_counts": action_counts,
+        "neutrales": neutrales,
+        "technical_view": technical_view,
+        "family_summary": family_summary,
+        "changed_actions": changed_actions,
+        "changes_direction_summary": changes_direction_summary,
+        "buy_focus": buy_focus,
+        "sell_focus": sell_focus,
+        "sizing_preview": sizing_preview,
+        "active_flags_label": active_flags_label,
+    }
+
+
+def build_render_sections(
+    context: dict[str, object],
+    *,
+    time_section,
+) -> dict[str, object]:
+    executive_summary = time_section(
         "executive_summary",
         lambda: build_executive_summary(
-            action_counts=action_counts,
-            decision_memory=decision_memory,
-            changed_actions=changed_actions,
-            operations_bundle=operations_bundle,
-            asignacion_final=asignacion_final if isinstance(asignacion_final, pd.DataFrame) else pd.DataFrame(),
-            current_tickers=current_tickers,
+            action_counts=context["action_counts"],
+            decision_memory=context["decision_memory"],
+            changed_actions=context["changed_actions"],
+            operations_bundle=context["operations_bundle"],
+            asignacion_final=context["asignacion_final"] if isinstance(context["asignacion_final"], pd.DataFrame) else pd.DataFrame(),
+            current_tickers=context["current_tickers"],
         ),
     )
-    primary_cards, secondary_cards, action_summary = _time_section(
+    primary_cards, secondary_cards, action_summary = time_section(
         "header_cards",
         lambda: build_header_cards(
-            generated_at_label=generated_at_label,
-            kpis=kpis,
-            mep_real=mep_real,
-            action_counts=action_counts,
-            neutrales=neutrales,
-            tech_covered=tech_covered,
-            tech_total=tech_total,
-            finviz_fund_covered=finviz_fund_covered,
-            finviz_total=finviz_total,
-            finviz_ratings_covered=finviz_ratings_covered,
+            generated_at_label=context["generated_at_label"],
+            kpis=context["kpis"],
+            mep_real=float(context["mep_real"]),
+            action_counts=context["action_counts"],
+            neutrales=int(context["neutrales"]),
+            tech_covered=int(context["tech_covered"]),
+            tech_total=int(context["tech_total"]),
+            finviz_fund_covered=int(context["finviz_fund_covered"]),
+            finviz_total=int(context["finviz_total"]),
+            finviz_ratings_covered=int(context["finviz_ratings_covered"]),
         ),
     )
-    panorama_section = _time_section(
+    panorama_section = time_section(
         "panorama",
         lambda: build_panorama_section(
             executive_summary=executive_summary,
-            market_regime=market_regime,
-            active_flags_label=active_flags_label,
-            tech_enabled=tech_enabled,
-            buy_focus=buy_focus,
-            sell_focus=sell_focus,
-            sizing_bundle=sizing_bundle,
-            sizing_preview=sizing_preview,
+            market_regime=context["market_regime"],
+            active_flags_label=str(context["active_flags_label"]),
+            tech_enabled=str(context["tech_enabled"]),
+            buy_focus=context["buy_focus"],
+            sell_focus=context["sell_focus"],
+            sizing_bundle=context["sizing_bundle"],
+            sizing_preview=str(context["sizing_preview"]),
         ),
     )
-    changes_section = _time_section(
+    changes_section = time_section(
         "changes",
         lambda: build_changes_section(
-            decision_memory=decision_memory,
-            changes_direction_summary=changes_direction_summary,
-            changed_actions=changed_actions,
-            finviz_fund_covered=finviz_fund_covered,
-            finviz_total=finviz_total,
-            finviz_ratings_covered=finviz_ratings_covered,
-            tech_covered=tech_covered,
-            tech_total=tech_total,
+            decision_memory=context["decision_memory"],
+            changes_direction_summary=str(context["changes_direction_summary"]),
+            changed_actions=context["changed_actions"],
+            finviz_fund_covered=int(context["finviz_fund_covered"]),
+            finviz_total=int(context["finviz_total"]),
+            finviz_ratings_covered=int(context["finviz_ratings_covered"]),
+            tech_covered=int(context["tech_covered"]),
+            tech_total=int(context["tech_total"]),
         ),
     )
-    regime_flags = market_regime.get("flags", {}) or {}
-    regime_active_flags = market_regime.get("active_flags", []) or []
-    regime_summary = ""
-    if market_regime:
-        regime_items = []
-        for flag_name, is_active in regime_flags.items():
-            regime_items.append(
-                f"<span>{esc_text(flag_name)}: <strong>{'Activo' if is_active else 'Inactivo'}</strong></span>"
-            )
-        active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
-        regime_state = "Activo" if market_regime.get("any_active") else "Sin activacion"
-        regime_summary = f"""
-    <section class="panel" id="regimen">
-      <h2>Regimen de mercado</h2>
-      <div class="meta">
-        <span>Estado: <strong>{esc_text(regime_state)}</strong></span>
-        <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
-      </div>
-      <div class="meta">
-        {''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>'}
-      </div>
-    </section>
-    """
-
-    bonistas_section = ""
-    if show_bonistas:
-        bond_summary_tables = (
-            build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_summary, formatters={}), open_by_default=True, compact=True)
-            + build_collapsible("Ver resumen por taxonomia local", build_table(bond_local_subfamily_summary, formatters={}), compact=True)
-            + build_collapsible(
-                "Ver monitoreo completo de bonos",
-                build_table(
-                    bond_monitor,
-                    formatters={
-                        "Peso_%": fmt_pct,
-                        "bonistas_tir_pct": fmt_pct,
-                        "bonistas_paridad_pct": fmt_pct,
-                        "bonistas_md": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
-                        "bonistas_volume_last": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
-                        "bonistas_volume_avg_20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
-                        "bonistas_volume_ratio": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
-                        "bonistas_tir_vs_avg_365d_pct": fmt_pct,
-                        "bonistas_parity_gap_pct": fmt_pct,
-                    },
-                ),
-                compact=True,
-            )
-        )
-        bonistas_section = f"""
-    <section class="panel" id="bonistas">
-      <h2>Bonos Locales</h2>
-      <div class="meta">
-        <span>CER: <strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></span>
-        <span>TAMAR: <strong>{esc_text(bonistas_macro.get('tamar'))}</strong></span>
-        <span>BADLAR: <strong>{esc_text(bonistas_macro.get('badlar'))}</strong></span>
-        <span>Reservas BCRA: <strong>{esc_text(bonistas_macro.get('reservas_bcra_musd'))}</strong></span>
-        <span>A3500: <strong>{esc_text(bonistas_macro.get('a3500_mayorista'))}</strong></span>
-        <span>Riesgo pais: <strong>{esc_text(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
-        <span>REM inflacion: <strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
-        <span>REM 12m: <strong>{esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>
-        <span>UST 5y: <strong>{esc_text(bonistas_macro.get('ust_5y_pct'))}</strong></span>
-        <span>UST 10y: <strong>{esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></span>
-        {ust_note}
-      </div>
-      {build_bond_summary(bond_subfamily_summary, bond_local_subfamily_summary, bonistas_macro)}
-      {bond_summary_tables}
-    </section>
-    """
-    quick_nav = _time_section(
-        "quick_nav",
-        lambda: build_quick_nav(show_bonistas=show_bonistas, show_operations=bool(operations_bundle)),
+    regime_summary = build_regime_section(context["market_regime"])
+    bonistas_section = build_bonistas_section(
+        show_bonistas=bool(context["show_bonistas"]),
+        bond_monitor=context["bond_monitor"],
+        bond_subfamily_summary=context["bond_subfamily_summary"],
+        bond_local_subfamily_summary=context["bond_local_subfamily_summary"],
+        bonistas_macro=context["bonistas_macro"],
+        ust_note=context["ust_note"],
     )
-    operations_section = _time_section(
+    quick_nav = time_section(
+        "quick_nav",
+        lambda: build_quick_nav(
+            show_bonistas=bool(context["show_bonistas"]),
+            show_operations=bool(context["operations_bundle"]),
+        ),
+    )
+    operations_section = time_section(
         "operations",
         lambda: (
-            build_operations_summary(operations_bundle, current_tickers=current_tickers, current_portfolio=df_total)
-            if operations_bundle
+            build_operations_summary(
+                context["operations_bundle"],
+                current_tickers=context["current_tickers"],
+                current_portfolio=context["df_total"],
+            )
+            if context["operations_bundle"]
             else ""
         ),
     )
-    summary_section = _time_section(
+    summary_section = time_section(
         "summary",
         lambda: build_summary_section(
-            kpis=kpis,
-            resumen_tipos=resumen_tipos,
-            family_summary=family_summary,
-            finviz_fund_covered=finviz_fund_covered,
-            finviz_total=finviz_total,
-            finviz_ratings_covered=finviz_ratings_covered,
+            kpis=context["kpis"],
+            resumen_tipos=context["resumen_tipos"],
+            family_summary=context["family_summary"],
+            finviz_fund_covered=int(context["finviz_fund_covered"]),
+            finviz_total=int(context["finviz_total"]),
+            finviz_ratings_covered=int(context["finviz_ratings_covered"]),
         ),
     )
-    sizing_section = _time_section("sizing", lambda: build_sizing_section(sizing_bundle, asignacion_final))
-    decision_section = _time_section(
+    sizing_section = time_section(
+        "sizing",
+        lambda: build_sizing_section(context["sizing_bundle"], context["asignacion_final"]),
+    )
+    decision_section = time_section(
         "decision",
         lambda: build_decision_section(
-            decision_view=decision_view,
-            action_col=action_col,
-            motive_col=motive_col,
+            decision_view=context["decision_view"],
+            action_col=str(context["action_col"]),
+            motive_col=str(context["motive_col"]),
         ),
     )
-    portfolio_section = _time_section("portfolio", lambda: build_portfolio_section(df_total))
-    integrity_section = _time_section("integrity", lambda: build_integrity_section(integrity_report))
+    portfolio_section = time_section("portfolio", lambda: build_portfolio_section(context["df_total"]))
+    integrity_section = time_section("integrity", lambda: build_integrity_section(context["integrity_report"]))
+    return {
+        "primary_cards": primary_cards,
+        "secondary_cards": secondary_cards,
+        "action_summary": action_summary,
+        "panorama_section": panorama_section,
+        "changes_section": changes_section,
+        "regime_summary": regime_summary,
+        "bonistas_section": bonistas_section,
+        "quick_nav": quick_nav,
+        "operations_section": operations_section,
+        "summary_section": summary_section,
+        "sizing_section": sizing_section,
+        "decision_section": decision_section,
+        "portfolio_section": portfolio_section,
+        "integrity_section": integrity_section,
+    }
+
+
+def render_report(
+    result: dict[str, object],
+    *,
+    title: str = "Smoke Run",
+    headline: str = "Prueba visual del pipeline",
+    lede: str = "Reporte generado desde <code>scripts/generate_smoke_report.py</code> sin depender del notebook.",
+) -> str:
+    render_started = time.perf_counter()
+    section_timings: dict[str, float] = {}
+
+    def _time_section(name: str, fn):
+        started = time.perf_counter()
+        result = fn()
+        section_timings[name] = round(time.perf_counter() - started, 4)
+        return result
+
+    context = prepare_render_context(result)
+    sections = build_render_sections(context, time_section=_time_section)
     html_body = _time_section(
         "body",
         lambda: build_report_body(
             title=title,
             headline=headline,
             lede=lede,
-            quick_nav=quick_nav,
-            primary_cards=primary_cards,
-            secondary_cards=secondary_cards,
-            action_summary=action_summary,
-            panorama_section=panorama_section,
-            changes_section=changes_section,
-            operations_section=operations_section,
-            regime_summary=regime_summary,
-            summary_section=summary_section,
-            sizing_section=sizing_section,
-            tech_enabled=tech_enabled,
-            tech_covered=tech_covered,
-            tech_total=tech_total,
-            technical_view=technical_view,
-            bonistas_section=bonistas_section,
-            decision_section=decision_section,
-            portfolio_section=portfolio_section,
-            integrity_section=integrity_section,
+            quick_nav=sections["quick_nav"],
+            primary_cards=sections["primary_cards"],
+            secondary_cards=sections["secondary_cards"],
+            action_summary=sections["action_summary"],
+            panorama_section=sections["panorama_section"],
+            changes_section=sections["changes_section"],
+            operations_section=sections["operations_section"],
+            regime_summary=sections["regime_summary"],
+            summary_section=sections["summary_section"],
+            sizing_section=sections["sizing_section"],
+            tech_enabled=str(context["tech_enabled"]),
+            tech_covered=int(context["tech_covered"]),
+            tech_total=int(context["tech_total"]),
+            technical_view=context["technical_view"],
+            bonistas_section=sections["bonistas_section"],
+            decision_section=sections["decision_section"],
+            portfolio_section=sections["portfolio_section"],
+            integrity_section=sections["integrity_section"],
         ),
     )
     logger.info(
