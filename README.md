@@ -157,3 +157,7 @@ Track de prediccion direccional:
 
 - [docs/prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
 - [docs/prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
+
+Estado actual del track:
+
+- Fase 1 cerrada: store local de predicciones en `src/prediction/store.py`

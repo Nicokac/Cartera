@@ -20,6 +20,7 @@ python -m unittest tests.test_strategy_rules -v
 python -m unittest tests.test_technical -v
 python -m unittest tests.test_sizing -v
 python -m unittest tests.test_decision_history -v
+python -m unittest tests.test_prediction_store -v
 python -m unittest tests.test_operations -v
 python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
@@ -44,6 +45,7 @@ python -m unittest tests.test_generate_real_report -v
   - `tests.test_technical`
   - `tests.test_sizing`
   - `tests.test_decision_history`
+  - `tests.test_prediction_store`
   - `tests.test_operations`
   - `tests.test_report_primitives`
   - `tests.test_report_operations`
@@ -66,6 +68,7 @@ python -m unittest tests.test_generate_real_report -v
 - smoke pipeline y salida formateada
 - liquidez y sizing
 - scoring, acciones y memoria temporal
+- persistencia base del motor de prediccion direccional
 - operaciones y snapshots
 - render HTML
 - clientes principales y secundarios

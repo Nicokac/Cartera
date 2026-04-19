@@ -32,12 +32,36 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 
 | Fase | Estado | Ultima actualizacion |
 |---|---|---|
-| Fase 1 - Store | pendiente | 2026-04-19 |
+| Fase 1 - Store | completada | 2026-04-19 |
 | Fase 2 - Pesos y umbrales | pendiente | 2026-04-19 |
 | Fase 3 - Predictor | pendiente | 2026-04-19 |
 | Fase 4 - Verificador | pendiente | 2026-04-19 |
 | Fase 5 - Calibracion | pendiente | 2026-04-19 |
 | Fase 6 - Integracion y reporte | pendiente | 2026-04-19 |
+
+## 2026-04-19 - Fase 1 - completada
+
+- commit: pendiente
+- alcance:
+  - se implementa el store inicial del motor de prediccion
+  - queda definido el contrato persistido en `data/runtime/prediction_history.csv`
+- decisiones:
+  - la clave de reemplazo por rerun es `run_date + ticker + horizon_days`
+  - `signal_votes` se persiste como JSON string ordenado para facilitar auditabilidad
+  - `outcome_date` se calcula en dias habiles con `BDay`
+- archivos:
+  - `src/prediction/store.py`
+  - `src/prediction/__init__.py`
+  - `tests/test_prediction_store.py`
+  - `data/runtime/README.md`
+- tests:
+  - roundtrip save/load
+  - normalizacion de observaciones
+  - upsert por rerun
+  - calculo de `outcome_date`
+- deuda / notas:
+  - Fase 2 debe externalizar `horizon_days` y umbrales a JSON
+  - Fase 3 todavia no existe; el store no esta integrado al pipeline
 
 ## 2026-04-19 - Apertura del track - planificado
 

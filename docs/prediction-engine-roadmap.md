@@ -77,7 +77,7 @@ Cada fase implementada debe actualizar tres lugares:
 
 ### Fase 1. Store de predicciones
 
-**Estado:** `pendiente`
+**Estado:** `completada`
 
 **Objetivo**
 
@@ -87,6 +87,13 @@ Persistir cada prediccion en un historial estructurado bajo `data/runtime/`.
 
 - `src/prediction/store.py`
 - `data/runtime/prediction_history.csv`
+
+**Archivos implementados**
+
+- `src/prediction/store.py`
+- `src/prediction/__init__.py`
+- `tests/test_prediction_store.py`
+- `data/runtime/README.md`
 
 **Contrato minimo**
 
@@ -113,6 +120,20 @@ Persistir cada prediccion en un historial estructurado bajo `data/runtime/`.
 
 - lectura y escritura deterministicas
 - tests de append, carga vacia y roundtrip basico
+
+**Estado de salida**
+
+- store implementado con:
+  - `build_prediction_observation`
+  - `load_prediction_history`
+  - `upsert_prediction_history`
+  - `save_prediction_history`
+- normalizacion de:
+  - fechas
+  - ticker
+  - `signal_votes`
+  - reemplazo por rerun usando clave `run_date + ticker + horizon_days`
+- tests base cerrados
 
 ### Fase 2. Configuracion de pesos y umbrales
 

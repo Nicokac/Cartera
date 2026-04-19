@@ -86,7 +86,8 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
 ## Frentes preparados pero no activos
 
 - motor de prediccion direccional auditada:
-  - todavia no forma parte de la baseline funcional
+  - Fase 1 completada: store y trazabilidad documental
+  - todavia no forma parte de la baseline funcional del pipeline
   - se va a implementar como capa separada del scoring y sizing actuales
   - su arquitectura y trazabilidad viven en:
     - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
