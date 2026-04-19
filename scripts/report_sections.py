@@ -330,7 +330,7 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
       </div>
       <div>
         <h3>Cerca de maximos 52w</h3>
-        {build_focus_list(_items(cerca_max, title_fn=lambda row: f"{fmt_pct(row.get(high52_col))} vs maximo anual"), empty_message='Sin nombres cerca de maximos anuales.', tone='neutral')}
+        {build_focus_list(_items(cerca_max, title_fn=lambda row: "En maximos 52w" if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs maximo anual"), empty_message='Sin nombres cerca de maximos anuales.', tone='neutral')}
       </div>
       <div>
         <h3>Por debajo de SMA200</h3>
@@ -584,7 +584,7 @@ def build_sizing_section(
     <section class="panel" id="sizing">
       <div class="panel-head">
         <h2>Sizing</h2>
-        <button id="copy-sizing" class="copy-btn">Copiar</button>
+        <button id="copy-sizing" class="copy-btn" title="Copiar tabla como TSV para pegar en Excel">Copiar tabla</button>
       </div>
       <div class="meta">
         <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
