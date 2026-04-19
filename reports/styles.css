@@ -712,6 +712,77 @@ tbody tr:hover td:first-child {
   vertical-align: middle;
 }
 
+/* ── Portfolio drift ─────────────────────────────────────────────────────── */
+
+.drift-chart {
+  margin: 4px 0 8px;
+}
+
+.drift-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.drift-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.drift-current-dot { background: #8a9ba8; }
+.drift-incr-dot    { background: #0f6c5c; }
+
+.drift-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 3px 0;
+}
+
+.drift-ticker {
+  font: 700 11px/1 var(--mono);
+  width: 72px;
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+.drift-bar-track {
+  flex: 1;
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(106,116,120,0.08);
+  overflow: hidden;
+}
+
+.drift-seg {
+  height: 100%;
+}
+
+.drift-current {
+  background: #8a9ba8;
+}
+
+.drift-incr {
+  background: #0f6c5c;
+  opacity: 0.85;
+}
+
+.drift-label {
+  width: 110px;
+  flex-shrink: 0;
+  color: var(--muted);
+  text-align: right;
+  font: 11px/1 var(--mono);
+}
+
 /* ── Score distribution ──────────────────────────────────────────────────── */
 
 .score-dist-wrap {

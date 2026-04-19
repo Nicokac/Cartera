@@ -277,7 +277,15 @@ def build_render_sections(
             action_col=str(context["action_col"]),
         ),
     )
-    sizing_section = time_section("sizing", lambda: build_sizing_section(context["sizing_bundle"], context["asignacion_final"]))
+    sizing_section = time_section(
+        "sizing",
+        lambda: build_sizing_section(
+            context["sizing_bundle"],
+            context["asignacion_final"],
+            df_total=context["df_total"],
+            total_ars=float(context["kpis"].get("total_ars", 0) or 0),
+        ),
+    )
     decision_section = time_section(
         "decision",
         lambda: build_decision_section(

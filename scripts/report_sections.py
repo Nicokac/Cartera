@@ -514,7 +514,72 @@ def build_summary_section(
     """
 
 
-def build_sizing_section(sizing_bundle: dict[str, object], asignacion_final: pd.DataFrame) -> str:
+def build_drift_chart(
+    asignacion_final: pd.DataFrame,
+    df_total: pd.DataFrame,
+    total_ars: float,
+) -> str:
+    if not isinstance(asignacion_final, pd.DataFrame) or asignacion_final.empty:
+        return ""
+    if total_ars <= 0:
+        return ""
+
+    current_weights: dict[str, float] = {}
+    if isinstance(df_total, pd.DataFrame) and not df_total.empty:
+        for _, row in df_total.iterrows():
+            ticker = str(row.get("Ticker_IOL", ""))
+            peso = float(row.get("Peso_%", 0) or 0)
+            if ticker:
+                current_weights[ticker] = peso
+
+    drift_data: list[tuple[str, float, float]] = []
+    max_projected = 0.0
+    for _, row in asignacion_final.iterrows():
+        ticker = str(row.get("Ticker_IOL", ""))
+        if not ticker:
+            continue
+        monto_ars = float(row.get("Monto_ARS", 0) or 0)
+        incremental = monto_ars / total_ars * 100.0
+        current = current_weights.get(ticker, 0.0)
+        projected = current + incremental
+        max_projected = max(max_projected, projected)
+        drift_data.append((ticker, current, incremental))
+
+    if not drift_data or max_projected <= 0:
+        return ""
+
+    rows_html: list[str] = []
+    for ticker, current, incremental in drift_data:
+        projected = current + incremental
+        w_cur = current / max_projected * 100
+        w_inc = incremental / max_projected * 100
+        rows_html.append(
+            f'<div class="drift-row">'
+            f'<span class="drift-ticker">{html.escape(ticker)}</span>'
+            f'<div class="drift-bar-track">'
+            f'<div class="drift-seg drift-current" style="width:{w_cur:.1f}%"></div>'
+            f'<div class="drift-seg drift-incr" style="width:{w_inc:.1f}%"></div>'
+            f'</div>'
+            f'<span class="drift-label">{current:.2f}% → {projected:.2f}%</span>'
+            f'</div>'
+        )
+
+    legend = (
+        '<div class="drift-legend">'
+        '<span><span class="drift-dot drift-current-dot"></span>Peso actual</span>'
+        '<span><span class="drift-dot drift-incr-dot"></span>Incremento fondeo</span>'
+        '</div>'
+    )
+    return f'<div class="drift-chart">{legend}{"".join(rows_html)}</div>'
+
+
+def build_sizing_section(
+    sizing_bundle: dict[str, object],
+    asignacion_final: pd.DataFrame,
+    *,
+    df_total: pd.DataFrame | None = None,
+    total_ars: float = 0.0,
+) -> str:
     return f"""
     <section class="panel" id="sizing">
       <div class="panel-head">
@@ -539,6 +604,11 @@ def build_sizing_section(sizing_bundle: dict[str, object], asignacion_final: pd.
               "Monto_USD": fmt_usd,
           },
           table_id="sizing-table",
+      )}
+      {build_collapsible(
+          "Ver drift de cartera",
+          build_drift_chart(asignacion_final, df_total if df_total is not None else pd.DataFrame(), total_ars),
+          compact=True,
       )}
     </section>
     """
