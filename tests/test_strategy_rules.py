@@ -39,10 +39,39 @@ class StrategyRulesTests(unittest.TestCase):
 
         self.assertEqual(score.round(3).tolist(), [0.389, 0.611, 0.833])
 
+    def test_rank_score_three_name_cohort_uses_expected_damping_formula(self) -> None:
+        score = rank_score(pd.Series([10.0, 20.0, 30.0]), higher_is_better=True)
+
+        # ranks pct=True => [0.333..., 0.666..., 1.0]
+        # damping N=3 => (3-1)/3 = 2/3
+        # out = ((relative - 0.5) * damping) + 0.5
+        expected = [0.3889, 0.6111, 0.8333]
+        self.assertEqual(score.round(4).tolist(), expected)
+
+    def test_rank_score_three_name_cohort_uses_expected_damping_formula_when_lower_is_better(self) -> None:
+        score = rank_score(pd.Series([10.0, 20.0, 30.0]), higher_is_better=False)
+
+        expected = [0.6111, 0.3889, 0.1667]
+        self.assertEqual(score.round(4).tolist(), expected)
+
     def test_rank_score_reduces_extremes_for_four_name_cohort(self) -> None:
         score = rank_score(pd.Series([10.0, 20.0, 30.0, 40.0]), higher_is_better=True)
 
         self.assertEqual(score.round(4).tolist(), [0.3125, 0.5, 0.6875, 0.875])
+
+    def test_rank_score_four_name_cohort_uses_expected_damping_formula(self) -> None:
+        score = rank_score(pd.Series([10.0, 20.0, 30.0, 40.0]), higher_is_better=True)
+
+        # ranks pct=True => [0.25, 0.5, 0.75, 1.0]
+        # damping N=4 => (4-1)/4 = 0.75
+        expected = [0.3125, 0.5, 0.6875, 0.875]
+        self.assertEqual(score.round(4).tolist(), expected)
+
+    def test_rank_score_four_name_cohort_uses_expected_damping_formula_when_lower_is_better(self) -> None:
+        score = rank_score(pd.Series([10.0, 20.0, 30.0, 40.0]), higher_is_better=False)
+
+        expected = [0.6875, 0.5, 0.3125, 0.125]
+        self.assertEqual(score.round(4).tolist(), expected)
 
     def test_rank_score_is_fully_relative_for_five_name_cohort(self) -> None:
         score = rank_score(pd.Series([10.0, 20.0, 30.0, 40.0, 50.0]), higher_is_better=True)
