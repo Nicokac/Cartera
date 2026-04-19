@@ -18,6 +18,12 @@ from prediction.verifier import verify_prediction_history
 
 
 def run_prediction_cycle(*, today: object | None = None) -> dict[str, object]:
+    """Mantiene el historial existente de predicciones.
+
+    Este runner no genera predicciones nuevas. Las observaciones nuevas se crean
+    durante las corridas de reporte (`generate_real_report.py` o smoke) y luego
+    este ciclo se usa para verificar outcomes vencidos y recalibrar pesos.
+    """
     history = load_prediction_history()
     verified_history = verify_prediction_history(history, today=today)
     save_prediction_history(verified_history)
