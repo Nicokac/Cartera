@@ -93,6 +93,7 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
   - Fase 4 completada: verificador de outcomes en `src/prediction/verifier.py`
   - Fase 5 completada: calibracion de pesos en `src/prediction/calibration.py`
   - Fase 6 completada: integracion experimental al pipeline, renderer y runner de mantenimiento
+  - Fase 6.1 completada: correccion de escala del voto `score_unificado` para evitar sesgo bajista artificial
   - ya forma parte del smoke y del real run como capa observacional
   - sigue separada del scoring y sizing operativos
   - su arquitectura y trazabilidad viven en:

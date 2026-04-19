@@ -167,6 +167,7 @@ Estado actual del track:
 - Fase 4 cerrada: verificador de outcomes en `src/prediction/verifier.py`
 - Fase 5 cerrada: calibracion de pesos en `src/prediction/calibration.py`
 - Fase 6 cerrada: integracion experimental al pipeline, renderer y runner `scripts/run_prediction_cycle.py`
+- Fase 6.1 cerrada: correccion de escala de `score_unificado` en el predictor para alinear votos con la salida real del scoring
 
 Comandos utiles del track:
 

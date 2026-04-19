@@ -24,7 +24,7 @@ class PredictionPredictorTests(unittest.TestCase):
             "Momentum_20d_%": 3.2,
             "Momentum_60d_%": -6.0,
             "Tech_Trend": "Alcista",
-            "score_unificado": 0.72,
+            "score_unificado": 0.18,
             "market_regime_any_active": True,
             "market_regime_active_flags": "stress_soberano_local",
         }
@@ -43,7 +43,7 @@ class PredictionPredictorTests(unittest.TestCase):
             "Momentum_20d_%": 4.0,
             "Momentum_60d_%": 8.0,
             "Tech_Trend": "Alcista fuerte",
-            "score_unificado": 0.75,
+            "score_unificado": 0.22,
             "market_regime_any_active": False,
             "market_regime_active_flags": "",
         }
@@ -62,7 +62,7 @@ class PredictionPredictorTests(unittest.TestCase):
             "Momentum_20d_%": -5.0,
             "Momentum_60d_%": -7.0,
             "Tech_Trend": "Bajista",
-            "score_unificado": 0.10,
+            "score_unificado": -0.18,
             "market_regime_any_active": True,
             "market_regime_active_flags": "tasas_ust_altas",
         }
@@ -119,6 +119,13 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(result["votes"]["sma_trend"], 0)
         self.assertEqual(result["votes"]["score_unificado"], 0)
         self.assertEqual(result["votes"]["market_regime"], 0)
+
+    def test_vote_signal_uses_centered_thresholds_for_score_unificado_scale(self) -> None:
+        signal_cfg = self.weights["signals"]["score_unificado"]
+
+        self.assertEqual(vote_signal("score_unificado", {"score_unificado": 0.14}, signal_cfg), 1)
+        self.assertEqual(vote_signal("score_unificado", {"score_unificado": -0.14}, signal_cfg), -1)
+        self.assertEqual(vote_signal("score_unificado", {"score_unificado": 0.03}, signal_cfg), 0)
 
 
 if __name__ == "__main__":

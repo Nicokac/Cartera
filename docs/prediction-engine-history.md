@@ -38,6 +38,27 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 4 - Verificador | completada | 2026-04-19 |
 | Fase 5 - Calibracion | completada | 2026-04-19 |
 | Fase 6 - Integracion y reporte | completada | 2026-04-19 |
+| Fase 6.1 - Ajuste de escala de score | completada | 2026-04-19 |
+
+## 2026-04-19 - Fase 6.1 - completada
+
+- commit: pendiente
+- alcance:
+  - se corrige el voto de `score_unificado` dentro del predictor sin tocar scoring operativo
+- decisiones:
+  - los umbrales previos asumian una escala `0..1` y empujaban casi toda la cartera a `down`
+  - el voto ahora usa una escala centrada compatible con la salida real del pipeline
+  - se mantiene la logica del predictor; se corrige solo la parametrizacion
+- archivos:
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `tests/test_prediction_predictor.py`
+- tests:
+  - score positivo moderado -> voto alcista
+  - score negativo moderado -> voto bajista
+  - score cerca de cero -> voto neutro
+- deuda / notas:
+  - conviene revisar futuras corridas reales para decidir si `0.1` debe seguir fijo o volverse configurable por taxonomia
 
 ## 2026-04-19 - Fase 6 - completada
 

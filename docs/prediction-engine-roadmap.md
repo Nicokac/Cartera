@@ -8,7 +8,7 @@ Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion 
 
 ## Estado actual
 
-- estado: `fase 6 completada`
+- estado: `fase 6.1 completada`
 - baseline funcional: el motor ya forma parte del pipeline experimental y del renderer
 - dependencias nuevas: `ninguna`
 - acoplamiento permitido: solo por integracion con `pipeline.py`, `market_data` y el renderer cuando la fase de exposicion llegue
@@ -382,6 +382,33 @@ Integrar el motor como capa experimental visible, sin alterar el motor de decisi
   - verifica outcomes vencidos
   - recalibra pesos
   - persiste historial y pesos
+
+### Fase 6.1. Correccion de escala del voto `score_unificado`
+
+**Estado:** `completada`
+
+**Objetivo**
+
+Corregir el sesgo bajista estructural introducido por usar umbrales incompatibles con la escala real de `score_unificado`.
+
+**Archivos implementados**
+
+- `data/mappings/prediction_weights.json`
+- `data/examples/mappings/prediction_weights.json.example`
+- `tests/test_prediction_predictor.py`
+
+**Decision tecnica**
+
+- el `score_unificado` real del proyecto opera en escala centrada alrededor de cero, no en rango `0..1`
+- por eso el voto ahora usa:
+  - `high_threshold = 0.1`
+  - `low_threshold = -0.1`
+
+**Criterio de salida**
+
+- nombres con score positivo moderado ya no votan bajista por defecto
+- el predictor conserva neutralidad cerca de cero
+- quedan tests de guardia para los tres casos: positivo, negativo y neutro
 
 ## Riesgos principales
 

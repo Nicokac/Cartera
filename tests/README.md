@@ -79,6 +79,7 @@ python -m unittest tests.test_generate_real_report -v
 - persistencia base del motor de prediccion direccional
 - configuracion base del motor de prediccion direccional
 - predictor base del motor de prediccion direccional
+- guardrails de escala para `score_unificado` dentro del predictor
 - verificacion base del motor de prediccion direccional
 - calibracion base del motor de prediccion direccional
 - runner de mantenimiento del motor de prediccion direccional
