@@ -162,3 +162,4 @@ Estado actual del track:
 
 - Fase 1 cerrada: store local de predicciones en `src/prediction/store.py`
 - Fase 2 cerrada: pesos y umbrales canonicos en `data/mappings/prediction_weights.json`
+- Fase 3 cerrada: predictor heuristico en `src/prediction/predictor.py`

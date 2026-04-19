@@ -179,7 +179,7 @@ Los umbrales iniciales pueden ser heuristicas, pero deben quedar documentados en
 
 ### Fase 3. Predictor
 
-**Estado:** `pendiente`
+**Estado:** `completada`
 
 **Objetivo**
 
@@ -189,6 +189,12 @@ Convertir una fila enriquecida del pipeline en direccion, confianza y votos audi
 
 - `src/prediction/__init__.py`
 - `src/prediction/predictor.py`
+
+**Archivos implementados**
+
+- `src/prediction/predictor.py`
+- `src/prediction/__init__.py`
+- `tests/test_prediction_predictor.py`
 
 **Firma esperada**
 
@@ -213,6 +219,19 @@ def predict(row: dict, weights: dict) -> dict:
 - tests unitarios por senal
 - test de consenso ponderado
 - test de threshold a `neutral`
+
+**Estado de salida**
+
+- predictor puro implementado con:
+  - `vote_signal`
+  - `predict`
+- cobertura cerrada para:
+  - votos por senal
+  - consenso alcista
+  - consenso bajista
+  - neutral por threshold
+  - faltantes como voto neutro
+- la fase todavia no integra pipeline ni store automatico
 
 ### Fase 4. Verificador
 

@@ -21,6 +21,7 @@ python -m unittest tests.test_technical -v
 python -m unittest tests.test_sizing -v
 python -m unittest tests.test_decision_history -v
 python -m unittest tests.test_prediction_store -v
+python -m unittest tests.test_prediction_predictor -v
 python -m unittest tests.test_operations -v
 python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
@@ -46,6 +47,7 @@ python -m unittest tests.test_generate_real_report -v
   - `tests.test_sizing`
   - `tests.test_decision_history`
   - `tests.test_prediction_store`
+  - `tests.test_prediction_predictor`
   - `tests.test_operations`
   - `tests.test_report_primitives`
   - `tests.test_report_operations`
@@ -70,6 +72,7 @@ python -m unittest tests.test_generate_real_report -v
 - scoring, acciones y memoria temporal
 - persistencia base del motor de prediccion direccional
 - configuracion base del motor de prediccion direccional
+- predictor base del motor de prediccion direccional
 - operaciones y snapshots
 - render HTML
 - clientes principales y secundarios

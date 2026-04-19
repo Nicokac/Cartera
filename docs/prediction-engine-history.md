@@ -34,10 +34,37 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 |---|---|---|
 | Fase 1 - Store | completada | 2026-04-19 |
 | Fase 2 - Pesos y umbrales | completada | 2026-04-19 |
-| Fase 3 - Predictor | pendiente | 2026-04-19 |
+| Fase 3 - Predictor | completada | 2026-04-19 |
 | Fase 4 - Verificador | pendiente | 2026-04-19 |
 | Fase 5 - Calibracion | pendiente | 2026-04-19 |
 | Fase 6 - Integracion y reporte | pendiente | 2026-04-19 |
+
+## 2026-04-19 - Fase 3 - completada
+
+- commit: pendiente
+- alcance:
+  - se implementa el predictor heuristico de consenso ponderado
+  - queda separado como modulo puro, sin integracion todavia al pipeline
+- decisiones:
+  - el predictor consume `weights` externos, no lee config por su cuenta
+  - cada senal vota `+1`, `-1` o `0`
+  - el consenso usa `sum(weight * vote) / sum(weight)`
+  - `market_regime` vota negativo solo con flags bajistas explicitos; si no hay flags y la regla lo habilita, vota positivo
+- archivos:
+  - `src/prediction/predictor.py`
+  - `src/prediction/__init__.py`
+  - `tests/test_prediction_predictor.py`
+- tests:
+  - voto de RSI
+  - voto de momentum 20d y 60d
+  - voto de tendencia tecnica
+  - voto de score unificado
+  - voto de market regime
+  - consensos `up`, `down` y `neutral`
+  - faltantes como neutral
+- deuda / notas:
+  - Fase 4 debe verificar outcomes reales
+  - Fase 6 debe decidir como se mapea la fila del pipeline al `row` del predictor
 
 ## 2026-04-19 - Fase 2 - completada
 
