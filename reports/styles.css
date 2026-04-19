@@ -696,6 +696,14 @@ tbody tr:hover td:first-child {
   color: #fffdf8;
 }
 
+/* ── RSI Gauge ───────────────────────────────────────────────────────────── */
+
+.rsi-gauge {
+  display: block;
+  overflow: visible;
+  vertical-align: middle;
+}
+
 /* ── Sparklines ──────────────────────────────────────────────────────────── */
 
 .sparkline {

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import math
 
 import pandas as pd
 
@@ -247,6 +248,64 @@ def ensure_table_columns(df: pd.DataFrame | None, columns: list[str]) -> pd.Data
     return df.reindex(columns=columns)
 
 
+def build_rsi_gauge(rsi_value: object, *, width: int = 80, height: int = 44) -> str:
+    try:
+        v = float(rsi_value)
+    except (TypeError, ValueError):
+        return "-"
+    if v != v:
+        return "-"
+    v = max(0.0, min(100.0, v))
+
+    cx = width / 2
+    cy = float(height - 8)
+    r_o = cx - 2
+    r_i = r_o * 0.60
+
+    def _pt(r: float, rsi: float) -> tuple[float, float]:
+        a = math.pi * (1.0 - rsi / 100.0)
+        return cx + r * math.cos(a), cy - r * math.sin(a)
+
+    def _zone(lo: float, hi: float, color: str) -> str:
+        ox1, oy1 = _pt(r_o, lo)
+        ox2, oy2 = _pt(r_o, hi)
+        ix1, iy1 = _pt(r_i, lo)
+        ix2, iy2 = _pt(r_i, hi)
+        d = (
+            f"M{ox1:.2f},{oy1:.2f}"
+            f" A{r_o:.2f},{r_o:.2f} 0 0,1 {ox2:.2f},{oy2:.2f}"
+            f" L{ix2:.2f},{iy2:.2f}"
+            f" A{r_i:.2f},{r_i:.2f} 0 0,0 {ix1:.2f},{iy1:.2f}Z"
+        )
+        return f'<path d="{d}" fill="{color}"/>'
+
+    zones = (
+        _zone(0, 30, "rgba(18,132,94,0.22)")
+        + _zone(30, 70, "rgba(106,116,120,0.14)")
+        + _zone(70, 100, "rgba(177,57,45,0.22)")
+    )
+    a_needle = math.pi * (1.0 - v / 100.0)
+    nx = cx + (r_i - 1) * math.cos(a_needle)
+    ny = cy - (r_i - 1) * math.sin(a_needle)
+    needle = (
+        f'<line x1="{cx:.2f}" y1="{cy:.2f}" x2="{nx:.2f}" y2="{ny:.2f}" '
+        f'stroke="#1d2a2f" stroke-width="1.5" stroke-linecap="round"/>'
+        f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="2" fill="#1d2a2f"/>'
+    )
+    ink = "#0f6c5c" if v <= 30 else ("#9f3a22" if v >= 70 else "#1d2a2f")
+    label = (
+        f'<text x="{cx:.1f}" y="{cy + 7:.1f}" font-size="8" fill="{ink}" '
+        f'text-anchor="middle" font-weight="700" '
+        f'font-family="IBM Plex Mono,Consolas,monospace">{v:.0f}</text>'
+    )
+    return (
+        f'<svg class="rsi-gauge" viewBox="0 0 {width} {height}" '
+        f'xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">'
+        f"{zones}{needle}{label}"
+        f"</svg>"
+    )
+
+
 def build_sparkline_svg(closes: list[float], *, width: int = 60, height: int = 20) -> str:
     vals = [v for v in closes if isinstance(v, (int, float)) and v == v]
     if len(vals) < 2:
@@ -318,7 +377,9 @@ def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None
             spark = build_sparkline_svg(price_history.get(ticker, []))
             cells.append(f'<td style="line-height:0;padding:4px 8px;">{spark}</td>')
         for col in df.columns:
-            if col in metric_columns:
+            if col == "RSI_14":
+                cells.append(f'<td style="padding:2px 4px;line-height:0;">{build_rsi_gauge(row[col])}</td>')
+            elif col in metric_columns:
                 cells.append(f"<td>{render_metric(col, row[col], formatters.get(col))}</td>")
             else:
                 cells.append(f"<td>{html.escape('-' if pd.isna(row[col]) else str(row[col]))}</td>")
