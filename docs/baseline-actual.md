@@ -96,6 +96,10 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
   - Fase 6.1 completada: correccion de escala del voto `score_unificado` para evitar sesgo bajista artificial
   - ya forma parte del smoke y del real run como capa observacional
   - sigue separada del scoring y sizing operativos
+  - ciclo operativo vigente:
+    - `generate_real_report.py` construye el bundle, persiste observaciones nuevas y expone la seccion HTML
+    - `run_prediction_cycle.py` consume el historial existente para verificar outcomes y recalibrar pesos
+    - el runner de mantenimiento no genera observaciones nuevas por si solo
   - su arquitectura y trazabilidad viven en:
     - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
     - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)

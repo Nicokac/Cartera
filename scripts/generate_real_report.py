@@ -767,6 +767,8 @@ def main() -> None:
         run_date=run_date,
         market_regime=decision_bundle.get("market_regime"),
     )
+    # El real run es el punto canonico donde nacen observaciones nuevas de prediccion.
+    # run_prediction_cycle.py solo mantiene este historial: verifica outcomes y recalibra.
     prediction_history = upsert_prediction_history(
         load_prediction_history(),
         prediction_bundle.get("history_observation", pd.DataFrame()),

@@ -40,6 +40,27 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 6 - Integracion y reporte | completada | 2026-04-19 |
 | Fase 6.1 - Ajuste de escala de score | completada | 2026-04-19 |
 
+## 2026-04-19 - Documentacion operativa del ciclo - completada
+
+- commit: pendiente
+- alcance:
+  - se explicita el contrato operativo entre `generate_real_report.py` y `run_prediction_cycle.py`
+- decisiones:
+  - las observaciones nuevas se crean solo durante corridas de reporte
+  - el runner de mantenimiento no agrega predicciones nuevas ni debe usarse como sustituto del real run
+  - el orden operativo recomendado es:
+    1. real run para alta de observaciones
+    2. prediction cycle para verificacion y recalibracion
+- archivos:
+  - `README.md`
+  - `docs/README.md`
+  - `docs/baseline-actual.md`
+  - `docs/prediction-engine-roadmap.md`
+- tests:
+  - no aplica, cambio documental
+- deuda / notas:
+  - si mas adelante aparece un runner diario unificado, este contrato debe reescribirse y versionarse otra vez
+
 ## 2026-04-19 - Fase 6.1 - completada
 
 - commit: pendiente

@@ -35,6 +35,9 @@ Indice de la documentacion activa del proyecto.
   - integrado al pipeline experimental
   - visible en el renderer HTML
   - con runner propio de verificacion y recalibracion
+  - con separacion operativa explicita:
+    - `generate_real_report.py` crea observaciones nuevas
+    - `run_prediction_cycle.py` solo verifica y recalibra
 
 ## Historico
 

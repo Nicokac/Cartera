@@ -169,6 +169,24 @@ Estado actual del track:
 - Fase 6 cerrada: integracion experimental al pipeline, renderer y runner `scripts/run_prediction_cycle.py`
 - Fase 6.1 cerrada: correccion de escala de `score_unificado` en el predictor para alinear votos con la salida real del scoring
 
+Ciclo operativo actual de prediccion:
+
+1. `python scripts\generate_real_report.py`
+   - genera predicciones nuevas para la corrida actual
+   - persiste la observacion nueva en `data/runtime/prediction_history.csv`
+   - renderiza la seccion `Prediccion` en el HTML
+2. `python scripts\run_prediction_cycle.py`
+   - no genera predicciones nuevas
+   - verifica outcomes ya vencidos en el historial
+   - recalibra `data/mappings/prediction_weights.json` si hay muestra suficiente
+
+Regla practica:
+
+- `generate_real_report.py` = alta de observaciones nuevas
+- `run_prediction_cycle.py` = mantenimiento historico del track
+- si solo corres `run_prediction_cycle.py`, el historial se mantiene pero no crece
+- el smoke puede validar la integracion, pero la persistencia operativa real se consolida en el real run
+
 Comandos utiles del track:
 
 ```powershell

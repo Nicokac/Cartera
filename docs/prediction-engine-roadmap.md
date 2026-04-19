@@ -383,6 +383,28 @@ Integrar el motor como capa experimental visible, sin alterar el motor de decisi
   - recalibra pesos
   - persiste historial y pesos
 
+**Contrato operativo vigente**
+
+- `generate_real_report.py` es el punto canonico de alta de observaciones nuevas:
+  - corre pipeline
+  - arma `prediction_bundle`
+  - persiste `history_observation` en `prediction_history.csv`
+  - deja visible la capa experimental en el HTML
+- `run_prediction_cycle.py` es un runner de mantenimiento:
+  - no genera predicciones nuevas
+  - solo trabaja sobre el historial ya persistido
+  - verifica outcomes vencidos y recalibra pesos si corresponde
+- orden recomendado de uso:
+  1. correr `generate_real_report.py` para registrar una nueva corrida
+  2. correr `run_prediction_cycle.py` al cierre de rueda o en un job separado para mantenimiento historico
+
+**Separacion intencional**
+
+- esta separacion evita mezclar:
+  - generacion de observaciones nuevas
+  - mantenimiento historico y recalibracion
+- tambien reduce el riesgo de que un runner de mantenimiento agregue filas duplicadas o predicciones fuera de contexto de reporte
+
 ### Fase 6.1. Correccion de escala del voto `score_unificado`
 
 **Estado:** `completada`
