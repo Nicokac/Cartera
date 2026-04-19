@@ -271,6 +271,8 @@ def build_render_sections(
             finviz_fund_covered=int(context["finviz_fund_covered"]),
             finviz_total=int(context["finviz_total"]),
             finviz_ratings_covered=int(context["finviz_ratings_covered"]),
+            decision_view=context["decision_view"],
+            action_col=str(context["action_col"]),
         ),
     )
     sizing_section = time_section("sizing", lambda: build_sizing_section(context["sizing_bundle"], context["asignacion_final"]))

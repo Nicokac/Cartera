@@ -696,6 +696,43 @@ tbody tr:hover td:first-child {
   color: #fffdf8;
 }
 
+/* ── Score distribution ──────────────────────────────────────────────────── */
+
+.score-dist-wrap {
+  margin: 0 0 16px;
+}
+
+.score-dist {
+  width: 100%;
+  height: auto;
+  max-height: 56px;
+  display: block;
+  overflow: visible;
+}
+
+.score-dist-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 6px;
+}
+
+.score-dist-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.score-dist-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 th.sortable {
   cursor: pointer;
   user-select: none;
