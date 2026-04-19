@@ -15,6 +15,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 1. bajar complejidad estructural del renderer
 2. seguir calibrando scoring y reporte con evidencia real
 3. cerrar la migracion operativa de snapshots
+4. abrir el track de prediccion direccional auditada sin tocar el motor de decision existente
 
 ## Resuelto recientemente
 
@@ -56,6 +57,15 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente
 - mantener documentado el criterio de retiro
 - evitar que vuelvan a aparecer snapshots operativos nuevos en `tests/snapshots/`
+
+### P4. Motor de prediccion direccional
+
+- implementar el track en fases separadas de store, predictor, verificacion y calibracion
+- mantener el motor desacoplado de `decision/` y del scoring operativo vigente
+- registrar trazabilidad de cada fase en:
+  - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
+  - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
+- evitar dependencias nuevas o LLM externos en la primera iteracion
 
 ## Frentes ya absorbidos
 

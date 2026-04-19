@@ -82,3 +82,12 @@ Documento actualizado al `2026-04-18`. Define la baseline funcional vigente del 
 
 - seguir fragmentando `render_report()` para bajar complejidad del renderer principal
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
+
+## Frentes preparados pero no activos
+
+- motor de prediccion direccional auditada:
+  - todavia no forma parte de la baseline funcional
+  - se va a implementar como capa separada del scoring y sizing actuales
+  - su arquitectura y trazabilidad viven en:
+    - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
+    - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)

@@ -7,6 +7,8 @@ Indice de la documentacion activa del proyecto.
 - [README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\README.md)
 - [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
 - [improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
+- [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
+- [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
 - [report-ux-architecture.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\report-ux-architecture.md)
 - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
 
@@ -23,6 +25,8 @@ Indice de la documentacion activa del proyecto.
 - `README.md`: instalacion, uso y layout del repo
 - `baseline-actual.md`: capacidades vigentes y baseline funcional, sin depender de una corrida puntual
 - `improvement-roadmap.md`: backlog tecnico activo y deuda real
+- `prediction-engine-roadmap.md`: arquitectura, fases, contratos y criterios de avance del motor de prediccion direccional
+- `prediction-engine-history.md`: bitacora de implementacion y cambios por fase del motor de prediccion
 - `report-ux-architecture.md`: arquitectura actual del reporte y deuda de renderer
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos

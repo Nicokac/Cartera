@@ -152,3 +152,8 @@ Entrada canonica:
 Configuracion de ejemplo:
 
 - [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
+
+Track de prediccion direccional:
+
+- [docs/prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
+- [docs/prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
