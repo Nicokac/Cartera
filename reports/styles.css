@@ -312,6 +312,23 @@ body {
   border-color: rgba(176, 126, 15, 0.18);
 }
 
+.focus-item.item-buy {
+  border-left: 3px solid rgba(15, 108, 92, 0.50);
+}
+
+.focus-item.item-sell {
+  border-left: 3px solid rgba(159, 58, 34, 0.50);
+}
+
+.focus-item.item-fund {
+  border-left: 3px solid rgba(176, 126, 15, 0.50);
+}
+
+.focus-item.item-pending {
+  border-left: 3px solid rgba(176, 126, 15, 0.75);
+  background: rgba(176, 126, 15, 0.05);
+}
+
 .compact-empty {
   padding: 14px;
 }

@@ -141,6 +141,16 @@ def build_operations_explanations(
                 title = f"Movimiento reciente aun no reflejado en cartera | {fecha}"
                 detail = f"{symbol} tuvo una {tipo_operacion.lower()} reciente, pero todavia no figura en /portafolio actual."
                 badge = tipo_operacion
+                items.append(
+                    {
+                        "kicker": symbol,
+                        "title": title,
+                        "detail": detail,
+                        "badge": badge,
+                        "extra_class": "item-pending",
+                    }
+                )
+                continue
             items.append(
                 {
                     "kicker": symbol,

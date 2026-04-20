@@ -185,17 +185,16 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     summary = prediction_bundle.get("summary", {}) or {}
     config = prediction_bundle.get("config", {}) or {}
 
-    def _votes_label(value: object) -> str:
-        votes = value if isinstance(value, dict) else {}
-        parts = []
-        for signal_name, vote in votes.items():
-            try:
-                numeric_vote = int(vote)
-            except Exception:
-                numeric_vote = 0
-            sign = f"+{numeric_vote}" if numeric_vote > 0 else str(numeric_vote)
-            parts.append(f"{signal_name}:{sign}")
-        return " | ".join(parts) if parts else "-"
+    def _votes_html(value: object) -> str:
+        votes = _parse_votes(value)
+        if not votes:
+            return "-"
+        parts = [
+            f'<span style="font-size:10px;color:var(--muted);margin-right:1px">{html.escape(label)}</span>{_sig_cell(int(votes[key]))}'
+            for key, label in _VOTE_KEYS
+            if key in votes
+        ]
+        return '<span style="display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center">' + "".join(parts) + "</span>" if parts else "-"
 
     def _direction_badge(direction: object) -> str:
         direction_text = str(direction or "").strip().lower()
@@ -213,7 +212,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
                 {
                     "kicker": str(row.get("ticker", "-")),
                     "title": f"Confianza {fmt_pct(float(row.get('confidence', 0.0)) * 100.0)}",
-                    "detail": truncate_text(_votes_label(row.get("signal_votes")), 180),
+                    "detail_html": _votes_html(row.get("signal_votes")),
                     "badge": direction_label,
                     "badge_class": badge_class(_direction_badge(row.get("direction"))),
                 }
@@ -433,9 +432,10 @@ def build_score_distribution(
         color = _ACTION_COLOR.get(accion, "#6a7478")
         cx = _score_x(score)
         cy = axis_y - 5 if i % 2 == 0 else axis_y + 5
+        r = 5 if accion == ACTION_REFUERZO else 4
         title = html.escape(f"{ticker}: {score:+.2f}")
         dots.append(
-            f'<circle cx="{cx:.1f}" cy="{cy}" r="4" fill="{color}" '
+            f'<circle cx="{cx:.1f}" cy="{cy}" r="{r}" fill="{color}" '
             f'fill-opacity="0.82" stroke="none">'
             f"<title>{title}</title></circle>"
         )
@@ -445,9 +445,9 @@ def build_score_distribution(
     axis_line = f'<line x1="{axis_x0}" y1="{axis_y}" x2="{axis_x1}" y2="{axis_y}" stroke="#d7d0c6" stroke-width="1.5"/>'
     center_line = f'<line x1="{cx_zero:.1f}" y1="{axis_y - 8}" x2="{cx_zero:.1f}" y2="{axis_y + 8}" stroke="#6a7478" stroke-width="1"/>'
     labels = (
-        f'<text x="{axis_x0}" y="{H - 2}" font-size="9" fill="#6a7478" text-anchor="middle">\u22121</text>'
-        f'<text x="{cx_zero:.1f}" y="{H - 2}" font-size="9" fill="#6a7478" text-anchor="middle">0</text>'
-        f'<text x="{axis_x1}" y="{H - 2}" font-size="9" fill="#6a7478" text-anchor="middle">+1</text>'
+        f'<text x="{axis_x0}" y="{H - 2}" font-size="8" fill="#9f3a22" text-anchor="start">\u2190 Reducci\u00f3n</text>'
+        f'<text x="{cx_zero:.1f}" y="{H - 2}" font-size="8" fill="#6a7478" text-anchor="middle">0</text>'
+        f'<text x="{axis_x1}" y="{H - 2}" font-size="8" fill="#0f6c5c" text-anchor="end">Refuerzo \u2192</text>'
     )
     svg = (
         f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '

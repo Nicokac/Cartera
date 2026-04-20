@@ -421,16 +421,26 @@ def build_focus_list(
     for item in items:
         kicker = html.escape(item.get("kicker", "-"))
         title = html.escape(item.get("title", ""))
-        detail = html.escape(item.get("detail", ""))
+        detail_content = item.get("detail_html") or html.escape(item.get("detail", ""))
         badge = item.get("badge")
         explicit_badge_class = item.get("badge_class")
         badge_css_class = str(explicit_badge_class or badge_class(badge))
         badge_html = f'<span class="{badge_css_class}">{html.escape(str(badge))}</span>' if badge else ""
+        if "badge-buy" in badge_css_class:
+            item_tone = " item-buy"
+        elif "badge-sell" in badge_css_class:
+            item_tone = " item-sell"
+        elif "badge-fund" in badge_css_class:
+            item_tone = " item-fund"
+        else:
+            item_tone = ""
+        extra = item.get("extra_class", "")
+        extra_str = f" {extra}" if extra else ""
         rows.append(
-            '<article class="focus-item">'
+            f'<article class="focus-item{item_tone}{extra_str}">'
             f'<div class="focus-top"><strong>{kicker}</strong>{badge_html}</div>'
             f'<div class="focus-title">{title}</div>'
-            f'<div class="focus-detail">{detail}</div>'
+            f'<div class="focus-detail">{detail_content}</div>'
             "</article>"
         )
     return f'<div class="focus-list tone-{tone}">{"".join(rows)}</div>'

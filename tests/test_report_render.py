@@ -259,8 +259,8 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Confianza media", html)
         self.assertIn("XLV", html)
         self.assertIn("MELI", html)
-        self.assertIn("rsi:+1", html)
-        self.assertIn("sma_trend:-1", html)
+        self.assertIn('sig sig-pos', html)
+        self.assertIn('sig sig-neg', html)
 
     def test_render_report_shows_operations_section_when_bundle_has_data(self) -> None:
         result = _build_minimal_result()
