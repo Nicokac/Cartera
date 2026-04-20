@@ -328,6 +328,19 @@ def build_sparkline_svg(closes: list[float], *, width: int = 60, height: int = 2
     )
 
 
+_SECONDARY_TECH_COLS = frozenset({
+    "Vol_20d_Anual_%",
+    "Avg_Volume_20d",
+    "Dist_EMA20_%",
+    "Dist_EMA50_%",
+    "Dist_SMA20_%",
+    "Dist_SMA50_%",
+    "Dist_52w_High_%",
+    "Dist_52w_Low_%",
+    "Drawdown_desde_Max3m_%",
+})
+
+
 def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None) -> str:
     if df.empty:
         return '<div class="empty">Sin datos para mostrar.</div>'
@@ -368,7 +381,13 @@ def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None
     }
     has_sparks = bool(price_history)
     spark_th = "<th>Spark</th>" if has_sparks else ""
-    headers = spark_th + "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
+
+    def _sec(col: str) -> str:
+        return ' class="col-secondary"' if col in _SECONDARY_TECH_COLS else ""
+
+    col_ths = "".join(f'<th{_sec(col)}>{html.escape(str(col))}</th>' for col in df.columns)
+    headers = spark_th + col_ths
+
     rows = []
     for _, row in df.iterrows():
         cells = []
@@ -377,14 +396,28 @@ def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None
             spark = build_sparkline_svg(price_history.get(ticker, []))
             cells.append(f'<td style="line-height:0;padding:4px 8px;">{spark}</td>')
         for col in df.columns:
+            s = _sec(col)
             if col == "RSI_14":
-                cells.append(f'<td style="padding:2px 4px;line-height:0;">{build_rsi_gauge(row[col])}</td>')
+                cells.append(f'<td{s} style="padding:2px 4px;line-height:0;">{build_rsi_gauge(row[col])}</td>')
             elif col in metric_columns:
-                cells.append(f"<td>{render_metric(col, row[col], formatters.get(col))}</td>")
+                cells.append(f"<td{s}>{render_metric(col, row[col], formatters.get(col))}</td>")
             else:
-                cells.append(f"<td>{html.escape('-' if pd.isna(row[col]) else str(row[col]))}</td>")
+                cells.append(f"<td{s}>{html.escape('-' if pd.isna(row[col]) else str(row[col]))}</td>")
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    return f'<div class="table-wrap"><table class="technical-table"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+
+    toggle = (
+        '<div class="tech-col-toggle">'
+        '<button id="toggle-tech-cols" class="copy-btn">Mostrar m\u00e1s columnas</button>'
+        '</div>'
+    )
+    table = (
+        f'<div class="table-wrap">'
+        f'<table class="technical-table">'
+        f"<thead><tr>{headers}</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody>"
+        f"</table></div>"
+    )
+    return toggle + table
 
 
 def badge_class(action: object) -> str:

@@ -893,6 +893,74 @@ code {
   background: rgba(159, 58, 34, 0.04);
 }
 
+/* ── Technical table column toggle ──────────────────────────────────────── */
+
+.technical-table .col-secondary {
+  display: none;
+}
+
+.technical-table.show-secondary .col-secondary {
+  display: table-cell;
+}
+
+.tech-col-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+/* ── Print styles ────────────────────────────────────────────────────────── */
+
+@media print {
+  .quick-nav,
+  .filters,
+  .copy-btn,
+  .tech-col-toggle,
+  .integrity-strip {
+    display: none !important;
+  }
+
+  details > *:not(summary) {
+    display: block !important;
+  }
+
+  details summary {
+    list-style: none;
+  }
+
+  details summary::marker,
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .technical-table .col-secondary {
+    display: table-cell !important;
+  }
+
+  table {
+    font-size: 10px;
+  }
+
+  th,
+  td {
+    padding: 4px 6px;
+  }
+
+  .panel {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .page {
+    width: 100%;
+    padding: 16px;
+  }
+}
+
 @media (max-width: 860px) {
   .grid {
     grid-template-columns: 1fr;

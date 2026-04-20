@@ -490,6 +490,16 @@ def build_report_body(
       }});
     }}
 
+    const toggleTechBtn = document.getElementById('toggle-tech-cols');
+    if (toggleTechBtn) {{
+      toggleTechBtn.addEventListener('click', () => {{
+        const table = document.querySelector('.technical-table');
+        if (!table) return;
+        const expanded = table.classList.toggle('show-secondary');
+        toggleTechBtn.textContent = expanded ? 'Ocultar columnas secundarias' : 'Mostrar m\u00e1s columnas';
+      }});
+    }}
+
     const observer = new IntersectionObserver((entries) => {{
       entries.forEach((entry) => {{
         if (!entry.isIntersecting) return;
