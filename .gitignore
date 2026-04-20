@@ -13,6 +13,9 @@ __pycache__/
 *.json
 *.log
 !data/mappings/prediction_weights.json
+!data/mappings/argentina_equity_map.json
+!data/mappings/instrument_profile_map.json
+!data/mappings/bond_local_subfamily_rules.json
 
 #Notebooks
 *.ipynb

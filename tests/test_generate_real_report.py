@@ -355,7 +355,12 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertAlmostEqual(merged.loc[0, "bonistas_a3500_mayorista"], 1387.72, places=2)
 
     def test_load_previous_portfolio_snapshot_picks_latest_prior_day(self) -> None:
-        snapshots_dir = ROOT / "tests" / "snapshots"
+        snapshots_dir = ROOT / "tmp_snapshots_picks_latest"
+        snapshots_dir.mkdir(exist_ok=True)
+        csv_path = snapshots_dir / "2026-04-15_real_portfolio_master.csv"
+        csv_path.write_text("Ticker_IOL,Tipo\nGD30,BONO\n", encoding="utf-8")
+        self.addCleanup(lambda: snapshots_dir.rmdir())
+        self.addCleanup(lambda: csv_path.unlink(missing_ok=True))
 
         previous_df, previous_date = load_previous_portfolio_snapshot(
             pd.Timestamp("2026-04-16"),
@@ -373,7 +378,21 @@ class GenerateRealReportTests(unittest.TestCase):
             self.assertTrue(legacy_snapshots_enabled())
 
     def test_load_previous_portfolio_snapshot_warns_when_using_legacy_dir(self) -> None:
+        legacy_dir = ROOT / "tmp_snapshots_legacy"
+        primary_dir = ROOT / "tmp_snapshots_primary_empty"
+        legacy_dir.mkdir(exist_ok=True)
+        primary_dir.mkdir(exist_ok=True)
+        csv_path = legacy_dir / "2026-04-15_real_portfolio_master.csv"
+        csv_path.write_text("Ticker_IOL,Tipo\nGD30,BONO\n", encoding="utf-8")
+        self.addCleanup(lambda: legacy_dir.rmdir())
+        self.addCleanup(lambda: primary_dir.rmdir())
+        self.addCleanup(lambda: csv_path.unlink(missing_ok=True))
+
         with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "1"}, clear=False), patch(
+            "generate_real_report.LEGACY_SNAPSHOTS_DIR", legacy_dir
+        ), patch(
+            "generate_real_report.SNAPSHOTS_DIR", primary_dir
+        ), patch(
             "generate_real_report.logger.warning"
         ) as warning_mock:
             previous_df, previous_date = load_previous_portfolio_snapshot(pd.Timestamp("2026-04-16"))
