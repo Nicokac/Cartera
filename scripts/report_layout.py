@@ -511,6 +511,20 @@ def build_report_body(
     }}, {{ rootMargin: '-35% 0px -55% 0px', threshold: 0.01 }});
 
     observedSections.forEach((section) => observer.observe(section));
+
+    document.querySelectorAll('details').forEach((det) => {{
+      const summary = det.querySelector('summary');
+      if (!summary) return;
+      const slug = summary.textContent.trim().toLowerCase()
+        .replace(/\\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 60);
+      const key = 'det-' + slug;
+      const saved = localStorage.getItem(key);
+      if (saved === 'open') det.open = true;
+      else if (saved === 'closed') det.open = false;
+      det.addEventListener('toggle', () => {{
+        localStorage.setItem(key, det.open ? 'open' : 'closed');
+      }});
+    }});
   </script>
 </body>
 </html>
