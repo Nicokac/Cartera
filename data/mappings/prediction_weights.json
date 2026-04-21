@@ -10,9 +10,11 @@
   "signals": {
     "rsi": {
       "weight": 0.8,
+      "vote_mode": "continuous",
       "vote_rules": {
-        "oversold_threshold": 35,
-        "overbought_threshold": 65
+        "center": 50.0,
+        "lower_bound": 0.0,
+        "upper_bound": 100.0
       }
     },
     "momentum_20d": {
