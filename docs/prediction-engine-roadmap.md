@@ -60,18 +60,21 @@ El objetivo no es reemplazar el motor de decision actual sino agregar una capa e
 
 La primera iteracion se apoya en consenso ponderado de senales ya disponibles en el pipeline:
 
-- RSI
-- momentum 20d
-- momentum 60d
-- tendencia tecnica
-- score unificado
-- regimen de mercado
+- RSI, momentum 20d/60d, tendencia tecnica, score unificado, regimen de mercado, ADX, volumen relativo
 
-Cada senal vota `+1`, `-1` o `0`. El consenso agregado define:
+La mayoria vota en modo continuo `[-1, 1]`; `market_regime` vota en modo discreto `{-1, 0, +1}`. El consenso agrega define:
 
-- `direction`: `up`, `down` o `neutral`
-- `confidence`: magnitud del consenso
-- `votes`: detalle por senal
+```python
+{
+    "direction":        "up" | "down" | "neutral",
+    "confidence":       float,   # net_strength × agreement_ratio
+    "conviction_label": "baja" | "media" | "alta",
+    "consensus_raw":    float,
+    "agreement_ratio":  float,
+    "net_strength":     float,
+    "votes":            dict[str, float],
+}
+```
 
 ## Limitaciones auditables del estado actual
 
@@ -569,12 +572,19 @@ Sumar informacion nueva solo despues de endurecer el uso de las senales actuales
 
 ## Recomendacion tecnica vigente
 
-Las fases 6.2, 6.3 y 7 estan completadas. El hardening del consenso continuo tambien.
+El motor esta maduro en su diseno actual. Ciclos completados:
 
-Proximos pasos cuando haya historial verificado suficiente:
+- Fases 1–7: store, pesos, predictor, verificador, calibracion, integracion, expansion de senales
+- Hardening continuo: zona muerta, votos graduados, `sma_trend` y `relative_volume` continuos
+- `conviction_label` integrado en `predict()`, en `prediction_history.csv` y en el reporte HTML
 
-1. calibracion por familia de activo (`asset_family`) — requiere >= 30 outcomes por familia x senal
-2. multi-horizonte (`horizon_days: [5, 10, 20]`) — cambio estructural en store, verifier y renderer
+Un unico paso estructural queda pendiente:
+
+1. calibracion por familia de activo (`asset_family`) — requiere >= 30 outcomes verificados por familia x senal; hoy todo corre con pesos globales
+
+Diferido explicitamente hasta tener historial suficiente:
+
+1. multi-horizonte (`horizon_days: [5, 10, 20]`) — requiere cambios en store (clave compuesta), verifier (por horizonte) y renderer (tabla por horizonte)
 
 ## Riesgos principales
 
