@@ -150,6 +150,14 @@ def _vote_trend(value: object, rules: dict[str, Any]) -> int:
     return 0
 
 
+def _vote_trend_continuous(value: object, rules: dict[str, Any]) -> float:
+    trend = _normalize_text(value)
+    graduated = rules.get("graduated_votes", {}) or {}
+    if trend in graduated:
+        return _clip_vote(float(graduated[trend]))
+    return 0.0
+
+
 def _vote_score(value: object, rules: dict[str, Any]) -> int:
     score = _as_float(value)
     if score is None:
@@ -224,6 +232,23 @@ def _vote_relative_volume(row: dict[str, Any], rules: dict[str, Any]) -> int:
     return 0
 
 
+def _vote_relative_volume_continuous(row: dict[str, Any], rules: dict[str, Any]) -> float:
+    rel_vol = _as_float(row.get("Relative_Volume"))
+    return_intraday = _as_float(row.get("Return_intraday_%"))
+    if rel_vol is None or return_intraday is None:
+        return 0.0
+    high_threshold = float(rules.get("high_threshold", 1.5))
+    high_saturation = float(rules.get("high_saturation", 3.0))
+    if rel_vol < high_threshold:
+        return 0.0
+    strength = _clip_vote((rel_vol - high_threshold) / max(1e-9, high_saturation - high_threshold))
+    if return_intraday > 0:
+        return round(strength, 6)
+    if return_intraday < 0:
+        return round(-strength, 6)
+    return 0.0
+
+
 def _vote_market_regime(row: dict[str, Any], rules: dict[str, Any]) -> int:
     active_flags = _extract_flags(row)
     bearish_flags = {str(item).strip() for item in rules.get("bearish_flags", [])}
@@ -280,6 +305,8 @@ def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, 
             )
         return _vote_threshold(row.get(source_column), rules, positive_key="positive_threshold", negative_key="negative_threshold")
     if signal_name == "sma_trend":
+        if vote_mode == "continuous":
+            return _vote_trend_continuous(row.get(source_column), rules)
         return _vote_trend(row.get(source_column), rules)
     if signal_name == "score_unificado":
         if vote_mode == "continuous":
@@ -292,6 +319,8 @@ def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, 
             return _vote_adx_continuous(row, rules)
         return float(_vote_adx(row, rules))
     if signal_name == "relative_volume":
+        if vote_mode == "continuous":
+            return _vote_relative_volume_continuous(row, rules)
         return float(_vote_relative_volume(row, rules))
     return 0
 

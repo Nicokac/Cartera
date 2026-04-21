@@ -90,7 +90,20 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
         ticker = html.escape(str(row.get("ticker", "-")))
         direction = html.escape(str(row.get("direction", "-")).strip().lower())
         conf_raw = row.get("confidence")
-        conf_html = html.escape(fmt_pct(float(conf_raw) * 100.0)) if pd.notna(conf_raw) else "-"
+        if pd.notna(conf_raw):
+            conf_val = float(conf_raw)
+            if conf_val >= 0.35:
+                conv_label, conv_color = "alta", "#1a7f4b"
+            elif conf_val >= 0.20:
+                conv_label, conv_color = "media", "#b07e0f"
+            else:
+                conv_label, conv_color = "baja", "#8a9ba8"
+            conf_html = (
+                f'<span style="color:{conv_color};font-size:10px;font-weight:600;margin-right:3px">{conv_label}</span>'
+                f"{html.escape(fmt_pct(conf_val * 100.0))}"
+            )
+        else:
+            conf_html = "-"
         accion = html.escape(str(row.get("accion_sugerida_v2", "-")))
         outcome = html.escape(str(row.get("outcome_date", "-")))
         rows_html.append(

@@ -33,7 +33,7 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertGreater(vote_signal("rsi", row, signals["rsi"]), 0)
         self.assertGreater(vote_signal("momentum_20d", row, signals["momentum_20d"]), 0)
         self.assertLess(vote_signal("momentum_60d", row, signals["momentum_60d"]), 0)
-        self.assertEqual(vote_signal("sma_trend", row, signals["sma_trend"]), 1)
+        self.assertGreater(vote_signal("sma_trend", row, signals["sma_trend"]), 0)
         self.assertGreater(vote_signal("score_unificado", row, signals["score_unificado"]), 0)
         self.assertEqual(vote_signal("market_regime", row, signals["market_regime"]), -1)
 
@@ -375,6 +375,86 @@ class PredictionPredictorTests(unittest.TestCase):
         }
 
         self.assertEqual(vote_signal("market_regime", row, signal_cfg), 0)
+
+
+    # ── sma_trend continuous ──────────────────────────────────────────────────
+
+    def test_vote_trend_continuous_alcista_fuerte_returns_1(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {
+                "graduated_votes": {
+                    "Alcista fuerte": 1.0, "Alcista": 0.5,
+                    "Bajista": -0.5, "Bajista fuerte": -1.0,
+                }
+            },
+        }
+        self.assertAlmostEqual(vote_signal("sma_trend", {"Tech_Trend": "Alcista fuerte"}, signal_cfg), 1.0, places=6)
+
+    def test_vote_trend_continuous_alcista_returns_half(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"graduated_votes": {"Alcista fuerte": 1.0, "Alcista": 0.5, "Bajista": -0.5, "Bajista fuerte": -1.0}},
+        }
+        self.assertAlmostEqual(vote_signal("sma_trend", {"Tech_Trend": "Alcista"}, signal_cfg), 0.5, places=6)
+
+    def test_vote_trend_continuous_bajista_fuerte_returns_minus_1(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"graduated_votes": {"Alcista fuerte": 1.0, "Alcista": 0.5, "Bajista": -0.5, "Bajista fuerte": -1.0}},
+        }
+        self.assertAlmostEqual(vote_signal("sma_trend", {"Tech_Trend": "Bajista fuerte"}, signal_cfg), -1.0, places=6)
+
+    def test_vote_trend_continuous_neutral_label_returns_zero(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"graduated_votes": {"Alcista fuerte": 1.0, "Alcista": 0.5, "Bajista": -0.5, "Bajista fuerte": -1.0}},
+        }
+        self.assertAlmostEqual(vote_signal("sma_trend", {"Tech_Trend": "Neutral"}, signal_cfg), 0.0, places=6)
+
+    # ── relative_volume continuous ────────────────────────────────────────────
+
+    def test_vote_relative_volume_continuous_bullish_scales_with_volume(self) -> None:
+        # rel_vol=2.25 → midpoint of [1.5, 3.0] → strength=0.5, positive return → 0.5
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"high_threshold": 1.5, "high_saturation": 3.0},
+        }
+        self.assertAlmostEqual(
+            vote_signal("relative_volume", {"Relative_Volume": 2.25, "Return_intraday_%": 1.2}, signal_cfg),
+            0.5, places=5,
+        )
+
+    def test_vote_relative_volume_continuous_bearish_scales_with_volume(self) -> None:
+        # rel_vol=3.0 → saturado → strength=1.0, negative return → -1.0
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"high_threshold": 1.5, "high_saturation": 3.0},
+        }
+        self.assertAlmostEqual(
+            vote_signal("relative_volume", {"Relative_Volume": 3.0, "Return_intraday_%": -0.5}, signal_cfg),
+            -1.0, places=5,
+        )
+
+    def test_vote_relative_volume_continuous_neutral_below_threshold(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"high_threshold": 1.5, "high_saturation": 3.0},
+        }
+        self.assertAlmostEqual(
+            vote_signal("relative_volume", {"Relative_Volume": 1.2, "Return_intraday_%": 2.0}, signal_cfg),
+            0.0, places=6,
+        )
+
+    def test_vote_relative_volume_continuous_neutral_when_missing(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"high_threshold": 1.5, "high_saturation": 3.0},
+        }
+        self.assertAlmostEqual(
+            vote_signal("relative_volume", {"Relative_Volume": None, "Return_intraday_%": None}, signal_cfg),
+            0.0, places=6,
+        )
 
 
 if __name__ == "__main__":
