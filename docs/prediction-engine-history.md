@@ -43,6 +43,42 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 6.3 - Calibracion rolling | completada | 2026-04-20 |
 | Fase 7 - Expansion de senales | completada | 2026-04-20 |
 
+## 2026-04-21 - Hardening del consenso continuo - completado
+
+- commit: pendiente
+- alcance:
+  - se corrigen tres defectos de diseño introducidos al activar votos continuos
+- decisiones:
+  - `active_vote_threshold`:
+    - votos continuos con `|vote| < 0.1` dejan de contar como señal activa
+    - el threshold es configurable en `prediction_weights.json` (default `0.0` para compatibilidad)
+    - en producción queda en `0.1`
+    - el bug original: RSI=51 emitía voto=-0.02, inflaba `active_weight` y bajaba `confidence` artificialmente
+  - votos continuos para momentum y score:
+    - `momentum_20d` y `momentum_60d` activados con saturaciones `8%` y `15%` respectivamente
+    - `score_unificado` activado con saturación `0.4`
+    - los tres capturan ahora magnitud, no solo dirección
+  - `relative_volume` usa `Return_intraday_%` (apertura→cierre del mismo día) en lugar de `Return_1d_%` (cierre anterior→cierre actual)
+    - el retorno intraday es más predictivo para los próximos 5 días que el retorno de ayer
+    - `Return_intraday_%` se agrega como columna nueva en el overlay técnico
+- archivos:
+  - `src/prediction/predictor.py`
+  - `src/analytics/technical.py`
+  - `src/decision/scoring.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `tests/test_prediction_predictor.py`
+  - `tests/test_technical.py`
+  - `tests/test_strategy_rules.py`
+- tests:
+  - RSI=51 con umbral 0.1 → excluido de active_weight, agreement_ratio=0.98
+  - RSI=51 sin umbral → incluido, agreement_ratio=0.49 (comportamiento anterior documentado)
+  - assertions de momentum y score actualizadas de assertEqual a assertGreater/assertLess
+  - relative_volume tests actualizados a Return_intraday_%
+- deuda / notas:
+  - umbral de saturación de momentum y score son heurísticos; revisar con historial real
+  - pendiente (futuro): calibración por familia de activo
+
 ## 2026-04-20 - Fase 7 - completada
 
 - commit: pendiente

@@ -159,6 +159,61 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertAlmostEqual(result["agreement_ratio"], 0.333333, places=6)
         self.assertAlmostEqual(result["confidence"], 0.111111, places=6)
 
+    def test_active_vote_threshold_excludes_near_zero_continuous_votes_from_active_weight(self) -> None:
+        # RSI=51 en modo continuo emite voto=-0.02, por debajo del umbral 0.1.
+        # Sin umbral, ese voto casi-neutro inflaría active_weight y bajaría agreement_ratio.
+        # Con active_vote_threshold=0.1, solo momentum (voto=+1) cuenta como activo.
+        custom_weights = {
+            "direction_threshold": 0.15,
+            "active_vote_threshold": 0.1,
+            "signals": {
+                "rsi": {
+                    "weight": 1.0,
+                    "vote_mode": "continuous",
+                    "vote_rules": {"center": 50.0, "lower_bound": 0.0, "upper_bound": 100.0},
+                },
+                "momentum_20d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+                },
+            },
+        }
+        row = {"RSI_14": 51.0, "Momentum_20d_%": 4.0}
+
+        result = predict(row, custom_weights)
+
+        # consensus_raw = (1*(-0.02) + 1*1) / 2 = 0.49
+        self.assertAlmostEqual(result["consensus_raw"], 0.49, places=6)
+        # solo momentum es activo (active_weight=1.0); agreement_ratio = |0.98|/1.0 = 0.98
+        self.assertAlmostEqual(result["agreement_ratio"], 0.98, places=6)
+        # confidence = net_strength * agreement_ratio = 0.49 * 0.98 = 0.4802
+        self.assertAlmostEqual(result["confidence"], 0.4802, places=6)
+
+    def test_active_vote_threshold_zero_counts_all_nonzero_votes_as_active(self) -> None:
+        # Sin umbral (default 0.0), un voto continuo de -0.02 sí cuenta como activo
+        # y penaliza agreement_ratio aunque el voto sea casi neutro.
+        custom_weights = {
+            "direction_threshold": 0.15,
+            "signals": {
+                "rsi": {
+                    "weight": 1.0,
+                    "vote_mode": "continuous",
+                    "vote_rules": {"center": 50.0, "lower_bound": 0.0, "upper_bound": 100.0},
+                },
+                "momentum_20d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+                },
+            },
+        }
+        row = {"RSI_14": 51.0, "Momentum_20d_%": 4.0}
+
+        result = predict(row, custom_weights)
+
+        # ambas señales activas → active_weight=2.0; agreement_ratio = |0.98|/2.0 = 0.49
+        self.assertAlmostEqual(result["agreement_ratio"], 0.49, places=6)
+        self.assertAlmostEqual(result["confidence"], 0.49 * 0.49, places=6)
+
     def test_predict_handles_missing_values_as_neutral_votes(self) -> None:
         row = {
             "RSI_14": None,
