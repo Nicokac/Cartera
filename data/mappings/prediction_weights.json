@@ -82,8 +82,10 @@
     },
     "adx": {
       "weight": 0.3,
+      "vote_mode": "continuous",
       "vote_rules": {
-        "adx_threshold": 20.0
+        "adx_threshold": 20.0,
+        "adx_saturation": 45.0
       }
     },
     "relative_volume": {

@@ -191,6 +191,24 @@ def _vote_adx(row: dict[str, Any], rules: dict[str, Any]) -> int:
     return 0
 
 
+def _vote_adx_continuous(row: dict[str, Any], rules: dict[str, Any]) -> float:
+    adx = _as_float(row.get("ADX_14"))
+    di_plus = _as_float(row.get("DI_plus_14"))
+    di_minus = _as_float(row.get("DI_minus_14"))
+    if adx is None or di_plus is None or di_minus is None:
+        return 0.0
+    threshold = float(rules.get("adx_threshold", 20.0))
+    saturation = float(rules.get("adx_saturation", 45.0))
+    if adx < threshold:
+        return 0.0
+    strength = _clip_vote((adx - threshold) / max(1e-9, saturation - threshold))
+    if di_plus > di_minus:
+        return round(strength, 6)
+    if di_minus > di_plus:
+        return round(-strength, 6)
+    return 0.0
+
+
 def _vote_relative_volume(row: dict[str, Any], rules: dict[str, Any]) -> int:
     rel_vol = _as_float(row.get("Relative_Volume"))
     return_intraday = _as_float(row.get("Return_intraday_%"))
@@ -270,6 +288,8 @@ def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, 
     if signal_name == "market_regime":
         return float(_vote_market_regime(row, rules))
     if signal_name == "adx":
+        if vote_mode == "continuous":
+            return _vote_adx_continuous(row, rules)
         return float(_vote_adx(row, rules))
     if signal_name == "relative_volume":
         return float(_vote_relative_volume(row, rules))
@@ -291,10 +311,12 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
         if weight <= 0:
             continue
         vote = float(vote_signal(signal_name, row, signal_config))
+        if active_vote_threshold > 0.0 and abs(vote) < active_vote_threshold:
+            vote = 0.0
         votes[signal_name] = vote
         weighted_sum += weight * vote
         total_weight += weight
-        if abs(vote) >= active_vote_threshold and abs(vote) > 0:
+        if abs(vote) > 0:
             active_weight += weight
 
     consensus_raw = 0.0 if total_weight <= 0 else weighted_sum / total_weight

@@ -182,12 +182,13 @@ class PredictionPredictorTests(unittest.TestCase):
 
         result = predict(row, custom_weights)
 
-        # consensus_raw = (1*(-0.02) + 1*1) / 2 = 0.49
-        self.assertAlmostEqual(result["consensus_raw"], 0.49, places=6)
-        # solo momentum es activo (active_weight=1.0); agreement_ratio = |0.98|/1.0 = 0.98
-        self.assertAlmostEqual(result["agreement_ratio"], 0.98, places=6)
-        # confidence = net_strength * agreement_ratio = 0.49 * 0.98 = 0.4802
-        self.assertAlmostEqual(result["confidence"], 0.4802, places=6)
+        # RSI voto=-0.02 queda zereado antes de entrar al weighted_sum
+        # weighted_sum = 1*0 + 1*1 = 1.0 → consensus_raw = 1.0/2.0 = 0.5
+        self.assertAlmostEqual(result["consensus_raw"], 0.5, places=6)
+        # solo momentum es activo → agreement_ratio = |1.0|/1.0 = 1.0
+        self.assertAlmostEqual(result["agreement_ratio"], 1.0, places=6)
+        # confidence = 0.5 * 1.0 = 0.5
+        self.assertAlmostEqual(result["confidence"], 0.5, places=6)
 
     def test_active_vote_threshold_zero_counts_all_nonzero_votes_as_active(self) -> None:
         # Sin umbral (default 0.0), un voto continuo de -0.02 sí cuenta como activo
@@ -280,6 +281,27 @@ class PredictionPredictorTests(unittest.TestCase):
 
         self.assertEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 4.0}, signal_cfg), 1)
         self.assertEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 0.5}, signal_cfg), 0)
+
+    def test_vote_signal_adx_continuous_scales_strength_by_adx_magnitude(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"adx_threshold": 20.0, "adx_saturation": 45.0},
+        }
+        # ADX=20 → en el umbral → strength=0
+        self.assertAlmostEqual(vote_signal("adx", {"ADX_14": 20.0, "DI_plus_14": 30.0, "DI_minus_14": 15.0}, signal_cfg), 0.0, places=6)
+        # ADX=32.5 → mitad del rango → strength=0.5
+        self.assertAlmostEqual(vote_signal("adx", {"ADX_14": 32.5, "DI_plus_14": 30.0, "DI_minus_14": 15.0}, signal_cfg), 0.5, places=6)
+        # ADX=45 → saturado → strength=1.0
+        self.assertAlmostEqual(vote_signal("adx", {"ADX_14": 45.0, "DI_plus_14": 30.0, "DI_minus_14": 15.0}, signal_cfg), 1.0, places=6)
+        # ADX=45, DI- dominante → strength=-1.0
+        self.assertAlmostEqual(vote_signal("adx", {"ADX_14": 45.0, "DI_plus_14": 15.0, "DI_minus_14": 30.0}, signal_cfg), -1.0, places=6)
+
+    def test_vote_signal_adx_continuous_neutral_below_threshold(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {"adx_threshold": 20.0, "adx_saturation": 45.0},
+        }
+        self.assertAlmostEqual(vote_signal("adx", {"ADX_14": 15.0, "DI_plus_14": 30.0, "DI_minus_14": 10.0}, signal_cfg), 0.0, places=6)
 
     def test_vote_signal_adx_bullish_when_above_threshold_and_di_plus_dominates(self) -> None:
         signal_cfg = {"vote_rules": {"adx_threshold": 20.0}}
