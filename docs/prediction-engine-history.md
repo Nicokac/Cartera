@@ -42,6 +42,42 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 6.2 - Hardening interno del consenso | completada | 2026-04-20 |
 | Fase 6.3 - Calibracion rolling | completada | 2026-04-20 |
 | Fase 7 - Expansion de senales | completada | 2026-04-20 |
+| Hardening senales discretas | completada | 2026-04-21 |
+
+## 2026-04-21 - Hardening de senales discretas - completado
+
+- commit: pendiente
+- alcance:
+  - tres senales discretas reciben modo continuo o votos graduados
+  - el reporte agrega label de conviccion a la columna de confianza
+- decisiones:
+  - `sma_trend` pasa a `vote_mode: continuous` con `graduated_votes`:
+    - `Alcista fuerte` → 1.0, `Alcista` → 0.5, `Bajista` → -0.5, `Bajista fuerte` → -1.0
+    - elimina la sobreponderacion discreta frente a senales continuas de menor magnitud
+    - el modo discreto sigue disponible si se elimina `vote_mode` del JSON
+  - `relative_volume` pasa a `vote_mode: continuous`:
+    - escala linealmente en `[high_threshold=1.5, high_saturation=3.0]` → `[0, 1]`
+    - distingue vol=1.6 (voto≈0.07) de vol=2.8 (voto≈0.87); antes ambos daban ±1
+    - el `high_saturation` es configurable; default 3.0x la media de 20 dias
+  - label de conviccion en el reporte (`baja` / `media` / `alta`):
+    - umbral fijo: baja < 0.20, media ∈ [0.20, 0.35), alta >= 0.35
+    - colores distintos (verde / amarillo / gris) para lectura rapida
+    - no requiere historial: los umbrales son absolutos, no percentiles
+- archivos:
+  - `src/prediction/predictor.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `scripts/report_sections.py`
+  - `tests/test_prediction_predictor.py`
+  - `docs/prediction-engine-history.md`
+  - `docs/prediction-engine-roadmap.md`
+- tests:
+  - 4 tests para `sma_trend` continuo: Alcista fuerte=1.0, Alcista=0.5, Bajista fuerte=-1.0, neutral=0.0
+  - 4 tests para `relative_volume` continua: escala bullish, escala bearish, bajo umbral, valores faltantes
+  - suite total: 259/259 verdes
+- deuda / notas:
+  - los umbrales de conviccion (0.20 / 0.35) son heuristicos; revisar cuando haya historial real
+  - la escala de relative_volume (saturation=3.0) es conservadora; ajustar con datos reales
 
 ## 2026-04-21 - Zona muerta en votos continuos + ADX continuo - completado
 

@@ -35,8 +35,10 @@ confidence = net_strength * agreement_ratio
 Propiedades vigentes:
 
 - las senales votan en modo continuo `[-1, 1]` o discreto `{-1, 0, +1}` segun `vote_mode`
-- senales en modo continuo: `rsi`, `momentum_20d`, `momentum_60d`, `score_unificado`, `adx`
-- senales en modo discreto: `sma_trend`, `market_regime`, `relative_volume`
+- senales en modo continuo: `rsi`, `momentum_20d`, `momentum_60d`, `score_unificado`, `adx`, `sma_trend`, `relative_volume`
+- `sma_trend` usa votos graduados: `Alcista fuerte`→1.0, `Alcista`→0.5, `Bajista`→-0.5, `Bajista fuerte`→-1.0
+- `relative_volume` escala linealmente en `[high_threshold=1.5, high_saturation=3.0]` con signo del retorno intraday
+- senales en modo discreto: `market_regime`
 - votos con `|v| < active_vote_threshold` (default `0.1`) se zerean antes de entrar al consenso
 - la calibracion usa `IC` historico con ventana rolling configurable (`lookback_samples`)
 - si `IC <= 0`, la senal se apaga (`weight = 0`)
@@ -518,28 +520,25 @@ Mejorar el motor actual sin cambiar la arquitectura base ni requerir columnas nu
 
 ### Fase 6.3. Calibracion rolling
 
-**Estado:** `planificada`
+**Estado:** `completada`
 
 **Objetivo**
 
 Hacer que la calibracion responda mejor a drift de utilidad sin abandonar el fallback historico.
 
-**Alcance tecnico esperado**
+**Archivos implementados**
 
-- agregar ventana rolling configurable en `calibration`
-- usar muestra reciente cuando cumpla minimo estadistico
-- caer al historico completo cuando la ventana reciente no alcance
+- `src/prediction/calibration.py`
+- `data/mappings/prediction_weights.json`
+- `data/examples/mappings/prediction_weights.json.example`
+- `tests/test_prediction_calibration.py`
 
-**Configuracion candidata**
+**Estado de salida**
 
-- `calibration.lookback_samples`
-- `calibration.min_recent_samples`
-- `calibration.fallback_to_full_history`
-
-**Criterio de salida**
-
-- el comportamiento queda documentado y deterministico
-- la muestra reciente no introduce ruido excesivo por falta de datos
+- ventana rolling activa cuando `lookback_samples > 0` y la muestra reciente supera `min_recent_samples`
+- fallback automatico al historico completo cuando la ventana reciente no alcanza el minimo
+- `lookback_samples = 60` y `min_recent_samples = 20` son los defaults canonicos
+- comportamiento identico al anterior cuando `lookback_samples = 0`
 
 ### Fase 7. Expansion de senales
 

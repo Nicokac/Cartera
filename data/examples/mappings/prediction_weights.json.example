@@ -42,15 +42,16 @@
     },
     "sma_trend": {
       "weight": 0.4,
+      "vote_mode": "continuous",
       "vote_rules": {
-        "bullish_values": [
-          "Alcista",
-          "Alcista fuerte"
-        ],
-        "bearish_values": [
-          "Bajista",
-          "Bajista fuerte"
-        ]
+        "bullish_values": ["Alcista", "Alcista fuerte"],
+        "bearish_values": ["Bajista", "Bajista fuerte"],
+        "graduated_votes": {
+          "Alcista fuerte": 1.0,
+          "Alcista": 0.5,
+          "Bajista": -0.5,
+          "Bajista fuerte": -1.0
+        }
       }
     },
     "score_unificado": {
@@ -83,8 +84,10 @@
     },
     "relative_volume": {
       "weight": 0.3,
+      "vote_mode": "continuous",
       "vote_rules": {
-        "high_threshold": 1.5
+        "high_threshold": 1.5,
+        "high_saturation": 3.0
       }
     }
   }
