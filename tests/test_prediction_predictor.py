@@ -187,6 +187,43 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(vote_signal("score_unificado", {"score_unificado": -0.14}, signal_cfg), -1)
         self.assertEqual(vote_signal("score_unificado", {"score_unificado": 0.03}, signal_cfg), 0)
 
+    def test_vote_signal_supports_continuous_rsi_mode(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {
+                "center": 50.0,
+                "lower_bound": 0.0,
+                "upper_bound": 100.0,
+            },
+        }
+
+        self.assertAlmostEqual(vote_signal("rsi", {"RSI_14": 15.0}, signal_cfg), 0.7, places=6)
+        self.assertAlmostEqual(vote_signal("rsi", {"RSI_14": 36.0}, signal_cfg), 0.28, places=6)
+        self.assertAlmostEqual(vote_signal("rsi", {"RSI_14": 80.0}, signal_cfg), -0.6, places=6)
+
+    def test_vote_signal_supports_continuous_threshold_mode(self) -> None:
+        signal_cfg = {
+            "vote_mode": "continuous",
+            "vote_rules": {
+                "positive_threshold": 2.0,
+                "negative_threshold": -2.0,
+                "positive_saturation": 6.0,
+                "negative_saturation": 6.0,
+            },
+        }
+
+        self.assertAlmostEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 1.0}, signal_cfg), 0.0, places=6)
+        self.assertAlmostEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 4.0}, signal_cfg), 0.5, places=6)
+        self.assertAlmostEqual(vote_signal("momentum_20d", {"Momentum_20d_%": -5.0}, signal_cfg), -0.75, places=6)
+
+    def test_predict_preserves_discrete_mode_by_default(self) -> None:
+        signal_cfg = {
+            "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+        }
+
+        self.assertEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 4.0}, signal_cfg), 1)
+        self.assertEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 0.5}, signal_cfg), 0)
+
     def test_market_regime_inflacion_local_alta_keeps_bond_cer_non_bearish(self) -> None:
         signal_cfg = self.weights["signals"]["market_regime"]
         row = {

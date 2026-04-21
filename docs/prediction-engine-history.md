@@ -58,10 +58,13 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
   - `consensus_raw` se conserva como intensidad neta firmada
   - se agregan `net_strength` y `agreement_ratio`
   - `confidence` pasa a ser una metrica derivada de intensidad neta ajustada por acuerdo
+  - el predictor incorpora soporte opt-in para `vote_mode = continuous` en senales numericas
+  - los pesos canonicos todavia quedan en modo discreto por compatibilidad
 - archivos:
   - `src/prediction/calibration.py`
   - `src/prediction/predictor.py`
   - `src/pipeline.py`
+  - `scripts/report_sections.py`
   - `tests/test_prediction_calibration.py`
   - `tests/test_prediction_predictor.py`
   - `docs/prediction-engine-roadmap.md`
@@ -70,9 +73,10 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
   - senal con `IC` negativo se apaga
   - predictor ignora senales con peso `0`
   - predictor diferencia intensidad neta de acuerdo entre senales
+  - predictor soporta votos continuos con clipping sin romper el modo discreto
 - deuda / notas:
   - sigue pendiente decidir si la confianza futura debe incorporar tambien participacion total
-  - sigue pendiente introducir votos continuos si se valida el cambio
+  - sigue pendiente decidir activacion operativa de votos continuos en `prediction_weights.json`
 
 ## 2026-04-20 - Plan tecnico post auditoria - documentado
 

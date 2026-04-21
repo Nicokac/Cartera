@@ -54,6 +54,10 @@ def _resolve_regime_target_keys(row: dict[str, Any]) -> list[str]:
     return keys
 
 
+def _clip_vote(value: float) -> float:
+    return max(-1.0, min(1.0, float(value)))
+
+
 def _coerce_vote(value: object) -> int:
     try:
         numeric = int(value)
@@ -79,6 +83,22 @@ def _vote_rsi(value: object, rules: dict[str, Any]) -> int:
     return 0
 
 
+def _vote_rsi_continuous(value: object, rules: dict[str, Any]) -> float:
+    rsi = _as_float(value)
+    if rsi is None:
+        return 0.0
+    center = float(rules.get("center", 50.0))
+    lower_bound = float(rules.get("lower_bound", 0.0))
+    upper_bound = float(rules.get("upper_bound", 100.0))
+
+    if rsi <= center:
+        denom = max(1e-9, center - lower_bound)
+        return round(_clip_vote((center - rsi) / denom), 6)
+
+    denom = max(1e-9, upper_bound - center)
+    return round(_clip_vote(-1.0 * ((rsi - center) / denom)), 6)
+
+
 def _vote_threshold(value: object, rules: dict[str, Any], *, positive_key: str, negative_key: str) -> int:
     metric = _as_float(value)
     if metric is None:
@@ -90,6 +110,31 @@ def _vote_threshold(value: object, rules: dict[str, Any], *, positive_key: str, 
     if metric <= negative_threshold:
         return -1
     return 0
+
+
+def _vote_threshold_continuous(
+    value: object,
+    rules: dict[str, Any],
+    *,
+    positive_key: str,
+    negative_key: str,
+) -> float:
+    metric = _as_float(value)
+    if metric is None:
+        return 0.0
+
+    positive_threshold = float(rules.get(positive_key, 0.0))
+    negative_threshold = float(rules.get(negative_key, 0.0))
+    positive_saturation = float(rules.get("positive_saturation", positive_threshold * 3 if positive_threshold > 0 else 1.0))
+    negative_saturation = float(rules.get("negative_saturation", abs(negative_threshold) * 3 if negative_threshold < 0 else 1.0))
+
+    if metric >= positive_threshold:
+        denom = max(1e-9, positive_saturation - positive_threshold)
+        return round(_clip_vote((metric - positive_threshold) / denom), 6)
+    if metric <= negative_threshold:
+        denom = max(1e-9, negative_saturation - abs(negative_threshold))
+        return round(_clip_vote(-1.0 * ((abs(metric) - abs(negative_threshold)) / denom)), 6)
+    return 0.0
 
 
 def _vote_trend(value: object, rules: dict[str, Any]) -> int:
@@ -114,6 +159,18 @@ def _vote_score(value: object, rules: dict[str, Any]) -> int:
     if score <= low_threshold:
         return -1
     return 0
+
+
+def _vote_score_continuous(value: object, rules: dict[str, Any]) -> float:
+    score = _as_float(value)
+    if score is None:
+        return 0.0
+    return _vote_threshold_continuous(
+        score,
+        rules,
+        positive_key="high_threshold",
+        negative_key="low_threshold",
+    )
 
 
 def _vote_market_regime(row: dict[str, Any], rules: dict[str, Any]) -> int:
@@ -144,22 +201,41 @@ def _vote_market_regime(row: dict[str, Any], rules: dict[str, Any]) -> int:
     return 0
 
 
-def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, Any]) -> int:
+def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, Any]) -> float:
     rules = signal_config.get("vote_rules", {}) or {}
+    vote_mode = str(signal_config.get("vote_mode") or "discrete").strip().lower()
     source_column = SIGNAL_COLUMN_MAP.get(signal_name, signal_name)
 
     if signal_name == "rsi":
+        if vote_mode == "continuous":
+            return _vote_rsi_continuous(row.get(source_column), rules)
         return _vote_rsi(row.get(source_column), rules)
     if signal_name == "momentum_20d":
+        if vote_mode == "continuous":
+            return _vote_threshold_continuous(
+                row.get(source_column),
+                rules,
+                positive_key="positive_threshold",
+                negative_key="negative_threshold",
+            )
         return _vote_threshold(row.get(source_column), rules, positive_key="positive_threshold", negative_key="negative_threshold")
     if signal_name == "momentum_60d":
+        if vote_mode == "continuous":
+            return _vote_threshold_continuous(
+                row.get(source_column),
+                rules,
+                positive_key="positive_threshold",
+                negative_key="negative_threshold",
+            )
         return _vote_threshold(row.get(source_column), rules, positive_key="positive_threshold", negative_key="negative_threshold")
     if signal_name == "sma_trend":
         return _vote_trend(row.get(source_column), rules)
     if signal_name == "score_unificado":
+        if vote_mode == "continuous":
+            return _vote_score_continuous(row.get(source_column), rules)
         return _vote_score(row.get(source_column), rules)
     if signal_name == "market_regime":
-        return _vote_market_regime(row, rules)
+        return float(_vote_market_regime(row, rules))
     return 0
 
 
@@ -170,17 +246,17 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
     weighted_sum = 0.0
     total_weight = 0.0
     active_weight = 0.0
-    votes: dict[str, int] = {}
+    votes: dict[str, float] = {}
 
     for signal_name, signal_config in signals.items():
         weight = float(signal_config.get("weight", 0.0) or 0.0)
         if weight <= 0:
             continue
-        vote = int(vote_signal(signal_name, row, signal_config))
+        vote = float(vote_signal(signal_name, row, signal_config))
         votes[signal_name] = vote
         weighted_sum += weight * vote
         total_weight += weight
-        if vote != 0:
+        if abs(vote) > 0:
             active_weight += weight
 
     consensus_raw = 0.0 if total_weight <= 0 else weighted_sum / total_weight

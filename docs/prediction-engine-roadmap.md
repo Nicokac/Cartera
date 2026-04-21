@@ -525,7 +525,10 @@ Mejorar el motor actual sin cambiar la arquitectura base ni requerir columnas nu
   - se agrega `agreement_ratio` y `net_strength`
   - `confidence` pasa a ser intensidad neta ajustada por acuerdo
 - subpaso 3 sigue pendiente:
-  - votos continuos
+  - abierto en modo opt-in:
+    - el predictor ya soporta `vote_mode = continuous` para senales numericas
+    - los pesos canonicos todavia no lo activan por default
+    - falta decidir en que senales y con que parametros queda habilitado operativamente
 
 **Criterio de salida**
 

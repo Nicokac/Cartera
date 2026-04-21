@@ -34,14 +34,14 @@ _VOTE_KEYS = [
 ]
 
 
-def _parse_votes(value: object) -> dict[str, int]:
+def _parse_votes(value: object) -> dict[str, float]:
     if isinstance(value, dict):
-        out: dict[str, int] = {}
+        out: dict[str, float] = {}
         for k, v in value.items():
             try:
-                out[str(k)] = int(v)
+                out[str(k)] = float(v)
             except Exception:
-                out[str(k)] = 0
+                out[str(k)] = 0.0
         return out
     if isinstance(value, str) and value and value != "-":
         out = {}
@@ -50,14 +50,14 @@ def _parse_votes(value: object) -> dict[str, int]:
             if ":" in part:
                 k, v = part.rsplit(":", 1)
                 try:
-                    out[k.strip()] = int(v.strip().replace("+", ""))
+                    out[k.strip()] = float(v.strip().replace("+", ""))
                 except ValueError:
                     pass
         return out
     return {}
 
 
-def _sig_cell(vote: int) -> str:
+def _sig_cell(vote: float) -> str:
     if vote > 0:
         return '<span class="sig sig-pos">+</span>'
     if vote < 0:
@@ -189,8 +189,9 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         votes = _parse_votes(value)
         if not votes:
             return "-"
+        # The matrix keeps a ternary visual representation even when votes are continuous.
         parts = [
-            f'<span style="font-size:10px;color:var(--muted);margin-right:1px">{html.escape(label)}</span>{_sig_cell(int(votes[key]))}'
+            f'<span style="font-size:10px;color:var(--muted);margin-right:1px">{html.escape(label)}</span>{_sig_cell(float(votes[key]))}'
             for key, label in _VOTE_KEYS
             if key in votes
         ]
