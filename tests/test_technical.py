@@ -21,29 +21,38 @@ class TechnicalOverlayTests(unittest.TestCase):
                 {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL"},
             ]
         )
-        close = pd.Series(np.linspace(100, 140, 260))
-        volume = pd.Series(np.linspace(1_000_000, 2_000_000, 260))
-        hist = pd.DataFrame({"Close": close, "Volume": volume})
+        n = 260
+        close = pd.Series(np.linspace(100, 140, n))
+        high = close * 1.01
+        low = close * 0.99
+        volume = pd.Series(np.linspace(1_000_000, 2_000_000, n))
+        hist = pd.DataFrame({"Close": close, "High": high, "Low": low, "Volume": volume})
 
         with patch("analytics.technical.fetch_price_history", return_value=hist):
             out = build_technical_overlay(df_cedears)
 
         self.assertEqual(len(out), 1)
         row = out.iloc[0]
-        self.assertIn("SMA_200", out.columns)
-        self.assertIn("Dist_SMA200_%", out.columns)
-        self.assertIn("High_52w", out.columns)
-        self.assertIn("Low_52w", out.columns)
-        self.assertIn("Dist_52w_High_%", out.columns)
-        self.assertIn("Dist_52w_Low_%", out.columns)
-        self.assertIn("Avg_Volume_20d", out.columns)
-        self.assertTrue(pd.notna(row["SMA_200"]))
-        self.assertTrue(pd.notna(row["Dist_SMA200_%"]))
-        self.assertTrue(pd.notna(row["High_52w"]))
-        self.assertTrue(pd.notna(row["Low_52w"]))
-        self.assertTrue(pd.notna(row["Dist_52w_High_%"]))
-        self.assertTrue(pd.notna(row["Dist_52w_Low_%"]))
-        self.assertTrue(pd.notna(row["Avg_Volume_20d"]))
+        for col in ["SMA_200", "Dist_SMA200_%", "High_52w", "Low_52w", "Dist_52w_High_%", "Dist_52w_Low_%", "Avg_Volume_20d"]:
+            self.assertIn(col, out.columns)
+            self.assertTrue(pd.notna(row[col]), f"{col} should be non-null")
+        for col in ["ADX_14", "DI_plus_14", "DI_minus_14", "Relative_Volume", "Return_1d_%"]:
+            self.assertIn(col, out.columns)
+            self.assertTrue(pd.notna(row[col]), f"{col} should be non-null with valid OHLCV data")
+
+    def test_build_technical_overlay_returns_nan_for_adx_when_high_low_missing(self) -> None:
+        df_cedears = pd.DataFrame([{"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL"}])
+        close = pd.Series(np.linspace(100, 140, 260))
+        volume = pd.Series(np.ones(260) * 1_000_000)
+        hist = pd.DataFrame({"Close": close, "Volume": volume})
+
+        with patch("analytics.technical.fetch_price_history", return_value=hist):
+            out = build_technical_overlay(df_cedears)
+
+        row = out.iloc[0]
+        self.assertTrue(pd.isna(row["ADX_14"]))
+        self.assertTrue(pd.isna(row["DI_plus_14"]))
+        self.assertTrue(pd.isna(row["DI_minus_14"]))
 
     def test_build_technical_overlay_logs_failures_and_summary(self) -> None:
         df_cedears = pd.DataFrame([{"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL"}])

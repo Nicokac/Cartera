@@ -224,6 +224,46 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 4.0}, signal_cfg), 1)
         self.assertEqual(vote_signal("momentum_20d", {"Momentum_20d_%": 0.5}, signal_cfg), 0)
 
+    def test_vote_signal_adx_bullish_when_above_threshold_and_di_plus_dominates(self) -> None:
+        signal_cfg = {"vote_rules": {"adx_threshold": 20.0}}
+        row = {"ADX_14": 28.0, "DI_plus_14": 30.0, "DI_minus_14": 18.0}
+        self.assertEqual(vote_signal("adx", row, signal_cfg), 1)
+
+    def test_vote_signal_adx_bearish_when_above_threshold_and_di_minus_dominates(self) -> None:
+        signal_cfg = {"vote_rules": {"adx_threshold": 20.0}}
+        row = {"ADX_14": 25.0, "DI_plus_14": 14.0, "DI_minus_14": 32.0}
+        self.assertEqual(vote_signal("adx", row, signal_cfg), -1)
+
+    def test_vote_signal_adx_neutral_when_below_threshold(self) -> None:
+        signal_cfg = {"vote_rules": {"adx_threshold": 20.0}}
+        row = {"ADX_14": 15.0, "DI_plus_14": 30.0, "DI_minus_14": 10.0}
+        self.assertEqual(vote_signal("adx", row, signal_cfg), 0)
+
+    def test_vote_signal_adx_neutral_when_values_missing(self) -> None:
+        signal_cfg = {"vote_rules": {"adx_threshold": 20.0}}
+        row = {"ADX_14": None, "DI_plus_14": None, "DI_minus_14": None}
+        self.assertEqual(vote_signal("adx", row, signal_cfg), 0)
+
+    def test_vote_signal_relative_volume_bullish_when_high_volume_and_positive_return(self) -> None:
+        signal_cfg = {"vote_rules": {"high_threshold": 1.5}}
+        row = {"Relative_Volume": 2.0, "Return_1d_%": 1.5}
+        self.assertEqual(vote_signal("relative_volume", row, signal_cfg), 1)
+
+    def test_vote_signal_relative_volume_bearish_when_high_volume_and_negative_return(self) -> None:
+        signal_cfg = {"vote_rules": {"high_threshold": 1.5}}
+        row = {"Relative_Volume": 2.5, "Return_1d_%": -0.8}
+        self.assertEqual(vote_signal("relative_volume", row, signal_cfg), -1)
+
+    def test_vote_signal_relative_volume_neutral_when_below_threshold(self) -> None:
+        signal_cfg = {"vote_rules": {"high_threshold": 1.5}}
+        row = {"Relative_Volume": 0.9, "Return_1d_%": 3.0}
+        self.assertEqual(vote_signal("relative_volume", row, signal_cfg), 0)
+
+    def test_vote_signal_relative_volume_neutral_when_values_missing(self) -> None:
+        signal_cfg = {"vote_rules": {"high_threshold": 1.5}}
+        row = {"Relative_Volume": None, "Return_1d_%": None}
+        self.assertEqual(vote_signal("relative_volume", row, signal_cfg), 0)
+
     def test_market_regime_inflacion_local_alta_keeps_bond_cer_non_bearish(self) -> None:
         signal_cfg = self.weights["signals"]["market_regime"]
         row = {

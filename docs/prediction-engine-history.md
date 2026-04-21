@@ -41,7 +41,41 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 6.1 - Ajuste de escala de score | completada | 2026-04-19 |
 | Fase 6.2 - Hardening interno del consenso | completada | 2026-04-20 |
 | Fase 6.3 - Calibracion rolling | completada | 2026-04-20 |
-| Fase 7 - Expansion de senales | planificada | 2026-04-20 |
+| Fase 7 - Expansion de senales | completada | 2026-04-20 |
+
+## 2026-04-20 - Fase 7 - completada
+
+- commit: pendiente
+- alcance:
+  - se agregan dos senales nuevas al motor: ADX y volumen relativo
+  - ambas estan disponibles en el pipeline desde esta fase
+- decisiones:
+  - ADX: usa DI+ y DI- para determinar direccion; voto neutro si ADX < umbral (20)
+  - relative_volume: voto direccional condicionado al retorno del dia; neutro si volumen < 1.5x la media
+  - ambas arrancan con peso inicial `0.3`, pendientes de calibracion historica real
+  - `compute_adx` implementado con suavizado de Wilder (EWM con alpha=1/period); no requiere libreria externa
+  - si el historial no tiene columnas High/Low, ADX queda en NaN de forma silenciosa
+- archivos:
+  - `src/analytics/technical.py`
+  - `src/prediction/predictor.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `tests/test_technical.py`
+  - `tests/test_prediction_predictor.py`
+  - `docs/prediction-engine-roadmap.md`
+  - `docs/prediction-engine-history.md`
+- tests:
+  - ADX bullish cuando DI+ > DI- y ADX >= umbral
+  - ADX bearish cuando DI- > DI+ y ADX >= umbral
+  - ADX neutral cuando ADX < umbral o valores faltantes
+  - relative_volume bullish con volumen alto y retorno positivo
+  - relative_volume bearish con volumen alto y retorno negativo
+  - relative_volume neutral con volumen bajo o valores faltantes
+  - overlay tecnico expone las nuevas columnas cuando hay OHLCV completo
+  - overlay tecnico devuelve NaN en ADX si faltan High/Low
+- deuda / notas:
+  - los pesos iniciales son heuristicos; calibrar en cuanto haya historial verificado para ambas senales
+  - relative_volume puede tener baja cobertura en activos con datos de volumen esparsos
 
 ## 2026-04-20 - Fase 6.3 - completada
 

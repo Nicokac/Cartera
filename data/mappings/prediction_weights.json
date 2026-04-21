@@ -69,6 +69,18 @@
           }
         }
       }
+    },
+    "adx": {
+      "weight": 0.3,
+      "vote_rules": {
+        "adx_threshold": 20.0
+      }
+    },
+    "relative_volume": {
+      "weight": 0.3,
+      "vote_rules": {
+        "high_threshold": 1.5
+      }
     }
   }
 }

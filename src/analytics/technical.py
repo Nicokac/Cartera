@@ -19,6 +19,38 @@ def normalize_technical_overlay(df_tech: pd.DataFrame) -> pd.DataFrame:
     return df_tech.copy()
 
 
+def compute_adx(
+    high: pd.Series,
+    low: pd.Series,
+    close: pd.Series,
+    period: int = 14,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """Return (ADX, DI+, DI-) using Wilder smoothing."""
+    alpha = 1.0 / period
+    tr = pd.concat(
+        [
+            high - low,
+            (high - close.shift(1)).abs(),
+            (low - close.shift(1)).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+
+    raw_dm_plus = high.diff()
+    raw_dm_minus = -low.diff()
+    dm_plus = raw_dm_plus.where((raw_dm_plus > raw_dm_minus) & (raw_dm_plus > 0), 0.0)
+    dm_minus = raw_dm_minus.where((raw_dm_minus > raw_dm_plus) & (raw_dm_minus > 0), 0.0)
+
+    atr = tr.ewm(alpha=alpha, adjust=False).mean()
+    di_plus = 100.0 * dm_plus.ewm(alpha=alpha, adjust=False).mean() / atr.replace(0.0, np.nan)
+    di_minus = 100.0 * dm_minus.ewm(alpha=alpha, adjust=False).mean() / atr.replace(0.0, np.nan)
+
+    di_sum = (di_plus + di_minus).replace(0.0, np.nan)
+    dx = 100.0 * (di_plus - di_minus).abs() / di_sum
+    adx = dx.ewm(alpha=alpha, adjust=False).mean()
+    return adx, di_plus, di_minus
+
+
 def compute_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     delta = series.diff()
     gain = delta.clip(lower=0)
@@ -73,11 +105,22 @@ def build_technical_overlay(
             rsi14 = float(compute_rsi(close, 14).iloc[-1]) if len(close) >= 20 else np.nan
             returns = close.pct_change().dropna()
             vol20 = float(returns.tail(20).std() * np.sqrt(252) * 100) if len(returns) >= 20 else np.nan
-            avg_volume_20d = (
-                float(pd.to_numeric(hist["Volume"], errors="coerce").dropna().tail(20).mean())
-                if "Volume" in hist.columns and len(hist["Volume"].dropna()) >= 20
-                else np.nan
-            )
+            volume = pd.to_numeric(hist["Volume"], errors="coerce").dropna() if "Volume" in hist.columns else pd.Series(dtype=float)
+            avg_volume_20d = float(volume.tail(20).mean()) if len(volume) >= 20 else np.nan
+            volume_last = float(volume.iloc[-1]) if not volume.empty else np.nan
+            relative_volume = float(volume_last / avg_volume_20d) if pd.notna(avg_volume_20d) and avg_volume_20d > 0 and pd.notna(volume_last) else np.nan
+            return_1d = float((close.iloc[-1] / close.iloc[-2] - 1) * 100) if len(close) >= 2 else np.nan
+
+            has_hl = "High" in hist.columns and "Low" in hist.columns
+            if has_hl and len(close) >= 28:
+                high_s = pd.to_numeric(hist["High"], errors="coerce")
+                low_s = pd.to_numeric(hist["Low"], errors="coerce")
+                adx_s, di_plus_s, di_minus_s = compute_adx(high_s, low_s, close)
+                adx14 = float(adx_s.iloc[-1]) if pd.notna(adx_s.iloc[-1]) else np.nan
+                di_plus14 = float(di_plus_s.iloc[-1]) if pd.notna(di_plus_s.iloc[-1]) else np.nan
+                di_minus14 = float(di_minus_s.iloc[-1]) if pd.notna(di_minus_s.iloc[-1]) else np.nan
+            else:
+                adx14 = di_plus14 = di_minus14 = np.nan
             momentum_20d = float((close.iloc[-1] / close.iloc[-21] - 1) * 100) if len(close) >= 21 else np.nan
             momentum_60d = float((close.iloc[-1] / close.iloc[-61] - 1) * 100) if len(close) >= 61 else np.nan
             max_3m = float(close.tail(63).max()) if len(close) >= 20 else np.nan
@@ -122,6 +165,11 @@ def build_technical_overlay(
                     "Dist_EMA20_%": dist_ema20,
                     "Dist_EMA50_%": dist_ema50,
                     "Avg_Volume_20d": avg_volume_20d,
+                    "Relative_Volume": relative_volume,
+                    "Return_1d_%": return_1d,
+                    "ADX_14": adx14,
+                    "DI_plus_14": di_plus14,
+                    "DI_minus_14": di_minus14,
                     "RSI_14": rsi14,
                     "Momentum_20d_%": momentum_20d,
                     "Momentum_60d_%": momentum_60d,

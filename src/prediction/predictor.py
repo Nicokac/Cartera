@@ -12,6 +12,8 @@ SIGNAL_COLUMN_MAP = {
     "sma_trend": "Tech_Trend",
     "score_unificado": "score_unificado",
     "market_regime": "market_regime_any_active",
+    "adx": "ADX_14",
+    "relative_volume": "Relative_Volume",
 }
 
 
@@ -173,6 +175,37 @@ def _vote_score_continuous(value: object, rules: dict[str, Any]) -> float:
     )
 
 
+def _vote_adx(row: dict[str, Any], rules: dict[str, Any]) -> int:
+    adx = _as_float(row.get("ADX_14"))
+    di_plus = _as_float(row.get("DI_plus_14"))
+    di_minus = _as_float(row.get("DI_minus_14"))
+    if adx is None or di_plus is None or di_minus is None:
+        return 0
+    threshold = float(rules.get("adx_threshold", 20.0))
+    if adx < threshold:
+        return 0
+    if di_plus > di_minus:
+        return 1
+    if di_minus > di_plus:
+        return -1
+    return 0
+
+
+def _vote_relative_volume(row: dict[str, Any], rules: dict[str, Any]) -> int:
+    rel_vol = _as_float(row.get("Relative_Volume"))
+    return_1d = _as_float(row.get("Return_1d_%"))
+    if rel_vol is None or return_1d is None:
+        return 0
+    high_threshold = float(rules.get("high_threshold", 1.5))
+    if rel_vol < high_threshold:
+        return 0
+    if return_1d > 0:
+        return 1
+    if return_1d < 0:
+        return -1
+    return 0
+
+
 def _vote_market_regime(row: dict[str, Any], rules: dict[str, Any]) -> int:
     active_flags = _extract_flags(row)
     bearish_flags = {str(item).strip() for item in rules.get("bearish_flags", [])}
@@ -236,6 +269,10 @@ def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, 
         return _vote_score(row.get(source_column), rules)
     if signal_name == "market_regime":
         return float(_vote_market_regime(row, rules))
+    if signal_name == "adx":
+        return float(_vote_adx(row, rules))
+    if signal_name == "relative_volume":
+        return float(_vote_relative_volume(row, rules))
     return 0
 
 

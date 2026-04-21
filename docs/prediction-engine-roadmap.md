@@ -547,7 +547,7 @@ Hacer que la calibracion responda mejor a drift de utilidad sin abandonar el fal
 
 ### Fase 7. Expansion de senales
 
-**Estado:** `planificada`
+**Estado:** `completada`
 
 **Objetivo**
 
