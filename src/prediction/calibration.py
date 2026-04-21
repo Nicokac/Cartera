@@ -108,12 +108,22 @@ def calibrate_prediction_weights(
     min_weight = float(calibration_cfg.get("min_weight", 0.1))
     max_weight = float(calibration_cfg.get("max_weight", 1.0))
 
+    lookback_samples = int(calibration_cfg.get("lookback_samples", 0) or 0)
+    min_recent_samples = int(calibration_cfg.get("min_recent_samples", min_samples) or min_samples)
+
     vote_frame = extract_signal_vote_frame(history)
+    if lookback_samples > 0 and not vote_frame.empty:
+        sorted_frame = vote_frame.sort_values("run_date", ascending=False)
+        recent_frame = sorted_frame.head(lookback_samples)
+        effective_frame = recent_frame if len(recent_frame) >= min_recent_samples else vote_frame
+    else:
+        effective_frame = vote_frame
+
     summaries: list[dict[str, Any]] = []
 
     for signal_name, signal_cfg in (updated.get("signals", {}) or {}).items():
         previous_weight = float(signal_cfg.get("weight", 0.0) or 0.0)
-        stats = compute_signal_ic(vote_frame, signal_name)
+        stats = compute_signal_ic(effective_frame, signal_name)
         samples = int(stats["samples"])
         ic = stats["ic"]
 

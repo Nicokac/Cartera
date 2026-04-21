@@ -39,9 +39,58 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 5 - Calibracion | completada | 2026-04-19 |
 | Fase 6 - Integracion y reporte | completada | 2026-04-19 |
 | Fase 6.1 - Ajuste de escala de score | completada | 2026-04-19 |
-| Fase 6.2 - Hardening interno del consenso | en curso | 2026-04-20 |
-| Fase 6.3 - Calibracion rolling | planificada | 2026-04-20 |
+| Fase 6.2 - Hardening interno del consenso | completada | 2026-04-20 |
+| Fase 6.3 - Calibracion rolling | completada | 2026-04-20 |
 | Fase 7 - Expansion de senales | planificada | 2026-04-20 |
+
+## 2026-04-20 - Fase 6.3 - completada
+
+- commit: pendiente
+- alcance:
+  - se implementa la ventana rolling en `calibrate_prediction_weights`
+  - si `lookback_samples > 0` y la ventana reciente cumple `min_recent_samples`, se calibra sobre esa muestra
+  - si la ventana reciente no alcanza el minimo, se cae al historico completo
+- decisiones:
+  - la ventana se define por numero de filas del `vote_frame`, no por dias de calendario
+  - el fallback es automatico y transparente: no requiere flag manual
+  - `lookback_samples = 60` y `min_recent_samples = 20` son los defaults canonicos iniciales
+- archivos:
+  - `src/prediction/calibration.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `tests/test_prediction_calibration.py`
+  - `docs/prediction-engine-roadmap.md`
+  - `docs/prediction-engine-history.md`
+- tests:
+  - ventana reciente suficiente -> calibra sobre muestra reciente
+  - ventana reciente insuficiente -> cae al historico completo
+  - `lookback_samples = 0` -> comportamiento identico al anterior (sin rolling)
+- deuda / notas:
+  - los defaults iniciales son heuristicos; conviene revisarlos cuando haya suficiente historial real
+
+## 2026-04-20 - Fase 6.2 - completada
+
+- commit: e53efe0 (RSI continuo) + pendiente (cierre documental)
+- alcance:
+  - subpaso 3 cerrado: RSI activado en modo continuo en `prediction_weights.json`
+  - los tres subpasos de Fase 6.2 quedan completos
+- decisiones:
+  - RSI usa `vote_mode = continuous` con `center=50`, `lower_bound=0`, `upper_bound=100`
+  - el voto continuo del RSI emite valores en `[-1, 1]` en lugar de `-1 / 0 / 1`
+  - RSI=30 emite `+0.4` en lugar de `+1`; RSI=80 emite `-0.6` en lugar de `-1`
+  - el resto de senales permanece en modo discreto
+  - los tests que usaban `assertEqual(..., 1)` para RSI pasan a `assertGreater(..., 0)` para respetar la magnitud continua
+- archivos:
+  - `data/mappings/prediction_weights.json`
+  - `tests/test_prediction_predictor.py`
+  - `docs/prediction-engine-roadmap.md`
+  - `docs/prediction-engine-history.md`
+- tests:
+  - RSI=30 con config continua -> voto > 0 (alcista)
+  - RSI=80 con config continua -> voto < 0 (bajista)
+  - tests de consenso `up` actualizados a `assertGreater`
+- deuda / notas:
+  - conviene monitorear si el peso reducido del RSI continuo afecta el consenso en corridas reales
 
 ## 2026-04-20 - Fase 6.2 - apertura e implementacion parcial
 

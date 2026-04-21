@@ -131,6 +131,80 @@ class PredictionCalibrationTests(unittest.TestCase):
             places=6,
         )
 
+    def test_calibrate_with_lookback_uses_recent_window_when_sufficient(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["min_samples"] = 4
+        custom_weights["calibration"]["min_weight"] = 0.1
+        custom_weights["calibration"]["max_weight"] = 1.0
+        custom_weights["calibration"]["lookback_samples"] = 4
+        custom_weights["calibration"]["min_recent_samples"] = 4
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "OLD1", "run_date": "2026-01-01", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "OLD2", "run_date": "2026-01-02", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "OLD3", "run_date": "2026-01-03", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "OLD4", "run_date": "2026-01-04", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "NEW1", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "NEW2", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "NEW3", "run_date": "2026-04-22", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "NEW4", "run_date": "2026-04-23", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        rsi_row = summary.loc[summary["signal"] == "rsi"].iloc[0]
+
+        self.assertEqual(rsi_row["status"], "recalibrated")
+        self.assertAlmostEqual(float(rsi_row["ic"]), 1.0, places=6)
+        self.assertAlmostEqual(float(updated["signals"]["rsi"]["weight"]), 1.0, places=6)
+
+    def test_calibrate_with_lookback_falls_back_to_full_history_when_recent_window_insufficient(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["min_samples"] = 4
+        custom_weights["calibration"]["min_weight"] = 0.1
+        custom_weights["calibration"]["max_weight"] = 1.0
+        custom_weights["calibration"]["lookback_samples"] = 4
+        custom_weights["calibration"]["min_recent_samples"] = 5
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "OLD1", "run_date": "2026-01-01", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "OLD2", "run_date": "2026-01-02", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "OLD3", "run_date": "2026-01-03", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "OLD4", "run_date": "2026-01-04", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "NEW1", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "NEW2", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        rsi_row = summary.loc[summary["signal"] == "rsi"].iloc[0]
+
+        self.assertEqual(rsi_row["status"], "recalibrated")
+        self.assertEqual(rsi_row["samples"], 6)
+        self.assertAlmostEqual(float(rsi_row["ic"]), 1.0, places=6)
+
+    def test_calibrate_without_lookback_uses_full_history(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["min_samples"] = 4
+        custom_weights["calibration"]["lookback_samples"] = 0
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "A", "run_date": "2026-01-01", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "B", "run_date": "2026-01-02", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "C", "run_date": "2026-01-03", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "D", "run_date": "2026-01-04", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        rsi_row = summary.loc[summary["signal"] == "rsi"].iloc[0]
+
+        self.assertEqual(rsi_row["samples"], 4)
+        self.assertEqual(rsi_row["status"], "recalibrated")
+
     def test_save_prediction_weights_persists_json_file(self) -> None:
         path = ROOT / "tmp_prediction_weights.json"
         if path.exists():

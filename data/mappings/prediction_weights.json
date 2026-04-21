@@ -5,7 +5,9 @@
   "calibration": {
     "min_samples": 30,
     "min_weight": 0.1,
-    "max_weight": 1.0
+    "max_weight": 1.0,
+    "lookback_samples": 60,
+    "min_recent_samples": 20
   },
   "signals": {
     "rsi": {

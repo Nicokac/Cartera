@@ -8,7 +8,7 @@ Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion 
 
 ## Estado actual
 
-- estado: `fase 6.1 completada`
+- estado: `fase 6.3 implementada`
 - baseline funcional: el motor ya forma parte del pipeline experimental y del renderer
 - dependencias nuevas: `ninguna`
 - acoplamiento permitido: solo por integracion con `pipeline.py`, `market_data` y el renderer cuando la fase de exposicion llegue
@@ -492,52 +492,33 @@ Corregir el sesgo bajista estructural introducido por usar umbrales incompatible
 
 ### Fase 6.2. Hardening interno del consenso
 
-**Estado:** `en curso`
+**Estado:** `completada`
 
 **Objetivo**
 
 Mejorar el motor actual sin cambiar la arquitectura base ni requerir columnas nuevas en el pipeline.
 
-**Alcance tecnico esperado**
+**Archivos implementados**
 
-- apagar senales con `IC <= 0` en lugar de llevarlas obligatoriamente a `min_weight`
-- separar `confidence` de `consensus_raw`
-- agregar una metrica de dispersion o acuerdo entre senales
-- evaluar votos continuos en rango acotado `[-1, 1]` para senales donde hoy el voto es ternario por umbral
+- `src/prediction/calibration.py`
+- `src/prediction/predictor.py`
+- `data/mappings/prediction_weights.json`
+- `data/examples/mappings/prediction_weights.json.example`
+- `tests/test_prediction_calibration.py`
+- `tests/test_prediction_predictor.py`
 
-**Secuencia recomendada**
+**Estado de salida**
 
-1. cambio de seguridad:
-   - `IC <= 0 -> weight = 0`
-2. cambio semantico:
-   - renombrar o redefinir `confidence` para que no prometa mas de lo que mide
-3. cambio de expresividad:
-   - migrar gradualmente de votos ternarios a continuos donde sea defendible
-
-**Estado actual de ejecucion**
-
-- subpaso 1 abierto:
-  - cerrado:
-    - la calibracion deja de mandar `IC <= 0` a `min_weight`
-    - la nueva regla vigente pasa a ser `IC <= 0 -> weight = 0`
-- subpaso 2 abierto:
-  - `confidence` deja de ser solo `abs(consensus_raw)`
-  - se agrega `agreement_ratio` y `net_strength`
-  - `confidence` pasa a ser intensidad neta ajustada por acuerdo
-- subpaso 3 sigue pendiente:
-  - abierto en modo opt-in:
-    - el predictor ya soporta `vote_mode = continuous` para senales numericas
-    - los pesos canonicos todavia no lo activan por default
-    - falta decidir en que senales y con que parametros queda habilitado operativamente
-
-**Criterio de salida**
-
-- sin romper store, verifier ni renderer
-- tests unitarios nuevos para:
-  - `IC` negativo
-  - ausencia de contribucion cuando el peso se apaga
-  - diferencia entre intensidad neta y dispersion
-  - clipping y neutralidad en votos continuos
+- subpaso 1 cerrado:
+  - `IC <= 0 -> weight = 0` (la calibracion ya no manda a `min_weight`)
+- subpaso 2 cerrado:
+  - `confidence` = `net_strength * agreement_ratio`
+  - `net_strength` = `abs(consensus_raw)`
+  - `agreement_ratio` = acuerdo entre senales activas
+- subpaso 3 cerrado:
+  - RSI activado en modo `vote_mode = continuous` en `prediction_weights.json`
+  - parametros: `center=50`, `lower_bound=0`, `upper_bound=100`
+  - resto de senales permanecen en modo discreto
 
 ### Fase 6.3. Calibracion rolling
 
