@@ -43,6 +43,37 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 6.3 - Calibracion rolling | completada | 2026-04-20 |
 | Fase 7 - Expansion de senales | completada | 2026-04-20 |
 | Hardening senales discretas | completada | 2026-04-21 |
+| conviction_label en predict() + limpieza JSON | completada | 2026-04-21 |
+
+## 2026-04-21 - conviction_label en predict() y limpieza de configuracion - completado
+
+- commit: pendiente
+- alcance:
+  - `predict()` devuelve `conviction_label` calculado desde `conviction_thresholds` en el JSON
+  - se elimina config redundante de `sma_trend` (bullish_values/bearish_values ya no se usan en modo continuo)
+  - `conviction_label` se persiste en `prediction_history.csv` como columna nativa
+  - el reporte lee el label del CSV en vez de recalcularlo con thresholds hardcodeados
+- decisiones:
+  - `conviction_thresholds` vive en `prediction_weights.json` al nivel del root (no dentro de `signals`)
+  - valores canonicos: `high=0.35`, `medium=0.20`; baja es el caso residual
+  - `predict()` usa defaults duros si la clave no existe en el JSON (backward-compatible)
+  - `report_sections.py` hace fallback al calculo local si la fila del CSV no tiene el campo (rows historicas previas a este cambio)
+  - `store.py` agrego `conviction_label` a `PREDICTION_HISTORY_COLUMNS`: las rows viejas quedan como NaN y el reporte las cubre con el fallback
+- archivos:
+  - `src/prediction/predictor.py`
+  - `src/prediction/store.py`
+  - `src/pipeline.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `scripts/report_sections.py`
+  - `tests/test_prediction_predictor.py`
+- tests:
+  - conviction alta con señales fuertes (confidence >= 0.35)
+  - conviction baja con señales débiles (confidence < 0.20)
+  - conviction media con umbrales custom (high=0.50, medium=0.30): mismo confidence → label distinto
+  - suite total: 262/262 verdes
+- deuda / notas:
+  - los umbrales 0.35 / 0.20 son heuristicos; revisar con historial real cuando haya 50+ predicciones
 
 ## 2026-04-21 - Hardening de senales discretas - completado
 

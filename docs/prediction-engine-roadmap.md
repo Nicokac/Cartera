@@ -43,7 +43,8 @@ Propiedades vigentes:
 - la calibracion usa `IC` historico con ventana rolling configurable (`lookback_samples`)
 - si `IC <= 0`, la senal se apaga (`weight = 0`)
 - los pesos viven en `data/mappings/prediction_weights.json`
-- el predictor expone: `consensus_raw`, `net_strength`, `agreement_ratio`, `confidence`, `votes`
+- el predictor expone: `direction`, `confidence`, `conviction_label`, `consensus_raw`, `net_strength`, `agreement_ratio`, `votes`
+- `conviction_label` se calcula desde `conviction_thresholds` en el JSON (`high=0.35`, `medium=0.20`); fallback duro si la clave no existe
 
 Interpretacion correcta del estado actual:
 

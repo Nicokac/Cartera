@@ -75,6 +75,56 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertLess(result["consensus_raw"], -0.15)
         self.assertEqual(result["votes"]["market_regime"], -1)
 
+    def test_predict_returns_conviction_label_alta_when_high_confidence(self) -> None:
+        row = {
+            "RSI_14": 25.0,
+            "Momentum_20d_%": 6.0,
+            "Momentum_60d_%": 12.0,
+            "Tech_Trend": "Alcista fuerte",
+            "score_unificado": 0.35,
+            "market_regime_any_active": False,
+            "market_regime_active_flags": "",
+        }
+        result = predict(row, self.weights)
+        self.assertEqual(result["conviction_label"], "alta")
+        self.assertGreaterEqual(result["confidence"], 0.35)
+
+    def test_predict_returns_conviction_label_baja_when_low_confidence(self) -> None:
+        row = {
+            "RSI_14": 52.0,
+            "Momentum_20d_%": 0.5,
+            "Momentum_60d_%": 1.0,
+            "Tech_Trend": "Neutral",
+            "score_unificado": 0.02,
+            "market_regime_any_active": False,
+            "market_regime_active_flags": "",
+        }
+        weights = dict(self.weights)
+        result = predict(row, weights)
+        self.assertEqual(result["conviction_label"], "baja")
+        self.assertLess(result["confidence"], 0.20)
+
+    def test_predict_conviction_uses_custom_thresholds(self) -> None:
+        # RSI=19 → voto=0.62, confidence=0.62²≈0.384
+        # con thresholds default (high=0.35) → "alta"
+        # con thresholds custom (high=0.50, medium=0.30) → "media"
+        custom_weights = {
+            "direction_threshold": 0.05,
+            "conviction_thresholds": {"high": 0.50, "medium": 0.30},
+            "signals": {
+                "rsi": {
+                    "weight": 1.0,
+                    "vote_mode": "continuous",
+                    "vote_rules": {"center": 50.0, "lower_bound": 0.0, "upper_bound": 100.0},
+                }
+            },
+        }
+        row = {"RSI_14": 19.0}
+        result = predict(row, custom_weights)
+        self.assertGreaterEqual(result["confidence"], 0.30)
+        self.assertLess(result["confidence"], 0.50)
+        self.assertEqual(result["conviction_label"], "media")
+
     def test_predict_returns_neutral_when_consensus_stays_inside_threshold(self) -> None:
         custom_weights = {
             "direction_threshold": 0.30,

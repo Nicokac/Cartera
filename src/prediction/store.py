@@ -17,6 +17,7 @@ PREDICTION_HISTORY_COLUMNS = [
     "ticker",
     "direction",
     "confidence",
+    "conviction_label",
     "consensus_raw",
     "signal_votes",
     "horizon_days",

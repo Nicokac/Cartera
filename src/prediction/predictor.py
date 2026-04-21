@@ -353,6 +353,16 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
     agreement_ratio = 0.0 if active_weight <= 0 else abs(weighted_sum) / active_weight
     confidence = net_strength * agreement_ratio
 
+    conviction_cfg = weights.get("conviction_thresholds", {}) or {}
+    high_threshold = float(conviction_cfg.get("high", 0.35))
+    medium_threshold = float(conviction_cfg.get("medium", 0.20))
+    if confidence >= high_threshold:
+        conviction_label = "alta"
+    elif confidence >= medium_threshold:
+        conviction_label = "media"
+    else:
+        conviction_label = "baja"
+
     if consensus_raw > direction_threshold:
         direction = "up"
     elif consensus_raw < (-1 * direction_threshold):
@@ -363,6 +373,7 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
     return {
         "direction": direction,
         "confidence": round(confidence, 6),
+        "conviction_label": conviction_label,
         "consensus_raw": round(consensus_raw, 6),
         "agreement_ratio": round(agreement_ratio, 6),
         "net_strength": round(net_strength, 6),

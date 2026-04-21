@@ -90,14 +90,14 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
         ticker = html.escape(str(row.get("ticker", "-")))
         direction = html.escape(str(row.get("direction", "-")).strip().lower())
         conf_raw = row.get("confidence")
+        _CONV_COLORS = {"alta": "#1a7f4b", "media": "#b07e0f", "baja": "#8a9ba8"}
         if pd.notna(conf_raw):
             conf_val = float(conf_raw)
-            if conf_val >= 0.35:
-                conv_label, conv_color = "alta", "#1a7f4b"
-            elif conf_val >= 0.20:
-                conv_label, conv_color = "media", "#b07e0f"
-            else:
-                conv_label, conv_color = "baja", "#8a9ba8"
+            raw_label = str(row.get("conviction_label") or "").strip()
+            conv_label = raw_label if raw_label in _CONV_COLORS else (
+                "alta" if conf_val >= 0.35 else "media" if conf_val >= 0.20 else "baja"
+            )
+            conv_color = _CONV_COLORS[conv_label]
             conf_html = (
                 f'<span style="color:{conv_color};font-size:10px;font-weight:600;margin-right:3px">{conv_label}</span>'
                 f"{html.escape(fmt_pct(conf_val * 100.0))}"

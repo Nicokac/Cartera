@@ -299,6 +299,7 @@ def build_prediction_bundle(
                 "ticker": ticker,
                 "direction": prediction["direction"],
                 "confidence": prediction["confidence"],
+                "conviction_label": prediction.get("conviction_label", "baja"),
                 "consensus_raw": prediction["consensus_raw"],
                 "agreement_ratio": prediction.get("agreement_ratio"),
                 "net_strength": prediction.get("net_strength"),
