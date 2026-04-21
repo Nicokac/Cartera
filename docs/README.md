@@ -47,3 +47,7 @@ Indice de la documentacion activa del proyecto.
 ## Historico
 
 `docs/archive/` guarda roadmaps absorbidos, auditorias cerradas y notas historicas. No es punto de entrada operativo y no debe tomarse como estado actual salvo que se lo consulte por trazabilidad.
+
+Referencia util reciente:
+
+- [audit-2026-04-20-f1081af.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\audit-2026-04-20-f1081af.md)

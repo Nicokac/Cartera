@@ -40,7 +40,13 @@ def bootstrap(*, overwrite: bool = False, dry_run: bool = False) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Bootstrap local JSON config from example files.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Bootstrap local JSON config from data/examples. "
+            "This script only copies files that have a .json.example pair; "
+            "it is not intended to mirror every versioned mapping in data/mappings."
+        )
+    )
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing target JSON files.")
     parser.add_argument("--dry-run", action="store_true", help="Show planned copies without writing files.")
     args = parser.parse_args()

@@ -36,6 +36,9 @@ python -m unittest tests.test_generate_real_report -v
 
 - workflow: `.github/workflows/ci.yml`
 - bootstrap automatico de configuracion de ejemplo antes de correr tests
+- ese bootstrap no intenta reconstruir todos los mappings versionados:
+  - solo completa archivos con `.json.example`
+  - principalmente `data/strategy/*.json` y contratos opcionales de soporte
 - suites incluidas:
   - `tests.test_bond_analytics`
   - `tests.test_bonistas_client`

@@ -12,10 +12,16 @@ __pycache__/
 *.xls
 *.json
 *.log
-!data/mappings/prediction_weights.json
+
+# Canonical mappings used by src/config.py are versioned.
 !data/mappings/argentina_equity_map.json
-!data/mappings/instrument_profile_map.json
+!data/mappings/block_map.json
 !data/mappings/bond_local_subfamily_rules.json
+!data/mappings/finviz_map.json
+!data/mappings/instrument_profile_map.json
+!data/mappings/prediction_weights.json
+!data/mappings/ratios.json
+!data/mappings/vn_factor_map.json
 
 #Notebooks
 *.ipynb

@@ -68,13 +68,29 @@ pip install .[byma]
 
 ## Clone limpio
 
-Los JSON reales de `data/mappings/` y `data/strategy/` no se versionan. Para bootstrap minimo:
+El repo mezcla dos politicas de configuracion:
+
+- algunos mappings canonicos de `data/mappings/` si se versionan
+- los JSON de `data/strategy/` y los ejemplos de soporte siguen entrando por bootstrap
+
+Politica vigente:
+
+- `data/examples/` no busca espejar `data/mappings/` de forma 1:1
+- `data/examples/` existe para bootstrap y para documentar el contrato minimo de archivos no versionados o personalizables
+- si un mapping canonico ya vive versionado en git, no necesita tener `.json.example` por simetria
+
+Para bootstrap minimo en un clone limpio:
 
 ```powershell
 python scripts\bootstrap_example_config.py
 ```
 
 Eso copia los `.json.example` de `data/examples/` a sus rutas reales si todavia no existen.
+
+En la practica hoy se usa para crear:
+
+- `data/strategy/*.json`
+- cualquier mapping opcional que no venga ya versionado en el repo
 
 Mas detalle:
 
