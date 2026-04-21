@@ -769,10 +769,18 @@ def build_technical_overlay_scores(
         "Vol_20d_Anual_%",
         "Drawdown_desde_Max3m_%",
     ]
+    prediction_passthrough_cols = [
+        "ADX_14",
+        "DI_plus_14",
+        "DI_minus_14",
+        "Relative_Volume",
+        "Return_1d_%",
+    ]
     merge_cols = [
         "Ticker_IOL",
         *metric_cols,
         "Tech_Trend",
+        *prediction_passthrough_cols,
     ]
     available_cols = [col for col in merge_cols if col in technical_overlay.columns]
     available_metric_cols = [col for col in metric_cols if col in technical_overlay.columns]

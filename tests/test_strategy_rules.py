@@ -273,6 +273,40 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertGreater(blended.loc[0, "tech_refuerzo"], 0.5)
         self.assertGreater(blended.loc[0, "score_refuerzo_v2"], blended.loc[0, "score_refuerzo"])
 
+    def test_technical_overlay_passes_prediction_columns_through_to_decision(self) -> None:
+        decision = pd.DataFrame(
+            [{"Ticker_IOL": "AAPL", "score_refuerzo": 0.40, "score_reduccion": 0.30}]
+        )
+        technical_overlay = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Dist_SMA20_%": 3.0,
+                    "Dist_SMA50_%": 5.0,
+                    "Dist_SMA200_%": 8.0,
+                    "Dist_EMA20_%": 2.0,
+                    "Dist_EMA50_%": 4.0,
+                    "RSI_14": 45.0,
+                    "Momentum_20d_%": 3.0,
+                    "Momentum_60d_%": 6.0,
+                    "Vol_20d_Anual_%": 20.0,
+                    "Drawdown_desde_Max3m_%": -2.0,
+                    "Tech_Trend": "Alcista",
+                    "ADX_14": 24.0,
+                    "DI_plus_14": 28.0,
+                    "DI_minus_14": 16.0,
+                    "Relative_Volume": 1.8,
+                    "Return_1d_%": 0.9,
+                }
+            ]
+        )
+
+        out = build_technical_overlay_scores(decision, technical_overlay)
+
+        for col in ["ADX_14", "DI_plus_14", "DI_minus_14", "Relative_Volume", "Return_1d_%"]:
+            self.assertIn(col, out.columns, f"{col} should be passed through to the merged output")
+            self.assertAlmostEqual(float(out.loc[0, col]), float(technical_overlay.loc[0, col]), places=6)
+
     def test_build_decision_base_treats_zero_mep_as_missing_for_premium(self) -> None:
         df_total = pd.DataFrame(
             [
