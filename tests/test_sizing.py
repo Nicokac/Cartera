@@ -135,8 +135,9 @@ class SizingTests(unittest.TestCase):
                 },
                 {
                     "Ticker_IOL": "IOLPORA",
-                    "Descripcion": "Liquidez adicional",
-                    "Tipo": "Liquidez",
+                    "Descripcion": "FCI IOL Portfolio Potenciado",
+                    "Tipo": "FCI",
+                    "Es_Liquidez": True,
                     "accion_sugerida_v2": "Mantener / Neutral",
                     "score_unificado": 0.0,
                     "score_despliegue_liquidez": 0.8,

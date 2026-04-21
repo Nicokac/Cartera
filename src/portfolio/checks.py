@@ -26,9 +26,12 @@ def build_integrity_report(
     ]
     validate_required_columns(df_total, required_columns, df_name="df_total")
 
-    faltan_precios = df_total[
-        (~df_total["Tipo"].eq("Liquidez")) & (df_total["Precio_ARS"].isna())
-    ]["Ticker_IOL"].dropna().astype(str).tolist()
+    es_liquidez = (
+        df_total["Es_Liquidez"].fillna(False)
+        if "Es_Liquidez" in df_total.columns
+        else df_total["Tipo"].isin(["Liquidez", "FCI"])
+    )
+    faltan_precios = df_total[(~es_liquidez) & (df_total["Precio_ARS"].isna())]["Ticker_IOL"].dropna().astype(str).tolist()
 
     faltan_valores_usd = (
         df_total[df_total["Valor_USD"].isna()]["Ticker_IOL"].dropna().astype(str).tolist()

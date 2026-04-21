@@ -7,6 +7,8 @@ import pandas as pd
 
 from common.numeric import positive_float_or_none
 
+FCI_REPORTED_AS_FUND = {"IOLPORA"}
+
 
 def normalize_account_currency(moneda: Any) -> str:
     m = str(moneda or "").strip().upper()
@@ -119,25 +121,32 @@ def rebuild_liquidity(
         if "CAUCION" in tipo_norm or "CAUCION" in simbolo.upper():
             caucion_ars += valorizado
             liquidez_rows.append(
-                ("CAUCION", descripcion or "Caución", "Liquidez", "ARS", valorizado, ganancia_dinero)
+                ("CAUCION", descripcion or "Caucion", "Liquidez", "Liquidez", "ARS", valorizado, ganancia_dinero, True)
             )
             continue
 
         if simbolo.upper() in fci_cash_management or "FONDOCOMUNDEINVERSION" in tipo_norm or "FCI" in tipo_norm:
+            simbolo_upper = simbolo.upper()
+            report_as_fci = simbolo_upper in FCI_REPORTED_AS_FUND
+            row_type = "FCI" if report_as_fci else "Liquidez"
+            row_block = "FCI" if report_as_fci else "Liquidez"
+            is_liquidity = simbolo_upper in fci_cash_management or row_type == "Liquidez"
             valorizado_ars = valorizado * mep_value if moneda == "USD" and mep_value is not None else valorizado
             ganancia_ars = ganancia_dinero * mep_value if moneda == "USD" and mep_value is not None else ganancia_dinero
 
-            if simbolo.upper() in fci_cash_management:
+            if simbolo_upper in fci_cash_management:
                 fci_cash_management_ars += valorizado_ars
 
             liquidez_rows.append(
                 (
                     simbolo,
                     descripcion,
-                    "Liquidez",
+                    row_block,
+                    row_type,
                     moneda,
                     valorizado if moneda == "USD" else valorizado_ars,
                     ganancia_dinero if moneda == "USD" else ganancia_ars,
+                    is_liquidity,
                 )
             )
 
@@ -160,12 +169,12 @@ def rebuild_liquidity(
         cash_pending_ars = 0.0
 
     if cash_immediate_ars > 0:
-        liquidez_rows.append(("CASH_ARS", "Cash disponible broker ARS", "Liquidez", "ARS", cash_immediate_ars, 0.0))
+        liquidez_rows.append(("CASH_ARS", "Cash disponible broker ARS", "Liquidez", "Liquidez", "ARS", cash_immediate_ars, 0.0, True))
     if cash_immediate_usd > 0:
-        liquidez_rows.append(("CASH_USD", "Cash disponible broker USD", "Liquidez", "USD", cash_immediate_usd, 0.0))
+        liquidez_rows.append(("CASH_USD", "Cash disponible broker USD", "Liquidez", "Liquidez", "USD", cash_immediate_usd, 0.0, True))
 
     registros_liquidez = []
-    for ticker, descripcion, bloque, moneda, valorizado_raw, ganancia_raw in liquidez_rows:
+    for ticker, descripcion, bloque, tipo, moneda, valorizado_raw, ganancia_raw, es_liquidez in liquidez_rows:
         if moneda == "USD":
             valorizado_ars = valorizado_raw * mep_value if mep_value is not None else np.nan
             ganancia_ars = ganancia_raw * mep_value if mep_value is not None else np.nan
@@ -180,7 +189,8 @@ def rebuild_liquidity(
                 "Ticker_IOL": ticker,
                 "Descripcion": descripcion,
                 "Bloque": bloque,
-                "Tipo": "Liquidez",
+                "Tipo": tipo,
+                "Es_Liquidez": bool(es_liquidez),
                 "Moneda": moneda,
                 "Valorizado_ARS": valorizado_ars,
                 "Valor_USD": valor_usd,
@@ -196,7 +206,7 @@ def rebuild_liquidity(
     if not df_liquidez.empty:
         df_liquidez = (
             df_liquidez.groupby(
-                ["Ticker_IOL", "Descripcion", "Bloque", "Tipo", "Moneda"], as_index=False
+                ["Ticker_IOL", "Descripcion", "Bloque", "Tipo", "Es_Liquidez", "Moneda"], as_index=False
             ).agg(
                 {
                     "Valorizado_ARS": lambda values: values.sum(min_count=1),
@@ -235,3 +245,4 @@ def rebuild_liquidity(
     }
 
     return df_liquidez, liquidity_contract, liquidez_rows
+

@@ -257,11 +257,12 @@ def _bucket_prudencia(
     agresivo_peso_min = float(bucket_weight_thresholds.get("agresivo_min_pct", 5.0))
 
     tipo = str(row.get("Tipo") or "").strip()
+    es_liquidez = bool(row.get("Es_Liquidez", False))
     beta = row.get("Beta")
     peso_pct = pd.to_numeric(row.get("Peso_%"), errors="coerce")
     tipo_default = bucket_type_defaults.get(tipo)
     if tipo_default in {"Defensivo", "Intermedio", "Agresivo"}:
-        if tipo in {"Liquidez", "Bono"}:
+        if es_liquidez or tipo == "Bono":
             return str(tipo_default)
     if pd.notna(beta) and beta <= defensivo_max:
         return "Defensivo"
@@ -328,7 +329,10 @@ def build_operational_proposal(
     propuesta = final_decision.copy()
     propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
 
-    mask_liq = propuesta["Tipo"] == "Liquidez"
+    if "Es_Liquidez" in propuesta.columns:
+        mask_liq = propuesta["Es_Liquidez"].fillna(propuesta["Tipo"].isin(["Liquidez", "FCI"]))
+    else:
+        mask_liq = propuesta["Tipo"].isin(["Liquidez", "FCI"])
     if usar_liquidez_iol:
         propuesta.loc[mask_liq, "accion_operativa"] = np.where(
             propuesta.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,
@@ -372,7 +376,7 @@ def build_operational_proposal(
     ] = ACTION_MANTENER_MONITOREAR
 
     propuesta["comentario_operativo"] = propuesta.apply(_comentario_operativo, axis=1)
-    mask_market_assets = ~propuesta["Tipo"].isin(["Bono", "Liquidez"])
+    mask_market_assets = ~(mask_bonos | mask_liq)
     if "motivo_accion" in propuesta.columns:
         propuesta.loc[
             mask_market_assets & propuesta["motivo_accion"].notna(),
@@ -630,3 +634,4 @@ def build_dynamic_allocation(
 
     asignacion_final["Comentario_Asignacion"] = asignacion_final.apply(comentario_final, axis=1)
     return asignacion_final.sort_values("Monto_ARS", ascending=False)
+
