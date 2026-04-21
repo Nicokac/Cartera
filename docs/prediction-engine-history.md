@@ -39,6 +39,66 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 5 - Calibracion | completada | 2026-04-19 |
 | Fase 6 - Integracion y reporte | completada | 2026-04-19 |
 | Fase 6.1 - Ajuste de escala de score | completada | 2026-04-19 |
+| Fase 6.2 - Hardening interno del consenso | en curso | 2026-04-20 |
+| Fase 6.3 - Calibracion rolling | planificada | 2026-04-20 |
+| Fase 7 - Expansion de senales | planificada | 2026-04-20 |
+
+## 2026-04-20 - Fase 6.2 - apertura e implementacion parcial
+
+- commit: pendiente
+- alcance:
+  - se abre formalmente la Fase 6.2
+  - se implementan los dos primeros subpasos:
+    - seguridad en calibracion
+    - separacion entre intensidad neta y acuerdo
+- decisiones:
+  - una senal con `IC <= 0` ya no conserva peso minimo
+  - la regla pasa a ser `IC <= 0 -> weight = 0`
+  - el predictor ya debe ignorar senales apagadas por peso cero
+  - `consensus_raw` se conserva como intensidad neta firmada
+  - se agregan `net_strength` y `agreement_ratio`
+  - `confidence` pasa a ser una metrica derivada de intensidad neta ajustada por acuerdo
+- archivos:
+  - `src/prediction/calibration.py`
+  - `src/prediction/predictor.py`
+  - `src/pipeline.py`
+  - `tests/test_prediction_calibration.py`
+  - `tests/test_prediction_predictor.py`
+  - `docs/prediction-engine-roadmap.md`
+  - `docs/prediction-engine-history.md`
+- tests:
+  - senal con `IC` negativo se apaga
+  - predictor ignora senales con peso `0`
+  - predictor diferencia intensidad neta de acuerdo entre senales
+- deuda / notas:
+  - sigue pendiente decidir si la confianza futura debe incorporar tambien participacion total
+  - sigue pendiente introducir votos continuos si se valida el cambio
+
+## 2026-04-20 - Plan tecnico post auditoria - documentado
+
+- commit: pendiente
+- alcance:
+  - se documenta el estado real del predictor y la calibracion
+  - se explicitan limitaciones conocidas y orden recomendado de mejora
+- decisiones:
+  - el motor vigente se describe formalmente como consenso ponderado de votos ternarios
+  - `confidence` se interpreta hoy como intensidad neta, no como acuerdo pleno entre senales
+  - la prioridad tecnica siguiente pasa a ser:
+    1. hardening interno del consenso
+    2. calibracion rolling
+    3. expansion de senales
+  - se descarta por ahora agregar senales nuevas antes de endurecer las actuales
+- archivos:
+  - `docs/prediction-engine-roadmap.md`
+  - `docs/prediction-engine-history.md`
+  - `docs/improvement-roadmap.md`
+- tests:
+  - no aplica, cambio documental
+- deuda / notas:
+  - cuando arranque Fase 6.2, conviene abrirla con tests primero sobre:
+    - `IC <= 0`
+    - metrica de dispersion
+    - votos continuos con clipping
 
 ## 2026-04-19 - Documentacion operativa del ciclo - completada
 

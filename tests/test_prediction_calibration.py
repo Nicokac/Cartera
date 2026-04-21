@@ -86,7 +86,29 @@ class PredictionCalibrationTests(unittest.TestCase):
         self.assertEqual(rsi_row["status"], "recalibrated")
         self.assertEqual(momentum_row["status"], "recalibrated")
         self.assertAlmostEqual(float(updated["signals"]["rsi"]["weight"]), 1.0, places=6)
-        self.assertAlmostEqual(float(updated["signals"]["momentum_20d"]["weight"]), 0.1, places=6)
+        self.assertAlmostEqual(float(updated["signals"]["momentum_20d"]["weight"]), 0.0, places=6)
+
+    def test_calibrate_prediction_weights_turns_negative_ic_signal_off(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["min_samples"] = 4
+        custom_weights["calibration"]["min_weight"] = 0.1
+        custom_weights["calibration"]["max_weight"] = 1.0
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "AAPL", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "MSFT", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "KO", "run_date": "2026-04-22", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "V", "run_date": "2026-04-23", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        rsi_row = summary.loc[summary["signal"] == "rsi"].iloc[0]
+
+        self.assertEqual(rsi_row["status"], "recalibrated")
+        self.assertAlmostEqual(float(rsi_row["ic"]), -1.0, places=6)
+        self.assertAlmostEqual(float(updated["signals"]["rsi"]["weight"]), 0.0, places=6)
 
     def test_calibrate_prediction_weights_preserves_weight_when_samples_are_insufficient(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))

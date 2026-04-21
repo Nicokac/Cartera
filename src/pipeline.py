@@ -243,6 +243,8 @@ def build_prediction_bundle(
                 "direction",
                 "confidence",
                 "consensus_raw",
+                "agreement_ratio",
+                "net_strength",
                 "signal_votes",
                 "horizon_days",
                 "outcome_date",
@@ -265,7 +267,8 @@ def build_prediction_bundle(
                 "down": 0,
                 "neutral": 0,
                 "mean_confidence": 0.0,
-            },
+                "mean_agreement_ratio": 0.0,
+                },
             "config": {
                 "horizon_days": horizon_days,
                 "direction_threshold": direction_threshold,
@@ -297,6 +300,8 @@ def build_prediction_bundle(
                 "direction": prediction["direction"],
                 "confidence": prediction["confidence"],
                 "consensus_raw": prediction["consensus_raw"],
+                "agreement_ratio": prediction.get("agreement_ratio"),
+                "net_strength": prediction.get("net_strength"),
                 "signal_votes": prediction["votes"],
                 "horizon_days": horizon_days,
                 "outcome_date": resolve_prediction_outcome_date(run_date, horizon_days=horizon_days),
@@ -325,6 +330,11 @@ def build_prediction_bundle(
         if not predictions.empty
         else 0.0
     )
+    mean_agreement_ratio = (
+        float(pd.to_numeric(predictions.get("agreement_ratio"), errors="coerce").fillna(0.0).mean())
+        if not predictions.empty
+        else 0.0
+    )
     return {
         "predictions": predictions,
         "history_observation": history_observation,
@@ -334,6 +344,7 @@ def build_prediction_bundle(
             "down": int(direction_counts.get("down", 0)),
             "neutral": int(direction_counts.get("neutral", 0)),
             "mean_confidence": round(mean_confidence, 6),
+            "mean_agreement_ratio": round(mean_agreement_ratio, 6),
         },
         "config": {
             "horizon_days": horizon_days,

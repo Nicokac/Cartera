@@ -80,6 +80,15 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
   - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
   - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
 - evitar dependencias nuevas o LLM externos mientras siga en etapa experimental
+- siguiente secuencia tecnica recomendada:
+  - Fase 6.2:
+    - apagar senales con `IC <= 0`
+    - separar intensidad neta de dispersion en la metrica de confianza
+    - evaluar votos continuos en lugar de ternarios donde aplique
+  - Fase 6.3:
+    - agregar calibracion rolling con fallback a historico completo
+  - Fase 7:
+    - recien despues sumar `ADX` y `relative_volume`
 
 ## Frentes ya absorbidos
 

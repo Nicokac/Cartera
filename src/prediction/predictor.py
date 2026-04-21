@@ -169,6 +169,7 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
 
     weighted_sum = 0.0
     total_weight = 0.0
+    active_weight = 0.0
     votes: dict[str, int] = {}
 
     for signal_name, signal_config in signals.items():
@@ -179,9 +180,13 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
         votes[signal_name] = vote
         weighted_sum += weight * vote
         total_weight += weight
+        if vote != 0:
+            active_weight += weight
 
     consensus_raw = 0.0 if total_weight <= 0 else weighted_sum / total_weight
-    confidence = abs(consensus_raw)
+    net_strength = abs(consensus_raw)
+    agreement_ratio = 0.0 if active_weight <= 0 else abs(weighted_sum) / active_weight
+    confidence = net_strength * agreement_ratio
 
     if consensus_raw > direction_threshold:
         direction = "up"
@@ -194,5 +199,7 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
         "direction": direction,
         "confidence": round(confidence, 6),
         "consensus_raw": round(consensus_raw, 6),
+        "agreement_ratio": round(agreement_ratio, 6),
+        "net_strength": round(net_strength, 6),
         "votes": votes,
     }

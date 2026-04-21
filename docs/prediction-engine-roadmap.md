@@ -13,6 +13,42 @@ Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion 
 - dependencias nuevas: `ninguna`
 - acoplamiento permitido: solo por integracion con `pipeline.py`, `market_data` y el renderer cuando la fase de exposicion llegue
 
+## Motor vigente
+
+El predictor actual es un `weighted signal consensus` sobre `6` senales.
+
+Formula vigente:
+
+```python
+consensus_raw = sum(vote * weight) / sum(weight)
+direction = "up" if consensus_raw > direction_threshold else "down" if consensus_raw < -direction_threshold else "neutral"
+net_strength = abs(consensus_raw)
+agreement_ratio = abs(weighted_sum) / active_weight
+confidence = net_strength * agreement_ratio
+```
+
+Propiedades vigentes:
+
+- cada senal vota `+1`, `0` o `-1`
+- los pesos viven en `data/mappings/prediction_weights.json`
+- la calibracion usa `IC` historico contra `outcome_numeric`
+- la banda neutral del verificador sale de `neutral_return_band`
+- el predictor expone:
+  - `consensus_raw`
+  - `net_strength`
+  - `agreement_ratio`
+  - `confidence`
+
+Interpretacion correcta del estado actual:
+
+- `consensus_raw` mantiene la intensidad neta firmada del consenso
+- `net_strength` expone esa intensidad en valor absoluto
+- `agreement_ratio` mide acuerdo entre senales activas, no participacion total
+- `confidence` ya no es sinonimo de `abs(consensus_raw)`:
+  - ahora penaliza desacuerdo entre senales activas
+- los votos siguen siendo discretos; todavia no capturan magnitud interna de cada senal
+- el esquema sigue siendo experimental y observacional
+
 ## Principio de diseno
 
 El objetivo no es reemplazar el motor de decision actual sino agregar una capa experimental, auditable y desacoplada de prediccion direccional.
@@ -31,6 +67,28 @@ Cada senal vota `+1`, `-1` o `0`. El consenso agregado define:
 - `direction`: `up`, `down` o `neutral`
 - `confidence`: magnitud del consenso
 - `votes`: detalle por senal
+
+## Limitaciones auditables del estado actual
+
+Estas limitaciones ya existen en el codigo actual y deben considerarse deuda conocida, no comportamiento implicito:
+
+1. votos ternarios:
+   - se pierde magnitud de la senal
+   - casos apenas arriba del umbral y casos extremos votan igual
+2. `IC <= 0`:
+   - hoy la calibracion manda la senal a `min_weight`
+   - eso evita apagarla por completo, pero deja una contribucion positiva minima aun cuando la relacion historica haya sido adversa
+3. `confidence`:
+   - ya incorpora acuerdo entre senales activas
+   - todavia no incorpora participacion total o cobertura efectiva sobre el universo de senales
+4. calibracion historica completa:
+   - el `IC` no usa ventana rolling
+   - puede reaccionar lento frente a drift de regimen
+5. `neutral_return_band` global:
+   - la misma banda se aplica a activos con perfiles de volatilidad muy distintos
+6. cobertura de senales:
+   - faltan senales de fuerza de tendencia y volumen relativo
+   - las senales actuales no capturan toda la informacion tecnica disponible
 
 ## Objetivos no funcionales
 
@@ -431,6 +489,117 @@ Corregir el sesgo bajista estructural introducido por usar umbrales incompatible
 - nombres con score positivo moderado ya no votan bajista por defecto
 - el predictor conserva neutralidad cerca de cero
 - quedan tests de guardia para los tres casos: positivo, negativo y neutro
+
+### Fase 6.2. Hardening interno del consenso
+
+**Estado:** `en curso`
+
+**Objetivo**
+
+Mejorar el motor actual sin cambiar la arquitectura base ni requerir columnas nuevas en el pipeline.
+
+**Alcance tecnico esperado**
+
+- apagar senales con `IC <= 0` en lugar de llevarlas obligatoriamente a `min_weight`
+- separar `confidence` de `consensus_raw`
+- agregar una metrica de dispersion o acuerdo entre senales
+- evaluar votos continuos en rango acotado `[-1, 1]` para senales donde hoy el voto es ternario por umbral
+
+**Secuencia recomendada**
+
+1. cambio de seguridad:
+   - `IC <= 0 -> weight = 0`
+2. cambio semantico:
+   - renombrar o redefinir `confidence` para que no prometa mas de lo que mide
+3. cambio de expresividad:
+   - migrar gradualmente de votos ternarios a continuos donde sea defendible
+
+**Estado actual de ejecucion**
+
+- subpaso 1 abierto:
+  - cerrado:
+    - la calibracion deja de mandar `IC <= 0` a `min_weight`
+    - la nueva regla vigente pasa a ser `IC <= 0 -> weight = 0`
+- subpaso 2 abierto:
+  - `confidence` deja de ser solo `abs(consensus_raw)`
+  - se agrega `agreement_ratio` y `net_strength`
+  - `confidence` pasa a ser intensidad neta ajustada por acuerdo
+- subpaso 3 sigue pendiente:
+  - votos continuos
+
+**Criterio de salida**
+
+- sin romper store, verifier ni renderer
+- tests unitarios nuevos para:
+  - `IC` negativo
+  - ausencia de contribucion cuando el peso se apaga
+  - diferencia entre intensidad neta y dispersion
+  - clipping y neutralidad en votos continuos
+
+### Fase 6.3. Calibracion rolling
+
+**Estado:** `planificada`
+
+**Objetivo**
+
+Hacer que la calibracion responda mejor a drift de utilidad sin abandonar el fallback historico.
+
+**Alcance tecnico esperado**
+
+- agregar ventana rolling configurable en `calibration`
+- usar muestra reciente cuando cumpla minimo estadistico
+- caer al historico completo cuando la ventana reciente no alcance
+
+**Configuracion candidata**
+
+- `calibration.lookback_samples`
+- `calibration.min_recent_samples`
+- `calibration.fallback_to_full_history`
+
+**Criterio de salida**
+
+- el comportamiento queda documentado y deterministico
+- la muestra reciente no introduce ruido excesivo por falta de datos
+
+### Fase 7. Expansion de senales
+
+**Estado:** `planificada`
+
+**Objetivo**
+
+Sumar informacion nueva solo despues de endurecer el uso de las senales actuales.
+
+**Senales candidatas prioritarias**
+
+- `ADX`:
+  - fuerza de tendencia
+- `relative_volume`:
+  - volumen actual vs media de `20d`
+
+**Dependencias**
+
+- nuevas columnas en el pipeline tecnico
+- tests de integracion y de predictor
+- actualizacion de `prediction_weights.json`
+
+**Criterio de entrada**
+
+- Fase 6.2 cerrada
+- Fase 6.3 al menos implementada o descartada explicitamente
+
+## Recomendacion tecnica vigente
+
+Orden recomendado de mejora:
+
+1. Fase 6.2
+2. Fase 6.3
+3. Fase 7
+
+Razon:
+
+- primero conviene mejorar como el motor usa las senales existentes
+- despues conviene hacer la calibracion mas reactiva
+- recien entonces agregar nuevas features al pipeline
 
 ## Riesgos principales
 

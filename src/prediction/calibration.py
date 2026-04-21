@@ -121,8 +121,11 @@ def calibrate_prediction_weights(
             new_weight = previous_weight
             status = "insufficient_samples"
         else:
-            bounded_ic = max(min_weight, float(ic)) if float(ic) > 0 else min_weight
-            new_weight = max(min_weight, min(max_weight, bounded_ic))
+            if float(ic) <= 0:
+                new_weight = 0.0
+            else:
+                bounded_ic = max(min_weight, float(ic))
+                new_weight = max(min_weight, min(max_weight, bounded_ic))
             status = "recalibrated"
 
         signal_cfg["weight"] = round(float(new_weight), 6)

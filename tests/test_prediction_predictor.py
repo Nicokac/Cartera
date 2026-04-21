@@ -53,6 +53,8 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(result["direction"], "up")
         self.assertGreater(result["confidence"], 0.15)
         self.assertGreater(result["consensus_raw"], 0.15)
+        self.assertGreater(result["agreement_ratio"], 0.0)
+        self.assertGreater(result["net_strength"], 0.15)
         self.assertEqual(result["votes"]["rsi"], 1)
         self.assertEqual(result["votes"]["market_regime"], 1)
 
@@ -98,6 +100,64 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(result["votes"], {"rsi": 1, "momentum_20d": -1})
         self.assertAlmostEqual(result["consensus_raw"], 0.0, places=6)
         self.assertAlmostEqual(result["confidence"], 0.0, places=6)
+        self.assertAlmostEqual(result["agreement_ratio"], 0.0, places=6)
+        self.assertAlmostEqual(result["net_strength"], 0.0, places=6)
+
+    def test_predict_ignores_signals_with_zero_weight(self) -> None:
+        custom_weights = {
+            "direction_threshold": 0.15,
+            "signals": {
+                "rsi": {
+                    "weight": 0.0,
+                    "vote_rules": {"oversold_threshold": 35, "overbought_threshold": 65},
+                },
+                "momentum_20d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+                },
+            },
+        }
+        row = {
+            "RSI_14": 20.0,
+            "Momentum_20d_%": 4.0,
+        }
+
+        result = predict(row, custom_weights)
+
+        self.assertEqual(result["direction"], "up")
+        self.assertEqual(result["votes"], {"momentum_20d": 1})
+        self.assertAlmostEqual(result["consensus_raw"], 1.0, places=6)
+
+    def test_predict_confidence_is_discounted_by_signal_disagreement(self) -> None:
+        custom_weights = {
+            "direction_threshold": 0.15,
+            "signals": {
+                "rsi": {
+                    "weight": 1.0,
+                    "vote_rules": {"oversold_threshold": 35, "overbought_threshold": 65},
+                },
+                "momentum_20d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+                },
+                "momentum_60d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 5.0, "negative_threshold": -5.0},
+                },
+            },
+        }
+        row = {
+            "RSI_14": 30.0,
+            "Momentum_20d_%": 4.0,
+            "Momentum_60d_%": -7.0,
+        }
+
+        result = predict(row, custom_weights)
+
+        self.assertAlmostEqual(result["consensus_raw"], 0.333333, places=6)
+        self.assertAlmostEqual(result["net_strength"], 0.333333, places=6)
+        self.assertAlmostEqual(result["agreement_ratio"], 0.333333, places=6)
+        self.assertAlmostEqual(result["confidence"], 0.111111, places=6)
 
     def test_predict_handles_missing_values_as_neutral_votes(self) -> None:
         row = {
