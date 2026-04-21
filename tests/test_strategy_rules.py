@@ -297,13 +297,14 @@ class StrategyRulesTests(unittest.TestCase):
                     "DI_minus_14": 16.0,
                     "Relative_Volume": 1.8,
                     "Return_1d_%": 0.9,
+                    "Return_intraday_%": 0.5,
                 }
             ]
         )
 
         out = build_technical_overlay_scores(decision, technical_overlay)
 
-        for col in ["ADX_14", "DI_plus_14", "DI_minus_14", "Relative_Volume", "Return_1d_%"]:
+        for col in ["ADX_14", "DI_plus_14", "DI_minus_14", "Relative_Volume", "Return_1d_%", "Return_intraday_%"]:
             self.assertIn(col, out.columns, f"{col} should be passed through to the merged output")
             self.assertAlmostEqual(float(out.loc[0, col]), float(technical_overlay.loc[0, col]), places=6)
 

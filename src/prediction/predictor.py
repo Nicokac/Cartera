@@ -193,15 +193,15 @@ def _vote_adx(row: dict[str, Any], rules: dict[str, Any]) -> int:
 
 def _vote_relative_volume(row: dict[str, Any], rules: dict[str, Any]) -> int:
     rel_vol = _as_float(row.get("Relative_Volume"))
-    return_1d = _as_float(row.get("Return_1d_%"))
-    if rel_vol is None or return_1d is None:
+    return_intraday = _as_float(row.get("Return_intraday_%"))
+    if rel_vol is None or return_intraday is None:
         return 0
     high_threshold = float(rules.get("high_threshold", 1.5))
     if rel_vol < high_threshold:
         return 0
-    if return_1d > 0:
+    if return_intraday > 0:
         return 1
-    if return_1d < 0:
+    if return_intraday < 0:
         return -1
     return 0
 
@@ -279,6 +279,7 @@ def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, 
 def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
     signals = weights.get("signals", {}) or {}
     direction_threshold = float(weights.get("direction_threshold", 0.15))
+    active_vote_threshold = float(weights.get("active_vote_threshold", 0.0) or 0.0)
 
     weighted_sum = 0.0
     total_weight = 0.0
@@ -293,7 +294,7 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
         votes[signal_name] = vote
         weighted_sum += weight * vote
         total_weight += weight
-        if abs(vote) > 0:
+        if abs(vote) >= active_vote_threshold and abs(vote) > 0:
             active_weight += weight
 
     consensus_raw = 0.0 if total_weight <= 0 else weighted_sum / total_weight

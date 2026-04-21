@@ -25,8 +25,9 @@ class TechnicalOverlayTests(unittest.TestCase):
         close = pd.Series(np.linspace(100, 140, n))
         high = close * 1.01
         low = close * 0.99
+        open_ = close * 0.995
         volume = pd.Series(np.linspace(1_000_000, 2_000_000, n))
-        hist = pd.DataFrame({"Close": close, "High": high, "Low": low, "Volume": volume})
+        hist = pd.DataFrame({"Close": close, "High": high, "Low": low, "Open": open_, "Volume": volume})
 
         with patch("analytics.technical.fetch_price_history", return_value=hist):
             out = build_technical_overlay(df_cedears)
@@ -36,7 +37,7 @@ class TechnicalOverlayTests(unittest.TestCase):
         for col in ["SMA_200", "Dist_SMA200_%", "High_52w", "Low_52w", "Dist_52w_High_%", "Dist_52w_Low_%", "Avg_Volume_20d"]:
             self.assertIn(col, out.columns)
             self.assertTrue(pd.notna(row[col]), f"{col} should be non-null")
-        for col in ["ADX_14", "DI_plus_14", "DI_minus_14", "Relative_Volume", "Return_1d_%"]:
+        for col in ["ADX_14", "DI_plus_14", "DI_minus_14", "Relative_Volume", "Return_1d_%", "Return_intraday_%"]:
             self.assertIn(col, out.columns)
             self.assertTrue(pd.notna(row[col]), f"{col} should be non-null with valid OHLCV data")
 

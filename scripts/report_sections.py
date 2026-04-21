@@ -31,6 +31,8 @@ _VOTE_KEYS = [
     ("sma_trend", "SMA"),
     ("score_unificado", "Sc"),
     ("market_regime", "Rg"),
+    ("adx", "ADX"),
+    ("relative_volume", "rVol"),
 ]
 
 

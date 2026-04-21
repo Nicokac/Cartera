@@ -775,6 +775,7 @@ def build_technical_overlay_scores(
         "DI_minus_14",
         "Relative_Volume",
         "Return_1d_%",
+        "Return_intraday_%",
     ]
     merge_cols = [
         "Ticker_IOL",

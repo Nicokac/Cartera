@@ -110,6 +110,8 @@ def build_technical_overlay(
             volume_last = float(volume.iloc[-1]) if not volume.empty else np.nan
             relative_volume = float(volume_last / avg_volume_20d) if pd.notna(avg_volume_20d) and avg_volume_20d > 0 and pd.notna(volume_last) else np.nan
             return_1d = float((close.iloc[-1] / close.iloc[-2] - 1) * 100) if len(close) >= 2 else np.nan
+            open_s = pd.to_numeric(hist["Open"], errors="coerce") if "Open" in hist.columns else pd.Series(dtype=float)
+            return_intraday = float((close.iloc[-1] / open_s.iloc[-1] - 1) * 100) if not open_s.empty and pd.notna(open_s.iloc[-1]) and open_s.iloc[-1] != 0 else np.nan
 
             has_hl = "High" in hist.columns and "Low" in hist.columns
             if has_hl and len(close) >= 28:
@@ -167,6 +169,7 @@ def build_technical_overlay(
                     "Avg_Volume_20d": avg_volume_20d,
                     "Relative_Volume": relative_volume,
                     "Return_1d_%": return_1d,
+                    "Return_intraday_%": return_intraday,
                     "ADX_14": adx14,
                     "DI_plus_14": di_plus14,
                     "DI_minus_14": di_minus14,

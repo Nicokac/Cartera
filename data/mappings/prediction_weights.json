@@ -1,6 +1,7 @@
 {
   "horizon_days": 5,
   "direction_threshold": 0.15,
+  "active_vote_threshold": 0.1,
   "neutral_return_band": 0.01,
   "calibration": {
     "min_samples": 30,
@@ -21,16 +22,22 @@
     },
     "momentum_20d": {
       "weight": 0.6,
+      "vote_mode": "continuous",
       "vote_rules": {
         "positive_threshold": 2.0,
-        "negative_threshold": -2.0
+        "negative_threshold": -2.0,
+        "positive_saturation": 8.0,
+        "negative_saturation": 8.0
       }
     },
     "momentum_60d": {
       "weight": 0.5,
+      "vote_mode": "continuous",
       "vote_rules": {
         "positive_threshold": 5.0,
-        "negative_threshold": -5.0
+        "negative_threshold": -5.0,
+        "positive_saturation": 15.0,
+        "negative_saturation": 15.0
       }
     },
     "sma_trend": {
@@ -48,9 +55,12 @@
     },
     "score_unificado": {
       "weight": 0.7,
+      "vote_mode": "continuous",
       "vote_rules": {
         "high_threshold": 0.1,
-        "low_threshold": -0.1
+        "low_threshold": -0.1,
+        "positive_saturation": 0.4,
+        "negative_saturation": 0.4
       }
     },
     "market_regime": {
