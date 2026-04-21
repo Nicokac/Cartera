@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import os
@@ -113,18 +114,27 @@ def load_local_env(path: Path = ENV_PATH) -> dict[str, str]:
     return loaded
 
 
-def resolve_iol_credentials() -> tuple[str, str]:
+def resolve_iol_credentials(
+    *,
+    username_override: str = "",
+    password_override: str = "",
+    non_interactive: bool = False,
+) -> tuple[str, str]:
     load_local_env()
 
-    username = os.environ.get("IOL_USERNAME", "").strip()
-    password = os.environ.get("IOL_PASSWORD", "").strip()
+    username = username_override.strip() or os.environ.get("IOL_USERNAME", "").strip()
+    password = password_override.strip() or os.environ.get("IOL_PASSWORD", "").strip()
 
     if not username:
+        if non_interactive:
+            raise ValueError("Usuario IOL faltante en modo no interactivo.")
         username = input("Usuario IOL: ").strip()
     else:
         print("Usuario IOL: cargado desde entorno")
 
     if not password:
+        if non_interactive:
+            raise ValueError("Password IOL faltante en modo no interactivo.")
         password = getpass("Password IOL: ").strip()
     else:
         print("Password IOL: cargado desde entorno")
@@ -163,6 +173,38 @@ def prompt_money_ars(label: str) -> float:
             print("El monto no puede ser negativo. Ingresa 0 o un valor positivo.")
             continue
         return amount
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Genera el reporte real de cartera IOL.")
+    parser.add_argument("--username", default="", help="Usuario IOL. Si falta, usa entorno o prompt.")
+    parser.add_argument("--password", default="", help="Password IOL. Si falta, usa entorno o prompt.")
+    parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Falla si faltan credenciales o politica de fondeo en vez de pedir input por terminal.",
+    )
+    funding_group = parser.add_mutually_exclusive_group()
+    funding_group.add_argument(
+        "--use-iol-liquidity",
+        dest="use_iol_liquidity",
+        action="store_true",
+        help="Usa liquidez actual de IOL para fondear la estrategia.",
+    )
+    funding_group.add_argument(
+        "--no-use-iol-liquidity",
+        dest="use_iol_liquidity",
+        action="store_false",
+        help="No usa liquidez actual de IOL para fondear la estrategia.",
+    )
+    parser.set_defaults(use_iol_liquidity=None)
+    parser.add_argument(
+        "--aporte-externo-ars",
+        type=float,
+        default=None,
+        help="Monto nuevo a ingresar en ARS. Si falta, usa prompt salvo en modo no interactivo.",
+    )
+    return parser.parse_args(argv)
 
 
 def parse_finviz_number(value: object) -> float:
@@ -648,14 +690,19 @@ def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     configure_logging()
+    args = parse_args(argv)
     REPORTS_DIR.mkdir(exist_ok=True)
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
     run_date = resolve_market_run_date(run_ts)
 
-    username, password = resolve_iol_credentials()
+    username, password = resolve_iol_credentials(
+        username_override=args.username,
+        password_override=args.password,
+        non_interactive=args.non_interactive,
+    )
 
     print("Login IOL...")
     token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)
@@ -669,8 +716,21 @@ def main() -> None:
     activos = portfolio_payload.get("activos", []) or []
 
     print("Definiendo politica de fondeo...")
-    usar_liquidez_iol = prompt_yes_no("Usar liquidez actual de IOL para fondear la estrategia?", default=False)
-    aporte_externo_ars = prompt_money_ars("Cuanto dinero nuevo vas a ingresar en ARS? (enter para 0)")
+    if args.use_iol_liquidity is None:
+        if args.non_interactive:
+            raise ValueError("Falta definir --use-iol-liquidity o --no-use-iol-liquidity en modo no interactivo.")
+        usar_liquidez_iol = prompt_yes_no("Usar liquidez actual de IOL para fondear la estrategia?", default=False)
+    else:
+        usar_liquidez_iol = bool(args.use_iol_liquidity)
+
+    if args.aporte_externo_ars is None:
+        if args.non_interactive:
+            raise ValueError("Falta definir --aporte-externo-ars en modo no interactivo.")
+        aporte_externo_ars = prompt_money_ars("Cuanto dinero nuevo vas a ingresar en ARS? (enter para 0)")
+    else:
+        if args.aporte_externo_ars < 0:
+            raise ValueError("--aporte-externo-ars no puede ser negativo.")
+        aporte_externo_ars = float(args.aporte_externo_ars)
 
     mep_data = get_mep_real(casa=project_config.MEP_CASA, base_url=project_config.ARGENTINADATOS_URL)
     mep_real = float(mep_data["promedio"]) if mep_data else None
@@ -817,8 +877,6 @@ def main() -> None:
     report = {
         "mep_real": mep_real or 0.0,
         "generated_at_label": run_ts.strftime("%Y-%m-%d %H:%M:%S"),
-        "generated_at_timezone": "America/Buenos_Aires",
-        "generated_at_source": "Hora local de corrida",
         "portfolio_bundle": portfolio_bundle,
         "dashboard_bundle": dashboard_bundle,
         "decision_bundle": decision_bundle,
@@ -853,3 +911,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

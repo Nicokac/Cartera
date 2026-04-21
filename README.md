@@ -114,6 +114,17 @@ Real run:
 python scripts\generate_real_report.py
 ```
 
+Real run no interactivo:
+
+```powershell
+python scripts\generate_real_report.py `
+  --username tu_usuario_iol@example.com `
+  --password tu_password_iol `
+  --no-use-iol-liquidity `
+  --aporte-externo-ars 600000 `
+  --non-interactive
+```
+
 ## Tests
 
 Suite completa:
@@ -139,6 +150,8 @@ CI actual:
 - workflow: `.github/workflows/ci.yml`
 - bootstrap automatico de configuracion de ejemplo antes de testear
 - bateria estable del repo sin red real ni credenciales
+- coverage minima exigida en CI sobre la suite estable actual: `82%`
+- target de mediano plazo: `90%`
 
 ## Estado de deuda tecnica
 

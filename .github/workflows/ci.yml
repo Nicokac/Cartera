@@ -26,9 +26,9 @@ jobs:
       - name: Bootstrap example config
         run: python scripts/bootstrap_example_config.py
 
-      - name: Run stable unittest suites
+      - name: Run stable unittest suites with coverage
         run: |
-          python -m unittest \
+          python -m coverage run --branch -m unittest \
             tests.test_bond_analytics \
             tests.test_bonistas_client \
             tests.test_classify \
@@ -62,3 +62,6 @@ jobs:
             tests.test_pyobd_client \
             tests.test_valuation_and_checks \
             -v
+
+      - name: Enforce coverage floor
+        run: python -m coverage report --fail-under=82

@@ -369,7 +369,7 @@ body {
 }
 
 .collapsible[open] summary::after {
-  content: "−";
+  content: "-";
 }
 
 .collapsible-body {
@@ -582,7 +582,7 @@ tbody tr:hover td:first-child {
   color: #51616c;
 }
 
-/* ── Integrity strip ─────────────────────────────────────────────────────── */
+/* Integrity strip */
 
 .integrity-strip {
   display: flex;
@@ -633,7 +633,7 @@ tbody tr:hover td:first-child {
   font-weight: 700;
 }
 
-/* ── Allocation bar ──────────────────────────────────────────────────────── */
+/* Allocation bar */
 
 .alloc-bar-wrap {
   margin: 0 0 16px;
@@ -679,7 +679,7 @@ tbody tr:hover td:first-child {
   flex-shrink: 0;
 }
 
-/* ── Signal matrix ───────────────────────────────────────────────────────── */
+/* Signal matrix */
 
 .signal-table th,
 .signal-table td {
@@ -732,7 +732,7 @@ tbody tr:hover td:first-child {
   color: #fffdf8;
 }
 
-/* ── RSI Gauge ───────────────────────────────────────────────────────────── */
+/* RSI gauge */
 
 .rsi-gauge {
   display: block;
@@ -740,7 +740,7 @@ tbody tr:hover td:first-child {
   vertical-align: middle;
 }
 
-/* ── Sparklines ──────────────────────────────────────────────────────────── */
+/* Sparklines */
 
 .sparkline {
   display: block;
@@ -748,7 +748,7 @@ tbody tr:hover td:first-child {
   vertical-align: middle;
 }
 
-/* ── Portfolio drift ─────────────────────────────────────────────────────── */
+/* Portfolio drift */
 
 .drift-chart {
   margin: 4px 0 8px;
@@ -819,7 +819,7 @@ tbody tr:hover td:first-child {
   font: 11px/1 var(--mono);
 }
 
-/* ── Score distribution ──────────────────────────────────────────────────── */
+/* Score distribution */
 
 .score-dist-wrap {
   margin: 0 0 16px;
@@ -893,7 +893,7 @@ code {
   background: rgba(159, 58, 34, 0.04);
 }
 
-/* ── Technical table column toggle ──────────────────────────────────────── */
+/* Technical table column toggle */
 
 .technical-table .col-secondary {
   display: none;
@@ -909,7 +909,7 @@ code {
   margin-bottom: 8px;
 }
 
-/* ── Print styles ────────────────────────────────────────────────────────── */
+/* Print styles */
 
 @media print {
   .quick-nav,
@@ -990,3 +990,4 @@ code {
     border-radius: 16px;
   }
 }
+

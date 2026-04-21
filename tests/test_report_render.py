@@ -56,8 +56,6 @@ def _build_minimal_result(
     return {
         "mep_real": 1200.0,
         "generated_at_label": "2026-04-08 09:30:00",
-        "generated_at_timezone": "America/Buenos_Aires",
-        "generated_at_source": "Hora local de corrida",
         "portfolio_bundle": {
             "df_total": df_total,
             "integrity_report": pd.DataFrame([{"check": "peso_total", "estado": "OK", "detalle": "100%"}]),
@@ -903,6 +901,32 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Ver criterios generales de score", html)
         self.assertIn("Score de bono calculado con sesgo prudencial y control de rebalanceo.", html)
 
+    def test_render_report_flags_neutral_prediction_with_directional_action(self) -> None:
+        result = _build_minimal_result()
+        result["prediction_bundle"] = {
+            "summary": {"total": 1, "up": 0, "down": 0, "neutral": 1, "mean_confidence": 0.1143},
+            "config": {"horizon_days": 5, "direction_threshold": 0.15},
+            "predictions": pd.DataFrame(
+                [
+                    {
+                        "ticker": "BABA",
+                        "direction": "neutral",
+                        "confidence": 0.1143,
+                        "consensus_raw": 0.1143,
+                        "score_unificado": 0.213,
+                        "accion_sugerida_v2": "Refuerzo",
+                        "outcome_date": "2026-04-24",
+                        "signal_votes": {"rsi": -1, "momentum_20d": 1, "momentum_60d": -1},
+                    }
+                ]
+            ),
+        }
+
+        html = render_report(result)
+
+        self.assertIn("⚠ Refuerzo", html)
+
 
 if __name__ == "__main__":
     unittest.main()
+

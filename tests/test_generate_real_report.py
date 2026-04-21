@@ -17,6 +17,7 @@ from generate_real_report import (
     legacy_snapshots_enabled,
     load_previous_portfolio_snapshot,
     load_local_env,
+    parse_args,
     prompt_money_ars,
     prompt_yes_no,
     resolve_iol_credentials,
@@ -48,6 +49,31 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertEqual(username, "prompt-user@example.com")
         self.assertEqual(password, "prompt-pass")
+
+    def test_resolve_iol_credentials_fails_in_non_interactive_mode_without_values(self) -> None:
+        with patch("generate_real_report.load_local_env", return_value={}), patch.dict("os.environ", {}, clear=True):
+            with self.assertRaisesRegex(ValueError, "Usuario IOL faltante"):
+                resolve_iol_credentials(non_interactive=True)
+
+    def test_parse_args_accepts_non_interactive_funding_inputs(self) -> None:
+        args = parse_args(
+            [
+                "--username",
+                "bot@example.com",
+                "--password",
+                "secret",
+                "--non-interactive",
+                "--no-use-iol-liquidity",
+                "--aporte-externo-ars",
+                "600000",
+            ]
+        )
+
+        self.assertEqual(args.username, "bot@example.com")
+        self.assertEqual(args.password, "secret")
+        self.assertTrue(args.non_interactive)
+        self.assertFalse(args.use_iol_liquidity)
+        self.assertEqual(args.aporte_externo_ars, 600000.0)
 
     def test_prompt_yes_no_retries_until_valid_answer(self) -> None:
         with patch("builtins.input", side_effect=["quizas", "s"]), patch("builtins.print") as print_mock:

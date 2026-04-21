@@ -25,8 +25,6 @@ def main() -> None:
     result = run_smoke_pipeline()
     run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
     result["generated_at_label"] = run_ts.strftime("%Y-%m-%d %H:%M:%S")
-    result["generated_at_timezone"] = "America/Buenos_Aires"
-    result["generated_at_source"] = "Hora local de corrida"
     html_body = render_report(result)
     HTML_PATH.write_text(html_body, encoding="utf-8")
     print(f"Reporte generado en: {HTML_PATH}")

@@ -227,8 +227,10 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         accion = str(row.get("accion_sugerida_v2", "")).strip()
         if not accion or accion == "-":
             return accion
-        contradice = (direction == "down" and accion == ACTION_REFUERZO) or (
-            direction == "up" and accion == ACTION_REDUCIR
+        contradice = (
+            (direction == "down" and accion == ACTION_REFUERZO)
+            or (direction == "up" and accion == ACTION_REDUCIR)
+            or (direction == "neutral" and accion in {ACTION_REFUERZO, ACTION_REDUCIR})
         )
         return f"\u26a0 {accion}" if contradice else accion
 
