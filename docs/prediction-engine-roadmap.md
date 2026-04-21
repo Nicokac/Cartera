@@ -8,18 +8,23 @@ Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion 
 
 ## Estado actual
 
-- estado: `fase 6.3 implementada`
+- estado: `fase 7 completada + hardening continuo aplicado`
 - baseline funcional: el motor ya forma parte del pipeline experimental y del renderer
 - dependencias nuevas: `ninguna`
-- acoplamiento permitido: solo por integracion con `pipeline.py`, `market_data` y el renderer cuando la fase de exposicion llegue
+- acoplamiento permitido: solo por integracion con `pipeline.py`, `market_data` y el renderer
 
 ## Motor vigente
 
-El predictor actual es un `weighted signal consensus` sobre `6` senales.
+El predictor actual es un `weighted signal consensus` sobre `8` senales.
 
 Formula vigente:
 
 ```python
+# votos continuos o discretos segun vote_mode de cada senal
+vote = vote_signal(signal_name, row, signal_config)
+if abs(vote) < active_vote_threshold:
+    vote = 0.0  # zona muerta: votos casi-neutros no contaminan el consenso
+
 consensus_raw = sum(vote * weight) / sum(weight)
 direction = "up" if consensus_raw > direction_threshold else "down" if consensus_raw < -direction_threshold else "neutral"
 net_strength = abs(consensus_raw)
@@ -29,24 +34,21 @@ confidence = net_strength * agreement_ratio
 
 Propiedades vigentes:
 
-- cada senal vota `+1`, `0` o `-1`
+- las senales votan en modo continuo `[-1, 1]` o discreto `{-1, 0, +1}` segun `vote_mode`
+- senales en modo continuo: `rsi`, `momentum_20d`, `momentum_60d`, `score_unificado`, `adx`
+- senales en modo discreto: `sma_trend`, `market_regime`, `relative_volume`
+- votos con `|v| < active_vote_threshold` (default `0.1`) se zerean antes de entrar al consenso
+- la calibracion usa `IC` historico con ventana rolling configurable (`lookback_samples`)
+- si `IC <= 0`, la senal se apaga (`weight = 0`)
 - los pesos viven en `data/mappings/prediction_weights.json`
-- la calibracion usa `IC` historico contra `outcome_numeric`
-- la banda neutral del verificador sale de `neutral_return_band`
-- el predictor expone:
-  - `consensus_raw`
-  - `net_strength`
-  - `agreement_ratio`
-  - `confidence`
+- el predictor expone: `consensus_raw`, `net_strength`, `agreement_ratio`, `confidence`, `votes`
 
 Interpretacion correcta del estado actual:
 
-- `consensus_raw` mantiene la intensidad neta firmada del consenso
-- `net_strength` expone esa intensidad en valor absoluto
-- `agreement_ratio` mide acuerdo entre senales activas, no participacion total
-- `confidence` ya no es sinonimo de `abs(consensus_raw)`:
-  - ahora penaliza desacuerdo entre senales activas
-- los votos siguen siendo discretos; todavia no capturan magnitud interna de cada senal
+- `consensus_raw` es la intensidad neta firmada del consenso, con contribuciones continuas
+- `net_strength` es esa intensidad en valor absoluto
+- `agreement_ratio` mide acuerdo entre senales activas (las que superan el umbral de zona muerta)
+- `confidence` penaliza desacuerdo entre senales activas
 - el esquema sigue siendo experimental y observacional
 
 ## Principio de diseno
@@ -70,25 +72,19 @@ Cada senal vota `+1`, `-1` o `0`. El consenso agregado define:
 
 ## Limitaciones auditables del estado actual
 
-Estas limitaciones ya existen en el codigo actual y deben considerarse deuda conocida, no comportamiento implicito:
+Estas limitaciones son deuda conocida, no comportamiento implicito:
 
-1. votos ternarios:
-   - se pierde magnitud de la senal
-   - casos apenas arriba del umbral y casos extremos votan igual
-2. `IC <= 0`:
-   - hoy la calibracion manda la senal a `min_weight`
-   - eso evita apagarla por completo, pero deja una contribucion positiva minima aun cuando la relacion historica haya sido adversa
-3. `confidence`:
-   - ya incorpora acuerdo entre senales activas
-   - todavia no incorpora participacion total o cobertura efectiva sobre el universo de senales
-4. calibracion historica completa:
-   - el `IC` no usa ventana rolling
-   - puede reaccionar lento frente a drift de regimen
+1. ~~votos ternarios~~ **resuelto** — RSI, momentum 20d/60d, score_unificado y ADX usan votos continuos con zona muerta configurable
+2. ~~`IC <= 0` va a `min_weight`~~ **resuelto** — `IC <= 0` apaga la senal completamente (`weight = 0`)
+3. `confidence` sin cobertura total:
+   - mide acuerdo entre senales activas, no participacion sobre el universo completo
+4. ~~calibracion historica completa~~ **resuelto** — ventana rolling con `lookback_samples` y fallback al historico completo
 5. `neutral_return_band` global:
    - la misma banda se aplica a activos con perfiles de volatilidad muy distintos
-6. cobertura de senales:
-   - faltan senales de fuerza de tendencia y volumen relativo
-   - las senales actuales no capturan toda la informacion tecnica disponible
+6. ~~cobertura de senales~~ **resuelto** — ADX y volumen relativo incorporados (Fase 7)
+7. calibracion sin distincion por familia de activo:
+   - el IC de RSI en CEDEARs vs bonos CER probablemente difiere
+   - requiere >= 30 outcomes verificados por familia x senal antes de implementar
 
 ## Objetivos no funcionales
 
@@ -573,17 +569,12 @@ Sumar informacion nueva solo despues de endurecer el uso de las senales actuales
 
 ## Recomendacion tecnica vigente
 
-Orden recomendado de mejora:
+Las fases 6.2, 6.3 y 7 estan completadas. El hardening del consenso continuo tambien.
 
-1. Fase 6.2
-2. Fase 6.3
-3. Fase 7
+Proximos pasos cuando haya historial verificado suficiente:
 
-Razon:
-
-- primero conviene mejorar como el motor usa las senales existentes
-- despues conviene hacer la calibracion mas reactiva
-- recien entonces agregar nuevas features al pipeline
+1. calibracion por familia de activo (`asset_family`) — requiere >= 30 outcomes por familia x senal
+2. multi-horizonte (`horizon_days: [5, 10, 20]`) — cambio estructural en store, verifier y renderer
 
 ## Riesgos principales
 

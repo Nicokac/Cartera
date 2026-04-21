@@ -43,6 +43,32 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 6.3 - Calibracion rolling | completada | 2026-04-20 |
 | Fase 7 - Expansion de senales | completada | 2026-04-20 |
 
+## 2026-04-21 - Zona muerta en votos continuos + ADX continuo - completado
+
+- commit: pendiente
+- alcance:
+  - dos mejoras independientes al motor de consenso
+- decisiones:
+  - zona muerta (`active_vote_threshold`):
+    - los votos continuos con `|v| < active_vote_threshold` se zerean *antes* de entrar al `weighted_sum`
+    - el fix anterior solo los excluía de `active_weight`; ahora son genuinamente cero en todo el cómputo
+    - RSI=51 ya no resta silenciosamente -0.02 al consenso alcista del resto de las señales
+  - ADX continuo:
+    - `_vote_adx_continuous()` mapea `ADX ∈ [threshold, saturation]` → `[0, 1]` con dirección DI+/DI-
+    - saturación configurada en 45 (ADX > 45 vota con convicción máxima)
+    - entre umbral y saturación, la convicción crece proporcionalmente con la fuerza de la tendencia
+- archivos:
+  - `src/prediction/predictor.py`
+  - `data/mappings/prediction_weights.json`
+  - `data/examples/mappings/prediction_weights.json.example`
+  - `tests/test_prediction_predictor.py`
+- tests:
+  - expected values del test de threshold actualizados: consensus_raw 0.49→0.5, agreement_ratio 0.98→1.0
+  - 2 tests nuevos para ADX continuo: escala de intensidad y neutral bajo umbral
+- deuda / notas:
+  - P3 (calibración por asset_family) bloqueada por datos: requiere ≥30 outcomes por familia × señal
+  - P4 (multi-horizonte) postergada como fase nueva; requiere cambios en store, verifier y renderer
+
 ## 2026-04-21 - Hardening del consenso continuo - completado
 
 - commit: pendiente
