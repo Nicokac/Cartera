@@ -330,9 +330,9 @@ def build_operational_proposal(
     propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
 
     if "Es_Liquidez" in propuesta.columns:
-        mask_liq = propuesta["Es_Liquidez"].fillna(propuesta["Tipo"].isin(["Liquidez", "FCI"]))
+        mask_liq = propuesta["Es_Liquidez"].fillna(propuesta["Tipo"].eq("Liquidez"))
     else:
-        mask_liq = propuesta["Tipo"].isin(["Liquidez", "FCI"])
+        mask_liq = propuesta["Tipo"].eq("Liquidez")
     if usar_liquidez_iol:
         propuesta.loc[mask_liq, "accion_operativa"] = np.where(
             propuesta.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,

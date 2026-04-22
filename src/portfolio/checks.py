@@ -29,9 +29,12 @@ def build_integrity_report(
     es_liquidez = (
         df_total["Es_Liquidez"].fillna(False)
         if "Es_Liquidez" in df_total.columns
-        else df_total["Tipo"].isin(["Liquidez", "FCI"])
+        else df_total["Tipo"].eq("Liquidez")
     )
-    faltan_precios = df_total[(~es_liquidez) & (df_total["Precio_ARS"].isna())]["Ticker_IOL"].dropna().astype(str).tolist()
+    precio_no_requerido = es_liquidez | df_total["Tipo"].eq("FCI")
+    faltan_precios = (
+        df_total[(~precio_no_requerido) & (df_total["Precio_ARS"].isna())]["Ticker_IOL"].dropna().astype(str).tolist()
+    )
 
     faltan_valores_usd = (
         df_total[df_total["Valor_USD"].isna()]["Ticker_IOL"].dropna().astype(str).tolist()

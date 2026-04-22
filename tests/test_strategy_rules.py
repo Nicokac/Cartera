@@ -235,6 +235,36 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertEqual(scored.loc[0, "score_refuerzo"], scored.loc[1, "score_refuerzo"])
         self.assertEqual(scored.loc[0, "score_reduccion"], scored.loc[1, "score_reduccion"])
 
+    def test_build_decision_base_classifies_fci_as_fund_not_liquidity(self) -> None:
+        df_total = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "IOLPORA",
+                    "Tipo": "FCI",
+                    "Bloque": "FCI",
+                    "Peso_%": 3.43,
+                    "Valorizado_ARS": 842426.0,
+                    "Valor_USD": 595.4,
+                    "Ganancia_ARS": 241053.0,
+                    "Cantidad_Real": None,
+                    "PPC_ARS": None,
+                    "Es_Liquidez": False,
+                }
+            ]
+        )
+
+        decision = build_decision_base(
+            df_total,
+            pd.DataFrame(),
+            pd.DataFrame(),
+            mep_real=1415.0,
+        )
+
+        self.assertFalse(bool(decision.loc[0, "Es_Liquidez"]))
+        self.assertTrue(bool(decision.loc[0, "Es_FCI"]))
+        self.assertEqual(decision.loc[0, "asset_family"], "fund")
+        self.assertEqual(decision.loc[0, "asset_subfamily"], "fund_other")
+
     def test_technical_overlay_is_blended_when_present(self) -> None:
         decision = pd.DataFrame(
             [

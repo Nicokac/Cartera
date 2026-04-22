@@ -109,7 +109,7 @@ class LiquidityTests(unittest.TestCase):
         self.assertTrue(math.isclose(contract["liquidez_desplegable_total_ars"], 300000, rel_tol=0, abs_tol=0.01))
         self.assertFalse(contract["duplicate_caucion_in_cash"])
 
-    def test_rebuild_liquidity_reports_iolpora_as_fci_but_keeps_it_liquidity_like(self) -> None:
+    def test_rebuild_liquidity_reports_iolpora_as_fci_without_treating_it_as_liquidity(self) -> None:
         activos = [
             {
                 "valorizado": 842426,
@@ -136,8 +136,8 @@ class LiquidityTests(unittest.TestCase):
         self.assertEqual(row["Ticker_IOL"], "IOLPORA")
         self.assertEqual(row["Tipo"], "FCI")
         self.assertEqual(row["Bloque"], "FCI")
-        self.assertTrue(bool(row["Es_Liquidez"]))
-        self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 842426, rel_tol=0, abs_tol=0.01))
+        self.assertFalse(bool(row["Es_Liquidez"]))
+        self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 0, rel_tol=0, abs_tol=0.01))
 
     def test_rebuild_liquidity_treats_zero_mep_as_missing_without_dividing_by_zero(self) -> None:
         activos = [

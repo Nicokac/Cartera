@@ -17,9 +17,9 @@ def build_executive_dashboard_data(
 ) -> dict:
     work = df_total.copy()
     if "Es_Liquidez" not in work.columns:
-        work["Es_Liquidez"] = work["Tipo"].isin(["Liquidez", "FCI"])
+        work["Es_Liquidez"] = work["Tipo"].eq("Liquidez")
     else:
-        work["Es_Liquidez"] = work["Es_Liquidez"].fillna(work["Tipo"].isin(["Liquidez", "FCI"]))
+        work["Es_Liquidez"] = work["Es_Liquidez"].fillna(work["Tipo"].eq("Liquidez"))
     if "Moneda" not in work.columns:
         work["Moneda"] = pd.NA
 

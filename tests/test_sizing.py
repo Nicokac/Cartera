@@ -137,7 +137,7 @@ class SizingTests(unittest.TestCase):
                     "Ticker_IOL": "IOLPORA",
                     "Descripcion": "FCI IOL Portfolio Potenciado",
                     "Tipo": "FCI",
-                    "Es_Liquidez": True,
+                    "Es_Liquidez": False,
                     "accion_sugerida_v2": "Mantener / Neutral",
                     "score_unificado": 0.0,
                     "score_despliegue_liquidez": 0.8,
@@ -160,7 +160,7 @@ class SizingTests(unittest.TestCase):
         self.assertEqual(result["top_bonos_rebalancear"]["Ticker_IOL"].tolist(), ["AL30"])
         self.assertEqual(result["descartados_rebalancear"]["Ticker_IOL"].tolist(), ["GD30"])
         self.assertEqual(result["top_fondeo"]["Ticker_IOL"].tolist(), ["CAUCION"])
-        self.assertEqual(result["descartados_fondeo"]["Ticker_IOL"].tolist(), ["IOLPORA"])
+        self.assertTrue(result["descartados_fondeo"].empty)
 
     def test_build_operational_proposal_supports_external_funding_without_using_iol_liquidity(self) -> None:
         result = build_operational_proposal(

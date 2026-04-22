@@ -259,11 +259,12 @@ def build_decision_base(
     decision = base.merge(ced_data, on="Ticker_IOL", how="left")
     decision["Cobertura_Modelo"] = np.where(decision["Ticker_Finviz"].notna(), "Completa", "Parcial")
     if "Es_Liquidez" in decision.columns:
-        decision["Es_Liquidez"] = decision["Es_Liquidez"].fillna(decision["Tipo"].isin(["Liquidez", "FCI"]))
+        decision["Es_Liquidez"] = decision["Es_Liquidez"].fillna(decision["Tipo"].eq("Liquidez"))
     else:
-        decision["Es_Liquidez"] = decision["Tipo"].isin(["Liquidez", "FCI"])
+        decision["Es_Liquidez"] = decision["Tipo"].eq("Liquidez")
     decision["Es_Cedear"] = decision["Tipo"].eq("CEDEAR")
     decision["Es_Bono"] = decision["Tipo"].eq("Bono")
+    decision["Es_FCI"] = decision["Tipo"].eq("FCI")
     decision["Es_Accion_Local"] = decision["Tipo"].eq("Acción Local")
     decision["Es_ETF"] = decision["is_etf"].fillna(False).astype(bool) if "is_etf" in decision.columns else False
     decision["Es_Core_ETF"] = (
@@ -276,6 +277,7 @@ def build_decision_base(
     decision["asset_family"] = decision["asset_family"].where(decision["asset_family"].notna(), None)
     decision["asset_subfamily"] = decision["asset_subfamily"].where(decision["asset_subfamily"].notna(), None)
     decision.loc[decision["Es_Liquidez"], "asset_family"] = "liquidity"
+    decision.loc[decision["Es_FCI"], "asset_family"] = "fund"
     decision.loc[decision["Es_Bono"], "asset_family"] = "bond"
     decision.loc[decision["Es_Accion_Local"], "asset_family"] = "stock"
     decision.loc[decision["Es_Cedear"] & ~decision["Es_ETF"], "asset_family"] = "stock"
@@ -321,6 +323,10 @@ def build_decision_base(
         decision["Es_Liquidez"] & decision["asset_subfamily"].isna(),
         "asset_subfamily",
     ] = "liquidity_other"
+    decision.loc[
+        decision["Es_FCI"] & decision["asset_subfamily"].isna(),
+        "asset_subfamily",
+    ] = "fund_other"
     decision["MEP_Premium_%"] = np.nan
     if mep_value is not None:
         premium_mask = decision["MEP_Implicito"].notna()
@@ -395,6 +401,7 @@ def apply_base_scores(
         "Es_Bono": False,
         "Es_ETF": False,
         "Es_Core_ETF": False,
+        "Es_FCI": False,
     }
     for col, default in numeric_defaults.items():
         if col not in out.columns:
@@ -627,6 +634,7 @@ def apply_base_scores(
         + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality_effective"]
     )
     out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
+    out["score_refuerzo"] -= np.where(out["Es_FCI"], 1.0, 0.00)
     out["score_refuerzo"] -= np.where(out["Es_Bono"], float(refuerzo_penalties.get("bono", 0.08)), 0.00)
     out["score_refuerzo"] -= np.where(
         out["Beta"].fillna(0) > float(refuerzo_penalties.get("beta_high_threshold", 1.8)),
@@ -658,6 +666,7 @@ def apply_base_scores(
         + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality_effective"]
     )
     out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
+    out["score_reduccion"] -= np.where(out["Es_FCI"], 1.0, 0.00)
     out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
     for subfamily, rules in asset_subfamily_adjustments.items():
         mask = out["asset_subfamily"].eq(subfamily)

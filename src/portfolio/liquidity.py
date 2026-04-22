@@ -130,11 +130,11 @@ def rebuild_liquidity(
             report_as_fci = simbolo_upper in FCI_REPORTED_AS_FUND
             row_type = "FCI" if report_as_fci else "Liquidez"
             row_block = "FCI" if report_as_fci else "Liquidez"
-            is_liquidity = simbolo_upper in fci_cash_management or row_type == "Liquidez"
+            is_liquidity = False if report_as_fci else (simbolo_upper in fci_cash_management or row_type == "Liquidez")
             valorizado_ars = valorizado * mep_value if moneda == "USD" and mep_value is not None else valorizado
             ganancia_ars = ganancia_dinero * mep_value if moneda == "USD" and mep_value is not None else ganancia_dinero
 
-            if simbolo_upper in fci_cash_management:
+            if simbolo_upper in fci_cash_management and not report_as_fci:
                 fci_cash_management_ars += valorizado_ars
 
             liquidez_rows.append(
