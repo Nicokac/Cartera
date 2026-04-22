@@ -265,6 +265,34 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertEqual(decision.loc[0, "asset_family"], "fund")
         self.assertEqual(decision.loc[0, "asset_subfamily"], "fund_other")
 
+    def test_explanations_render_specific_fci_narrative(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "IOLPORA",
+                    "Tipo": "FCI",
+                    "Es_Liquidez": False,
+                    "Es_Bono": False,
+                    "Es_FCI": True,
+                    "asset_family": "fund",
+                    "asset_subfamily": "fund_other",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_despliegue_liquidez": 0.0,
+                }
+            ]
+        )
+
+        explained = enrich_decision_explanations(df)
+
+        self.assertEqual(
+            explained.loc[0, "motivo_score"],
+            "FCI mantenido en neutral por mandato diversificado y sin scoring tactico direccional.",
+        )
+        self.assertEqual(
+            explained.loc[0, "motivo_accion"],
+            "FCI en monitoreo: vehiculo diversificado sin senal tactica dominante.",
+        )
+
     def test_technical_overlay_is_blended_when_present(self) -> None:
         decision = pd.DataFrame(
             [

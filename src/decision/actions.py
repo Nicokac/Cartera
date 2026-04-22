@@ -244,6 +244,8 @@ def enrich_decision_explanations(
     def motivo_score(row: pd.Series) -> str:
         if row.get("Es_Liquidez"):
             return "Score de liquidez calculado por peso y perdida relativa."
+        if row.get("Es_FCI"):
+            return "FCI mantenido en neutral por mandato diversificado y sin scoring tactico direccional."
         if row.get("Es_Bono"):
             return "Score de bono calculado con sesgo prudencial y control de rebalanceo."
         if _is_core_etf(row):
@@ -300,6 +302,9 @@ def enrich_decision_explanations(
 
         if accion == ACTION_DESPLEGAR_LIQUIDEZ:
             return "Liquidez identificada como fuente potencial de fondeo."
+
+        if row.get("Es_FCI"):
+            return "FCI en monitoreo: vehiculo diversificado sin senal tactica dominante."
 
         if _is_core_etf(row):
             if negative_signals:

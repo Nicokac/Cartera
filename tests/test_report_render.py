@@ -901,6 +901,84 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Ver criterios generales de score", html)
         self.assertIn("Score de bono calculado con sesgo prudencial y control de rebalanceo.", html)
 
+    def test_render_report_preserves_fci_identity_and_specific_narrative(self) -> None:
+        result = _build_minimal_result()
+        result["portfolio_bundle"]["df_total"] = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "IOLPORA",
+                    "Tipo": "FCI",
+                    "Bloque": "FCI",
+                    "Valorizado_ARS": 842426.0,
+                    "Valor_USD": 595.40,
+                    "Ganancia_ARS": 241053.0,
+                    "Peso_%": 3.43,
+                    "Es_Liquidez": False,
+                }
+            ]
+        )
+        result["dashboard_bundle"]["resumen_tipos"] = pd.DataFrame(
+            [
+                {
+                    "Tipo": "FCI",
+                    "Instrumentos": 1,
+                    "Valorizado_ARS": 842426.0,
+                    "Valor_USD": 595.40,
+                    "Ganancia_ARS": 241053.0,
+                    "Peso_%": 3.43,
+                }
+            ]
+        )
+        result["dashboard_bundle"]["kpis"] = {
+            "total_ars": 842426.0,
+            "total_ars_iol": 842426.0,
+            "total_usd": 595.40,
+            "ganancia_total": 241053.0,
+            "n_instrumentos": 1,
+            "liquidez_broker_ars": 0.0,
+            "liquidez_ars": 0.0,
+            "liquidez_usd_ars": 0.0,
+        }
+        result["decision_bundle"]["final_decision"] = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "IOLPORA",
+                    "Tipo": "FCI",
+                    "asset_family": "fund",
+                    "asset_subfamily": "fund_other",
+                    "Peso_%": 3.43,
+                    "score_unificado": 0.0,
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "motivo_accion": "FCI en monitoreo: vehiculo diversificado sin senal tactica dominante.",
+                    "motivo_score": "FCI mantenido en neutral por mandato diversificado y sin scoring tactico direccional.",
+                    "driver_1": "peso",
+                    "driver_2": "momentum",
+                    "driver_3": "consenso",
+                    "accion_previa": "Mantener / Neutral",
+                    "score_delta_vs_dia_anterior": 0.09,
+                    "dias_consecutivos_refuerzo": 0,
+                    "dias_consecutivos_reduccion": 0,
+                    "dias_consecutivos_mantener": 12,
+                }
+            ]
+        )
+
+        html = render_report(result)
+
+        self.assertIn(">IOLPORA<", html)
+        self.assertIn(">FCI<", html)
+        self.assertIn("fund_other", html)
+        self.assertIn(
+            "FCI mantenido en neutral por mandato diversificado y sin scoring tactico direccional.",
+            html,
+        )
+        self.assertIn(
+            "FCI en monitoreo: vehiculo diversificado sin senal tactica dominante.",
+            html,
+        )
+        self.assertNotIn(">Liquidez<", html)
+        self.assertNotIn("liquidity_other", html)
+
     def test_render_report_flags_neutral_prediction_with_directional_action(self) -> None:
         result = _build_minimal_result()
         result["prediction_bundle"] = {
