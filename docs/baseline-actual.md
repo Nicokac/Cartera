@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
+Documento actualizado al `2026-04-21`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
 ## Capacidades activas
 
@@ -13,7 +13,9 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
 - memoria temporal diaria entre corridas
 - reporte HTML comun para smoke y real run
 - lectura operativa de operaciones recientes y transiciones de posicion
-- capa experimental de prediccion direccional con historial, verificacion y recalibracion
+- clasificacion de FCIs reales (IOLPORA, ADBAICA, PRPEDOB) como posiciones visibles en cartera, separadas de la liquidez tactica
+- diferenciacion entre alta genuina y reclasificacion de posicion en el bloque operacional del reporte
+- capa experimental de prediccion direccional con historial, verificacion, recalibracion y conviction_label
 
 ## Estado tecnico vigente
 
@@ -53,10 +55,12 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
 ## Operaciones y snapshots
 
 - el real run puede enriquecer operaciones IOL y explicar:
-  - altas nuevas
+  - altas nuevas (`change_kind = "alta_nueva"`)
+  - reclasificaciones (`change_kind = "reclasificacion"`): ticker que ya existia en el snapshot previo bajo otra taxonomia (ej: FCI antes clasificado como Liquidez)
   - aumentos de posicion
   - reducciones
   - movimientos recientes no consolidados todavia en cartera
+- `build_position_transition_bundle` distingue entre ticker genuinamente nuevo (ausente del snapshot previo) y ticker reclasificado (presente pero con Tipo diferente) — la distincion se hace contra el portfolio previo sin filtrar, antes de que `prepare_portfolio_for_compare` descarte liquidez
 - los snapshots previos se validan antes de usarse
 - la validacion previa ahora exige:
   - columna `Ticker_IOL`
@@ -87,10 +91,21 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
   - `smoke_run`
   - `smoke_output`
 
+## Clasificacion de FCIs
+
+- `FCI_REPORTED_AS_FUND = {"IOLPORA", "ADBAICA", "PRPEDOB"}` en `src/portfolio/liquidity.py`
+- estos tres FCIs se muestran como posiciones reales (Tipo=FCI, Bloque=FCI, Es_Liquidez=False), no como liquidez tactica
+- `FCI_CASH_MANAGEMENT` quedo vacio: ningun FCI actual se trata como caja gestionada
+- los tres tienen perfil en `data/mappings/instrument_profile_map.json`:
+  - ADBAICA y PRPEDOB: `asset_family=fci`, `asset_subfamily=fci_renta_fija_usd` (soberana ley extranjera)
+  - IOLPORA: `asset_family=fci`, `asset_subfamily=fci_renta_fija_ars`
+- el `block_map.json` los registra como `"FCI"` (ya no `"Liquidez"`)
+
 ## Deuda real aun abierta
 
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
 - seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
+- calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
 
 ## Capa experimental integrada
 
@@ -101,7 +116,12 @@ Documento actualizado al `2026-04-19`. Define la baseline funcional vigente del 
   - Fase 4 completada: verificador de outcomes en `src/prediction/verifier.py`
   - Fase 5 completada: calibracion de pesos en `src/prediction/calibration.py`
   - Fase 6 completada: integracion experimental al pipeline, renderer y runner de mantenimiento
-  - Fase 6.1 completada: correccion de escala del voto `score_unificado` para evitar sesgo bajista artificial
+  - Fase 6.1 completada: correccion de escala del voto `score_unificado`
+  - Fase 6.2 completada: zona muerta en votos continuos, RSI continuo, `IC <= 0` apaga senal
+  - Fase 6.3 completada: calibracion rolling con fallback al historico completo
+  - Fase 7 completada: ADX continuo y relative_volume continua incorporados
+  - Hardening de senales: `sma_trend` con votos graduados, `relative_volume` con escala continua
+  - `conviction_label` integrado: calculado en `predict()` desde `conviction_thresholds` JSON, persistido en CSV, renderizado en HTML
   - ya forma parte del smoke y del real run como capa observacional
   - sigue separada del scoring y sizing operativos
   - ciclo operativo vigente:

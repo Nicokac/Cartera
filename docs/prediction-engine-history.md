@@ -31,7 +31,7 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 ## Estado consolidado
 
 | Fase | Estado | Ultima actualizacion |
-|---|---|---|
+| --- | --- | --- |
 | Fase 1 - Store | completada | 2026-04-19 |
 | Fase 2 - Pesos y umbrales | completada | 2026-04-19 |
 | Fase 3 - Predictor | completada | 2026-04-19 |
@@ -44,6 +44,7 @@ No borrar entradas anteriores. Si una decision cambia, agregar una entrada nueva
 | Fase 7 - Expansion de senales | completada | 2026-04-20 |
 | Hardening senales discretas | completada | 2026-04-21 |
 | conviction_label en predict() + limpieza JSON | completada | 2026-04-21 |
+| Portafolio: reclasificacion FCIs + alta_nueva | completada | 2026-04-21 |
 
 ## 2026-04-21 - conviction_label en predict() y limpieza de configuracion - completado
 

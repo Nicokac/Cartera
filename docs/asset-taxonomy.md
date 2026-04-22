@@ -33,6 +33,13 @@ Subfamilias:
 - `bond_bopreal`
 - `bond_other`
 
+### `fci`
+
+Subfamilias:
+
+- `fci_renta_fija_usd`: fondos de renta fija en dolares (soberana ley extranjera, ON)
+- `fci_renta_fija_ars`: fondos de renta fija en pesos (money market, CER, tasa fija)
+
 ### `liquidity`
 
 Subfamilia:
@@ -47,6 +54,7 @@ Subfamilia:
 - `etf_country_region` necesita soporte adicional para salir de neutralidad
 - `bond_sov_ar` sigue teniendo sesgo de monitoreo o rebalanceo, no de compra agresiva
 - `liquidity_other` no debe contaminar lectura de conviccion de riesgo
+- `fci_renta_fija_usd` y `fci_renta_fija_ars` son posiciones visibles en cartera, no liquidez tactica
 
 ## Casos de referencia
 
@@ -56,6 +64,9 @@ Subfamilia:
 - `EEM`: `etf_country_region`
 - `GD30`: `bond_sov_ar`
 - `PAMP`: `stock_other`
+- `PRPEDOB`: `fci_renta_fija_usd` (Premier Performance Dolares Clase B — soberana ley extranjera)
+- `ADBAICA`: `fci_renta_fija_usd` (ADCAP Cobertura Clase A)
+- `IOLPORA`: `fci_renta_fija_ars` (IOL Portfolio Potenciado)
 
 ## Fuente efectiva
 
@@ -66,3 +77,4 @@ La taxonomia efectiva vive en:
 - `data/strategy/scoring_rules.json`
 - `data/strategy/action_rules.json`
 - `data/mappings/bond_local_subfamily_rules.json`
+- `data/mappings/instrument_profile_map.json` (perfiles de stocks, ETFs y FCIs con `asset_family` / `asset_subfamily`)
