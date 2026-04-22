@@ -223,6 +223,33 @@ class OperationsBundleTests(unittest.TestCase):
         self.assertIn("Nueva posicion incorporada", titles)
         self.assertIn("Posicion salida de cartera", titles)
 
+    def test_build_position_transition_bundle_reclassification_vs_truly_new(self) -> None:
+        # IOLPORA was "Liquidez" in the previous snapshot → reclassification (not a new buy)
+        # PAMP was absent entirely from the previous snapshot → truly new
+        current_portfolio = pd.DataFrame(
+            [
+                {"Ticker_IOL": "IOLPORA", "Tipo": "FCI", "Bloque": "Renta Fija ARS", "Cantidad": 100, "Peso_%": 2.0, "Valorizado_ARS": 500000},
+                {"Ticker_IOL": "PAMP", "Tipo": "Acción Local", "Bloque": "Sin clasificar", "Cantidad": 42, "Peso_%": 0.83, "Valorizado_ARS": 201495},
+            ]
+        )
+        previous_portfolio = pd.DataFrame(
+            [
+                {"Ticker_IOL": "IOLPORA", "Tipo": "Liquidez", "Bloque": "Efectivo", "Cantidad": 100, "Peso_%": 2.0, "Valorizado_ARS": 500000},
+            ]
+        )
+
+        bundle = build_position_transition_bundle(current_portfolio, previous_portfolio, limit=6)
+
+        by_kicker = {item["kicker"]: item for item in bundle["items"]}
+        self.assertIn("IOLPORA", by_kicker)
+        self.assertEqual(by_kicker["IOLPORA"]["title"], "Posicion reclasificada")
+        self.assertIn("PAMP", by_kicker)
+        self.assertEqual(by_kicker["PAMP"]["title"], "Nueva posicion incorporada")
+
+        cambios = bundle["summary"].set_index("simbolo")["cambio"].to_dict()
+        self.assertEqual(cambios["IOLPORA"], "reclasificacion")
+        self.assertEqual(cambios["PAMP"], "alta_nueva")
+
 
 if __name__ == "__main__":
     unittest.main()

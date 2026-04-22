@@ -126,6 +126,15 @@ def build_position_transition_bundle(
             return f"{int(round(value)):,}"
         return f"{value:,.2f}".rstrip("0").rstrip(".")
 
+    # Build unfiltered symbol set from previous portfolio to detect reclassifications.
+    # prepare_portfolio_for_compare drops liquidez rows, so a ticker that moved from
+    # liquidez→FCI would appear as previous_row=None even though it already existed.
+    previous_all_symbols: set[str] = set()
+    if isinstance(previous_portfolio, pd.DataFrame) and not previous_portfolio.empty and "Ticker_IOL" in previous_portfolio.columns:
+        previous_all_symbols = set(
+            previous_portfolio["Ticker_IOL"].map(normalize_symbol).dropna()
+        )
+
     items: list[dict[str, str]] = []
     summary_rows: list[dict[str, object]] = []
     all_symbols = sorted(set(current_view.index.tolist()) | set(previous_view.index.tolist()))
@@ -137,14 +146,26 @@ def build_position_transition_bundle(
         previous_qty = resolve_position_quantity(previous_row)
 
         if previous_row is None and current_row is not None:
-            title = "Nueva posicion incorporada"
-            badge = "Compra"
-            detail = (
-                f"{symbol} ahora forma parte de la cartera como {current_row.get('Tipo', '-')} / "
-                f"{current_row.get('Bloque', '-')}. Peso actual {float(current_row.get('Peso_%', 0) or 0):.2f}%."
-                f"{operation_tail(symbol)}"
-            )
-            change_kind = "alta_nueva"
+            if symbol in previous_all_symbols:
+                title = "Posicion reclasificada"
+                badge = "Reclasificacion"
+                detail = (
+                    f"{symbol} ya formaba parte de la cartera y ahora se clasifica como "
+                    f"{current_row.get('Tipo', '-')} / {current_row.get('Bloque', '-')}. "
+                    f"Peso actual {float(current_row.get('Peso_%', 0) or 0):.2f}%."
+                    f"{operation_tail(symbol)}"
+                )
+                change_kind = "reclasificacion"
+            else:
+                title = "Nueva posicion incorporada"
+                badge = "Compra"
+                detail = (
+                    f"{symbol} se incorpora por primera vez como "
+                    f"{current_row.get('Tipo', '-')} / {current_row.get('Bloque', '-')}. "
+                    f"Peso actual {float(current_row.get('Peso_%', 0) or 0):.2f}%."
+                    f"{operation_tail(symbol)}"
+                )
+                change_kind = "alta_nueva"
         elif current_row is None and previous_row is not None:
             title = "Posicion salida de cartera"
             badge = "Venta"

@@ -190,19 +190,31 @@ def _build_temporal_row(
     current_action = row.get("accion_sugerida_v2")
     current_bucket = _normalize_action_bucket(current_action)
     previous = ticker_history.iloc[-1] if not ticker_history.empty else None
+    comparable_previous = previous
+
+    current_subfamily = str(row.get("asset_subfamily") or "").strip().lower()
+    if comparable_previous is not None:
+        previous_subfamily = str(comparable_previous.get("asset_subfamily") or "").strip().lower()
+        if current_subfamily and previous_subfamily and current_subfamily != previous_subfamily:
+            comparable_previous = None
 
     score_delta = np.nan
     previous_action = None
-    if previous is not None:
-        previous_action = previous.get("accion_sugerida_v2")
-        prev_score = previous.get("score_unificado")
+    if comparable_previous is not None:
+        previous_action = comparable_previous.get("accion_sugerida_v2")
+        prev_score = comparable_previous.get("score_unificado")
         current_score = row.get("score_unificado")
         if pd.notna(prev_score) and pd.notna(current_score):
             score_delta = float(current_score) - float(prev_score)
 
     streak = 1 if current_bucket in {"refuerzo", "reduccion", "mantener"} else 0
     if streak:
-        history_buckets = ticker_history["accion_sugerida_v2"].map(_normalize_action_bucket).tolist()
+        comparable_history = ticker_history
+        if current_subfamily:
+            comparable_history = comparable_history.loc[
+                comparable_history["asset_subfamily"].fillna("").astype(str).str.strip().str.lower() == current_subfamily
+            ].copy()
+        history_buckets = comparable_history["accion_sugerida_v2"].map(_normalize_action_bucket).tolist()
         for bucket in reversed(history_buckets):
             if bucket != current_bucket:
                 break
@@ -214,7 +226,7 @@ def _build_temporal_row(
         "dias_consecutivos_refuerzo": streak if current_bucket == "refuerzo" else 0,
         "dias_consecutivos_reduccion": streak if current_bucket == "reduccion" else 0,
         "dias_consecutivos_mantener": streak if current_bucket == "mantener" else 0,
-        "sin_historial_temporal": previous is None,
+        "sin_historial_temporal": comparable_previous is None,
         "es_nueva_senal": previous_action is not None and str(previous_action) != str(current_action),
         "senal_persistente_refuerzo": current_bucket == "refuerzo" and streak >= 2,
         "senal_persistente_reduccion": current_bucket == "reduccion" and streak >= 2,

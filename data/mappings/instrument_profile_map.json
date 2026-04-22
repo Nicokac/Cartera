@@ -41,34 +41,6 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "AEG": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "AEM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "AI": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "AIG": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
   "ABNB": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -96,6 +68,13 @@
     "asset_subfamily": "etf_core",
     "is_etf": true,
     "is_core_etf": true
+  },
+  "ADBAICA": {
+    "instrument_class": "FCI",
+    "asset_family": "fci",
+    "asset_subfamily": "fci_renta_fija_usd",
+    "is_etf": false,
+    "is_core_etf": false
   },
   "ADBE": {
     "instrument_class": "Stock",
@@ -125,6 +104,34 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "AEG": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "AEM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "AI": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "AIG": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "ALAB": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -139,13 +146,6 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "AMX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
   "AMD": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -154,6 +154,13 @@
     "is_core_etf": false
   },
   "AMGN": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "AMX": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
@@ -188,6 +195,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "ARKK": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
+    "is_core_etf": false
+  },
   "ARM": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -195,14 +209,14 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "ASR": {
+  "ASML": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
-  "ASML": {
+  "ASR": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
@@ -265,17 +279,17 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "BAK": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
   "BABA": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "BAK": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -307,6 +321,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "BHP": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "BIDU": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -321,17 +342,17 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "BIOX": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "BITF": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "BHP": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -384,14 +405,14 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "BRKB": {
+  "BRFS": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
   },
-  "BRFS": {
+  "BRKB": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
@@ -636,6 +657,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "E": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "EA": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -647,13 +675,6 @@
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "E": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -669,6 +690,13 @@
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
+    "is_core_etf": false
+  },
+  "EEM": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_country_region",
+    "is_etf": true,
     "is_core_etf": false
   },
   "EFA": {
@@ -692,13 +720,6 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "EEM": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_country_region",
-    "is_etf": true,
-    "is_core_etf": false
-  },
   "EQNR": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -706,14 +727,14 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "ERJ": {
+  "ERIC": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
-  "ERIC": {
+  "ERJ": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
@@ -739,6 +760,13 @@
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
     "is_etf": false,
+    "is_core_etf": false
+  },
+  "EWJ": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_country_region",
+    "is_etf": true,
     "is_core_etf": false
   },
   "EWZ": {
@@ -773,6 +801,13 @@
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "FSLR": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -811,6 +846,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "GILD": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "GLD": {
     "instrument_class": "ETF",
     "asset_family": "etf",
@@ -839,10 +881,24 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "GOOGL": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "GPRK": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "GRMN": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -860,41 +916,6 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "HAL": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "FSLR": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "GILD": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "GOOGL": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "GRMN": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
   "GT": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -902,87 +923,10 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "HOOD": {
+  "HAL": {
     "instrument_class": "Stock",
     "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "HUT": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "IBB": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_sector",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "IBIT": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "IEUR": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_country_region",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "INFY": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "INTC": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "IREN": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "ISRG": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "ITA": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_sector",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "JD": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "JOYY": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
+    "asset_subfamily": "stock_commodity",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1042,6 +986,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "HOOD": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "HPQ": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1056,11 +1007,32 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "HUT": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "HWM": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
     "is_etf": false,
+    "is_core_etf": false
+  },
+  "IBB": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_sector",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "IBIT": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
     "is_core_etf": false
   },
   "IBM": {
@@ -1084,12 +1056,26 @@
     "is_etf": true,
     "is_core_etf": false
   },
+  "IEUR": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_country_region",
+    "is_etf": true,
+    "is_core_etf": false
+  },
   "IFF": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
+  },
+  "IJH": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
   },
   "ILF": {
     "instrument_class": "ETF",
@@ -1098,10 +1084,31 @@
     "is_etf": true,
     "is_core_etf": false
   },
+  "INFY": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "ING": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "INTC": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "IOLPORA": {
+    "instrument_class": "FCI",
+    "asset_family": "fci",
+    "asset_subfamily": "fci_renta_fija_ars",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1112,12 +1119,40 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "IREN": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "ISRG": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "ITA": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_sector",
+    "is_etf": true,
+    "is_core_etf": false
+  },
   "ITUB": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
+  },
+  "IVE": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
   },
   "IVV": {
     "instrument_class": "ETF",
@@ -1126,7 +1161,28 @@
     "is_etf": true,
     "is_core_etf": true
   },
+  "IVW": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
+  },
+  "IWM": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
+  },
   "JCI": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "JD": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
@@ -1144,6 +1200,13 @@
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "JOYY": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1182,14 +1245,14 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "KOFM": {
+  "KO": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
   },
-  "KO": {
+  "KOFM": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
@@ -1238,6 +1301,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "LRCX": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "LVS": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1266,10 +1336,38 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "MCD": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "MDLZ": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "MDT": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "MELI": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "META": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1315,62 +1413,6 @@
     "is_etf": false,
     "is_core_etf": false
   },
-  "MSI": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "MUFG": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "MUX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "LRCX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "MCD": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "MDLZ": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "MELI": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "META": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
   "MRNA": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1392,6 +1434,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "MSI": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "MSTR": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1400,6 +1449,34 @@
     "is_core_etf": false
   },
   "MU": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "MUFG": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "MUX": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "NEM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "NFLX": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
@@ -1462,10 +1539,24 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "NTES": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "NUE": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "NVDA": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1504,7 +1595,21 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "ORLY": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "OXY": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "PAAS": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
@@ -1519,6 +1624,13 @@
     "is_core_etf": false
   },
   "PAGS": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "PANW": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
@@ -1543,6 +1655,27 @@
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "PCAR": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "PDD": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "PEP": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1595,11 +1728,25 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "PRPEDOB": {
+    "instrument_class": "FCI",
+    "asset_family": "fci",
+    "asset_subfamily": "fci_renta_fija_usd",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "PSO": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
+    "is_core_etf": false
+  },
+  "PSQ": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
     "is_core_etf": false
   },
   "PSX": {
@@ -1616,6 +1763,27 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "PYPL": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "QCOM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "QQQ": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
+  },
   "RACE": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1630,10 +1798,45 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "RGTI": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "RIO": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "RIOT": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "RKLB": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "ROKU": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "ROST": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1658,7 +1861,21 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "SATL": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "SBS": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "SBUX": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
@@ -1676,6 +1893,13 @@
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "SDA": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1735,6 +1959,20 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "SLV": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "SMH": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_sector",
+    "is_etf": true,
+    "is_core_etf": false
+  },
   "SNA": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1791,7 +2029,28 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "SPXL": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "SPY": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
+  },
   "STLA": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "STNE": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",
@@ -1805,6 +2064,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "SWKS": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "SYY": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1812,10 +2078,38 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "T": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "TCOM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "TEAM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "TEFO": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "TEM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1868,10 +2162,38 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "TMUS": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "TQQQ": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "TRIP": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "TRVV": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "TSLA": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1917,10 +2239,24 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "TXN": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "TXR": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "UAL": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -1966,6 +2302,27 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "UPST": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "URA": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_sector",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "URBN": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "USB": {
     "instrument_class": "Stock",
     "asset_family": "stock",
@@ -1980,7 +2337,35 @@
     "is_etf": true,
     "is_core_etf": false
   },
+  "V": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "VALE": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "VEA": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_country_region",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "VIG": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_core",
+    "is_etf": true,
+    "is_core_etf": true
+  },
+  "VIST": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_commodity",
@@ -1991,6 +2376,20 @@
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "VOD": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "VRSN": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -2008,10 +2407,31 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "VXX": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_other",
+    "is_etf": true,
+    "is_core_etf": false
+  },
   "VZ": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "WBA": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "WBO": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
     "is_etf": false,
     "is_core_etf": false
   },
@@ -2028,125 +2448,6 @@
     "asset_subfamily": "stock_defensive_dividend",
     "is_etf": false,
     "is_core_etf": false
-  },
-  "XOM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "XROX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "XYZ": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "YELP": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "BIOX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "ARKK": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "EWJ": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_country_region",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "IJH": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
-  },
-  "IVE": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
-  },
-  "IVW": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
-  },
-  "IWM": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
-  },
-  "PSQ": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "SLV": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "SPXL": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "URA": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_sector",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "VEA": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_country_region",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "VIG": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
   },
   "XLB": {
     "instrument_class": "ETF",
@@ -2204,328 +2505,6 @@
     "is_etf": true,
     "is_core_etf": false
   },
-  "XLY": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_sector",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "XPEV": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "VRSN": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "NEM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "NFLX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "NTES": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "NVDA": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "ORLY": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "PAAS": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "PANW": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "PCAR": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "PDD": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "PEP": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "PYPL": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "QCOM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "QQQ": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
-  },
-  "RGTI": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "RIOT": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "RKLB": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "ROKU": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "ROST": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "SATL": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "SBUX": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "SDA": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "SMH": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_sector",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "SPY": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_core",
-    "is_etf": true,
-    "is_core_etf": true
-  },
-  "STNE": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "SWKS": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "T": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TCOM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TEAM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TEM": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TMUS": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TQQQ": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "TRIP": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TSLA": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "TXN": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "UAL": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "UPST": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "URBN": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "V": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "VIST": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_commodity",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "VOD": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "VXX": {
-    "instrument_class": "ETF",
-    "asset_family": "etf",
-    "asset_subfamily": "etf_other",
-    "is_etf": true,
-    "is_core_etf": false
-  },
-  "WBA": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_defensive_dividend",
-    "is_etf": false,
-    "is_core_etf": false
-  },
-  "WBO": {
-    "instrument_class": "Stock",
-    "asset_family": "stock",
-    "asset_subfamily": "stock_growth",
-    "is_etf": false,
-    "is_core_etf": false
-  },
   "XLU": {
     "instrument_class": "ETF",
     "asset_family": "etf",
@@ -2540,7 +2519,49 @@
     "is_etf": true,
     "is_core_etf": false
   },
+  "XLY": {
+    "instrument_class": "ETF",
+    "asset_family": "etf",
+    "asset_subfamily": "etf_sector",
+    "is_etf": true,
+    "is_core_etf": false
+  },
+  "XOM": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_commodity",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "XP": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "XPEV": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "XROX": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "XYZ": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_growth",
+    "is_etf": false,
+    "is_core_etf": false
+  },
+  "YELP": {
     "instrument_class": "Stock",
     "asset_family": "stock",
     "asset_subfamily": "stock_growth",

@@ -259,6 +259,45 @@ class DecisionHistoryTests(unittest.TestCase):
         self.assertFalse(bool(row["sin_historial_temporal"]))
         self.assertEqual(row["dias_consecutivos_mantener"], 2)
 
+    def test_temporal_memory_resets_when_asset_subfamily_changes(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-04-20",
+                    "Ticker_IOL": "ADBAICA",
+                    "asset_subfamily": "liquidity_other",
+                    "score_unificado": -0.278,
+                    "accion_sugerida_v2": "Mantener liquidez bloqueada",
+                    "Peso_%": 7.2,
+                    "Tech_Trend": np.nan,
+                    "Momentum_20d_%": np.nan,
+                    "Momentum_60d_%": np.nan,
+                    "market_regime_any_active": True,
+                    "market_regime_active_flags": "inflacion_local_alta",
+                }
+            ]
+        )
+        final_decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "ADBAICA",
+                    "Tipo": "FCI",
+                    "asset_subfamily": "fund_other",
+                    "score_unificado": 0.0,
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                }
+            ]
+        )
+
+        enriched = enrich_with_temporal_memory(final_decision, history, run_date="2026-04-21")
+        row = enriched.iloc[0]
+
+        self.assertTrue(bool(row["sin_historial_temporal"]))
+        self.assertTrue(pd.isna(row["score_delta_vs_dia_anterior"]))
+        self.assertIsNone(row["accion_previa"])
+        self.assertEqual(row["dias_consecutivos_mantener"], 1)
+        self.assertFalse(bool(row["es_nueva_senal"]))
+
 
 if __name__ == "__main__":
     unittest.main()

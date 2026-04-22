@@ -139,6 +139,66 @@ class LiquidityTests(unittest.TestCase):
         self.assertFalse(bool(row["Es_Liquidez"]))
         self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 0, rel_tol=0, abs_tol=0.01))
 
+    def test_rebuild_liquidity_reports_adbaica_as_fci_without_treating_it_as_liquidity(self) -> None:
+        activos = [
+            {
+                "valorizado": 1833053,
+                "gananciaDinero": 888053,
+                "titulo": {
+                    "simbolo": "ADBAICA",
+                    "descripcion": "ADCAP Cobertura Clase A",
+                    "tipo": "FONDO COMUN DE INVERSION",
+                    "moneda": "Pesos",
+                },
+            },
+        ]
+        estado_payload = {"totalEnPesos": 1833053, "cuentas": []}
+
+        df_liquidez, contract, raw_rows = rebuild_liquidity(
+            activos,
+            estado_payload,
+            mep_real=1000,
+            fci_cash_management={"PRPEDOB"},
+        )
+
+        self.assertEqual(len(raw_rows), 1)
+        row = df_liquidez.iloc[0]
+        self.assertEqual(row["Ticker_IOL"], "ADBAICA")
+        self.assertEqual(row["Tipo"], "FCI")
+        self.assertEqual(row["Bloque"], "FCI")
+        self.assertFalse(bool(row["Es_Liquidez"]))
+        self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 0, rel_tol=0, abs_tol=0.01))
+
+    def test_rebuild_liquidity_reports_prpedob_as_fci_without_treating_it_as_liquidity(self) -> None:
+        activos = [
+            {
+                "valorizado": 2500,
+                "gananciaDinero": 120,
+                "titulo": {
+                    "simbolo": "PRPEDOB",
+                    "descripcion": "Premier Performance Dolares - Clase B",
+                    "tipo": "FONDO COMUN DE INVERSION",
+                    "moneda": "USD",
+                },
+            },
+        ]
+        estado_payload = {"totalEnPesos": 2500000, "cuentas": []}
+
+        df_liquidez, contract, raw_rows = rebuild_liquidity(
+            activos,
+            estado_payload,
+            mep_real=1000,
+            fci_cash_management=set(),
+        )
+
+        self.assertEqual(len(raw_rows), 1)
+        row = df_liquidez.iloc[0]
+        self.assertEqual(row["Ticker_IOL"], "PRPEDOB")
+        self.assertEqual(row["Tipo"], "FCI")
+        self.assertEqual(row["Bloque"], "FCI")
+        self.assertFalse(bool(row["Es_Liquidez"]))
+        self.assertTrue(math.isclose(contract["fci_estrategico_ars"], 0, rel_tol=0, abs_tol=0.01))
+
     def test_rebuild_liquidity_treats_zero_mep_as_missing_without_dividing_by_zero(self) -> None:
         activos = [
             {

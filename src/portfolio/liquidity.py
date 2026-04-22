@@ -7,7 +7,7 @@ import pandas as pd
 
 from common.numeric import positive_float_or_none
 
-FCI_REPORTED_AS_FUND = {"IOLPORA"}
+FCI_REPORTED_AS_FUND = {"IOLPORA", "ADBAICA", "PRPEDOB"}
 
 
 def normalize_account_currency(moneda: Any) -> str:

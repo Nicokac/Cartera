@@ -182,13 +182,14 @@ class SizingTests(unittest.TestCase):
             "Mantener liquidez bloqueada",
         )
 
-    def test_build_operational_proposal_no_longer_prefers_caucion_by_name(self) -> None:
+    def test_build_operational_proposal_excludes_adbaica_when_it_is_a_real_fci(self) -> None:
         extra_row = pd.DataFrame(
             [
                 {
                     "Ticker_IOL": "ADBAICA",
                     "Descripcion": "FCI cobertura",
-                    "Tipo": "Liquidez",
+                    "Tipo": "FCI",
+                    "Es_Liquidez": False,
                     "accion_sugerida_v2": "Mantener / Neutral",
                     "score_unificado": 0.0,
                     "score_despliegue_liquidez": 0.95,
@@ -210,9 +211,10 @@ class SizingTests(unittest.TestCase):
 
         result = build_operational_proposal(final_decision, mep_real=1000)
 
-        self.assertEqual(result["fuente_fondeo"], "Fuentes multiples: ADBAICA, CAUCION")
-        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_ars"], 440000, rel_tol=0, abs_tol=0.01))
-        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_usd"], 440.0, rel_tol=0, abs_tol=0.01))
+        self.assertEqual(result["fuente_fondeo"], "CAUCION")
+        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_ars"], 200000, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(result["monto_fondeo_liquidez_usd"], 200.0, rel_tol=0, abs_tol=0.01))
+        self.assertNotIn("ADBAICA", result["top_fondeo"]["Ticker_IOL"].tolist())
 
     def test_bond_subfamily_rebalance_threshold_is_not_overwritten_by_monitor_rule(self) -> None:
         final_decision = self.final_decision.copy()
