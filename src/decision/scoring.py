@@ -261,7 +261,7 @@ def build_decision_base(
     decision = base.merge(ced_data, on="Ticker_IOL", how="left")
     decision["Cobertura_Modelo"] = np.where(decision["Ticker_Finviz"].notna(), "Completa", "Parcial")
     if "Es_Liquidez" in decision.columns:
-        decision["Es_Liquidez"] = decision["Es_Liquidez"].fillna(decision["Tipo"].eq("Liquidez"))
+        decision["Es_Liquidez"] = decision["Es_Liquidez"].fillna(decision["Tipo"].eq("Liquidez")).astype(bool)
     else:
         decision["Es_Liquidez"] = decision["Tipo"].eq("Liquidez")
     decision["Es_Cedear"] = decision["Tipo"].eq("CEDEAR")

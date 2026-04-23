@@ -12,10 +12,20 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from portfolio.checks import build_integrity_report
-from portfolio.valuation import attach_value_usd, build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+from portfolio.valuation import (
+    MASTER_PORTFOLIO_COLUMNS,
+    attach_value_usd,
+    build_bonos_df,
+    build_cedears_df,
+    build_local_df,
+    build_portfolio_master,
+)
 
 
 class ValuationAndChecksTests(unittest.TestCase):
+    def test_master_portfolio_contract_includes_liquidity_flag(self) -> None:
+        self.assertIn("Es_Liquidez", MASTER_PORTFOLIO_COLUMNS)
+
     def test_build_cedears_df_returns_zero_weight_when_total_is_zero(self) -> None:
         df_cedears = build_cedears_df(
             [("AAPL", "AAPL", "Tecnologia", 2, 1000)],

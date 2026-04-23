@@ -29,6 +29,7 @@ MASTER_PORTFOLIO_COLUMNS = [
     "Valor_USD",
     "Ganancia_ARS",
     "Peso_%",
+    "Es_Liquidez",
 ]
 
 

@@ -195,6 +195,45 @@ class DashboardKpiTests(unittest.TestCase):
         self.assertTrue(math.isclose(kpis["invertido_ars"], 800.0, rel_tol=0, abs_tol=0.01))
         self.assertTrue(math.isclose(kpis["liquidez_ars"], 200.0, rel_tol=0, abs_tol=0.01))
 
+    def test_dashboard_handles_object_dtype_liquidity_flags(self) -> None:
+        df_total = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "IOLPORA",
+                    "Tipo": "FCI",
+                    "Bloque": "FCI",
+                    "Moneda": "ARS",
+                    "Valorizado_ARS": 800.0,
+                    "Valor_USD": 0.8,
+                    "Ganancia_ARS": 80.0,
+                    "PPC_ARS": None,
+                    "Cantidad_Real": None,
+                    "Peso_%": 80.0,
+                    "Es_Liquidez": False,
+                },
+                {
+                    "Ticker_IOL": "CAUCION",
+                    "Tipo": "Liquidez",
+                    "Bloque": "Liquidez",
+                    "Moneda": "ARS",
+                    "Valorizado_ARS": 200.0,
+                    "Valor_USD": 0.2,
+                    "Ganancia_ARS": 0.0,
+                    "PPC_ARS": None,
+                    "Cantidad_Real": None,
+                    "Peso_%": 20.0,
+                    "Es_Liquidez": True,
+                },
+            ]
+        )
+        df_total["Es_Liquidez"] = df_total["Es_Liquidez"].astype(object)
+
+        bundle = build_executive_dashboard_data(df_total, mep_real=1000.0)
+        kpis = bundle["kpis"]
+
+        self.assertTrue(math.isclose(kpis["invertido_ars"], 800.0, rel_tol=0, abs_tol=0.01))
+        self.assertTrue(math.isclose(kpis["liquidez_ars"], 200.0, rel_tol=0, abs_tol=0.01))
+
 
 if __name__ == "__main__":
     unittest.main()

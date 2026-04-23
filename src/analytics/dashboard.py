@@ -19,7 +19,7 @@ def build_executive_dashboard_data(
     if "Es_Liquidez" not in work.columns:
         work["Es_Liquidez"] = work["Tipo"].eq("Liquidez")
     else:
-        work["Es_Liquidez"] = work["Es_Liquidez"].fillna(work["Tipo"].eq("Liquidez"))
+        work["Es_Liquidez"] = work["Es_Liquidez"].fillna(work["Tipo"].eq("Liquidez")).astype(bool)
     if "Moneda" not in work.columns:
         work["Moneda"] = pd.NA
 
