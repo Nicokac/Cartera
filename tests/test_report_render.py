@@ -55,6 +55,8 @@ def _build_minimal_result(
     )
     return {
         "mep_real": 1200.0,
+        "precios_iol": {},
+        "vn_factor_map": {},
         "generated_at_label": "2026-04-08 09:30:00",
         "portfolio_bundle": {
             "df_total": df_total,
@@ -217,6 +219,36 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("Liquidez ampliada", html)
         self.assertIn("Vuelve a monitoreo desde reduccion", html)
         self.assertIn("Antes: Reducir. Ahora: Mantener / monitorear.", html)
+
+    def test_render_report_shows_pending_portfolio_rows_for_unconsolidated_trades(self) -> None:
+        result = _build_minimal_result()
+        result["mep_real"] = 1419.0
+        result["precios_iol"] = {"S31G6": 117.0}
+        result["operations_bundle"] = {
+            "recent_trades": pd.DataFrame(
+                [
+                    {
+                        "simbolo": "S31G6",
+                        "tipo": "Compra",
+                        "estado": "terminada",
+                        "cantidad_final": 102127,
+                        "precio_final": 117.0,
+                        "monto_final": 119008.59,
+                        "operation_currency": "ARS",
+                    }
+                ]
+            ),
+            "recent_operations": pd.DataFrame(),
+            "recent_events": pd.DataFrame(),
+            "symbol_summary": pd.DataFrame(),
+            "stats": {"total": 1, "trading": 1, "events": 0, "completed": 1},
+        }
+
+        html = render_report(result)
+
+        self.assertIn("Ver tenencias pendientes de consolidacion", html)
+        self.assertIn("S31G6", html)
+        self.assertIn("Pendiente de consolidacion", html)
 
     def test_render_report_shows_prediction_section_when_bundle_has_data(self) -> None:
         result = _build_minimal_result()

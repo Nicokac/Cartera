@@ -12,6 +12,8 @@ from report_primitives import (
     esc_text,
     fmt_ars,
     fmt_pct,
+    fmt_quantity,
+    fmt_label,
     fmt_usd,
 )
 from report_sections import build_technical_summary
@@ -305,7 +307,42 @@ def build_decision_section(
     """
 
 
-def build_portfolio_section(df_total: pd.DataFrame) -> str:
+def build_portfolio_section(df_total: pd.DataFrame, *, pending_rows: pd.DataFrame | None = None) -> str:
+    pending_block = ""
+    if isinstance(pending_rows, pd.DataFrame) and not pending_rows.empty:
+        pending_view = pending_rows.copy()
+        pending_columns = [
+            "Ticker_IOL",
+            "Tipo",
+            "Bloque",
+            "Cantidad",
+            "Cantidad_Real",
+            "Precio_ARS",
+            "Valorizado_ARS",
+            "Valor_USD",
+            "Peso_%",
+            "Fuente",
+        ]
+        pending_view = pending_view[[col for col in pending_columns if col in pending_view.columns]]
+        if "Valorizado_ARS" in pending_view.columns:
+            pending_view = pending_view.sort_values("Valorizado_ARS", ascending=False, na_position="last")
+        pending_block = build_collapsible(
+            "Ver tenencias pendientes de consolidacion",
+            build_table(
+                pending_view,
+                formatters={
+                    "Cantidad": fmt_quantity,
+                    "Cantidad_Real": fmt_quantity,
+                    "Precio_ARS": fmt_ars,
+                    "Valorizado_ARS": fmt_ars,
+                    "Valor_USD": fmt_usd,
+                    "Peso_%": fmt_pct,
+                    "Fuente": fmt_label,
+                },
+            ),
+            compact=True,
+        )
+
     return f"""
     <section class="panel" id="cartera">
       <h2>Cartera maestra</h2>
@@ -323,6 +360,7 @@ def build_portfolio_section(df_total: pd.DataFrame) -> str:
           ),
           compact=True,
       )}
+      {pending_block}
     </section>
     """
 

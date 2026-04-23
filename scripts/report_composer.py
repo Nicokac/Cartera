@@ -26,6 +26,7 @@ from report_sections import (
     build_sizing_section,
     build_summary_section,
 )
+from portfolio.operations import build_pending_trade_portfolio_rows
 
 from decision.action_constants import NEUTRAL_ACTIONS
 
@@ -75,6 +76,8 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
     operations_bundle = result.get("operations_bundle", {}) or {}
     prediction_bundle = result.get("prediction_bundle", {}) or {}
+    prices_iol = result.get("precios_iol", {}) or {}
+    vn_factor_map = result.get("vn_factor_map", {}) or {}
     decision_memory = decision_bundle.get("decision_memory", {}) or {}
     market_regime = decision_bundle.get("market_regime", {}) or {}
 
@@ -133,6 +136,14 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     )
     sizing_preview = build_sizing_preview(asignacion_final)
     active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
+    pending_portfolio_rows = build_pending_trade_portfolio_rows(
+        operations_bundle.get("recent_trades", pd.DataFrame()) if isinstance(operations_bundle, dict) else pd.DataFrame(),
+        current_portfolio=df_total,
+        prices_iol=prices_iol,
+        vn_factor_map=vn_factor_map,
+        mep_real=mep_real,
+        total_portfolio_ars=float(kpis.get("total_ars", 0) or 0),
+    )
 
     return {
         "mep_real": mep_real,
@@ -167,6 +178,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         "neutrales": neutrales,
         "technical_view": technical_view,
         "price_history": price_history,
+        "pending_portfolio_rows": pending_portfolio_rows,
         "family_summary": family_summary,
         "changed_actions": changed_actions,
         "changes_direction_summary": changes_direction_summary,
@@ -294,7 +306,13 @@ def build_render_sections(
             motive_col=str(context["motive_col"]),
         ),
     )
-    portfolio_section = time_section("portfolio", lambda: build_portfolio_section(context["df_total"]))
+    portfolio_section = time_section(
+        "portfolio",
+        lambda: build_portfolio_section(
+            context["df_total"],
+            pending_rows=context.get("pending_portfolio_rows", pd.DataFrame()),
+        ),
+    )
     integrity_section = time_section("integrity", lambda: build_integrity_section(context["integrity_report"]))
     integrity_strip = build_integrity_strip(context["integrity_report"], context["generated_at_label"])
     return {

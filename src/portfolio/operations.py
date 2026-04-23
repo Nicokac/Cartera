@@ -55,6 +55,116 @@ def resolve_position_quantity(row: pd.Series | None) -> float | None:
     return None
 
 
+def infer_trade_vn_factor(
+    *,
+    quantity: object,
+    price: object,
+    amount: object,
+    default: float = 1.0,
+) -> float:
+    qty = pd.to_numeric(pd.Series([quantity]), errors="coerce").iloc[0]
+    px = pd.to_numeric(pd.Series([price]), errors="coerce").iloc[0]
+    amt = pd.to_numeric(pd.Series([amount]), errors="coerce").iloc[0]
+    if pd.isna(qty) or pd.isna(px) or pd.isna(amt) or qty <= 0 or px <= 0 or amt <= 0:
+        return float(default)
+
+    implied = float(qty * px / amt)
+    candidates = [1.0, 10.0, 100.0, 1000.0]
+    nearest = min(candidates, key=lambda candidate: abs(candidate - implied))
+    if nearest == 1.0:
+        return 1.0
+
+    # Bonds and letras commonly settle with VN scaling; allow moderate noise from
+    # fees, partial fills, or the broker using a slightly different monetary base.
+    rel_error = abs(implied - nearest) / nearest
+    return nearest if rel_error <= 0.3 else float(default)
+
+
+def build_pending_trade_portfolio_rows(
+    recent_trades: pd.DataFrame | None,
+    *,
+    current_portfolio: pd.DataFrame | None = None,
+    prices_iol: dict[str, float] | None = None,
+    vn_factor_map: dict[str, float | int] | None = None,
+    mep_real: float | None = None,
+    total_portfolio_ars: float | None = None,
+) -> pd.DataFrame:
+    if not isinstance(recent_trades, pd.DataFrame) or recent_trades.empty:
+        return pd.DataFrame()
+
+    current_view = prepare_portfolio_for_compare(current_portfolio)
+    current_symbols = set(current_view.index.tolist())
+    prices_iol = {str(k).strip().upper(): float(v) for k, v in (prices_iol or {}).items()}
+    vn_factor_map = {str(k).strip().upper(): float(v) for k, v in (vn_factor_map or {}).items()}
+
+    rows: list[dict[str, object]] = []
+    seen_symbols: set[str] = set()
+
+    trades = recent_trades.copy()
+    if "simbolo" not in trades.columns:
+        return pd.DataFrame()
+    trades["simbolo"] = trades["simbolo"].map(normalize_symbol)
+
+    for _, row in trades.iterrows():
+        symbol = str(row.get("simbolo", "")).strip().upper()
+        if not symbol or symbol in current_symbols or symbol in seen_symbols:
+            continue
+
+        quantity = pd.to_numeric(pd.Series([row.get("cantidad_final")]), errors="coerce").iloc[0]
+        trade_price = pd.to_numeric(pd.Series([row.get("precio_final")]), errors="coerce").iloc[0]
+        trade_amount = pd.to_numeric(pd.Series([row.get("monto_final")]), errors="coerce").iloc[0]
+        current_price = prices_iol.get(symbol)
+        vn_factor = vn_factor_map.get(symbol)
+        if vn_factor is None:
+            vn_factor = infer_trade_vn_factor(quantity=quantity, price=trade_price, amount=trade_amount)
+        quantity_real = quantity / vn_factor if pd.notna(quantity) and vn_factor not in (0, None) else pd.NA
+
+        valuation_price = current_price if current_price is not None else trade_price
+        if pd.notna(quantity_real) and valuation_price is not None and pd.notna(valuation_price):
+            valorizado = float(quantity_real) * float(valuation_price)
+        else:
+            valorizado = float(trade_amount) if pd.notna(trade_amount) else pd.NA
+
+        if pd.notna(valorizado) and mep_real:
+            valor_usd = float(valorizado) / float(mep_real)
+        else:
+            valor_usd = pd.NA
+
+        if (
+            pd.notna(quantity_real)
+            and pd.notna(trade_price)
+            and valuation_price is not None
+            and pd.notna(valuation_price)
+        ):
+            ganancia = float(quantity_real) * (float(valuation_price) - float(trade_price))
+        else:
+            ganancia = pd.NA
+
+        peso = pd.NA
+        if pd.notna(valorizado) and total_portfolio_ars and total_portfolio_ars > 0:
+            peso = (float(valorizado) / float(total_portfolio_ars)) * 100.0
+
+        rows.append(
+            {
+                "Ticker_IOL": symbol,
+                "Tipo": "Pendiente",
+                "Bloque": "Pendiente de consolidacion",
+                "Cantidad": quantity,
+                "Cantidad_Real": quantity_real,
+                "VN_Factor": vn_factor,
+                "Precio_ARS": valuation_price if valuation_price is not None else pd.NA,
+                "Valorizado_ARS": valorizado,
+                "Valor_USD": valor_usd,
+                "Ganancia_ARS": ganancia,
+                "Peso_%": peso,
+                "Fuente": "Operaciones recientes",
+            }
+        )
+        seen_symbols.add(symbol)
+
+    return pd.DataFrame(rows)
+
+
 def prepare_portfolio_for_compare(df: pd.DataFrame | None) -> pd.DataFrame:
     if not isinstance(df, pd.DataFrame) or df.empty or "Ticker_IOL" not in df.columns:
         return pd.DataFrame()

@@ -10,14 +10,21 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from portfolio.operations import (
+    build_pending_trade_portfolio_rows,
     build_operations_bundle,
     enrich_operations_bundle,
     build_position_transition_bundle,
+    infer_trade_vn_factor,
     normalize_iol_operations,
 )
 
 
 class OperationsBundleTests(unittest.TestCase):
+    def test_infer_trade_vn_factor_detects_bond_scale_from_trade_amount(self) -> None:
+        factor = infer_trade_vn_factor(quantity=102127, price=117, amount=119008.59)
+
+        self.assertEqual(factor, 100.0)
+
     def test_normalize_iol_operations_builds_final_fields_and_sorting(self) -> None:
         df = normalize_iol_operations(
             [
@@ -249,6 +256,36 @@ class OperationsBundleTests(unittest.TestCase):
         cambios = bundle["summary"].set_index("simbolo")["cambio"].to_dict()
         self.assertEqual(cambios["IOLPORA"], "reclasificacion")
         self.assertEqual(cambios["PAMP"], "alta_nueva")
+
+    def test_build_pending_trade_portfolio_rows_builds_pending_bond_row(self) -> None:
+        recent_trades = normalize_iol_operations(
+            [
+                {
+                    "numero": 170860257,
+                    "fechaOperada": "2026-04-16T12:55:00",
+                    "tipo": "Compra",
+                    "estado": "terminada",
+                    "simbolo": "S31G6",
+                    "cantidadOperada": 102127,
+                    "precioOperado": 117,
+                    "montoOperado": 119008.59,
+                }
+            ]
+        )
+
+        out = build_pending_trade_portfolio_rows(
+            recent_trades,
+            current_portfolio=pd.DataFrame([{"Ticker_IOL": "AL30", "Tipo": "Bono"}]),
+            prices_iol={"S31G6": 117.0},
+            mep_real=1419.0,
+            total_portfolio_ars=24834540.0,
+        )
+
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out.iloc[0]["Ticker_IOL"], "S31G6")
+        self.assertEqual(out.iloc[0]["Tipo"], "Pendiente")
+        self.assertAlmostEqual(float(out.iloc[0]["Cantidad_Real"]), 1021.27, places=2)
+        self.assertAlmostEqual(float(out.iloc[0]["Valorizado_ARS"]), 119488.59, places=2)
 
 
 if __name__ == "__main__":

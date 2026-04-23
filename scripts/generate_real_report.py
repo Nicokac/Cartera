@@ -259,6 +259,24 @@ def extract_quote_tickers(activos: list[dict]) -> list[str]:
     return sorted(tickers)
 
 
+def extract_operation_quote_tickers(operations: list[dict[str, object]] | None, *, limit: int = 20) -> list[str]:
+    if not operations:
+        return []
+
+    tickers: list[str] = []
+    for operation in operations:
+        tipo = str(operation.get("tipo") or "").strip()
+        estado = str(operation.get("estado") or "").strip().lower()
+        simbolo = str(operation.get("simbolo") or "").strip().upper()
+        if tipo not in {"Compra", "Venta"} or estado != "terminada" or not simbolo:
+            continue
+        if simbolo not in tickers:
+            tickers.append(simbolo)
+        if len(tickers) >= limit:
+            break
+    return tickers
+
+
 def fetch_prices(
     tickers: list[str],
     *,
@@ -735,7 +753,7 @@ def main(argv: list[str] | None = None) -> None:
     mep_data = get_mep_real(casa=project_config.MEP_CASA, base_url=project_config.ARGENTINADATOS_URL)
     mep_real = float(mep_data["promedio"]) if mep_data else None
 
-    tickers = extract_quote_tickers(activos)
+    tickers = sorted(set(extract_quote_tickers(activos)) | set(extract_operation_quote_tickers(operaciones_payload)))
     print(f"Descargando precios IOL para {len(tickers)} tickers...")
     precios_iol, token = fetch_prices(tickers, token=token, username=username, password=password)
 
@@ -877,6 +895,8 @@ def main(argv: list[str] | None = None) -> None:
     report = {
         "mep_real": mep_real or 0.0,
         "generated_at_label": run_ts.strftime("%Y-%m-%d %H:%M:%S"),
+        "precios_iol": precios_iol,
+        "vn_factor_map": project_config.VN_FACTOR_MAP,
         "portfolio_bundle": portfolio_bundle,
         "dashboard_bundle": dashboard_bundle,
         "decision_bundle": decision_bundle,
