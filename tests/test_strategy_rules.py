@@ -264,6 +264,8 @@ class StrategyRulesTests(unittest.TestCase):
         self.assertTrue(bool(decision.loc[0, "Es_FCI"]))
         self.assertEqual(decision.loc[0, "asset_family"], "fund")
         self.assertEqual(decision.loc[0, "asset_subfamily"], "fund_other")
+        self.assertEqual(decision.loc[0, "Costo_ARS"], 0.0)
+        self.assertTrue(pd.isna(decision.loc[0, "Ganancia_%"]))
 
     def test_explanations_render_specific_fci_narrative(self) -> None:
         df = pd.DataFrame(

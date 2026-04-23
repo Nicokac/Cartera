@@ -216,7 +216,9 @@ def build_decision_base(
         if col not in base.columns:
             base[col] = np.nan
     base = base.reindex(columns=decision_cols).copy()
-    base["Costo_ARS"] = base["Cantidad_Real"].fillna(0) * base["PPC_ARS"].fillna(0)
+    cantidad_real = pd.to_numeric(base["Cantidad_Real"], errors="coerce").fillna(0)
+    ppc_ars = pd.to_numeric(base["PPC_ARS"], errors="coerce").fillna(0)
+    base["Costo_ARS"] = cantidad_real * ppc_ars
     base["Ganancia_%"] = np.where(
         base["Costo_ARS"] > 0,
         base["Ganancia_ARS"] / base["Costo_ARS"] * 100,

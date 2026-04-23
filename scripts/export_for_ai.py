@@ -125,6 +125,25 @@ def load_last_predictions() -> pd.DataFrame:
     })
 
 
+def _bool_column_any(df: pd.DataFrame, col: str) -> bool | None:
+    if col not in df.columns:
+        return None
+    return bool(df[col].fillna(False).astype(bool).any())
+
+
+def _existing_regime_flags(df: pd.DataFrame) -> str | None:
+    if "market_regime_flags" not in df.columns:
+        return None
+    values = [
+        str(value).strip()
+        for value in df["market_regime_flags"].dropna().unique().tolist()
+        if str(value).strip()
+    ]
+    if not values:
+        return None
+    return ", ".join(values)
+
+
 def enrich_with_context(df: pd.DataFrame, kpis: dict, liquidity: dict, date: str) -> pd.DataFrame:
     df = df.copy()
     df.insert(0, "run_date", date)
@@ -134,13 +153,28 @@ def enrich_with_context(df: pd.DataFrame, kpis: dict, liquidity: dict, date: str
 
     # Consolidar flags de régimen en una sola columna legible
     flags: list[str] = []
-    if df.get("market_regime_stress_soberano_local", pd.Series([False])).any():
+    regime_sources_present = False
+    stress_soberano = _bool_column_any(df, "market_regime_stress_soberano_local")
+    inflacion_alta = _bool_column_any(df, "market_regime_inflacion_local_alta")
+    tasas_ust_altas = _bool_column_any(df, "market_regime_tasas_ust_altas")
+    if stress_soberano is not None:
+        regime_sources_present = True
+    if inflacion_alta is not None:
+        regime_sources_present = True
+    if tasas_ust_altas is not None:
+        regime_sources_present = True
+    if stress_soberano:
         flags.append("stress_soberano")
-    if df.get("market_regime_inflacion_local_alta", pd.Series([False])).any():
+    if inflacion_alta:
         flags.append("inflacion_alta")
-    if df.get("market_regime_tasas_ust_altas", pd.Series([False])).any():
+    if tasas_ust_altas:
         flags.append("tasas_ust_altas")
-    df["market_regime_flags"] = ", ".join(flags) if flags else "ninguno"
+    if flags:
+        df["market_regime_flags"] = ", ".join(flags)
+    elif regime_sources_present:
+        df["market_regime_flags"] = "ninguno"
+    else:
+        df["market_regime_flags"] = _existing_regime_flags(df) or "sin_columnas_regimen"
 
     return df
 

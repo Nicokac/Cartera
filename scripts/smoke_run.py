@@ -27,7 +27,7 @@ from pipeline import (
     build_sizing_bundle,
 )
 from portfolio.operations import build_operations_bundle, enrich_operations_bundle
-from tests.smoke_fixtures import (
+from tests.fixtures.smoke_fixtures import (
     build_mock_bonistas,
     build_mock_inputs,
     build_mock_operations,
