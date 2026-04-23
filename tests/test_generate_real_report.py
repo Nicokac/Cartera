@@ -14,9 +14,12 @@ if str(SCRIPTS) not in sys.path:
 from generate_real_report import (
     build_real_bonistas_bundle,
     enrich_real_cedears,
+    extract_quote_tickers,
     legacy_snapshots_enabled,
     load_previous_portfolio_snapshot,
     load_local_env,
+    parse_finviz_number,
+    parse_finviz_pct,
     parse_args,
     prompt_money_ars,
     prompt_yes_no,
@@ -25,6 +28,30 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_parse_finviz_number_handles_suffixes_and_missing_values(self) -> None:
+        self.assertEqual(parse_finviz_number("1.5B"), 1_500_000_000.0)
+        self.assertEqual(parse_finviz_number("2,400M"), 2_400_000_000.0)
+        self.assertTrue(pd.isna(parse_finviz_number("-")))
+        self.assertTrue(pd.isna(parse_finviz_number("no-num")))
+
+    def test_parse_finviz_pct_handles_percent_strings_and_missing_values(self) -> None:
+        self.assertEqual(parse_finviz_pct("12.5%"), 12.5)
+        self.assertEqual(parse_finviz_pct("1,234.5%"), 1234.5)
+        self.assertTrue(pd.isna(parse_finviz_pct("-")))
+        self.assertTrue(pd.isna(parse_finviz_pct(None)))
+
+    def test_extract_quote_tickers_filters_supported_iol_asset_types(self) -> None:
+        activos = [
+            {"titulo": {"simbolo": "AAPL", "tipo": "CEDEARS"}},
+            {"titulo": {"simbolo": "AL30", "tipo": "Titulos Publicos"}},
+            {"titulo": {"simbolo": "PAMP", "tipo": "ACCIONES"}},
+            {"titulo": {"simbolo": "IOLPORA", "tipo": "FCI"}},
+            {"titulo": {"simbolo": "", "tipo": "CEDEARS"}},
+            {"titulo": {}},
+        ]
+
+        self.assertEqual(extract_quote_tickers(activos), ["AAPL", "AL30", "PAMP"])
+
     def test_load_local_env_parses_simple_env_file_without_overriding_existing_env(self) -> None:
         env_path = ROOT / "tmp_test.env"
         env_path.write_text(
