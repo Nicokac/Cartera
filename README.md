@@ -21,10 +21,11 @@ El repo esta en una etapa operativa estable:
   - `report_decision`
   - `report_primitives`
   - `report_operations`
+- metricas historicas de riesgo por posicion y portfolio (`analytics/portfolio_risk.py`) con metodologia de universo comparable y circuit breaker `serie_confiable`
 - flujo de operaciones reales integrado al reporte
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
 - capa experimental de prediccion direccional integrada al smoke y al real run
-- CI basada en `unittest` con `32` suites declaradas en `.github/workflows/ci.yml`
+- CI basada en `unittest` con `37` suites declaradas en `.github/workflows/ci.yml`
 
 Resumen funcional vigente:
 
@@ -182,6 +183,12 @@ Frentes ya cerrados recientemente:
 - `rank_score` ya tiene tests de borde explicitos para cohorts `N=3` y `N=4`
 - snapshots previos ahora validan filas utilizables de `Ticker_IOL` y coercion numerica defensiva
 - el ciclo operativo entre `generate_real_report.py` y `run_prediction_cycle.py` ya quedo documentado
+- `analytics/portfolio_risk.py`: metricas historicas por posicion y portfolio con universo comparable y `serie_confiable`
+- `_build_risk_focus_block` extraida de `build_summary_section` al nivel de modulo en `report_sections.py`
+- `test_decision_actions.py`: 19 tests sobre `assign_base_action`, `assign_action_v2` y `enrich_decision_explanations`
+- `test_decision_scoring.py`: 28 tests sobre helpers y smoke de `apply_base_scores`
+- `test_portfolio_risk.py`: 7 tests sobre el modulo de riesgo historico
+- `test_report_sections.py`: 8 tests sobre `_build_risk_focus_block`
 
 ## Memoria temporal
 
@@ -218,6 +225,9 @@ Estado actual del track:
 - Fase 5 cerrada: calibracion de pesos en `src/prediction/calibration.py`
 - Fase 6 cerrada: integracion experimental al pipeline, renderer y runner `scripts/run_prediction_cycle.py`
 - Fase 6.1 cerrada: correccion de escala de `score_unificado` en el predictor para alinear votos con la salida real del scoring
+- Fase 6.2 cerrada: zona muerta en votos continuos, RSI continuo, `IC <= 0` apaga senal
+- Fase 6.3 cerrada: calibracion rolling con fallback al historico completo
+- Fase 7 cerrada: ADX continuo y `relative_volume` continua incorporados; hardening de `sma_trend` y `conviction_label`
 
 Ciclo operativo actual de prediccion:
 

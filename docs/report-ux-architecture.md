@@ -20,8 +20,14 @@ La arquitectura tecnica actual del renderer quedo separada en:
 - `report_renderer`: orquestacion y timing
 - `report_composer`: armado de contexto y composicion de secciones
 - `report_layout`: layout principal y shell HTML
-- `report_sections`: bloques reutilizables
+- `report_sections`: bloques reutilizables (incluye seccion de riesgo historico)
 - `report_decision`: presentacion de tablas y narrativa de decision
+- `report_primitives`: helpers HTML reutilizables (focus blocks, tablas, barras)
+- `report_operations`: bloque de operaciones recientes y transiciones
+
+El modulo analitico de soporte es:
+
+- `analytics/portfolio_risk.py`: calcula el bundle de riesgo historico que consume `report_sections`
 
 ## Capas vigentes
 
@@ -59,6 +65,7 @@ Debe explicar el contexto:
 - overlay tecnico resumido
 - bonos locales resumidos
 - coberturas y notas del pipeline
+- riesgo historico por posicion: drawdown, volatilidad, retorno acumulado con indicador de calidad de historia y circuit breaker `serie_confiable`
 
 ### 4. Detalle completo
 

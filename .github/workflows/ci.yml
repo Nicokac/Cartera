@@ -61,6 +61,11 @@ jobs:
             tests.test_numeric_utils \
             tests.test_pyobd_client \
             tests.test_valuation_and_checks \
+            tests.test_market_regime_scoring \
+            tests.test_portfolio_risk \
+            tests.test_decision_actions \
+            tests.test_decision_scoring \
+            tests.test_report_sections \
             -v
 
       - name: Enforce coverage floor

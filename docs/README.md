@@ -31,7 +31,7 @@ Indice de la documentacion activa del proyecto.
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos
 - `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
-- el track de prediccion ya llego a Fase 6:
+- el track de prediccion llego a Fase 7 (ADX continuo, `relative_volume`, `conviction_label`):
   - integrado al pipeline experimental
   - visible en el renderer HTML
   - con runner propio de verificacion y recalibracion
@@ -48,6 +48,8 @@ Indice de la documentacion activa del proyecto.
 
 `docs/archive/` guarda roadmaps absorbidos, auditorias cerradas y notas historicas. No es punto de entrada operativo y no debe tomarse como estado actual salvo que se lo consulte por trazabilidad.
 
-Referencia util reciente:
+Audits recientes:
 
-- [audit-2026-04-20-f1081af.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\audit-2026-04-20-f1081af.md)
+- [audit-2026-04-24-2dbf950.md](archive/audit-2026-04-24-2dbf950.md) — extraccion `_build_risk_focus_block`, tests decision/actions
+- [audit-2026-04-24-8284e87.md](archive/audit-2026-04-24-8284e87.md) — modulo riesgo historico, 317/317
+- [audit-2026-04-20-f1081af.md](archive/audit-2026-04-20-f1081af.md) — auditoria factual estado repo

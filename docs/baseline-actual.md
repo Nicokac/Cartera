@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Documento actualizado al `2026-04-21`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
+Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
 ## Capacidades activas
 
@@ -16,6 +16,7 @@ Documento actualizado al `2026-04-21`. Define la baseline funcional vigente del 
 - clasificacion de FCIs reales (IOLPORA, ADBAICA, PRPEDOB) como posiciones visibles en cartera, separadas de la liquidez tactica
 - diferenciacion entre alta genuina y reclasificacion de posicion en el bloque operacional del reporte
 - capa experimental de prediccion direccional con historial, verificacion, recalibracion y conviction_label
+- metricas historicas de riesgo por posicion y portfolio agregado (`analytics/portfolio_risk.py`): drawdown, volatilidad y retorno acumulado con metodologia de universo comparable y circuit breaker `serie_confiable`
 
 ## Estado tecnico vigente
 
@@ -83,13 +84,14 @@ Documento actualizado al `2026-04-21`. Define la baseline funcional vigente del 
 
 ## Baseline de calidad
 
-- CI basada en `unittest` con suites estables del core, renderer, smoke y clientes
+- CI basada en `unittest` con 37 suites estables del core, renderer, smoke, clientes y analytics
 - bootstrap automatico de configuracion de ejemplo antes de tests
 - cobertura directa para:
-  - `report_primitives`
-  - `report_operations`
-  - `smoke_run`
-  - `smoke_output`
+  - `report_primitives`, `report_operations`, `report_sections`
+  - `smoke_run`, `smoke_output`
+  - `decision/actions`, `decision/scoring`
+  - `analytics/portfolio_risk`
+- suite local: 353/353 OK
 
 ## Clasificacion de FCIs
 
@@ -106,6 +108,8 @@ Documento actualizado al `2026-04-21`. Define la baseline funcional vigente del 
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
 - seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
 - calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
+- `decision/scoring.py` (885 ln): los helpers tienen tests unitarios pero `build_decision_base` y `apply_base_scores` solo tienen smoke coverage
+- `test_report_render.py` (~1070 ln): candidato a split por dominio cuando supere 1200 ln (O-006)
 
 ## Capa experimental integrada
 
