@@ -13,6 +13,7 @@ if str(SRC) not in sys.path:
 
 from decision.scoring import (
     apply_base_scores,
+    apply_technical_overlay_scores,
     blend_scores,
     build_decision_base,
     consensus_to_score,
@@ -275,6 +276,144 @@ class ApplyBaseScoresTests(unittest.TestCase):
         self.assertGreater(float(with_absolute.loc[0, "s_beta_risk"]), 0.5)
         self.assertLess(float(with_absolute.loc[0, "score_refuerzo"]), float(relative_only.loc[0, "score_refuerzo"]))
         self.assertGreater(float(with_absolute.loc[0, "score_reduccion"]), float(relative_only.loc[0, "score_reduccion"]))
+
+    def test_asset_subfamily_sparse_data_penalty_only_hits_names_without_support(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "EWZ",
+                    "asset_subfamily": "etf_country_region",
+                    "Peso_%": 3.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 1.0,
+                    "Perf YTD": 1.0,
+                    "Consensus_Final": 0.5,
+                    "total_ratings": 0.0,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+                {
+                    "Ticker_IOL": "EWW",
+                    "asset_subfamily": "etf_country_region",
+                    "Peso_%": 3.0,
+                    "Perf Week": 1.0,
+                    "Perf Month": 1.0,
+                    "Perf YTD": 1.0,
+                    "Consensus_Final": 0.5,
+                    "total_ratings": 5.0,
+                    "Ganancia_%": 10.0,
+                    "Ganancia_ARS": 100.0,
+                },
+            ]
+        )
+
+        out = apply_base_scores(
+            df,
+            scoring_rules={
+                "asset_subfamily_adjustments": {
+                    "etf_country_region": {
+                        "sparse_data_penalty": 0.20,
+                    }
+                }
+            },
+        )
+
+        by_ticker = out.set_index("Ticker_IOL")
+        self.assertFalse(bool(by_ticker.loc["EWZ", "has_fundamental_support"]))
+        self.assertTrue(bool(by_ticker.loc["EWW", "has_fundamental_support"]))
+        self.assertAlmostEqual(
+            float(by_ticker.loc["EWZ", "score_refuerzo"]) + 0.20,
+            float(by_ticker.loc["EWW", "score_refuerzo"]),
+            places=5,
+        )
+
+    def test_market_regime_adjustments_modify_scores_and_emit_flags(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "GGAL",
+                    "asset_family": "stock",
+                    "asset_subfamily": "stock_argentina",
+                    "Peso_%": 4.0,
+                    "Perf Week": 2.0,
+                    "Perf Month": 2.0,
+                    "Perf YTD": 2.0,
+                    "Consensus_Final": 0.5,
+                    "Ganancia_%": 12.0,
+                    "Ganancia_ARS": 120.0,
+                }
+            ]
+        )
+
+        base = apply_base_scores(df)
+        stressed = apply_base_scores(
+            df,
+            market_context={"riesgo_pais_bps": 1000.0},
+            scoring_rules={
+                "market_regime": {
+                    "enabled": True,
+                    "flags": {
+                        "stress_soberano_local": {"riesgo_pais_bps_min": 800.0},
+                    },
+                    "adjustments": {
+                        "stress_soberano_local": {
+                            "family:stock": {"refuerzo_delta": -0.10, "reduccion_delta": 0.15},
+                            "stock_argentina": {"reduccion_delta": 0.05},
+                        }
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(bool(stressed.loc[0, "market_regime_stress_soberano_local"]))
+        self.assertIn("stress_soberano_local", str(stressed.loc[0, "market_regime_flags"]))
+        self.assertLess(float(stressed.loc[0, "score_refuerzo"]), float(base.loc[0, "score_refuerzo"]))
+        self.assertGreater(float(stressed.loc[0, "score_reduccion"]), float(base.loc[0, "score_reduccion"]))
+
+
+class TechnicalOverlayAdvancedTests(unittest.TestCase):
+    def test_refuerzo_gate_caps_only_non_bullish_negative_momentum_names(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAA",
+                    "asset_family": "stock",
+                    "Tech_Trend": "Neutral",
+                    "Momentum_20d_%": -5.0,
+                    "score_refuerzo": 0.90,
+                    "score_reduccion": 0.10,
+                    "tech_refuerzo": 0.90,
+                },
+                {
+                    "Ticker_IOL": "BBB",
+                    "asset_family": "stock",
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": -5.0,
+                    "score_refuerzo": 0.90,
+                    "score_reduccion": 0.10,
+                    "tech_refuerzo": 0.90,
+                },
+            ]
+        )
+
+        out = apply_technical_overlay_scores(
+            df,
+            scoring_rules={
+                "technical_overlay": {"blend_base": 0.75, "blend_tech": 0.25},
+                "absolute_scoring": {
+                    "refuerzo_gate": {
+                        "enabled": True,
+                        "momentum_20d_max": 0.0,
+                        "max_score": 0.58,
+                        "allowed_trends": ["Alcista", "Alcista fuerte"],
+                        "excluded_families": ["bond", "liquidity"],
+                    }
+                },
+            },
+        ).set_index("Ticker_IOL")
+
+        self.assertAlmostEqual(float(out.loc["AAA", "score_refuerzo_v2"]), 0.58, places=5)
+        self.assertGreater(float(out.loc["BBB", "score_refuerzo_v2"]), 0.58)
 
 
 class FinalizeUnifiedScoreTests(unittest.TestCase):
