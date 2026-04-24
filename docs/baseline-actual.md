@@ -109,7 +109,11 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
 - seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
 - calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
 - `decision/scoring.py` (885 ln): cobertura unitaria directa ampliada para `build_decision_base`, `apply_base_scores` y ramas avanzadas (ajustes por subfamilia, `market_regime`, `refuerzo_gate` tecnico)
-- `test_report_render.py` (~1109 ln): candidato a split por dominio cuando supere 1200 ln (O-006)
+- suite de render dividida por dominio (O-006 cerrado):
+  - `tests/test_report_render_core.py`
+  - `tests/test_report_render_operations.py`
+  - `tests/test_report_render_ui.py`
+  - `tests/test_report_render.py` queda como wrapper de compatibilidad para `unittest`
 
 ## Capa experimental integrada
 
