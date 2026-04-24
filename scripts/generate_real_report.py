@@ -30,6 +30,7 @@ from analytics.bond_analytics import (
     build_bond_subfamily_summary,
     enrich_bond_analytics,
 )
+from analytics.portfolio_risk import build_portfolio_risk_bundle
 from analytics.technical import build_technical_overlay
 from clients.argentinadatos import get_mep_real, get_riesgo_pais_latest
 from clients.bcra import get_bcra_monetary_context, get_rem_latest
@@ -884,6 +885,15 @@ def main(argv: list[str] | None = None) -> None:
         mep_real=mep_real,
         liquidity_contract=portfolio_bundle.get("liquidity_contract"),
     )
+    risk_snapshot_dirs = [SNAPSHOTS_DIR]
+    if legacy_snapshots_enabled():
+        risk_snapshot_dirs.append(LEGACY_SNAPSHOTS_DIR)
+    risk_bundle = build_portfolio_risk_bundle(
+        df_total,
+        run_date=run_date,
+        snapshots_dirs=risk_snapshot_dirs,
+        total_ars=float(dashboard_bundle.get("kpis", {}).get("total_ars", 0) or 0),
+    )
     previous_portfolio, previous_snapshot_date = load_previous_portfolio_snapshot(run_date)
     operations_bundle = enrich_operations_bundle(
         build_operations_bundle(operaciones_payload),
@@ -907,6 +917,7 @@ def main(argv: list[str] | None = None) -> None:
         "bonistas_bundle": bonistas_bundle,
         "operations_bundle": operations_bundle,
         "prediction_bundle": prediction_bundle,
+        "risk_bundle": risk_bundle,
     }
     render_started = time.perf_counter()
     html_body = render_report(

@@ -12,6 +12,7 @@ from report_primitives import (
     ensure_table_columns,
     esc_text,
     fmt_ars,
+    fmt_label,
     fmt_pct,
     fmt_score,
     fmt_usd,
@@ -493,12 +494,138 @@ def build_summary_section(
     finviz_ratings_covered: int,
     decision_view: pd.DataFrame | None = None,
     action_col: str = "",
+    risk_bundle: dict[str, object] | None = None,
 ) -> str:
     score_dist_html = (
         build_score_distribution(decision_view, action_col)
         if isinstance(decision_view, pd.DataFrame) and action_col
         else ""
     )
+    risk_bundle = risk_bundle or {}
+    portfolio_summary = risk_bundle.get("portfolio_summary", {}) or {}
+    position_risk = risk_bundle.get("position_risk", pd.DataFrame())
+    risk_html = ""
+    if portfolio_summary and isinstance(position_risk, pd.DataFrame) and not position_risk.empty:
+        history_rank = {"Robusta": 0, "Parcial": 1, "Corta": 2, "Sin historia": 3}
+        position_risk = position_risk.copy()
+        position_risk["_history_rank"] = (
+            position_risk["Calidad_Historia"].map(history_rank).fillna(9)
+            if "Calidad_Historia" in position_risk.columns
+            else 9
+        )
+        position_risk = position_risk.sort_values(
+            ["_history_rank", "Drawdown_Max_%", "Volatilidad_Diaria_%"],
+            ascending=[True, True, False],
+            na_position="last",
+        ).drop(columns=["_history_rank"]).reset_index(drop=True)
+        market_risk = position_risk.loc[position_risk["Tipo"].astype(str) != "Bono"].copy()
+        bond_risk = position_risk.loc[position_risk["Tipo"].astype(str) == "Bono"].copy()
+        stability_note = portfolio_summary.get("nota_estabilidad")
+
+        def _build_risk_focus_block(source: pd.DataFrame, *, title: str, empty_message: str) -> str:
+            if source.empty:
+                return f'<div class="risk-subsection"><h3>{html.escape(title)}</h3><div class="empty compact-empty">{html.escape(empty_message)}</div></div>'
+
+            dd_items: list[dict[str, str]] = []
+            vol_items: list[dict[str, str]] = []
+            ret_items: list[dict[str, str]] = []
+
+            for _, row in source.nsmallest(3, "Drawdown_Max_%").iterrows():
+                dd_items.append(
+                    {
+                        "kicker": str(row.get("Ticker_IOL", "-")),
+                        "title": f"Drawdown {fmt_pct(row.get('Drawdown_Max_%'))}",
+                        "detail": f"{fmt_label(row.get('Tipo'))} / {fmt_label(row.get('Bloque'))} | Base {fmt_label(row.get('Base_Riesgo'))}",
+                    }
+                )
+            for _, row in source.nlargest(3, "Volatilidad_Diaria_%").iterrows():
+                vol_items.append(
+                    {
+                        "kicker": str(row.get("Ticker_IOL", "-")),
+                        "title": f"Vol diaria {fmt_pct(row.get('Volatilidad_Diaria_%'))}",
+                        "detail": f"Peso {fmt_pct(row.get('Peso_%'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
+                    }
+                )
+            for _, row in source.nlargest(3, "Retorno_Acum_%").iterrows():
+                ret_items.append(
+                    {
+                        "kicker": str(row.get("Ticker_IOL", "-")),
+                        "title": f"Retorno {fmt_pct(row.get('Retorno_Acum_%'))}",
+                        "detail": f"Base {fmt_label(row.get('Base_Riesgo'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
+                    }
+                )
+
+            return f"""
+      <div class="risk-subsection">
+        <h3>{html.escape(title)}</h3>
+        <div class="focus-columns focus-columns-wide">
+          <div>
+            <h3>Mayores drawdowns</h3>
+            {build_focus_list(dd_items, empty_message='Sin drawdowns relevantes.', tone='sell')}
+          </div>
+          <div>
+            <h3>Mayor volatilidad</h3>
+            {build_focus_list(vol_items, empty_message='Sin volatilidad relevante.', tone='neutral')}
+          </div>
+          <div>
+            <h3>Mejor rendimiento</h3>
+            {build_focus_list(ret_items, empty_message='Sin rendimientos historicos.', tone='buy')}
+          </div>
+        </div>
+      </div>
+            """
+
+        risk_html = f"""
+      <h3>Riesgo historico</h3>
+      <div class="meta">
+        <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} → {esc_text(portfolio_summary.get('hasta'))}</strong></span>
+        <span>Snapshots: <strong>{safe_int(portfolio_summary.get('snapshots'))}</strong></span>
+        <span>Retorno cartera: <strong>{fmt_pct(portfolio_summary.get('retorno_acum_pct'))}</strong></span>
+        <span>Vol diaria cartera: <strong>{fmt_pct(portfolio_summary.get('volatilidad_diaria_pct'))}</strong></span>
+        <span>Max drawdown cartera: <strong>{fmt_pct(portfolio_summary.get('drawdown_max_pct'))}</strong></span>
+      </div>
+      <div class="meta">
+        <span>Metodo: <strong>Universo comparable</strong></span>
+        <span>Pasos estables: <strong>{safe_int(portfolio_summary.get('pasos_estables'))}/{safe_int(portfolio_summary.get('pasos_totales'))}</strong></span>
+        <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
+        <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
+      </div>
+      {f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''}
+      {_build_risk_focus_block(market_risk, title='Riesgo de mercado', empty_message='Sin posiciones de mercado para analizar.')}
+      {_build_risk_focus_block(bond_risk, title='Riesgo de renta fija', empty_message='Sin bonos para analizar.')}
+      <div class="panel-head">
+        <h3>Tabla de riesgo</h3>
+        <div class="filters">
+          <select id="risk-history-filter">
+            <option value="">Toda la historia</option>
+            <option value="Robusta">Solo robusta</option>
+            <option value="Parcial">Solo parcial</option>
+            <option value="Corta">Solo corta</option>
+          </select>
+          <select id="risk-history-type-filter">
+            <option value="">Todos los tipos</option>
+            <option value="CEDEAR">Solo CEDEAR</option>
+            <option value="Bono">Solo Bono</option>
+            <option value="Acción Local">Solo Acción Local</option>
+          </select>
+        </div>
+      </div>
+      {build_collapsible(
+          "Ver tabla completa de riesgo",
+          build_table(
+              position_risk[["Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo", "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones"]],
+              formatters={
+                  "Peso_%": fmt_pct,
+                  "Retorno_Acum_%": fmt_pct,
+                  "Volatilidad_Diaria_%": fmt_pct,
+                  "Drawdown_Max_%": fmt_pct,
+              },
+              table_class="risk-history-table",
+              table_id="risk-history-table",
+          ),
+          compact=True,
+      )}
+        """
     return f"""
     <section class="panel" id="resumen">
       <h2>Resumen por tipo</h2>
@@ -528,6 +655,7 @@ def build_summary_section(
           if not family_summary.empty else family_summary,
           formatters={"Score_Promedio": fmt_score},
       )}
+      {risk_html}
     </section>
     """
 

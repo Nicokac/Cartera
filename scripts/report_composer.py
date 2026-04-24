@@ -76,6 +76,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     bonistas_bundle = result.get("bonistas_bundle", {}) or {}
     operations_bundle = result.get("operations_bundle", {}) or {}
     prediction_bundle = result.get("prediction_bundle", {}) or {}
+    risk_bundle = result.get("risk_bundle", {}) or {}
     prices_iol = result.get("precios_iol", {}) or {}
     vn_factor_map = result.get("vn_factor_map", {}) or {}
     decision_memory = decision_bundle.get("decision_memory", {}) or {}
@@ -153,6 +154,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         "decision_memory": decision_memory,
         "market_regime": market_regime,
         "prediction_bundle": prediction_bundle,
+        "risk_bundle": risk_bundle,
         "df_total": df_total,
         "current_tickers": current_tickers,
         "integrity_report": integrity_report,
@@ -287,6 +289,7 @@ def build_render_sections(
             finviz_ratings_covered=int(context["finviz_ratings_covered"]),
             decision_view=context["decision_view"],
             action_col=str(context["action_col"]),
+            risk_bundle=context.get("risk_bundle", {}),
         ),
     )
     sizing_section = time_section(

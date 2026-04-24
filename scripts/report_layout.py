@@ -456,6 +456,9 @@ def build_report_body(
     const actionSelect = document.getElementById('action-filter');
     const typeSelect = document.getElementById('type-filter');
     const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
+    const riskHistoryFilter = document.getElementById('risk-history-filter');
+    const riskHistoryTypeFilter = document.getElementById('risk-history-type-filter');
+    const riskRows = Array.from(document.querySelectorAll('#risk-history-table tbody tr'));
     const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
     const observedSections = navLinks
       .map((link) => document.querySelector(link.getAttribute('href')))
@@ -489,6 +492,23 @@ def build_report_body(
     tickerInput?.addEventListener('input', applyDecisionFilter);
     actionSelect?.addEventListener('change', applyDecisionFilter);
     typeSelect?.addEventListener('change', applyDecisionFilter);
+
+    function applyRiskHistoryFilter() {{
+      const qualityNeedle = riskHistoryFilter?.value || '';
+      const typeNeedle = riskHistoryTypeFilter?.value || '';
+      riskRows.forEach((row) => {{
+        const typeCell = row.children[1];
+        const qualityCell = row.children[5];
+        const type = (typeCell?.textContent || '').trim();
+        const quality = (qualityCell?.textContent || '').trim();
+        const matchesQuality = !qualityNeedle || quality === qualityNeedle;
+        const matchesType = !typeNeedle || type === typeNeedle;
+        row.style.display = matchesQuality && matchesType ? '' : 'none';
+      }});
+    }}
+
+    riskHistoryFilter?.addEventListener('change', applyRiskHistoryFilter);
+    riskHistoryTypeFilter?.addEventListener('change', applyRiskHistoryFilter);
 
     let sortState = {{ col: null, dir: 'asc' }};
 

@@ -105,6 +105,7 @@ def _build_minimal_result(
         "bonistas_bundle": bonistas_bundle or {},
         "operations_bundle": {},
         "prediction_bundle": {},
+        "risk_bundle": {},
     }
 
 
@@ -290,7 +291,73 @@ class ReportRenderTests(unittest.TestCase):
         self.assertIn("XLV", html)
         self.assertIn("MELI", html)
         self.assertIn('sig sig-pos', html)
-        self.assertIn('sig sig-neg', html)
+
+    def test_render_report_shows_historical_risk_block_when_bundle_has_data(self) -> None:
+        result = _build_minimal_result()
+        result["risk_bundle"] = {
+            "portfolio_summary": {
+                "desde": "2026-04-20",
+                "hasta": "2026-04-23",
+                "snapshots": 4,
+                "retorno_acum_pct": 10.67,
+                "volatilidad_diaria_pct": 4.12,
+                "drawdown_max_pct": -12.5,
+                "pasos_estables": 3,
+                "pasos_totales": 3,
+                "coverage_prev_promedio_pct": 96.0,
+                "coverage_curr_promedio_pct": 95.0,
+                "nota_estabilidad": None,
+            },
+            "position_risk": pd.DataFrame(
+                [
+                    {
+                        "Ticker_IOL": "AAPL",
+                        "Tipo": "CEDEAR",
+                        "Bloque": "Growth",
+                        "Peso_%": 5.2,
+                        "Base_Riesgo": "Precio_ARS",
+                        "Calidad_Historia": "Robusta",
+                        "Retorno_Acum_%": 20.0,
+                        "Volatilidad_Diaria_%": 13.4,
+                        "Drawdown_Max_%": -18.18,
+                        "Observaciones": 4,
+                    },
+                    {
+                        "Ticker_IOL": "GD30",
+                        "Tipo": "Bono",
+                        "Bloque": "Soberano AR",
+                        "Peso_%": 3.7,
+                        "Base_Riesgo": "Precio_ARS",
+                        "Calidad_Historia": "Robusta",
+                        "Retorno_Acum_%": 2.5,
+                        "Volatilidad_Diaria_%": 0.4,
+                        "Drawdown_Max_%": -1.19,
+                        "Observaciones": 4,
+                    }
+                ]
+            ),
+        }
+
+        html = render_report(result)
+
+        self.assertIn("Riesgo historico", html)
+        self.assertIn("Riesgo de mercado", html)
+        self.assertIn("Riesgo de renta fija", html)
+        self.assertIn("Universo comparable", html)
+        self.assertIn("Pasos estables", html)
+        self.assertIn("Ver tabla completa de riesgo", html)
+        self.assertIn("Max drawdown cartera", html)
+        self.assertIn("AAPL", html)
+        self.assertIn("GD30", html)
+        self.assertIn("Calidad_Historia", html)
+        self.assertIn("Robusta", html)
+        self.assertIn("risk-history-table", html)
+        self.assertIn("risk-history-filter", html)
+        self.assertIn("risk-history-type-filter", html)
+        self.assertIn("Solo robusta", html)
+        self.assertIn("Solo CEDEAR", html)
+        self.assertIn("cell-quality-robusta", html)
+        self.assertIn("-18.18%", html)
 
     def test_render_report_shows_operations_section_when_bundle_has_data(self) -> None:
         result = _build_minimal_result()

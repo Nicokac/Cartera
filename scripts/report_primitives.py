@@ -236,7 +236,13 @@ def build_table(
             value = row[col]
             formatter = formatters.get(col, lambda x: "-" if pd.isna(x) else str(x))
             rendered = formatter(value)
-            cells.append(f"<td>{html.escape(str(rendered))}</td>")
+            cell_class = ""
+            if col == "Calidad_Historia":
+                raw = str(value or "").strip().lower()
+                if raw:
+                    raw_slug = raw.replace(" ", "-")
+                    cell_class = f' class="cell-quality cell-quality-{html.escape(raw_slug)}"'
+            cells.append(f"<td{cell_class}>{html.escape(str(rendered))}</td>")
         rows.append("<tr>" + "".join(cells) + "</tr>")
     id_attr = f' id="{html.escape(table_id)}"' if table_id else ""
     return f'<div class="table-wrap"><table{id_attr} class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'

@@ -434,6 +434,25 @@ tbody tr:hover {
   background: rgba(15, 108, 92, 0.04);
 }
 
+.risk-history-table .cell-quality {
+  font-weight: 700;
+}
+
+.risk-history-table .cell-quality-robusta {
+  color: #0f6c5c;
+}
+
+.risk-history-table .cell-quality-parcial {
+  color: #8c640f;
+  background: rgba(176, 126, 15, 0.08);
+}
+
+.risk-history-table .cell-quality-corta,
+.risk-history-table .cell-quality-sin-historia {
+  color: #9f3a22;
+  background: rgba(177, 57, 45, 0.08);
+}
+
 .score {
   font-family: var(--mono);
 }
