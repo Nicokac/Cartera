@@ -484,6 +484,60 @@ def build_score_distribution(
     return f'<div class="score-dist-wrap">{svg}{legend}</div>'
 
 
+def _build_risk_focus_block(source: pd.DataFrame, *, title: str, empty_message: str) -> str:
+    if source.empty:
+        return f'<div class="risk-subsection"><h3>{html.escape(title)}</h3><div class="empty compact-empty">{html.escape(empty_message)}</div></div>'
+
+    dd_items: list[dict[str, str]] = []
+    vol_items: list[dict[str, str]] = []
+    ret_items: list[dict[str, str]] = []
+
+    for _, row in source.nsmallest(3, "Drawdown_Max_%").iterrows():
+        dd_items.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Drawdown {fmt_pct(row.get('Drawdown_Max_%'))}",
+                "detail": f"{fmt_label(row.get('Tipo'))} / {fmt_label(row.get('Bloque'))} | Base {fmt_label(row.get('Base_Riesgo'))}",
+            }
+        )
+    for _, row in source.nlargest(3, "Volatilidad_Diaria_%").iterrows():
+        vol_items.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Vol diaria {fmt_pct(row.get('Volatilidad_Diaria_%'))}",
+                "detail": f"Peso {fmt_pct(row.get('Peso_%'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
+            }
+        )
+    for _, row in source.nlargest(3, "Retorno_Acum_%").iterrows():
+        ret_items.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Retorno {fmt_pct(row.get('Retorno_Acum_%'))}",
+                "detail": f"Base {fmt_label(row.get('Base_Riesgo'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
+            }
+        )
+
+    return f"""
+      <div class="risk-subsection">
+        <h3>{html.escape(title)}</h3>
+        <div class="focus-columns focus-columns-wide">
+          <div>
+            <h3>Mayores drawdowns</h3>
+            {build_focus_list(dd_items, empty_message='Sin drawdowns relevantes.', tone='sell')}
+          </div>
+          <div>
+            <h3>Mayor volatilidad</h3>
+            {build_focus_list(vol_items, empty_message='Sin volatilidad relevante.', tone='neutral')}
+          </div>
+          <div>
+            <h3>Mejor rendimiento</h3>
+            {build_focus_list(ret_items, empty_message='Sin rendimientos historicos.', tone='buy')}
+          </div>
+        </div>
+      </div>
+            """
+
+
 def build_summary_section(
     *,
     kpis: dict[str, object],
@@ -521,59 +575,6 @@ def build_summary_section(
         market_risk = position_risk.loc[position_risk["Tipo"].astype(str) != "Bono"].copy()
         bond_risk = position_risk.loc[position_risk["Tipo"].astype(str) == "Bono"].copy()
         stability_note = portfolio_summary.get("nota_estabilidad")
-
-        def _build_risk_focus_block(source: pd.DataFrame, *, title: str, empty_message: str) -> str:
-            if source.empty:
-                return f'<div class="risk-subsection"><h3>{html.escape(title)}</h3><div class="empty compact-empty">{html.escape(empty_message)}</div></div>'
-
-            dd_items: list[dict[str, str]] = []
-            vol_items: list[dict[str, str]] = []
-            ret_items: list[dict[str, str]] = []
-
-            for _, row in source.nsmallest(3, "Drawdown_Max_%").iterrows():
-                dd_items.append(
-                    {
-                        "kicker": str(row.get("Ticker_IOL", "-")),
-                        "title": f"Drawdown {fmt_pct(row.get('Drawdown_Max_%'))}",
-                        "detail": f"{fmt_label(row.get('Tipo'))} / {fmt_label(row.get('Bloque'))} | Base {fmt_label(row.get('Base_Riesgo'))}",
-                    }
-                )
-            for _, row in source.nlargest(3, "Volatilidad_Diaria_%").iterrows():
-                vol_items.append(
-                    {
-                        "kicker": str(row.get("Ticker_IOL", "-")),
-                        "title": f"Vol diaria {fmt_pct(row.get('Volatilidad_Diaria_%'))}",
-                        "detail": f"Peso {fmt_pct(row.get('Peso_%'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
-                    }
-                )
-            for _, row in source.nlargest(3, "Retorno_Acum_%").iterrows():
-                ret_items.append(
-                    {
-                        "kicker": str(row.get("Ticker_IOL", "-")),
-                        "title": f"Retorno {fmt_pct(row.get('Retorno_Acum_%'))}",
-                        "detail": f"Base {fmt_label(row.get('Base_Riesgo'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
-                    }
-                )
-
-            return f"""
-      <div class="risk-subsection">
-        <h3>{html.escape(title)}</h3>
-        <div class="focus-columns focus-columns-wide">
-          <div>
-            <h3>Mayores drawdowns</h3>
-            {build_focus_list(dd_items, empty_message='Sin drawdowns relevantes.', tone='sell')}
-          </div>
-          <div>
-            <h3>Mayor volatilidad</h3>
-            {build_focus_list(vol_items, empty_message='Sin volatilidad relevante.', tone='neutral')}
-          </div>
-          <div>
-            <h3>Mejor rendimiento</h3>
-            {build_focus_list(ret_items, empty_message='Sin rendimientos historicos.', tone='buy')}
-          </div>
-        </div>
-      </div>
-            """
 
         risk_html = f"""
       <h3>Riesgo historico</h3>
