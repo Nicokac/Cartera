@@ -204,6 +204,50 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertTrue(bundle["portfolio_summary"]["serie_agregada_confiable"])
         self.assertAlmostEqual(bundle["portfolio_summary"]["retorno_acum_pct"], 20.0, places=3)
 
+    def test_build_portfolio_risk_bundle_excludes_fci_and_liquidity_with_normalized_labels(self) -> None:
+        snapshots_dir = ROOT / "tmp_portfolio_risk_exclude_normalized_labels"
+        snapshots_dir.mkdir(exist_ok=True)
+        day1 = snapshots_dir / "2026-04-20_real_portfolio_master.csv"
+        day2 = snapshots_dir / "2026-04-21_real_portfolio_master.csv"
+        day1.write_text(
+            "Ticker_IOL,Tipo,Bloque,Peso_%,Precio_ARS,Valorizado_ARS\n"
+            "AAPL,CEDEAR,Growth,40,100,1000\n"
+            " caucion ,Liquidez,Liquidez,30,,500\n"
+            "fci1, fCi ,FCI,30,,450\n",
+            encoding="utf-8",
+        )
+        day2.write_text(
+            "Ticker_IOL,Tipo,Bloque,Peso_%,Precio_ARS,Valorizado_ARS\n"
+            "AAPL,CEDEAR,Growth,38,110,1100\n"
+            "CASH_USD,Liquidez,Liquidez,22,,250\n"
+            "FCI1,FCI,FCI,40,,500\n",
+            encoding="utf-8",
+        )
+        self.addCleanup(lambda: day1.unlink(missing_ok=True))
+        self.addCleanup(lambda: day2.unlink(missing_ok=True))
+        self.addCleanup(lambda: shutil.rmtree(snapshots_dir, ignore_errors=True))
+
+        current = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Tipo": "CEDEAR", "Bloque": "Growth", "Peso_%": 60.0, "Precio_ARS": 120.0, "Valorizado_ARS": 1200.0},
+                {"Ticker_IOL": "  CAUCION  ", "Tipo": "Liquidez", "Bloque": "Liquidez", "Peso_%": 20.0, "Valorizado_ARS": 300.0},
+                {"Ticker_IOL": "fci1", "Tipo": "FCI", "Bloque": "FCI", "Peso_%": 20.0, "Valorizado_ARS": 350.0},
+            ]
+        )
+
+        bundle = build_portfolio_risk_bundle(
+            current,
+            run_date="2026-04-22",
+            snapshots_dirs=[snapshots_dir],
+            total_ars=1850.0,
+        )
+
+        self.assertEqual(bundle["position_risk"]["Ticker_IOL"].tolist(), ["AAPL"])
+        self.assertEqual(bundle["portfolio_summary"]["snapshots"], 3)
+        self.assertAlmostEqual(bundle["portfolio_summary"]["total_actual_ars"], 1200.0, places=3)
+        self.assertTrue(bundle["portfolio_summary"]["serie_agregada_confiable"])
+        self.assertAlmostEqual(bundle["portfolio_summary"]["retorno_acum_pct"], 20.0, places=3)
+
     def test_build_portfolio_risk_bundle_hides_aggregate_metrics_when_overlap_is_unstable(self) -> None:
         snapshots_dir = ROOT / "tmp_portfolio_risk_unstable_overlap"
         snapshots_dir.mkdir(exist_ok=True)
@@ -248,6 +292,42 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertTrue(pd.isna(summary["volatilidad_diaria_pct"]))
         self.assertTrue(pd.isna(summary["drawdown_max_pct"]))
         self.assertIn("universo comparable", str(summary["nota_estabilidad"]).lower())
+
+    def test_build_portfolio_risk_bundle_marks_series_unreliable_without_stable_steps(self) -> None:
+        snapshots_dir = ROOT / "tmp_portfolio_risk_no_stable_steps"
+        snapshots_dir.mkdir(exist_ok=True)
+        day1 = snapshots_dir / "2026-04-20_real_portfolio_master.csv"
+        day1.write_text(
+            "Ticker_IOL,Tipo,Bloque,Peso_%,Precio_ARS,Valorizado_ARS\n"
+            "AAPL,CEDEAR,Growth,50,100,1000\n"
+            "KO,CEDEAR,Dividendos,50,50,1000\n",
+            encoding="utf-8",
+        )
+        self.addCleanup(lambda: day1.unlink(missing_ok=True))
+        self.addCleanup(lambda: shutil.rmtree(snapshots_dir, ignore_errors=True))
+
+        current = pd.DataFrame(
+            [
+                {"Ticker_IOL": "MELI", "Tipo": "CEDEAR", "Bloque": "Growth", "Peso_%": 100.0, "Precio_ARS": 200.0, "Valorizado_ARS": 2000.0},
+            ]
+        )
+
+        bundle = build_portfolio_risk_bundle(
+            current,
+            run_date="2026-04-21",
+            snapshots_dirs=[snapshots_dir],
+            total_ars=2000.0,
+        )
+
+        summary = bundle["portfolio_summary"]
+        self.assertFalse(summary["serie_agregada_confiable"])
+        self.assertEqual(summary["pasos_estables"], 0)
+        self.assertEqual(summary["pasos_totales"], 1)
+        self.assertEqual(summary["min_pasos_estables_requeridos"], 1)
+        self.assertTrue(pd.isna(summary["retorno_acum_pct"]))
+        self.assertTrue(pd.isna(summary["volatilidad_diaria_pct"]))
+        self.assertTrue(pd.isna(summary["drawdown_max_pct"]))
+        self.assertIn("metricas de cartera se ocultan", str(summary["nota_estabilidad"]).lower())
 
     def test_build_portfolio_risk_bundle_labels_short_history_positions(self) -> None:
         snapshots_dir = ROOT / "tmp_portfolio_risk_short_history"
