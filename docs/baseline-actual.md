@@ -91,7 +91,7 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
   - `smoke_run`, `smoke_output`
   - `decision/actions`, `decision/scoring`
   - `analytics/portfolio_risk`
-- suite local: 353/353 OK
+- suite local: 358/358 OK
 
 ## Clasificacion de FCIs
 
@@ -108,8 +108,8 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
 - seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
 - calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
-- `decision/scoring.py` (885 ln): los helpers tienen tests unitarios pero `build_decision_base` y `apply_base_scores` solo tienen smoke coverage
-- `test_report_render.py` (~1070 ln): candidato a split por dominio cuando supere 1200 ln (O-006)
+- `decision/scoring.py` (885 ln): cobertura unitaria directa ampliada para `build_decision_base` y `apply_base_scores`; seguir cubriendo ramas de calibracion avanzada y overlays tecnicos
+- `test_report_render.py` (~1109 ln): candidato a split por dominio cuando supere 1200 ln (O-006)
 
 ## Capa experimental integrada
 

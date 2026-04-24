@@ -42,8 +42,8 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - seccion de riesgo historico en el reporte con focus blocks por tipo (mercado / renta fija) y tabla filtrable por calidad e historia
 - `_build_risk_focus_block` extraida de `build_summary_section` al nivel de modulo (O-008)
 - `test_decision_actions.py`: 19 tests para `assign_base_action`, `assign_action_v2`, `enrich_decision_explanations` (O-007 cerrado)
-- `test_decision_scoring.py`: 28 tests para `rank_score`, `threshold_score`, `blend_scores`, `consensus_to_score`, `apply_base_scores`, `finalize_unified_score` (O-007b cerrado)
-- `test_portfolio_risk.py`: 7 tests para el modulo de riesgo historico
+- `test_decision_scoring.py`: 31 tests; se agrego cobertura unitaria directa para `build_decision_base` y escenarios absolutos en `apply_base_scores` (O-007b cerrado)
+- `test_portfolio_risk.py`: 9 tests; se agregaron edge cases de `serie_confiable=False` y exclusiones normalizadas de `CAUCION/CASH_USD/FCI` (O-009 cerrado)
 - `test_report_sections.py`: 8 tests para `_build_risk_focus_block` (O-011 cerrado)
 - CI ampliada a 37 suites (`test_market_regime_scoring`, `test_portfolio_risk`, `test_decision_actions`, `test_decision_scoring`, `test_report_sections` agregados)
 
