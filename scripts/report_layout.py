@@ -444,10 +444,9 @@ def build_report_body(
     {prediction_section}
     {regime_summary}
 
-    <section class="grid">
-      {summary_section}
-      {sizing_section}
-    </section>
+    {summary_section}
+
+    {sizing_section}
 
     <section class="panel" id="tecnico">
       <h2>Overlay técnico</h2>
