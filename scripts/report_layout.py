@@ -126,9 +126,9 @@ def build_panorama_section(
         <h2>Panorama</h2>
         <p class="summary-lede">{esc_text(executive_summary)}</p>
         <div class="meta">
-          <span>Regimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activacion'}</strong></span>
+          <span>Régimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activación'}</strong></span>
           <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
-          <span>Overlay tecnico: <strong>{tech_enabled}</strong></span>
+          <span>Overlay técnico: <strong>{tech_enabled}</strong></span>
         </div>
         <div class="focus-columns">
           <div>
@@ -136,7 +136,7 @@ def build_panorama_section(
             {build_focus_list(buy_focus, empty_message='Sin refuerzos activos.', tone='buy')}
           </div>
           <div>
-            <h3>Prioridades de reduccion</h3>
+            <h3>Prioridades de reducción</h3>
             {build_focus_list(sell_focus, empty_message='Sin reducciones activas.', tone='sell')}
           </div>
         </div>
@@ -197,7 +197,7 @@ def build_changes_section(
               <div class="focus-detail">Cobertura visible para la capa fundamental y de consenso.</div>
             </article>
             <article class="focus-item">
-              <div class="focus-top"><strong>Tecnico</strong></div>
+              <div class="focus-top"><strong>Técnico</strong></div>
               <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
               <div class="focus-detail">Cobertura tecnica efectiva para la lectura de tendencia y momentum.</div>
             </article>
@@ -211,19 +211,19 @@ def build_changes_section(
 def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
     bonistas_nav = '<a href="#bonistas">Bonos Locales</a>' if show_bonistas else ""
     operations_nav = '<a href="#operaciones">Operaciones</a>' if show_operations else ""
-    prediction_nav = '<a href="#prediccion">Prediccion</a>' if show_prediction else ""
+    prediction_nav = '<a href="#prediccion">Predicción</a>' if show_prediction else ""
     return f"""
     <nav class="quick-nav">
       <a href="#panorama">Panorama</a>
       <a href="#cambios">Cambios</a>
       {operations_nav}
       {prediction_nav}
-      <a href="#regimen">Regimen</a>
+      <a href="#regimen">Régimen</a>
       <a href="#resumen">Resumen</a>
       <a href="#sizing">Sizing</a>
-      <a href="#tecnico">Tecnico</a>
+      <a href="#tecnico">Técnico</a>
       {bonistas_nav}
-      <a href="#decision">Decision</a>
+      <a href="#decision">Decisión</a>
       <a href="#cartera">Cartera</a>
       <a href="#integridad">Integridad</a>
     </nav>
@@ -244,11 +244,11 @@ def build_regime_section(market_regime: dict[str, object]) -> str:
             f'<span class="regime-chip {state_class}"><strong>{esc_text(flag_name)}</strong> {state_label}</span>'
         )
     active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
-    regime_state = "Activo" if market_regime.get("any_active") else "Sin activacion"
+    regime_state = "Activo" if market_regime.get("any_active") else "Sin activación"
     regime_state_class = "regime-chip-active" if market_regime.get("any_active") else "regime-chip-inactive"
     return f"""
     <section class="panel" id="regimen">
-      <h2>Regimen de mercado</h2>
+      <h2>Régimen de mercado</h2>
       <div class="meta">
         <span class="regime-chip {regime_state_class}"><strong>Estado:</strong> {esc_text(regime_state)}</span>
         <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
@@ -289,7 +289,7 @@ def build_decision_section(
     return f"""
     <section class="panel" id="decision">
       <div class="panel-head">
-      <h2>Decision final</h2>
+      <h2>Decisión final</h2>
         <div class="filters">
           <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
           <select id="action-filter">
@@ -450,7 +450,7 @@ def build_report_body(
     </section>
 
     <section class="panel" id="tecnico">
-      <h2>Overlay tecnico</h2>
+      <h2>Overlay técnico</h2>
       <div class="meta">
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
@@ -473,9 +473,7 @@ def build_report_body(
     const riskHistoryTypeFilter = document.getElementById('risk-history-type-filter');
     const riskRows = Array.from(document.querySelectorAll('#risk-history-table tbody tr'));
     const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
-    const observedSections = navLinks
-      .map((link) => document.querySelector(link.getAttribute('href')))
-      .filter(Boolean);
+    const observedSections = Array.from(document.querySelectorAll('section[id]'));
 
     if (typeSelect) {{
       const types = [...new Set(rows.map((r) => r.dataset.type).filter(Boolean))].sort();
@@ -580,14 +578,15 @@ def build_report_body(
     }}
 
     const observer = new IntersectionObserver((entries) => {{
-      entries.forEach((entry) => {{
-        if (!entry.isIntersecting) return;
-        const id = `#${{entry.target.id}}`;
-        navLinks.forEach((link) => {{
-          link.classList.toggle('active', link.getAttribute('href') === id);
-        }});
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      const id = `#${{visible.target.id}}`;
+      navLinks.forEach((link) => {{
+        link.classList.toggle('active', link.getAttribute('href') === id);
       }});
-    }}, {{ rootMargin: '-35% 0px -55% 0px', threshold: 0.01 }});
+    }}, {{ threshold: [0.2, 0.45, 0.7] }});
 
     observedSections.forEach((section) => observer.observe(section));
     setActiveNavByHash();

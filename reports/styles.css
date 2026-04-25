@@ -151,8 +151,14 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+}
+
+section.panel,
+section.cards,
+section.action-strip,
+section.grid {
   content-visibility: auto;
-  contain-intrinsic-size: 640px;
+  contain-intrinsic-size: auto 640px;
 }
 
 .card {
@@ -463,6 +469,11 @@ body {
   overflow-y: hidden;
   border-radius: 14px;
   position: relative;
+}
+
+.sizing-table th,
+.sizing-table td {
+  white-space: nowrap;
 }
 
 .table-wrap::after {

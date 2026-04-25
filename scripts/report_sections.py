@@ -269,7 +269,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     )
     return f"""
     <section class="panel" id="prediccion">
-      <h2>Prediccion</h2>
+      <h2>Predicción</h2>
       <div class="meta">
         <span>Total: <strong>{int(summary.get('total', len(work)))}</strong></span>
         <span>Suba: <strong>{int(summary.get('up', 0))}</strong></span>
@@ -279,7 +279,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <span>Horizonte: <strong>{safe_int(config.get('horizon_days'))} ruedas</strong></span>
       </div>
       <div class="meta">
-        <span>La prediccion direccional combina señales tecnicas, <strong>score_unificado</strong> y regimen; puede diferir de la decision final, que pondera ademas criterios de cartera y sizing.</span>
+        <span>La predicción direccional combina señales técnicas, <strong>score_unificado</strong> y régimen; puede diferir de la decisión final, que pondera además criterios de cartera y sizing.</span>
       </div>
       <div class="focus-columns focus-columns-wide">
         <div>
@@ -750,6 +750,7 @@ def build_sizing_section(
               "Monto_ARS": fmt_ars,
               "Monto_USD": fmt_usd,
           },
+          table_class="sizing-table",
           table_id="sizing-table",
       )}
       {build_collapsible(
