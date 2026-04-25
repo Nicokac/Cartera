@@ -35,6 +35,7 @@ def render_report(
         "body",
         lambda: build_report_body(
             title=title,
+            generated_at_label=context.get("generated_at_label"),
             headline=headline,
             lede=lede,
             integrity_strip=sections.get("integrity_strip", ""),

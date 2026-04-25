@@ -238,19 +238,22 @@ def build_regime_section(market_regime: dict[str, object]) -> str:
     regime_active_flags = market_regime.get("active_flags", []) or []
     regime_items = []
     for flag_name, is_active in regime_flags.items():
+        state_label = "Activo" if is_active else "Inactivo"
+        state_class = "regime-chip-active" if is_active else "regime-chip-inactive"
         regime_items.append(
-            f"<span>{esc_text(flag_name)}: <strong>{'Activo' if is_active else 'Inactivo'}</strong></span>"
+            f'<span class="regime-chip {state_class}"><strong>{esc_text(flag_name)}</strong> {state_label}</span>'
         )
     active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
     regime_state = "Activo" if market_regime.get("any_active") else "Sin activacion"
+    regime_state_class = "regime-chip-active" if market_regime.get("any_active") else "regime-chip-inactive"
     return f"""
     <section class="panel" id="regimen">
       <h2>Regimen de mercado</h2>
       <div class="meta">
-        <span>Estado: <strong>{esc_text(regime_state)}</strong></span>
+        <span class="regime-chip {regime_state_class}"><strong>Estado:</strong> {esc_text(regime_state)}</span>
         <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
       </div>
-      <div class="meta">
+      <div class="meta regime-flags">
         {''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>'}
       </div>
     </section>
@@ -302,7 +305,7 @@ def build_decision_section(
         </div>
       </div>
       {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
-      {build_collapsible("Ver tabla completa de decision", build_decision_table(decision_view, action_col=action_col, motive_col=motive_col), open_by_default=True)}
+      {build_collapsible("Ver tabla completa de decision", build_decision_table(decision_view, action_col=action_col, motive_col=motive_col))}
     </section>
     """
 
@@ -377,6 +380,7 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
 def build_report_body(
     *,
     title: str,
+    generated_at_label: object,
     headline: str,
     lede: str,
     integrity_strip: str = "",
@@ -401,12 +405,21 @@ def build_report_body(
     portfolio_section: str,
     integrity_section: str,
 ) -> str:
+    generated_at_text = str(generated_at_label or "").strip()
+    generated_date = generated_at_text.split(" ", 1)[0] if generated_at_text else ""
+    title_prefix = f"{title} · {generated_date}" if generated_date else title
+    tab_title = f"{title_prefix} | Smoke Report"
+    meta_description = (
+        f"{title}. Reporte generado {generated_at_text or 'sin timestamp'} "
+        "con panorama, cambios, decisiones, cartera e integridad."
+    )
     return f"""<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smoke Report</title>
+  <title>{esc_text(tab_title)}</title>
+  <meta name="description" content="{esc_text(meta_description)}">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -558,6 +571,14 @@ def build_report_body(
       }});
     }}
 
+    function setActiveNavByHash() {{
+      const hash = window.location.hash;
+      if (!hash) return;
+      navLinks.forEach((link) => {{
+        link.classList.toggle('active', link.getAttribute('href') === hash);
+      }});
+    }}
+
     const observer = new IntersectionObserver((entries) => {{
       entries.forEach((entry) => {{
         if (!entry.isIntersecting) return;
@@ -569,6 +590,24 @@ def build_report_body(
     }}, {{ rootMargin: '-35% 0px -55% 0px', threshold: 0.01 }});
 
     observedSections.forEach((section) => observer.observe(section));
+    setActiveNavByHash();
+    window.addEventListener('hashchange', setActiveNavByHash);
+
+    function updateQuickNavOverflow() {{
+      const quickNav = document.querySelector('.quick-nav');
+      if (!quickNav) return;
+      const overflow = quickNav.scrollWidth - quickNav.clientWidth > 4;
+      quickNav.classList.toggle('is-scrollable', overflow);
+      quickNav.classList.toggle('has-overflow-left', quickNav.scrollLeft > 4);
+      quickNav.classList.toggle('has-overflow-right', quickNav.scrollLeft + quickNav.clientWidth < quickNav.scrollWidth - 4);
+    }}
+
+    const quickNav = document.querySelector('.quick-nav');
+    if (quickNav) {{
+      quickNav.addEventListener('scroll', updateQuickNavOverflow, {{ passive: true }});
+      window.addEventListener('resize', updateQuickNavOverflow);
+      updateQuickNavOverflow();
+    }}
 
     document.querySelectorAll('details').forEach((det) => {{
       const summary = det.querySelector('summary');

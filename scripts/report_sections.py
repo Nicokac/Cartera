@@ -774,7 +774,7 @@ def build_bonistas_section(
         return ""
 
     bond_summary_tables = (
-        build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_summary, formatters={}), open_by_default=True, compact=True)
+        build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_summary, formatters={}), compact=True)
         + build_collapsible("Ver resumen por taxonomia local", build_table(bond_local_subfamily_summary, formatters={}), compact=True)
         + build_collapsible(
             "Ver monitoreo completo de bonos",
