@@ -92,7 +92,7 @@ def build_header_cards(
       <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
       <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
       <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
-      <article class="card compact"><span class="label">Cobertura tecnica</span><strong>{tech_covered}/{tech_total}</strong></article>
+      <article class="card compact"><span class="label">Cobertura técnica</span><strong>{tech_covered}/{tech_total}</strong></article>
       <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
       <article class="card compact"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
     </section>
@@ -185,8 +185,8 @@ def build_changes_section(
       {changes_direction_summary}
       <div class="focus-columns">
         <div>
-          <h3>Cambios de accion</h3>
-          {build_focus_list(changed_actions, empty_message='Sin cambios de accion respecto de la corrida previa.', tone='neutral')}
+          <h3>Cambios de acción</h3>
+          {build_focus_list(changed_actions, empty_message='Sin cambios de acción respecto de la corrida previa.', tone='neutral')}
         </div>
         <div>
           <h3>Observaciones de cobertura</h3>
@@ -199,7 +199,7 @@ def build_changes_section(
             <article class="focus-item">
               <div class="focus-top"><strong>Técnico</strong></div>
               <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
-              <div class="focus-detail">Cobertura tecnica efectiva para la lectura de tendencia y momentum.</div>
+              <div class="focus-detail">Cobertura técnica efectiva para la lectura de tendencia y momentum.</div>
             </article>
           </div>
         </div>
@@ -455,7 +455,7 @@ def build_report_body(
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
       {build_technical_summary(technical_view)}
-      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
+      {build_collapsible("Ver tabla técnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
     </section>
 
     {bonistas_section}
@@ -485,9 +485,9 @@ def build_report_body(
     }}
 
     function applyDecisionFilter() {{
-      const tickerNeedle = (tickerInput?.value || '').toLowerCase().trim();
-      const actionNeedle = actionSelect?.value || '';
-      const typeNeedle = typeSelect?.value || '';
+      const tickerNeedle = (tickerInput.value || '').toLowerCase().trim();
+      const actionNeedle = actionSelect.value || '';
+      const typeNeedle = typeSelect.value || '';
       rows.forEach((row) => {{
         const ticker = (row.dataset.ticker || '').toLowerCase();
         const action = row.dataset.action || '';
@@ -499,26 +499,26 @@ def build_report_body(
       }});
     }}
 
-    tickerInput?.addEventListener('input', applyDecisionFilter);
-    actionSelect?.addEventListener('change', applyDecisionFilter);
-    typeSelect?.addEventListener('change', applyDecisionFilter);
+    tickerInput.addEventListener('input', applyDecisionFilter);
+    actionSelect.addEventListener('change', applyDecisionFilter);
+    typeSelect.addEventListener('change', applyDecisionFilter);
 
     function applyRiskHistoryFilter() {{
-      const qualityNeedle = riskHistoryFilter?.value || '';
-      const typeNeedle = riskHistoryTypeFilter?.value || '';
+      const qualityNeedle = riskHistoryFilter.value || '';
+      const typeNeedle = riskHistoryTypeFilter.value || '';
       riskRows.forEach((row) => {{
         const typeCell = row.children[1];
         const qualityCell = row.children[5];
-        const type = (typeCell?.textContent || '').trim();
-        const quality = (qualityCell?.textContent || '').trim();
+        const type = (typeCell.textContent || '').trim();
+        const quality = (qualityCell.textContent || '').trim();
         const matchesQuality = !qualityNeedle || quality === qualityNeedle;
         const matchesType = !typeNeedle || type === typeNeedle;
         row.style.display = matchesQuality && matchesType ? '' : 'none';
       }});
     }}
 
-    riskHistoryFilter?.addEventListener('change', applyRiskHistoryFilter);
-    riskHistoryTypeFilter?.addEventListener('change', applyRiskHistoryFilter);
+    riskHistoryFilter.addEventListener('change', applyRiskHistoryFilter);
+    riskHistoryTypeFilter.addEventListener('change', applyRiskHistoryFilter);
 
     let sortState = {{ col: null, dir: 'asc' }};
 
@@ -527,8 +527,8 @@ def build_report_body(
       sortState.col = col;
       const tbody = document.querySelector('#decision-table tbody');
       const sorted = [...rows].sort((a, b) => {{
-        const av = parseFloat(a.dataset[col] ?? 0);
-        const bv = parseFloat(b.dataset[col] ?? 0);
+        const av = parseFloat(a.dataset[col] || 0);
+        const bv = parseFloat(b.dataset[col] || 0);
         return sortState.dir === 'asc' ? av - bv : bv - av;
       }});
       sorted.forEach((r) => tbody.appendChild(r));
@@ -551,7 +551,7 @@ def build_report_body(
         const dataRows = Array.from(table.querySelectorAll('tbody tr')).map((r) =>
           Array.from(r.querySelectorAll('td')).map((td) => td.textContent.trim()).join('\t')
         );
-        navigator.clipboard.writeText([headers.join('\t'), ...dataRows].join('\n')).then(() => {{
+        navigator.clipboard.writeText([headers.join('\t'), ...dataRows].join('\\r\\n')).then(() => {{
           copySizingBtn.textContent = '\u2713 Copiado';
           setTimeout(() => {{ copySizingBtn.textContent = 'Copiar'; }}, 2000);
         }});
@@ -564,7 +564,7 @@ def build_report_body(
         const table = document.querySelector('.technical-table');
         if (!table) return;
         const expanded = table.classList.toggle('show-secondary');
-        toggleTechBtn.textContent = expanded ? 'Ocultar columnas secundarias' : 'Mostrar m\u00e1s columnas';
+        toggleTechBtn.textContent = expanded ? 'Ocultar columnas secundarias' : 'Mostrar más columnas';
       }});
     }}
 

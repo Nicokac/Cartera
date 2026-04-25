@@ -63,9 +63,9 @@ def build_executive_summary(
 
     return (
         f"{fmt_count_label(action_counts.get(ACTION_REFUERZO, 0), 'refuerzo')}, "
-        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reduccion', 'reducciones')}, "
+        f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reducción', 'reducciones')}, "
         f"{fmt_count_label(decision_memory.get('senales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
-        f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignacion'}."
+        f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignación'}."
     )
 
 

@@ -100,7 +100,7 @@ def build_decision_table(
         '<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th>'
         '<th class="sortable" data-sort="peso">Peso_%</th>'
         '<th class="sortable" data-sort="score">Score</th>'
-        '<th>Accion</th><th>Accion previa</th><th>\u0394 Score</th>'
+        '<th>Acción</th><th>Acción previa</th><th>\u0394 Score</th>'
         '<th class="sortable" data-sort="racha">Racha</th>'
         '<th>Drivers</th><th>Motivo</th></tr></thead>'
         f"<tbody>{''.join(rows)}</tbody></table></div>"
@@ -113,17 +113,17 @@ def describe_action_shift(previous_action: object, current_action: object) -> st
     neutral_actions = {ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
 
     if current == ACTION_REFUERZO and previous in neutral_actions:
-        return "Sube de conviccion"
+        return "Sube de convicción"
     if current == ACTION_REFUERZO and previous == ACTION_REDUCIR:
-        return "Giro desde reduccion a refuerzo"
+        return "Giro desde reducción a refuerzo"
     if current == ACTION_REDUCIR and previous in neutral_actions:
-        return "Pasa de monitoreo a reduccion"
+        return "Pasa de monitoreo a reducción"
     if current == ACTION_REDUCIR and previous == ACTION_REFUERZO:
-        return "Giro desde refuerzo a reduccion"
+        return "Giro desde refuerzo a reducción"
     if current in neutral_actions and previous == ACTION_REFUERZO:
         return "Vuelve a monitoreo desde refuerzo"
     if current in neutral_actions and previous == ACTION_REDUCIR:
-        return "Vuelve a monitoreo desde reduccion"
+        return "Vuelve a monitoreo desde reducción"
     return f"{previous} -> {current}"
 
 
@@ -269,8 +269,8 @@ def build_change_highlights(
     cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
     changes_direction_summary = f"""
       <section class="action-strip compact-strip">
-        <article class="action-card buy"><span>Suben de conviccion</span><strong>{cambios_hacia_refuerzo}</strong></article>
-        <article class="action-card sell"><span>Bajan a reduccion</span><strong>{cambios_hacia_reduccion}</strong></article>
+        <article class="action-card buy"><span>Suben de convicción</span><strong>{cambios_hacia_refuerzo}</strong></article>
+        <article class="action-card sell"><span>Bajan a reducción</span><strong>{cambios_hacia_reduccion}</strong></article>
         <article class="action-card neutral"><span>Vuelven a monitoreo</span><strong>{cambios_hacia_neutral}</strong></article>
       </section>
     """

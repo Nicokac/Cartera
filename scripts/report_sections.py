@@ -79,7 +79,7 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
     header = (
         "<tr><th>ticker</th><th>dir</th><th>conf</th>"
         + vote_headers
-        + "<th>accion</th><th>outcome</th></tr>"
+        + "<th>acción</th><th>outcome</th></tr>"
     )
 
     rows_html: list[str] = []
@@ -339,16 +339,16 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     return f"""
     <div class="focus-columns focus-columns-wide">
       <div>
-        <h3>Mas fuertes</h3>
+        <h3>Más fuertes</h3>
         {build_focus_list(_items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d"), empty_message='Sin datos de fortaleza.', tone='buy')}
       </div>
       <div>
-        <h3>Mas debiles</h3>
+        <h3>Más débiles</h3>
         {build_focus_list(_items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d"), empty_message='Sin datos de debilidad.', tone='sell')}
       </div>
       <div>
-        <h3>Cerca de maximos 52w</h3>
-        {build_focus_list(_items(cerca_max, title_fn=lambda row: "En maximos 52w" if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs maximo anual"), empty_message='Sin nombres cerca de maximos anuales.', tone='neutral')}
+        <h3>Cerca de máximos 52w</h3>
+        {build_focus_list(_items(cerca_max, title_fn=lambda row: "En máximos 52w" if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs máximo anual"), empty_message='Sin nombres cerca de máximos anuales.', tone='neutral')}
       </div>
       <div>
         <h3>Por debajo de SMA200</h3>
@@ -409,7 +409,7 @@ def build_bond_summary(
         {build_focus_list(subfamily_items, empty_message='Sin resumen por subfamilia.', tone='neutral')}
       </div>
       <div>
-        <h3>Taxonomia local</h3>
+        <h3>Taxonomía local</h3>
         {build_focus_list(local_items, empty_message='Sin resumen por taxonomia local.', tone='neutral')}
       </div>
     </div>
@@ -531,7 +531,7 @@ def _build_risk_focus_block(source: pd.DataFrame, *, title: str, empty_message: 
           </div>
           <div>
             <h3>Mejor rendimiento</h3>
-            {build_focus_list(ret_items, empty_message='Sin rendimientos historicos.', tone='buy')}
+            {build_focus_list(ret_items, empty_message='Sin rendimientos históricos.', tone='buy')}
           </div>
         </div>
       </div>
@@ -577,7 +577,7 @@ def build_summary_section(
         stability_note = portfolio_summary.get("nota_estabilidad")
 
         risk_html = f"""
-      <h3>Riesgo historico</h3>
+      <h3>Riesgo histórico</h3>
       <div class="meta">
         <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} → {esc_text(portfolio_summary.get('hasta'))}</strong></span>
         <span>Snapshots: <strong>{safe_int(portfolio_summary.get('snapshots'))}</strong></span>
@@ -650,7 +650,7 @@ def build_summary_section(
               "Peso_%": fmt_pct,
           },
       )}
-      <h3>Taxonomia operativa</h3>
+      <h3>Taxonomía operativa</h3>
       {build_table(
           family_summary[["asset_family", "asset_subfamily", "Instrumentos", "Score_Promedio"]]
           if not family_summary.empty else family_summary,
