@@ -84,14 +84,14 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
 
 ## Baseline de calidad
 
-- CI basada en `unittest` con 37 suites estables del core, renderer, smoke, clientes y analytics
+- CI basada en `unittest` con 41 suites estables del core, renderer, smoke, clientes y analytics
 - bootstrap automatico de configuracion de ejemplo antes de tests
 - cobertura directa para:
   - `report_primitives`, `report_operations`, `report_sections`
   - `smoke_run`, `smoke_output`
   - `decision/actions`, `decision/scoring`
   - `analytics/portfolio_risk`
-- suite local: 361/361 OK
+- suite local: 391/391 OK
 
 ## Clasificacion de FCIs
 
@@ -108,12 +108,8 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
 - seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
 - calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
-- `decision/scoring.py` (885 ln): cobertura unitaria directa ampliada para `build_decision_base`, `apply_base_scores` y ramas avanzadas (ajustes por subfamilia, `market_regime`, `refuerzo_gate` tecnico)
-- suite de render dividida por dominio (O-006 cerrado):
-  - `tests/test_report_render_core.py`
-  - `tests/test_report_render_operations.py`
-  - `tests/test_report_render_ui.py`
-  - `tests/test_report_render.py` queda como wrapper de compatibilidad para `unittest`
+- `tests/test_strategy_rules.py` (2078 ln): outlier de tamano; candidato a split por tipo de regla
+- `tests/test_report_render_operations.py` (449 ln): monitorear crecimiento por cercania al umbral operativo
 
 ## Capa experimental integrada
 
