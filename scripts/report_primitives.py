@@ -12,6 +12,33 @@ from decision.action_constants import (
 )
 
 
+FAMILY_LABELS = {
+    "stock": "Acción",
+    "etf": "ETF",
+    "bond": "Bono",
+    "fund": "FCI",
+    "liquidity": "Liquidez",
+}
+
+
+SUBFAMILY_LABELS = {
+    "bond_bopreal": "Bopreal",
+    "bond_cer": "CER",
+    "bond_other": "Otros",
+    "bond_sov_ar": "Soberano AR",
+    "etf_core": "Core",
+    "etf_country_region": "País / Región",
+    "etf_other": "Otros",
+    "etf_sector": "Sectorial",
+    "fund_other": "Otros",
+    "liquidity_other": "Liquidez",
+    "stock_argentina": "Argentina",
+    "stock_commodity": "Commodities",
+    "stock_defensive_dividend": "Defensivo / Dividendos",
+    "stock_growth": "Growth",
+}
+
+
 def fmt_ars(value: object) -> str:
     if pd.isna(value):
         return "-"
@@ -55,6 +82,17 @@ def fmt_label(value: object) -> str:
     if pd.isna(value) or value in {None, ""}:
         return "-"
     return str(value)
+
+
+def humanize_dimension_value(column: str, value: object) -> str:
+    text = fmt_label(value)
+    if text == "-":
+        return text
+    if column == "asset_family":
+        return FAMILY_LABELS.get(text, text)
+    if column == "asset_subfamily":
+        return SUBFAMILY_LABELS.get(text, text)
+    return text
 
 
 def fmt_quantity(value: object) -> str:
@@ -120,18 +158,18 @@ def metric_class(column: str, value: object) -> str:
     except Exception:
         text = str(value).strip().lower()
         if column == "asset_family":
-            if text == "stock":
+            if text in {"stock", "acción"}:
                 return "metric metric-positive"
             if text == "etf":
                 return "metric metric-warn"
-            if text in {"bond", "liquidity"}:
+            if text in {"bond", "bono", "liquidity", "liquidez", "fund", "fci"}:
                 return "metric metric-neutral"
         if column == "asset_subfamily":
-            if text == "etf_sector":
+            if text in {"etf_sector", "sectorial"}:
                 return "metric metric-positive"
-            if text == "etf_country_region":
+            if text in {"etf_country_region", "país / región", "pais / región", "país / region", "país / región"}:
                 return "metric metric-warn"
-            if text in {"etf_core", "etf_other"}:
+            if text in {"etf_core", "etf_other", "core", "otros"}:
                 return "metric metric-neutral"
         if column == "Tech_Trend":
             if "alcista fuerte" in text:
@@ -352,6 +390,23 @@ def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None
         return '<div class="empty">Sin datos para mostrar.</div>'
 
     price_history = price_history or {}
+    column_labels = {
+        "Ticker_IOL": "Ticker",
+        "Tech_Trend": "Tendencia",
+        "RSI_14": "RSI 14",
+        "Momentum_20d_%": "Momentum 20d",
+        "Momentum_60d_%": "Momentum 60d",
+        "Dist_SMA20_%": "Dist. SMA20",
+        "Dist_SMA50_%": "Dist. SMA50",
+        "Dist_SMA200_%": "Dist. SMA200",
+        "Dist_EMA20_%": "Dist. EMA20",
+        "Dist_EMA50_%": "Dist. EMA50",
+        "Dist_52w_High_%": "Dist. máx. 52w",
+        "Dist_52w_Low_%": "Dist. mín. 52w",
+        "Vol_20d_Anual_%": "Vol. anual 20d",
+        "Avg_Volume_20d": "Volumen prom. 20d",
+        "Drawdown_desde_Max3m_%": "Drawdown desde máx. 3m",
+    }
     formatters = {
         "Peso_%": fmt_pct,
         "RSI_14": lambda x: "-" if pd.isna(x) else f"{float(x):.1f}",
@@ -391,7 +446,10 @@ def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None
     def _sec(col: str) -> str:
         return ' class="col-secondary"' if col in _SECONDARY_TECH_COLS else ""
 
-    col_ths = "".join(f'<th{_sec(col)}>{html.escape(str(col))}</th>' for col in df.columns)
+    col_ths = "".join(
+        f'<th{_sec(col)}>{html.escape(column_labels.get(col, str(col)))}</th>'
+        for col in df.columns
+    )
     headers = spark_th + col_ths
 
     rows = []

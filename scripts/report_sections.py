@@ -36,6 +36,19 @@ _VOTE_KEYS = [
     ("relative_volume", "rVol"),
 ]
 
+_BOND_LABELS = {
+    "bond_sov_ar": "Soberano AR",
+    "bond_other": "Otros",
+    "bond_bopreal": "Bopreal",
+    "bond_cer": "CER",
+    "bond_hard_dollar": "Hard Dollar",
+}
+
+
+def _bond_label(value: object) -> str:
+    key = str(value or "").strip()
+    return _BOND_LABELS.get(key, key or "-")
+
 
 def _parse_votes(value: object) -> dict[str, float]:
     if isinstance(value, dict):
@@ -77,9 +90,9 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
         for key, label in _VOTE_KEYS
     )
     header = (
-        "<tr><th>ticker</th><th>dir</th><th>conf</th>"
+        "<tr><th>Ticker</th><th>Dirección</th><th>Confianza</th>"
         + vote_headers
-        + "<th>acción</th><th>outcome</th></tr>"
+        + "<th>Acción</th><th>Fecha objetivo</th></tr>"
     )
 
     rows_html: list[str] = []
@@ -89,7 +102,14 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
             f"<td>{_sig_cell(votes.get(key, 0))}</td>" for key, _ in _VOTE_KEYS
         )
         ticker = html.escape(str(row.get("ticker", "-")))
-        direction = html.escape(str(row.get("direction", "-")).strip().lower())
+        direction_raw = str(row.get("direction", "-")).strip().lower()
+        direction = html.escape(
+            {
+                "up": "Suba",
+                "down": "Baja",
+                "neutral": "Neutral",
+            }.get(direction_raw, direction_raw or "-")
+        )
         conf_raw = row.get("confidence")
         _CONV_COLORS = {"alta": "#1a7f4b", "media": "#b07e0f", "baja": "#8a9ba8"}
         if pd.notna(conf_raw):
@@ -205,13 +225,21 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         votes = _parse_votes(value)
         if not votes:
             return "-"
-        # The matrix keeps a ternary visual representation even when votes are continuous.
         parts = [
             f'<span style="font-size:10px;color:var(--muted);margin-right:1px">{html.escape(label)}</span>{_sig_cell(float(votes[key]))}'
             for key, label in _VOTE_KEYS
             if key in votes
         ]
         return '<span style="display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center">' + "".join(parts) + "</span>" if parts else "-"
+
+    def _votes_summary(value: object) -> str:
+        votes = _parse_votes(value)
+        if not votes:
+            return "Sin matriz de señales."
+        favorable = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) > 0)
+        adverse = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) < 0)
+        neutral_count = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) == 0)
+        return f"Favorables {favorable} | Neutrales {neutral_count} | Adversas {adverse}"
 
     def _direction_badge(direction: object) -> str:
         direction_text = str(direction or "").strip().lower()
@@ -224,12 +252,17 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     def _focus_items(source: pd.DataFrame, *, tone: str) -> str:
         items: list[dict[str, str]] = []
         for _, row in source.head(3).iterrows():
-            direction_label = str(row.get("direction", "")).upper()
+            direction_text = str(row.get("direction", "")).strip().lower()
+            direction_label = {
+                "up": "Suba",
+                "down": "Baja",
+                "neutral": "Neutral",
+            }.get(direction_text, direction_text.upper() or "-")
             items.append(
                 {
                     "kicker": str(row.get("ticker", "-")),
                     "title": f"Confianza {fmt_pct(float(row.get('confidence', 0.0)) * 100.0)}",
-                    "detail_html": _votes_html(row.get("signal_votes")),
+                    "detail": _votes_summary(row.get("signal_votes")),
                     "badge": direction_label,
                     "badge_class": badge_class(_direction_badge(row.get("direction"))),
                 }
@@ -239,6 +272,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     bullish = work.loc[work["direction"].astype(str) == "up"].sort_values("confidence", ascending=False)
     bearish = work.loc[work["direction"].astype(str) == "down"].sort_values("confidence", ascending=False)
     neutral = work.loc[work["direction"].astype(str) == "neutral"].sort_values("confidence", ascending=False)
+
     def _accion_con_advertencia(row: object) -> str:
         direction = str(row.get("direction", "")).strip().lower()
         accion = str(row.get("accion_sugerida_v2", "")).strip()
@@ -249,7 +283,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
             or (direction == "up" and accion == ACTION_REDUCIR)
             or (direction == "neutral" and accion in {ACTION_REFUERZO, ACTION_REDUCIR})
         )
-        return f"\u26a0 {accion}" if contradice else accion
+        return f"⚠ {accion}" if contradice else accion
 
     work = work.copy()
     work["accion_sugerida_v2"] = work.apply(_accion_con_advertencia, axis=1)
@@ -267,6 +301,32 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
             "signal_votes",
         ],
     )
+    signal_legend = """
+      <div class="prediction-legend">
+        <div class="signal-legend">
+          <span class="signal-key"><span class="sig sig-pos">+</span> Señal favorable</span>
+          <span class="signal-key"><span class="sig sig-neu">&#9675;</span> Señal neutral</span>
+          <span class="signal-key"><span class="sig sig-neg">&#8722;</span> Señal adversa</span>
+        </div>
+        <div class="signal-map">
+          <span><strong>Sc</strong> Score</span>
+          <span><strong>Rg</strong> Régimen</span>
+          <span><strong>m20</strong> Momentum 20d</span>
+          <span><strong>m60</strong> Momentum 60d</span>
+          <span><strong>rVol</strong> Volumen relativo</span>
+        </div>
+      </div>
+    """
+    prediction_detail = f"""
+      {signal_legend}
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Zona neutral</h3>
+          {_focus_items(neutral, tone='neutral')}
+        </div>
+      </div>
+      {build_prediction_signal_table(predictions_view)}
+    """
     return f"""
     <section class="panel" id="prediccion">
       <h2>Predicción</h2>
@@ -283,34 +343,31 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
       </div>
       <div class="focus-columns focus-columns-wide">
         <div>
-          <h3>Señales alcistas</h3>
+          <h3>Señales de suba</h3>
           {_focus_items(bullish, tone='buy')}
         </div>
         <div>
-          <h3>Señales bajistas</h3>
+          <h3>Señales de baja</h3>
           {_focus_items(bearish, tone='sell')}
-        </div>
-        <div>
-          <h3>Zona neutral</h3>
-          {_focus_items(neutral, tone='neutral')}
         </div>
       </div>
       {build_collapsible(
-          "Ver tabla completa de prediccion",
-          build_prediction_signal_table(predictions_view),
+          "Ver detalle completo de predicción",
+          prediction_detail,
           compact=True,
       )}
     </section>
     """
 
 
+
 def build_technical_summary(technical_view: pd.DataFrame) -> str:
     if technical_view.empty:
-        return '<div class="empty compact-empty">Sin resumen tecnico disponible.</div>'
+        return '<div class="empty compact-empty">Sin resumen técnico disponible.</div>'
 
     work = technical_view.copy()
 
-    def _items(source: pd.DataFrame, *, title_fn) -> list[dict[str, str]]:
+    def _items(source: pd.DataFrame, *, title_fn, extra_class: str = "") -> list[dict[str, str]]:
         items: list[dict[str, str]] = []
         for _, row in source.head(3).iterrows():
             items.append(
@@ -318,6 +375,7 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
                     "kicker": str(row.get("Ticker_IOL", "-")),
                     "title": title_fn(row),
                     "detail": f"Tendencia {row.get('Tech_Trend', '-')}",
+                    "extra_class": extra_class,
                 }
             )
         return items
@@ -336,19 +394,11 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     if not bajo_sma.empty and sma200_col in bajo_sma.columns:
         bajo_sma = bajo_sma[bajo_sma[sma200_col] < 0]
 
-    return f"""
+    technical_detail = f"""
     <div class="focus-columns focus-columns-wide">
       <div>
-        <h3>Más fuertes</h3>
-        {build_focus_list(_items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d"), empty_message='Sin datos de fortaleza.', tone='buy')}
-      </div>
-      <div>
-        <h3>Más débiles</h3>
-        {build_focus_list(_items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d"), empty_message='Sin datos de debilidad.', tone='sell')}
-      </div>
-      <div>
         <h3>Cerca de máximos 52w</h3>
-        {build_focus_list(_items(cerca_max, title_fn=lambda row: "En máximos 52w" if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs máximo anual"), empty_message='Sin nombres cerca de máximos anuales.', tone='neutral')}
+        {build_focus_list(_items(cerca_max, title_fn=lambda row: 'En máximos 52w' if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs máximo anual"), empty_message='Sin nombres cerca de máximos anuales.', tone='neutral')}
       </div>
       <div>
         <h3>Por debajo de SMA200</h3>
@@ -357,16 +407,42 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     </div>
     """
 
+    return f"""
+    <div class="focus-columns focus-columns-wide">
+      <div>
+        <h3>Más fuertes</h3>
+        {build_focus_list(_items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-up'), empty_message='Sin datos de fortaleza.', tone='buy')}
+      </div>
+      <div>
+        <h3>Más débiles</h3>
+        {build_focus_list(_items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-down'), empty_message='Sin datos de debilidad.', tone='sell')}
+      </div>
+    </div>
+    {build_collapsible('Ver detalle técnico adicional', technical_detail, compact=True)}
+    """
+
+
 
 def build_bond_summary(
     bond_subfamily_summary: pd.DataFrame,
     bond_local_subfamily_summary: pd.DataFrame,
     bonistas_macro: dict[str, object],
 ) -> str:
+    macro_cards = f"""
+    <section class="cards cards-secondary bond-macro-cards">
+      <article class="card compact"><span class="label">CER diario</span><strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></article>
+      <article class="card compact"><span class="label">Inflación REM</span><strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))} | 12m {esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></article>
+      <article class="card compact"><span class="label">Tasas locales</span><strong>TAMAR {esc_text(bonistas_macro.get('tamar'))} | BADLAR {esc_text(bonistas_macro.get('badlar'))}</strong></article>
+      <article class="card compact"><span class="label">Tipo de cambio / RP</span><strong>A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))} | RP {esc_text(bonistas_macro.get('riesgo_pais_bps'))}</strong></article>
+      <article class="card compact"><span class="label">Reservas BCRA</span><strong>{esc_text(bonistas_macro.get('reservas_bcra_musd'))}</strong></article>
+      <article class="card compact"><span class="label">Curva UST</span><strong>5y {esc_text(bonistas_macro.get('ust_5y_pct'))} | 10y {esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></article>
+    </section>
+    """
+
     macro_items = [
         {
             "kicker": "Macro local",
-            "title": f"Riesgo pais {esc_text(bonistas_macro.get('riesgo_pais_bps'))} | A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))}",
+            "title": f"Riesgo país {esc_text(bonistas_macro.get('riesgo_pais_bps'))} | A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))}",
             "detail": f"CER {esc_text(bonistas_macro.get('cer_diario'))} | REM mensual {esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}",
         },
         {
@@ -381,7 +457,7 @@ def build_bond_summary(
         for _, row in bond_subfamily_summary.head(3).iterrows():
             subfamily_items.append(
                 {
-                    "kicker": str(row.get("asset_subfamily", "-")),
+                    "kicker": _bond_label(row.get("asset_subfamily", "-")),
                     "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {row.get('TIR_Promedio', '-')}",
                     "detail": f"Paridad {row.get('Paridad_Promedio', '-')} | MD {row.get('MD_Promedio', '-')}",
                 }
@@ -392,13 +468,14 @@ def build_bond_summary(
         for _, row in bond_local_subfamily_summary.head(3).iterrows():
             local_items.append(
                 {
-                    "kicker": str(row.get("bonistas_local_subfamily", "-")),
+                    "kicker": _bond_label(row.get("bonistas_local_subfamily", "-")),
                     "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {row.get('TIR_Promedio', '-')}",
                     "detail": f"Paridad {row.get('Paridad_Promedio', '-')} | MD {row.get('MD_Promedio', '-')}",
                 }
             )
 
     return f"""
+    {macro_cards}
     <div class="focus-columns focus-columns-wide">
       <div>
         <h3>Contexto macro</h3>
@@ -410,7 +487,7 @@ def build_bond_summary(
       </div>
       <div>
         <h3>Taxonomía local</h3>
-        {build_focus_list(local_items, empty_message='Sin resumen por taxonomia local.', tone='neutral')}
+        {build_focus_list(local_items, empty_message='Sin resumen por taxonomía local.', tone='neutral')}
       </div>
     </div>
     """
@@ -558,6 +635,54 @@ def build_summary_section(
     risk_bundle = risk_bundle or {}
     portfolio_summary = risk_bundle.get("portfolio_summary", {}) or {}
     position_risk = risk_bundle.get("position_risk", pd.DataFrame())
+
+    summary_kpis = f"""
+      <section class="cards cards-secondary summary-kpis">
+        <article class="card compact"><span class="label">Total consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
+        <article class="card compact"><span class="label">Total estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
+        <article class="card compact"><span class="label">Liquidez broker</span><strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></article>
+        <article class="card compact"><span class="label">Liquidez ampliada</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
+        <article class="card compact"><span class="label">Liquidez USD convertida</span><strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></article>
+        <article class="card compact"><span class="label">Finviz fundamentals</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
+        <article class="card compact"><span class="label">Finviz ratings</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
+      </section>
+    """
+
+    family_summary_view = family_summary.copy() if isinstance(family_summary, pd.DataFrame) else pd.DataFrame()
+    if not family_summary_view.empty:
+        family_labels = {
+            "bond": "Bono",
+            "etf": "ETF",
+            "fund": "FCI",
+            "liquidity": "Liquidez",
+            "stock": "Acci\u00f3n",
+        }
+        subfamily_labels = {
+            "bond_bopreal": "Bopreal",
+            "bond_cer": "CER",
+            "bond_other": "Otros",
+            "bond_sov_ar": "Soberano AR",
+            "etf_core": "Core",
+            "etf_country_region": "Pa\u00eds / Regi\u00f3n",
+            "etf_sector": "Sectorial",
+            "fund_other": "Otros",
+            "liquidity_other": "Liquidez",
+            "stock_argentina": "Argentina",
+            "stock_commodity": "Commodities",
+            "stock_defensive_dividend": "Defensivo / Dividendos",
+            "stock_growth": "Growth",
+        }
+        if 'asset_family' in family_summary_view.columns:
+            family_summary_view['asset_family'] = family_summary_view['asset_family'].map(lambda x: family_labels.get(str(x), str(x)))
+        if 'asset_subfamily' in family_summary_view.columns:
+            family_summary_view['asset_subfamily'] = family_summary_view['asset_subfamily'].map(lambda x: subfamily_labels.get(str(x), str(x)))
+        family_summary_view = family_summary_view.rename(columns={
+            'asset_family': 'Familia',
+            'asset_subfamily': 'Subfamilia',
+            'Instrumentos': 'Instrumentos',
+            'Score_Promedio': 'Score promedio',
+        })
+
     risk_html = ""
     if portfolio_summary and isinstance(position_risk, pd.DataFrame) and not position_risk.empty:
         history_rank = {"Robusta": 0, "Parcial": 1, "Corta": 2, "Sin historia": 3}
@@ -576,22 +701,7 @@ def build_summary_section(
         bond_risk = position_risk.loc[position_risk["Tipo"].astype(str) == "Bono"].copy()
         stability_note = portfolio_summary.get("nota_estabilidad")
 
-        risk_html = f"""
-      <h3>Riesgo histórico</h3>
-      <div class="meta">
-        <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} → {esc_text(portfolio_summary.get('hasta'))}</strong></span>
-        <span>Snapshots: <strong>{safe_int(portfolio_summary.get('snapshots'))}</strong></span>
-        <span>Retorno cartera: <strong>{fmt_pct(portfolio_summary.get('retorno_acum_pct'))}</strong></span>
-        <span>Vol diaria cartera: <strong>{fmt_pct(portfolio_summary.get('volatilidad_diaria_pct'))}</strong></span>
-        <span>Max drawdown cartera: <strong>{fmt_pct(portfolio_summary.get('drawdown_max_pct'))}</strong></span>
-      </div>
-      <div class="meta">
-        <span>Metodo: <strong>Universo comparable</strong></span>
-        <span>Pasos estables: <strong>{safe_int(portfolio_summary.get('pasos_estables'))}/{safe_int(portfolio_summary.get('pasos_totales'))}</strong></span>
-        <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
-        <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
-      </div>
-      {f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''}
+        risk_details = f"""
       {_build_risk_focus_block(market_risk, title='Riesgo de mercado', empty_message='Sin posiciones de mercado para analizar.')}
       {_build_risk_focus_block(bond_risk, title='Riesgo de renta fija', empty_message='Sin bonos para analizar.')}
       <div class="panel-head">
@@ -611,50 +721,64 @@ def build_summary_section(
           </select>
         </div>
       </div>
+      {build_table(
+          position_risk[["Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo", "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones"]].rename(columns={"Ticker_IOL": "Ticker", "Peso_%": "Peso %", "Base_Riesgo": "Base de riesgo", "Calidad_Historia": "Calidad de historia", "Retorno_Acum_%": "Retorno acum.", "Volatilidad_Diaria_%": "Volatilidad diaria", "Drawdown_Max_%": "Drawdown máx."}),
+          formatters={
+              "Peso %": fmt_pct,
+              "Retorno acum.": fmt_pct,
+              "Volatilidad diaria": fmt_pct,
+              "Drawdown máx.": fmt_pct,
+          },
+          table_class="risk-history-table",
+          table_id="risk-history-table",
+      )}
+        """
+
+        risk_html = f"""
+      <h3>Riesgo histórico</h3>
+      <div class="meta">
+        <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} → {esc_text(portfolio_summary.get('hasta'))}</strong></span>
+        <span>Snapshots: <strong>{safe_int(portfolio_summary.get('snapshots'))}</strong></span>
+        <span>Retorno cartera: <strong>{fmt_pct(portfolio_summary.get('retorno_acum_pct'))}</strong></span>
+        <span>Vol diaria cartera: <strong>{fmt_pct(portfolio_summary.get('volatilidad_diaria_pct'))}</strong></span>
+        <span>Max drawdown cartera: <strong>{fmt_pct(portfolio_summary.get('drawdown_max_pct'))}</strong></span>
+      </div>
+      <div class="meta">
+        <span>Metodó: <strong>Universo comparable</strong></span>
+        <span>Pasos estables: <strong>{safe_int(portfolio_summary.get('pasos_estables'))}/{safe_int(portfolio_summary.get('pasos_totales'))}</strong></span>
+        <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
+        <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
+      </div>
+      {f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''}
       {build_collapsible(
-          "Ver tabla completa de riesgo",
-          build_table(
-              position_risk[["Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo", "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones"]],
-              formatters={
-                  "Peso_%": fmt_pct,
-                  "Retorno_Acum_%": fmt_pct,
-                  "Volatilidad_Diaria_%": fmt_pct,
-                  "Drawdown_Max_%": fmt_pct,
-              },
-              table_class="risk-history-table",
-              table_id="risk-history-table",
-          ),
+          "Ver diagnóstico completo de riesgo",
+          risk_details,
           compact=True,
       )}
         """
     return f"""
     <section class="panel" id="resumen">
       <h2>Resumen por tipo</h2>
-      <div class="meta">
-        <span>Total consolidado: <strong>{fmt_ars(kpis['total_ars'])}</strong></span>
-        <span>Total estilo IOL: <strong>{fmt_ars(kpis['total_ars_iol'])}</strong></span>
-        <span>Liquidez broker: <strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></span>
-        <span>Liquidez ampliada: <strong>{fmt_ars(kpis['liquidez_ars'])}</strong></span>
-        <span>Liquidez USD convertida: <strong>{fmt_ars(kpis['liquidez_usd_ars'])}</strong></span>
-        <span>Finviz fundamentals: <strong>{finviz_fund_covered}/{finviz_total}</strong></span>
-        <span>Finviz ratings: <strong>{finviz_ratings_covered}/{finviz_total}</strong></span>
-      </div>
+      {summary_kpis}
       {score_dist_html}
       {build_allocation_bar(resumen_tipos)}
       {build_table(
-          resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]],
+          resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]].rename(columns={"Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}),
           formatters={
-              "Valorizado_ARS": fmt_ars,
-              "Valor_USD": fmt_usd,
-              "Ganancia_ARS": fmt_ars,
-              "Peso_%": fmt_pct,
+              "Valorizado ARS": fmt_ars,
+              "Valor USD": fmt_usd,
+              "Ganancia ARS": fmt_ars,
+              "Peso %": fmt_pct,
           },
       )}
-      <h3>Taxonomía operativa</h3>
-      {build_table(
-          family_summary[["asset_family", "asset_subfamily", "Instrumentos", "Score_Promedio"]]
-          if not family_summary.empty else family_summary,
-          formatters={"Score_Promedio": fmt_score},
+      {build_collapsible(
+          "Ver taxonomía operativa",
+          build_table(
+              family_summary_view[["Familia", "Subfamilia", "Instrumentos", "Score promedio"]]
+              if not family_summary_view.empty else family_summary_view,
+              formatters={"Score promedio": fmt_score},
+          ),
+          compact=True,
       )}
       {risk_html}
     </section>
@@ -744,11 +868,11 @@ def build_sizing_section(
           ensure_table_columns(
               asignacion_final,
               ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"],
-          ),
+          ).rename(columns={"Ticker_IOL": "Ticker", "Bucket_Prudencia": "Bucket de prudencia", "Peso_Fondeo_%": "Peso del fondeo", "Monto_ARS": "Monto ARS", "Monto_USD": "Monto USD"}),
           formatters={
-              "Peso_Fondeo_%": fmt_pct,
-              "Monto_ARS": fmt_ars,
-              "Monto_USD": fmt_usd,
+              "Peso del fondeo": fmt_pct,
+              "Monto ARS": fmt_ars,
+              "Monto USD": fmt_usd,
           },
           table_class="sizing-table",
           table_id="sizing-table",
@@ -774,23 +898,83 @@ def build_bonistas_section(
     if not show_bonistas:
         return ""
 
+    bond_subfamily_view = bond_subfamily_summary.copy() if isinstance(bond_subfamily_summary, pd.DataFrame) else pd.DataFrame()
+    if not bond_subfamily_view.empty and "asset_subfamily" in bond_subfamily_view.columns:
+        bond_subfamily_view["asset_subfamily"] = bond_subfamily_view["asset_subfamily"].map(_bond_label)
+        bond_subfamily_view = bond_subfamily_view.rename(
+            columns={
+                "asset_subfamily": "Subfamilia",
+                "TIR_Promedio": "TIR promedio",
+                "Paridad_Promedio": "Paridad promedio",
+                "MD_Promedio": "MD promedio",
+                "Dias_al_Vto_Promedio": "Días al vto. promedio",
+            }
+        )
+
+    bond_local_subfamily_view = bond_local_subfamily_summary.copy() if isinstance(bond_local_subfamily_summary, pd.DataFrame) else pd.DataFrame()
+    if not bond_local_subfamily_view.empty and "bonistas_local_subfamily" in bond_local_subfamily_view.columns:
+        bond_local_subfamily_view["bonistas_local_subfamily"] = bond_local_subfamily_view["bonistas_local_subfamily"].map(_bond_label)
+        bond_local_subfamily_view = bond_local_subfamily_view.rename(
+            columns={
+                "bonistas_local_subfamily": "Taxonomía local",
+                "TIR_Promedio": "TIR promedio",
+                "Paridad_Promedio": "Paridad promedio",
+                "MD_Promedio": "MD promedio",
+            }
+        )
+
+    bond_monitor_view = bond_monitor.copy() if isinstance(bond_monitor, pd.DataFrame) else pd.DataFrame()
+    if not bond_monitor_view.empty:
+        for col in ["asset_subfamily", "bonistas_local_subfamily"]:
+            if col in bond_monitor_view.columns:
+                bond_monitor_view[col] = bond_monitor_view[col].map(_bond_label)
+        if "bonistas_put_flag" in bond_monitor_view.columns:
+            bond_monitor_view["bonistas_put_flag"] = bond_monitor_view["bonistas_put_flag"].map(
+                lambda x: "Sí" if bool(x) else "No"
+            )
+        for col in ["bonistas_liquidity_bucket", "bonistas_duration_bucket"]:
+            if col in bond_monitor_view.columns:
+                bond_monitor_view[col] = bond_monitor_view[col].map(
+                    lambda x: "-" if pd.isna(x) else str(x).strip().capitalize()
+                )
+        bond_monitor_view = bond_monitor_view.rename(
+            columns={
+                "Ticker_IOL": "Ticker",
+                "asset_subfamily": "Subfamilia",
+                "bonistas_local_subfamily": "Taxonomía local",
+                "Peso_%": "Peso %",
+                "bonistas_tir_pct": "TIR",
+                "bonistas_paridad_pct": "Paridad",
+                "bonistas_md": "MD",
+                "bonistas_volume_last": "Volumen último",
+                "bonistas_volume_avg_20d": "Volumen prom. 20d",
+                "bonistas_volume_ratio": "Ratio volumen",
+                "bonistas_liquidity_bucket": "Liquidez",
+                "bonistas_duration_bucket": "Duración",
+                "bonistas_days_to_maturity": "Días al vto.",
+                "bonistas_tir_vs_avg_365d_pct": "TIR vs prom. 365d",
+                "bonistas_parity_gap_pct": "Gap de paridad",
+                "bonistas_put_flag": "PUT",
+            }
+        )
+
     bond_summary_tables = (
-        build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_summary, formatters={}), compact=True)
-        + build_collapsible("Ver resumen por taxonomia local", build_table(bond_local_subfamily_summary, formatters={}), compact=True)
+        build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_view, formatters={}), compact=True)
+        + build_collapsible("Ver resumen por taxonomía local", build_table(bond_local_subfamily_view, formatters={}), compact=True)
         + build_collapsible(
             "Ver monitoreo completo de bonos",
             build_table(
-                bond_monitor,
+                bond_monitor_view,
                 formatters={
-                    "Peso_%": fmt_pct,
-                    "bonistas_tir_pct": fmt_pct,
-                    "bonistas_paridad_pct": fmt_pct,
-                    "bonistas_md": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
-                    "bonistas_volume_last": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
-                    "bonistas_volume_avg_20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
-                    "bonistas_volume_ratio": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
-                    "bonistas_tir_vs_avg_365d_pct": fmt_pct,
-                    "bonistas_parity_gap_pct": fmt_pct,
+                    "Peso %": fmt_pct,
+                    "TIR": fmt_pct,
+                    "Paridad": fmt_pct,
+                    "MD": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
+                    "Volumen último": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                    "Volumen prom. 20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                    "Ratio volumen": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
+                    "TIR vs prom. 365d": fmt_pct,
+                    "Gap de paridad": fmt_pct,
                 },
             ),
             compact=True,
@@ -799,20 +983,8 @@ def build_bonistas_section(
     return f"""
     <section class="panel" id="bonistas">
       <h2>Bonos Locales</h2>
-      <div class="meta">
-        <span>CER: <strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></span>
-        <span>TAMAR: <strong>{esc_text(bonistas_macro.get('tamar'))}</strong></span>
-        <span>BADLAR: <strong>{esc_text(bonistas_macro.get('badlar'))}</strong></span>
-        <span>Reservas BCRA: <strong>{esc_text(bonistas_macro.get('reservas_bcra_musd'))}</strong></span>
-        <span>A3500: <strong>{esc_text(bonistas_macro.get('a3500_mayorista'))}</strong></span>
-        <span>Riesgo pais: <strong>{esc_text(bonistas_macro.get('riesgo_pais_bps'))}</strong></span>
-        <span>REM inflacion: <strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}</strong></span>
-        <span>REM 12m: <strong>{esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></span>
-        <span>UST 5y: <strong>{esc_text(bonistas_macro.get('ust_5y_pct'))}</strong></span>
-        <span>UST 10y: <strong>{esc_text(bonistas_macro.get('ust_10y_pct'))}</strong></span>
-        {ust_note}
-      </div>
       {build_bond_summary(bond_subfamily_summary, bond_local_subfamily_summary, bonistas_macro)}
+      {f'<div class="meta"><span>{ust_note}</span></div>' if ust_note else ''}
       {bond_summary_tables}
     </section>
     """

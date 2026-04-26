@@ -229,7 +229,7 @@ def build_render_sections(
             market_regime=context["market_regime"],
             active_flags_label=str(context["active_flags_label"]),
             tech_enabled=str(context["tech_enabled"]),
-            buy_focus=context["buy_focus"],
+            changed_actions=context["changed_actions"],
             sell_focus=context["sell_focus"],
             sizing_bundle=context["sizing_bundle"],
             sizing_preview=str(context["sizing_preview"]),
@@ -240,7 +240,6 @@ def build_render_sections(
         lambda: build_changes_section(
             decision_memory=context["decision_memory"],
             changes_direction_summary=str(context["changes_direction_summary"]),
-            changed_actions=context["changed_actions"],
             finviz_fund_covered=int(context["finviz_fund_covered"]),
             finviz_total=int(context["finviz_total"]),
             finviz_ratings_covered=int(context["finviz_ratings_covered"]),
@@ -307,6 +306,7 @@ def build_render_sections(
             decision_view=context["decision_view"],
             action_col=str(context["action_col"]),
             motive_col=str(context["motive_col"]),
+            action_summary=str(action_summary),
         ),
     )
     portfolio_section = time_section(

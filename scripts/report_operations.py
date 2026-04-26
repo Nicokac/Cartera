@@ -64,7 +64,7 @@ def build_executive_summary(
     return (
         f"{fmt_count_label(action_counts.get(ACTION_REFUERZO, 0), 'refuerzo')}, "
         f"{fmt_count_label(action_counts.get(ACTION_REDUCIR, 0), 'reducción', 'reducciones')}, "
-        f"{fmt_count_label(decision_memory.get('senales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
+        f"{fmt_count_label(decision_memory.get('señales_nuevas', 0), 'cambio material', 'cambios materiales')} y "
         f"sizing activo en {', '.join(asignacion_final['Ticker_IOL'].head(3).astype(str).tolist()) if isinstance(asignacion_final, pd.DataFrame) and not asignacion_final.empty else 'sin asignación'}."
     )
 
@@ -139,7 +139,7 @@ def build_operations_explanations(
                 badge = tipo_operacion
             else:
                 title = f"Movimiento reciente aun no reflejado en cartera | {fecha}"
-                detail = f"{symbol} tuvo una {tipo_operacion.lower()} reciente, pero todavia no figura en /portafolio actual."
+                detail = f"{symbol} tuvo una {tipo_operacion.lower()} reciente, pero todavía no figura en /portafolio actual."
                 badge = tipo_operacion
                 items.append(
                     {
@@ -162,11 +162,11 @@ def build_operations_explanations(
         elif bucket == "evento":
             if pd.notna(fallback_cutoff_ts) and pd.notna(event_ts) and event_ts < fallback_cutoff_ts:
                 continue
-            detail = f"Se acredito {tipo_operacion.lower()} de {symbol}. Monto informado {monto}."
+            detail = f"Se acreditó {tipo_operacion.lower()} de {symbol}. Monto informado {monto}."
             items.append(
                 {
                     "kicker": symbol,
-                    "title": f"Cobro o acreditacion reciente | {fecha}",
+                    "title": f"Cobro o acreditación reciente | {fecha}",
                     "detail": detail,
                 }
             )
@@ -225,11 +225,20 @@ def build_operations_summary(
                 ensure_table_columns(
                     symbol_summary,
                     ["simbolo", "tipo", "operaciones", "ultima_fecha", "monto_total", "cantidad_total"],
+                ).rename(
+                    columns={
+                        "simbolo": "Símbolo",
+                        "tipo": "Tipo",
+                        "operaciones": "Operaciones",
+                        "ultima_fecha": "Última fecha",
+                        "monto_total": "Monto total",
+                        "cantidad_total": "Cantidad total",
+                    }
                 ),
                 formatters={
-                    "ultima_fecha": fmt_datetime_short,
-                    "monto_total": fmt_ars,
-                    "cantidad_total": fmt_quantity,
+                    "Última fecha": fmt_datetime_short,
+                    "Monto total": fmt_ars,
+                    "Cantidad total": fmt_quantity,
                 },
             ),
             compact=True,
@@ -248,17 +257,80 @@ def build_operations_summary(
         unresolved_note = (
             '<div class="meta">'
             f'<span>Operaciones recientes fuera de cartera actual: <strong>{html.escape(joined)}</strong></span>'
-            '<span>Esto suele indicar una operacion ejecutada que todavia no se refleja en <strong>/portafolio</strong> o una especie transitoria no consolidada en la foto de tenencias.</span>'
+            '<span>Esto suele indicar una operación ejecutada que todavía no se refleja en <strong>/portafolio</strong> o una especie transitoria no consolidada en la foto de tenencias.</span>'
             "</div>"
         )
 
+    operational_items: list[dict[str, str]] = []
+    trading_count = int(stats.get("trading", 0))
+    events_count = int(stats.get("events", 0))
+    completed_count = int(stats.get("completed", 0))
+
+    if trading_count:
+        trading_names = (
+            recent_trades["simbolo"].dropna().astype(str).head(4).tolist()
+            if isinstance(recent_trades, pd.DataFrame) and not recent_trades.empty
+            else []
+        )
+        trading_detail = (
+            f"Actividad concentrada en {', '.join(trading_names)}."
+            if trading_names
+            else "Se registraron operaciones de compra o venta en la ventana reciente."
+        )
+        operational_items.append(
+            {
+                "kicker": "Trading reciente",
+                "title": f"{trading_count} operaciones | {completed_count} terminadas",
+                "detail": trading_detail,
+            }
+        )
+
+    if events_count:
+        event_names = (
+            recent_events["simbolo"].dropna().astype(str).head(4).tolist()
+            if isinstance(recent_events, pd.DataFrame) and not recent_events.empty
+            else []
+        )
+        event_detail = (
+            f"Eventos visibles en {', '.join(event_names)}."
+            if event_names
+            else "Se registraron acreditaciones o amortizaciones recientes."
+        )
+        operational_items.append(
+            {
+                "kicker": "Eventos recientes",
+                "title": f"{events_count} eventos pasivos",
+                "detail": event_detail,
+            }
+        )
+
+    if transition_items:
+        transition_names = [str(item.get("kicker", "")).strip() for item in transition_items if str(item.get("kicker", "")).strip()]
+        transition_detail = (
+            f"Cambios ya visibles en cartera: {', '.join(transition_names[:4])}."
+            if transition_names
+            else "Hay movimientos recientes ya reflejados en la cartera actual."
+        )
+        operational_items.append(
+            {
+                "kicker": "Impacto en cartera",
+                "title": f"{len(transition_items)} cambios visibles contra snapshot",
+                "detail": transition_detail,
+            }
+        )
+
+    if unresolved_symbols:
+        operational_items.append(
+            {
+                "kicker": "Pendientes de consolidación",
+                "title": f"{len(unresolved_symbols)} especies fuera de cartera actual",
+                "detail": f"Revisar {', '.join(unresolved_symbols[:4])} si la operación ya ejecutó pero aún no impactó /portafolio.",
+                "extra_class": "item-pending",
+            }
+        )
+
     explanations_html = build_focus_list(
-        transition_items
-        + build_operations_explanations(
-            recent_operations,
-            current_portfolio=current_portfolio if isinstance(current_portfolio, pd.DataFrame) else pd.DataFrame(),
-            skip_symbols={item.get("kicker", "") for item in transition_items},
-        ),
+        operational_items,
         empty_message="Sin lectura operacional adicional para esta ventana.",
         tone="neutral",
     )
@@ -271,6 +343,12 @@ def build_operations_summary(
                 ensure_table_columns(
                     transition_summary,
                     ["simbolo", "cambio", "detalle"],
+                ).rename(
+                    columns={
+                        "simbolo": "Símbolo",
+                        "cambio": "Cambio",
+                        "detalle": "Detalle",
+                    }
                 ),
             ),
             compact=True,
@@ -303,6 +381,12 @@ def build_operations_summary(
         )
         recent_operations_view = recent_operations_view.rename(
             columns={
+                "numero": "Número",
+                "fecha_evento": "Fecha",
+                "tipo": "Tipo",
+                "estado": "Estado",
+                "mercado": "Mercado",
+                "simbolo": "Símbolo",
                 "operation_currency": "Moneda",
                 "cantidad_final": "Cantidad final",
                 "precio_final_label": "Precio final",
@@ -341,21 +425,21 @@ def build_operations_summary(
               ensure_table_columns(
                   recent_operations_view,
                   [
-                      "numero",
-                      "fecha_evento",
-                      "tipo",
-                      "estado",
-                      "mercado",
-                      "simbolo",
+                      "Número",
+                      "Fecha",
+                      "Tipo",
+                      "Estado",
+                      "Mercado",
+                      "Símbolo",
                       "Moneda",
                       "Cantidad final",
                       "Precio final",
                       "Monto final",
-                      "plazo",
+                      "Plazo",
                   ],
               ),
               formatters={
-                  "fecha_evento": fmt_datetime_short,
+                  "Fecha": fmt_datetime_short,
                   "Moneda": fmt_label,
                   "Precio final": fmt_label,
                   "Monto final": fmt_label,

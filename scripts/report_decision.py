@@ -13,6 +13,7 @@ from report_primitives import (
     fmt_label,
     fmt_pct,
     fmt_score,
+    humanize_dimension_value,
     render_metric,
     truncate_text,
 )
@@ -72,8 +73,8 @@ def build_decision_table(
             f"data-peso=\"{peso_val:.6f}\">"
             f"<td><strong>{ticker}</strong></td>"
             f"<td>{tipo}</td>"
-            f"<td>{render_metric('asset_family', row.get('asset_family'), fmt_label)}</td>"
-            f"<td>{render_metric('asset_subfamily', row.get('asset_subfamily'), fmt_label)}</td>"
+            f"<td>{render_metric('asset_family', humanize_dimension_value('asset_family', row.get('asset_family')), fmt_label)}</td>"
+            f"<td>{render_metric('asset_subfamily', humanize_dimension_value('asset_subfamily', row.get('asset_subfamily')), fmt_label)}</td>"
             f"<td>{render_metric('Peso_%', row.get('Peso_%'), fmt_pct)}</td>"
             f"<td class=\"score\">{render_metric('score_unificado', row['score_unificado'], fmt_score)}</td>"
             f"<td><span class=\"{badge_class(accion)}\">{html.escape(accion)}</span></td>"
@@ -98,7 +99,7 @@ def build_decision_table(
     return (
         f'{score_notes_html}<div class="table-wrap"><table id="decision-table">'
         '<thead><tr><th>Ticker</th><th>Tipo</th><th>Familia</th><th>Subfamilia</th>'
-        '<th class="sortable" data-sort="peso">Peso_%</th>'
+        '<th class="sortable" data-sort="peso">Peso %</th>'
         '<th class="sortable" data-sort="score">Score</th>'
         '<th>Acción</th><th>Acción previa</th><th>\u0394 Score</th>'
         '<th class="sortable" data-sort="racha">Racha</th>'
@@ -138,6 +139,7 @@ def build_decision_priority_board(
 
     work = df.copy()
     work["_accion_actual"] = work[action_col].fillna("").astype(str)
+    work["_accion_previa"] = work.get("accion_previa", pd.Series(index=work.index, dtype=object)).fillna("").astype(str)
     work["_asset_family"] = work.get("asset_family", pd.Series(index=work.index, dtype=object)).fillna("").astype(str)
 
     def _build_items(source: pd.DataFrame, *, ascending: bool = False, limit: int = 3, badge_from_action: bool = True) -> list[dict[str, str]]:
@@ -153,11 +155,21 @@ def build_decision_priority_board(
                 1,
             )
             accion = str(row.get(action_col, ""))
+            accion_previa = str(row.get("accion_previa", ""))
+            shift = describe_action_shift(accion_previa, accion) if accion_previa.strip() and accion_previa.strip() != accion.strip() else ""
+            driver_html = build_driver_chips(row)
+            detail_parts: list[str] = []
+            if shift:
+                detail_parts.append(f'<div class="muted-inline">{html.escape(shift)}</div>')
+            if driver_html and driver_html != '<span class="muted-inline">-</span>':
+                detail_parts.append(f'<div class="driver-stack">{driver_html}</div>')
+            elif row.get(motive_col):
+                detail_parts.append(f'<div>{html.escape(truncate_text(row.get(motive_col, ""), 96))}</div>')
             items.append(
                 {
                     "kicker": str(row.get("Ticker_IOL", "-")),
                     "title": f"{fmt_score(row.get('score_unificado'))} | Racha {racha}",
-                    "detail": truncate_text(row.get(motive_col, ""), 160),
+                    "detail_html": "".join(detail_parts) or '<div class="muted-inline">Sin drivers destacados.</div>',
                     "badge": accion if badge_from_action else None,
                 }
             )
@@ -268,11 +280,11 @@ def build_change_highlights(
     cambios_hacia_reduccion = int((changed_view["_accion_actual"] == ACTION_REDUCIR).sum())
     cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
     changes_direction_summary = f"""
-      <section class="action-strip compact-strip">
-        <article class="action-card buy"><span>Suben de convicción</span><strong>{cambios_hacia_refuerzo}</strong></article>
-        <article class="action-card sell"><span>Bajan a reducción</span><strong>{cambios_hacia_reduccion}</strong></article>
-        <article class="action-card neutral"><span>Vuelven a monitoreo</span><strong>{cambios_hacia_neutral}</strong></article>
-      </section>
+      <div class="meta change-direction-meta">
+        <span>Suben de convicción: <strong>{cambios_hacia_refuerzo}</strong></span>
+        <span>Bajan a reducción: <strong>{cambios_hacia_reduccion}</strong></span>
+        <span>Vuelven a monitoreo: <strong>{cambios_hacia_neutral}</strong></span>
+      </div>
     """
 
     for _, row in changed_view.head(6).iterrows():
