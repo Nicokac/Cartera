@@ -30,3 +30,6 @@ __pycache__/
 .coverage
 .coverage.*
 htmlcov/
+
+# Generated HTML reports (keep styles under version control)
+reports/*.html

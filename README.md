@@ -21,11 +21,17 @@ El repo esta en una etapa operativa estable:
   - `report_decision`
   - `report_primitives`
   - `report_operations`
+- runner real modularizado en:
+  - `generate_real_report` (orquestacion)
+  - `generate_real_report_cli`
+  - `generate_real_report_runtime`
+  - `generate_real_report_snapshots`
+  - `generate_real_report_bonistas`
 - metricas historicas de riesgo por posicion y portfolio (`analytics/portfolio_risk.py`) con metodologia de universo comparable y circuit breaker `serie_confiable`
 - flujo de operaciones reales integrado al reporte
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
 - capa experimental de prediccion direccional integrada al smoke y al real run
-- CI basada en `unittest` con `37` suites declaradas en `.github/workflows/ci.yml`
+- CI basada en `unittest` con suites estables declaradas en `.github/workflows/ci.yml`
 
 Resumen funcional vigente:
 
@@ -160,6 +166,11 @@ python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
 python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
+python -m unittest tests.test_generate_real_report_split_cli -v
+python -m unittest tests.test_generate_real_report_split_runtime -v
+python -m unittest tests.test_generate_real_report_split_snapshots -v
+python -m unittest tests.test_generate_real_report_split_bonistas -v
+python -m unittest tests.test_report_sections_prediction -v
 ```
 
 CI actual:
@@ -206,6 +217,7 @@ Frentes ya cerrados recientemente:
 Entrada canonica:
 
 - [docs/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\README.md)
+- [docs/repo-cleanup-map.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\repo-cleanup-map.md)
 
 Configuracion de ejemplo:
 

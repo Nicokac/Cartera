@@ -11,6 +11,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
 from generate_real_report import (
+    _build_analysis_context,
     _collect_market_runtime_inputs,
     _build_report_payload,
     _merge_bond_context_into_decision,
@@ -32,6 +33,18 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_main_delegates_to_run_real_report(self) -> None:
+        args_obj = object()
+        with patch("generate_real_report.parse_args", return_value=args_obj) as parse_mock, patch(
+            "generate_real_report.run_real_report"
+        ) as run_mock:
+            from generate_real_report import main
+
+            main(["--non-interactive"])
+
+        parse_mock.assert_called_once_with(["--non-interactive"])
+        run_mock.assert_called_once_with(args_obj)
+
     def test_resolve_funding_policy_uses_args_values_in_non_interactive(self) -> None:
         class Args:
             use_iol_liquidity = True
@@ -148,6 +161,95 @@ class GenerateRealReportTests(unittest.TestCase):
         payloads_mock.assert_called_once_with(token="token0", username="u", password="p")
         prices_mock.assert_called_once()
         self.assertGreaterEqual(print_mock.call_count, 3)
+
+    def test_build_analysis_context_orchestrates_bundle_building(self) -> None:
+        df_total = pd.DataFrame([{"Ticker_IOL": "AAPL"}])
+        df_bonos = pd.DataFrame([{"Ticker_IOL": "GD30"}])
+        df_cedears_src = pd.DataFrame([{"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL"}])
+        df_cedears_enriched = pd.DataFrame([{"Ticker_IOL": "AAPL", "RSI_14": 52.0}])
+        df_ratings = pd.DataFrame([{"Ticker_Finviz": "AAPL", "consenso": "Buy"}])
+        technical_overlay = pd.DataFrame([{"Ticker_IOL": "AAPL", "Momentum_20d_%": 1.5}])
+        final_decision = pd.DataFrame([{"Ticker_IOL": "AAPL", "score_unificado": 0.12}])
+
+        portfolio_bundle = {
+            "df_total": df_total,
+            "df_bonos": df_bonos,
+            "df_cedears": df_cedears_src,
+            "liquidity_contract": {"cash_ars": 10.0},
+        }
+        bonistas_bundle = {"macro_variables": {"ust_status": "ok"}}
+        decision_bundle_initial = {"final_decision": final_decision.copy(), "market_regime": {"regime": "neutral"}}
+        decision_bundle_merged = {"final_decision": final_decision.copy(), "market_regime": {"regime": "neutral"}}
+        decision_bundle_temporal = {"final_decision": final_decision.copy(), "market_regime": {"regime": "neutral"}, "decision_memory": {}}
+        prediction_bundle = {"predictions": pd.DataFrame(), "summary": {}}
+        sizing_bundle = {"asignacion_final": pd.DataFrame()}
+        dashboard_bundle = {"kpis": {"total_ars": 100.0}}
+        risk_bundle = {"summary": {}}
+        operations_bundle = {"rows": pd.DataFrame()}
+
+        with patch("generate_real_report.build_portfolio_bundle", return_value=portfolio_bundle) as build_portfolio_mock, patch(
+            "generate_real_report.build_real_bonistas_bundle", return_value=bonistas_bundle
+        ) as bonistas_mock, patch(
+            "generate_real_report.enrich_real_cedears",
+            return_value=(df_cedears_enriched, df_ratings, {"cedears_total": 1}),
+        ) as enrich_mock, patch(
+            "generate_real_report.build_technical_overlay", return_value=technical_overlay
+        ) as technical_mock, patch(
+            "generate_real_report._print_coverage_stats"
+        ) as coverage_mock, patch(
+            "generate_real_report.build_decision_bundle", return_value=decision_bundle_initial
+        ) as decision_mock, patch(
+            "generate_real_report._merge_bond_context_into_decision", return_value=decision_bundle_merged
+        ) as merge_mock, patch(
+            "generate_real_report._enrich_decision_with_temporal_memory", return_value=decision_bundle_temporal
+        ) as temporal_mock, patch(
+            "generate_real_report._build_prediction_bundle_with_history", return_value=prediction_bundle
+        ) as prediction_mock, patch(
+            "generate_real_report.build_sizing_bundle", return_value=sizing_bundle
+        ) as sizing_mock, patch(
+            "generate_real_report.build_dashboard_bundle", return_value=dashboard_bundle
+        ) as dashboard_mock, patch(
+            "generate_real_report._build_risk_bundle", return_value=risk_bundle
+        ) as risk_mock, patch(
+            "generate_real_report._build_operations_context", return_value=operations_bundle
+        ) as operations_mock:
+            out = _build_analysis_context(
+                activos=[{"titulo": {"simbolo": "AAPL"}}],
+                estado_payload={"estado": "ok"},
+                operaciones_payload=[{"tipo": "Compra"}],
+                mep_real=1400.0,
+                precios_iol={"AAPL": 101.0},
+                run_date=pd.Timestamp("2026-04-26"),
+                usar_liquidez_iol=True,
+                aporte_externo_ars=100000.0,
+            )
+
+        build_portfolio_mock.assert_called_once()
+        bonistas_mock.assert_called_once_with(df_bonos, mep_real=1400.0)
+        enrich_mock.assert_called_once_with(df_cedears_src, mep_real=1400.0)
+        technical_mock.assert_called_once()
+        coverage_mock.assert_called_once()
+        decision_mock.assert_called_once()
+        merge_mock.assert_called_once_with(decision_bundle_initial, bonistas_bundle)
+        temporal_mock.assert_called_once()
+        prediction_mock.assert_called_once_with(decision_bundle_temporal, run_date=pd.Timestamp("2026-04-26"))
+        sizing_mock.assert_called_once()
+        dashboard_mock.assert_called_once_with(df_total, mep_real=1400.0, liquidity_contract={"cash_ars": 10.0})
+        risk_mock.assert_called_once_with(df_total, run_date=pd.Timestamp("2026-04-26"), dashboard_bundle=dashboard_bundle)
+        operations_mock.assert_called_once_with(
+            [{"tipo": "Compra"}],
+            portfolio_bundle=portfolio_bundle,
+            run_date=pd.Timestamp("2026-04-26"),
+        )
+        self.assertIs(out["decision_phase"]["portfolio_bundle"], portfolio_bundle)
+        self.assertIs(out["decision_phase"]["bonistas_bundle"], bonistas_bundle)
+        self.assertIs(out["decision_phase"]["decision_bundle"], decision_bundle_temporal)
+        self.assertIs(out["decision_phase"]["prediction_bundle"], prediction_bundle)
+        self.assertIs(out["decision_phase"]["sizing_bundle"], sizing_bundle)
+        self.assertIs(out["output_phase"]["dashboard_bundle"], dashboard_bundle)
+        self.assertIs(out["output_phase"]["risk_bundle"], risk_bundle)
+        self.assertIs(out["output_phase"]["operations_bundle"], operations_bundle)
+        self.assertTrue(out["output_phase"]["technical_overlay"].equals(technical_overlay))
 
     def test_parse_finviz_number_handles_suffixes_and_missing_values(self) -> None:
         self.assertEqual(parse_finviz_number("1.5B"), 1_500_000_000.0)

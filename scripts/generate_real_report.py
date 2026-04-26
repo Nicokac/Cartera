@@ -7,6 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from getpass import getpass
 from pathlib import Path
+from typing import TypedDict
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -114,6 +115,36 @@ BOND_CONTEXT_COLS = (
     "bonistas_ust_10y_pct",
     "bonistas_spread_vs_ust_pct",
 )
+
+
+class MarketRuntimeInputs(TypedDict):
+    activos: list[dict[str, object]]
+    estado_payload: dict[str, object]
+    operaciones_payload: list[dict[str, object]]
+    mep_real: float | None
+    precios_iol: dict[str, float]
+
+
+class DecisionPhaseContext(TypedDict):
+    portfolio_bundle: dict[str, object]
+    bonistas_bundle: dict[str, object]
+    decision_bundle: dict[str, object]
+    prediction_bundle: dict[str, object]
+    sizing_bundle: dict[str, object]
+
+
+class OutputPhaseContext(TypedDict):
+    dashboard_bundle: dict[str, object]
+    risk_bundle: dict[str, object]
+    operations_bundle: dict[str, object]
+    technical_overlay: pd.DataFrame
+    price_history: dict[str, list[float]]
+    finviz_stats: dict[str, object]
+
+
+class AnalysisContext(TypedDict):
+    decision_phase: DecisionPhaseContext
+    output_phase: OutputPhaseContext
 
 
 def legacy_snapshots_enabled() -> bool:
@@ -485,7 +516,7 @@ def _render_and_persist_report(
         print(f"  - {path}")
 
 
-def _collect_market_runtime_inputs(*, username: str, password: str) -> dict[str, object]:
+def _collect_market_runtime_inputs(*, username: str, password: str) -> MarketRuntimeInputs:
     print("Login IOL...")
     token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)
 
@@ -513,29 +544,17 @@ def _collect_market_runtime_inputs(*, username: str, password: str) -> dict[str,
     }
 
 
-def main(argv: list[str] | None = None) -> None:
-    configure_logging()
-    args = parse_args(argv)
-    REPORTS_DIR.mkdir(exist_ok=True)
-    SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
-    run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
-    run_date = resolve_market_run_date(run_ts)
-
-    username, password = resolve_iol_credentials(
-        username_override=args.username,
-        password_override=args.password,
-        non_interactive=args.non_interactive,
-    )
-    market_inputs = _collect_market_runtime_inputs(username=username, password=password)
-    activos = market_inputs["activos"]
-    estado_payload = market_inputs["estado_payload"]
-    operaciones_payload = market_inputs["operaciones_payload"]
-    mep_real = market_inputs["mep_real"]
-    precios_iol = market_inputs["precios_iol"]
-
-    print("Definiendo politica de fondeo...")
-    usar_liquidez_iol, aporte_externo_ars = _resolve_funding_policy(args)
-
+def _build_analysis_context(
+    *,
+    activos: list[dict[str, object]],
+    estado_payload: dict[str, object],
+    operaciones_payload: list[dict[str, object]],
+    mep_real: float | None,
+    precios_iol: dict[str, float],
+    run_date: object,
+    usar_liquidez_iol: bool,
+    aporte_externo_ars: float,
+) -> AnalysisContext:
     portfolio_bundle = build_portfolio_bundle(
         activos=activos,
         estado_payload=estado_payload,
@@ -591,29 +610,89 @@ def main(argv: list[str] | None = None) -> None:
         run_date=run_date,
     )
 
+    decision_phase: DecisionPhaseContext = {
+        "portfolio_bundle": portfolio_bundle,
+        "bonistas_bundle": bonistas_bundle,
+        "decision_bundle": decision_bundle,
+        "prediction_bundle": prediction_bundle,
+        "sizing_bundle": sizing_bundle,
+    }
+    output_phase: OutputPhaseContext = {
+        "dashboard_bundle": dashboard_bundle,
+        "risk_bundle": risk_bundle,
+        "operations_bundle": operations_bundle,
+        "technical_overlay": technical_overlay,
+        "price_history": price_history,
+        "finviz_stats": finviz_stats,
+    }
+    return {
+        "decision_phase": decision_phase,
+        "output_phase": output_phase,
+    }
+
+
+def run_real_report(args: object) -> None:
+    configure_logging()
+    REPORTS_DIR.mkdir(exist_ok=True)
+    SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
+    run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
+    run_date = resolve_market_run_date(run_ts)
+
+    username, password = resolve_iol_credentials(
+        username_override=args.username,
+        password_override=args.password,
+        non_interactive=args.non_interactive,
+    )
+    market_inputs: MarketRuntimeInputs = _collect_market_runtime_inputs(username=username, password=password)
+    activos = market_inputs["activos"]
+    estado_payload = market_inputs["estado_payload"]
+    operaciones_payload = market_inputs["operaciones_payload"]
+    mep_real = market_inputs["mep_real"]
+    precios_iol = market_inputs["precios_iol"]
+
+    print("Definiendo politica de fondeo...")
+    usar_liquidez_iol, aporte_externo_ars = _resolve_funding_policy(args)
+    analysis_context: AnalysisContext = _build_analysis_context(
+        activos=activos,
+        estado_payload=estado_payload,
+        operaciones_payload=operaciones_payload,
+        mep_real=mep_real,
+        precios_iol=precios_iol,
+        run_date=run_date,
+        usar_liquidez_iol=usar_liquidez_iol,
+        aporte_externo_ars=aporte_externo_ars,
+    )
+    decision_phase = analysis_context["decision_phase"]
+    output_phase = analysis_context["output_phase"]
+
     report = _build_report_payload(
         mep_real=mep_real,
         run_ts=run_ts,
         precios_iol=precios_iol,
-        portfolio_bundle=portfolio_bundle,
-        dashboard_bundle=dashboard_bundle,
-        decision_bundle=decision_bundle,
-        sizing_bundle=sizing_bundle,
-        technical_overlay=technical_overlay,
-        price_history=price_history,
-        finviz_stats=finviz_stats,
-        bonistas_bundle=bonistas_bundle,
-        operations_bundle=operations_bundle,
-        prediction_bundle=prediction_bundle,
-        risk_bundle=risk_bundle,
+        portfolio_bundle=decision_phase["portfolio_bundle"],
+        dashboard_bundle=output_phase["dashboard_bundle"],
+        decision_bundle=decision_phase["decision_bundle"],
+        sizing_bundle=decision_phase["sizing_bundle"],
+        technical_overlay=output_phase["technical_overlay"],
+        price_history=output_phase["price_history"],
+        finviz_stats=output_phase["finviz_stats"],
+        bonistas_bundle=decision_phase["bonistas_bundle"],
+        operations_bundle=output_phase["operations_bundle"],
+        prediction_bundle=decision_phase["prediction_bundle"],
+        risk_bundle=output_phase["risk_bundle"],
     )
     _render_and_persist_report(
         report,
-        portfolio_bundle=portfolio_bundle,
-        dashboard_bundle=dashboard_bundle,
-        decision_bundle=decision_bundle,
-        technical_overlay=technical_overlay,
+        portfolio_bundle=decision_phase["portfolio_bundle"],
+        dashboard_bundle=output_phase["dashboard_bundle"],
+        decision_bundle=decision_phase["decision_bundle"],
+        technical_overlay=output_phase["technical_overlay"],
     )
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    run_real_report(args)
 
 
 if __name__ == "__main__":

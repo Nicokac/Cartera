@@ -30,6 +30,11 @@ python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
 python -m unittest tests.test_report_render -v
 python -m unittest tests.test_generate_real_report -v
+python -m unittest tests.test_generate_real_report_split_cli -v
+python -m unittest tests.test_generate_real_report_split_runtime -v
+python -m unittest tests.test_generate_real_report_split_snapshots -v
+python -m unittest tests.test_generate_real_report_split_bonistas -v
+python -m unittest tests.test_report_sections_prediction -v
 ```
 
 ## CI actual
@@ -72,6 +77,14 @@ python -m unittest tests.test_generate_real_report -v
   - `tests.test_numeric_utils`
   - `tests.test_pyobd_client`
   - `tests.test_valuation_and_checks`
+
+Suites locales adicionales (no bloqueantes de CI por ahora):
+
+- `tests.test_generate_real_report_split_cli`
+- `tests.test_generate_real_report_split_runtime`
+- `tests.test_generate_real_report_split_snapshots`
+- `tests.test_generate_real_report_split_bonistas`
+- `tests.test_report_sections_prediction`
 
 ## Cobertura actual
 

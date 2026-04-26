@@ -11,6 +11,7 @@ Indice de la documentacion activa del proyecto.
 - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
 - [report-ux-architecture.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\report-ux-architecture.md)
 - [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
+- [repo-cleanup-map.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\repo-cleanup-map.md)
 
 ## Soporte operativo
 
@@ -31,6 +32,7 @@ Indice de la documentacion activa del proyecto.
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos
 - `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
+- `repo-cleanup-map.md`: inventario de candidatos a borrado y condiciones
 - el track de prediccion llego a Fase 7 (ADX continuo, `relative_volume`, `conviction_label`):
   - integrado al pipeline experimental
   - visible en el renderer HTML

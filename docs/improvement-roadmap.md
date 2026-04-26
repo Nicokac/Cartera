@@ -47,6 +47,9 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - suite `test_report_render` split por dominio en tres modulos (`core`, `operations`, `ui`) con wrapper de compatibilidad para CI `unittest` (O-006 cerrado)
 - `test_report_sections.py`: 8 tests para `_build_risk_focus_block` (O-011 cerrado)
 - CI ampliada a 37 suites (`test_market_regime_scoring`, `test_portfolio_risk`, `test_decision_actions`, `test_decision_scoring`, `test_report_sections` agregados)
+- `generate_real_report.py` desacoplado en modulos por dominio (`_cli`, `_runtime`, `_snapshots`, `_bonistas`) y orquestador principal
+- `test_generate_real_report_split_modules.py` absorbido en 4 suites por dominio (`split_cli`, `split_runtime`, `split_snapshots`, `split_bonistas`)
+- `.coverage` removido de versionado y artefactos de coverage ignorados en `.gitignore`
 
 ## Backlog activo
 
@@ -61,6 +64,11 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente
 - mantener documentado el criterio de retiro
 - evitar que vuelvan a aparecer snapshots operativos nuevos en `tests/snapshots/`
+
+### P2.1. Higiene de docs y artefactos
+
+- mantener alineados `README.md`, `docs/README.md` y `tests/README.md` cuando se muevan suites o runners
+- usar [repo-cleanup-map.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\repo-cleanup-map.md) como fuente de verdad para candidatos de borrado
 
 ### P3. Motor de prediccion direccional
 

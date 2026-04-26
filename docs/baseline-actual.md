@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
+Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
 ## Capacidades activas
 
@@ -28,6 +28,12 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
   - `scripts/report_primitives.py`
   - `scripts/report_operations.py`
   - `scripts/report_renderer.py`
+- runner real dividido en:
+  - `scripts/generate_real_report.py` (orquestador)
+  - `scripts/generate_real_report_cli.py`
+  - `scripts/generate_real_report_runtime.py`
+  - `scripts/generate_real_report_snapshots.py`
+  - `scripts/generate_real_report_bonistas.py`
 - flujo smoke dividido en:
   - `scripts/smoke_run.py`
   - `scripts/smoke_output.py`
@@ -84,14 +90,14 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
 
 ## Baseline de calidad
 
-- CI basada en `unittest` con 41 suites estables del core, renderer, smoke, clientes y analytics
+- CI basada en `unittest` con suites estables del core, renderer, smoke, clientes y analytics (ver `.github/workflows/ci.yml`)
 - bootstrap automatico de configuracion de ejemplo antes de tests
 - cobertura directa para:
   - `report_primitives`, `report_operations`, `report_sections`
   - `smoke_run`, `smoke_output`
   - `decision/actions`, `decision/scoring`
   - `analytics/portfolio_risk`
-- suite local: 391/391 OK
+- suite local: mantener en verde y contrastar contra el ultimo run operativo
 
 ## Clasificacion de FCIs
 
@@ -110,6 +116,7 @@ Documento actualizado al `2026-04-24`. Define la baseline funcional vigente del 
 - calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
 - `tests/test_strategy_rules.py` (2078 ln): outlier de tamano; candidato a split por tipo de regla
 - `tests/test_report_render_operations.py` (449 ln): monitorear crecimiento por cercania al umbral operativo
+- `tests/test_generate_real_report_split_runtime.py` (332 ln): monitorear crecimiento por concentrar casos de red y enrich
 
 ## Capa experimental integrada
 
