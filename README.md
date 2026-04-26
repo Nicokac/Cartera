@@ -209,7 +209,9 @@ python -m unittest tests.test_sizing -v
 python -m unittest tests.test_technical -v
 python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
-python -m unittest tests.test_report_render -v
+python -m unittest tests.test_report_render_core -v
+python -m unittest tests.test_report_render_operations -v
+python -m unittest tests.test_report_render_ui -v
 python -m unittest tests.test_generate_real_report -v
 python -m unittest tests.test_generate_real_report_split_cli -v
 python -m unittest tests.test_generate_real_report_split_runtime -v

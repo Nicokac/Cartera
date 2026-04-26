@@ -1,32 +1,17 @@
 import unittest
 
 try:
-    from . import (
-        strategy_rules_fundamentals,
-        strategy_rules_market_regime,
-        strategy_rules_narrative,
-        strategy_rules_taxonomy,
-        strategy_rules_technical_scoring,
-    )
+    from .strategy_rules_fundamentals import StrategyRulesFundamentalsTests
+    from .strategy_rules_market_regime import StrategyRulesMarketRegimeTests
+    from .strategy_rules_narrative import StrategyRulesNarrativeTests
+    from .strategy_rules_taxonomy import StrategyRulesTaxonomyTests
+    from .strategy_rules_technical_scoring import StrategyRulesTechnicalScoringTests
 except ImportError:
-    import strategy_rules_fundamentals
-    import strategy_rules_market_regime
-    import strategy_rules_narrative
-    import strategy_rules_taxonomy
-    import strategy_rules_technical_scoring
-
-
-def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite, pattern: str):
-    suite = unittest.TestSuite()
-    for module in (
-        strategy_rules_fundamentals,
-        strategy_rules_technical_scoring,
-        strategy_rules_taxonomy,
-        strategy_rules_narrative,
-        strategy_rules_market_regime,
-    ):
-        suite.addTests(loader.loadTestsFromModule(module))
-    return suite
+    from strategy_rules_fundamentals import StrategyRulesFundamentalsTests
+    from strategy_rules_market_regime import StrategyRulesMarketRegimeTests
+    from strategy_rules_narrative import StrategyRulesNarrativeTests
+    from strategy_rules_taxonomy import StrategyRulesTaxonomyTests
+    from strategy_rules_technical_scoring import StrategyRulesTechnicalScoringTests
 
 
 if __name__ == "__main__":

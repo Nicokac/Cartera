@@ -28,7 +28,9 @@ python -m unittest tests.test_prediction_cycle -v
 python -m unittest tests.test_operations -v
 python -m unittest tests.test_report_primitives -v
 python -m unittest tests.test_report_operations -v
-python -m unittest tests.test_report_render -v
+python -m unittest tests.test_report_render_core -v
+python -m unittest tests.test_report_render_operations -v
+python -m unittest tests.test_report_render_ui -v
 python -m unittest tests.test_generate_real_report -v
 python -m unittest tests.test_generate_real_report_split_cli -v
 python -m unittest tests.test_generate_real_report_split_runtime -v
@@ -75,7 +77,6 @@ Nota sobre `strategy_rules`:
   - `tests.test_operations`
   - `tests.test_report_primitives`
   - `tests.test_report_operations`
-  - `tests.test_report_render`
   - `tests.test_generate_real_report`
   - `tests.test_iol_client`
   - `tests.test_argentinadatos_client`

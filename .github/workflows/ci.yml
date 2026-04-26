@@ -49,7 +49,6 @@ jobs:
             tests.test_operations \
             tests.test_report_primitives \
             tests.test_report_operations \
-            tests.test_report_render \
             tests.test_report_render_core \
             tests.test_report_render_operations \
             tests.test_report_render_ui \
