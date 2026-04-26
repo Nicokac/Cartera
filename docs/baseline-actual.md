@@ -17,9 +17,17 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - diferenciacion entre alta genuina y reclasificacion de posicion en el bloque operacional del reporte
 - capa experimental de prediccion direccional con historial, verificacion, recalibracion y conviction_label
 - metricas historicas de riesgo por posicion y portfolio agregado (`analytics/portfolio_risk.py`): drawdown, volatilidad y retorno acumulado con metodologia de universo comparable y circuit breaker `serie_confiable`
+- servidor web local (`server.py`) que expone el pipeline real via FastAPI: formulario de parametros, lanzamiento en background, polling de estado y acceso al reporte HTML generado
 
 ## Estado tecnico vigente
 
+- servidor web local en `server.py` (FastAPI + uvicorn):
+  - `GET /` sirve el formulario desde `static/index.html`
+  - `POST /run` lanza el pipeline en background con `subprocess.Popen`
+  - `GET /status` expone el estado actual (`idle` / `running` / `done` / `error`)
+  - `GET /reports/*` sirve los HTMLs generados via `StaticFiles`
+  - estado protegido por `threading.Lock`; un solo proceso activo a la vez (409 si ya corre)
+  - log de corrida en `data/runtime/server_run.log`
 - renderer dividido en:
   - `scripts/report_decision.py`
   - `scripts/report_sections.py`

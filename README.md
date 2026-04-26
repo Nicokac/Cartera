@@ -46,6 +46,8 @@ Resumen funcional vigente:
 - `docs/archive/`: historico y material absorbido
 - `tests/`: suite de regresion y fixtures
 - `reports/`: HTMLs generados
+- `static/`: frontend del servidor web local
+- `server.py`: servidor web local (FastAPI)
 
 ## Requisitos
 
@@ -118,6 +120,16 @@ Notas:
 - el runner real puede pedir credenciales por terminal si no estan cargadas
 
 ## Uso rapido
+
+Servidor web local:
+
+```powershell
+python server.py
+```
+
+Abre `http://localhost:8000` en el browser. El formulario permite lanzar el pipeline real
+con parametros y ver el estado en tiempo real. El reporte generado queda disponible en
+`http://localhost:8000/reports/real-report.html`.
 
 Smoke report:
 
