@@ -1,0 +1,14 @@
+numpy<2,>=1.26
+pandas<3,>=2.1
+requests<3,>=2.31
+yfinance<1,>=0.2.54
+finvizfinance<2,>=1.2.0
+fredapi<1,>=0.5.2
+PyOBD<1,>=0.3.0
+openpyxl<4,>=3.1
+lxml<6,>=5
+fastapi<1,>=0.115
+uvicorn<1,>=0.29
+
+[byma]
+pypdf<7,>=6.0
