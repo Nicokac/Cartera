@@ -135,9 +135,14 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - mantener la documentacion de snapshots alineada cuando se retire el fallback legacy
 - seguir observando la capa experimental de prediccion con historico real antes de convertirla en senal mas fuerte
 - calibracion por `asset_family` en el motor de prediccion: bloqueada por datos (requiere >= 30 outcomes verificados por familia x senal)
-- `tests/test_strategy_rules.py` (2078 ln): outlier de tamano; candidato a split por tipo de regla
 - `tests/test_report_render_operations.py` (449 ln): monitorear crecimiento por cercania al umbral operativo
 - `tests/test_generate_real_report_split_runtime.py` (332 ln): monitorear crecimiento por concentrar casos de red y enrich
+- monitorear crecimiento del split de strategy rules por dominio:
+  - `tests/strategy_rules_technical_scoring.py`
+  - `tests/strategy_rules_fundamentals.py`
+  - `tests/strategy_rules_taxonomy.py`
+  - `tests/strategy_rules_narrative.py`
+  - `tests/strategy_rules_market_regime.py`
 
 ## Capa experimental integrada
 

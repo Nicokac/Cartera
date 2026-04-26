@@ -222,7 +222,6 @@ Pendientes reales abiertos:
 
 - retirar el fallback legacy cuando `data/snapshots/` tenga una ventana operativa suficiente
 - calibracion por `asset_family` en prediccion (bloqueada por datos: requiere >= 30 outcomes verificados por familia x senal)
-- `tests/test_strategy_rules.py` sigue como outlier de tamano y candidato a split
 - monitorear crecimiento de `tests/test_report_render_operations.py` y `tests/test_generate_real_report_split_runtime.py`
 
 Frentes ya cerrados recientemente:
@@ -239,6 +238,7 @@ Frentes ya cerrados recientemente:
 - `test_report_sections.py`: 8 tests sobre `_build_risk_focus_block`
 - artefactos generados fuera de versionado: `.coverage*`, `htmlcov/` y `reports/*.html`
 - suite split de real run en modulos: `split_cli`, `split_runtime`, `split_snapshots`, `split_bonistas`
+- O-018 cerrado: `test_strategy_rules.py` se splitteo por dominio (`strategy_rules_fundamentals`, `strategy_rules_technical_scoring`, `strategy_rules_taxonomy`, `strategy_rules_narrative`, `strategy_rules_market_regime`) y `tests/test_strategy_rules.py` queda como wrapper de carga
 
 ## Memoria temporal
 
