@@ -4,7 +4,7 @@
 
 Documento creado el `2026-04-19`. Define la arquitectura objetivo, las fases de implementacion y el criterio de avance del motor de prediccion direccional.
 
-Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion real vive en [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md).
+Este documento describe el plan y el contrato tecnico. La bitacora de ejecucion real vive en [prediction-engine-history.md](prediction-engine-history.md).
 
 ## Estado actual
 
@@ -125,7 +125,7 @@ Cada fase implementada debe actualizar tres lugares:
 1. este documento:
    - cambiar estado de la fase
    - ajustar contratos si el codigo real difiere del plan
-2. [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md):
+2. [prediction-engine-history.md](prediction-engine-history.md):
    - registrar fecha
    - commit
    - decision tecnica

@@ -37,6 +37,16 @@ python -m unittest tests.test_generate_real_report_split_bonistas -v
 python -m unittest tests.test_report_sections_prediction -v
 ```
 
+Nota sobre `strategy_rules`:
+
+- `tests.test_strategy_rules` ahora funciona como wrapper
+- la suite fue dividida por dominio en:
+  - `tests/strategy_rules_fundamentals.py`
+  - `tests/strategy_rules_technical_scoring.py`
+  - `tests/strategy_rules_taxonomy.py`
+  - `tests/strategy_rules_narrative.py`
+  - `tests/strategy_rules_market_regime.py`
+
 ## CI actual
 
 - workflow: `.github/workflows/ci.yml`
@@ -108,4 +118,4 @@ Suites locales adicionales (no bloqueantes de CI por ahora):
 
 Los snapshots de referencia viven en:
 
-- [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
+- [tests/snapshots/README.md](snapshots/README.md)
