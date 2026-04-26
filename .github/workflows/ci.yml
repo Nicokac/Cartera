@@ -50,7 +50,15 @@ jobs:
             tests.test_report_primitives \
             tests.test_report_operations \
             tests.test_report_render \
+            tests.test_report_render_core \
+            tests.test_report_render_operations \
+            tests.test_report_render_ui \
             tests.test_generate_real_report \
+            tests.test_generate_real_report_split_cli \
+            tests.test_generate_real_report_split_runtime \
+            tests.test_generate_real_report_split_snapshots \
+            tests.test_generate_real_report_split_bonistas \
+            tests.test_report_sections_prediction \
             tests.test_iol_client \
             tests.test_argentinadatos_client \
             tests.test_liquidity \
@@ -66,6 +74,7 @@ jobs:
             tests.test_decision_actions \
             tests.test_decision_scoring \
             tests.test_report_sections \
+            tests.test_server \
             -v
 
       - name: Enforce coverage floor
