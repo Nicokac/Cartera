@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 import threading
@@ -108,14 +109,21 @@ def post_run(params: RunParams) -> JSONResponse:
         ]
         username = params.username.strip()
         password = params.password.strip()
+        child_env = os.environ.copy()
         if username:
-            cmd.extend(["--username", username])
+            child_env["IOL_USERNAME"] = username
         if password:
-            cmd.extend(["--password", password])
+            child_env["IOL_PASSWORD"] = password
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         log_file = LOG_PATH.open("w", encoding="utf-8")
         try:
-            _process = subprocess.Popen(cmd, cwd=str(ROOT), stdout=log_file, stderr=log_file)
+            _process = subprocess.Popen(
+                cmd,
+                cwd=str(ROOT),
+                stdout=log_file,
+                stderr=log_file,
+                env=child_env,
+            )
         finally:
             # Parent process should close its file handle after spawning subprocess.
             log_file.close()
@@ -123,7 +131,11 @@ def post_run(params: RunParams) -> JSONResponse:
         _state["started_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         _state["finished_at"] = None
         _state["error"] = None
-        _state["params"] = params.model_dump()
+        _state["params"] = {
+            "username": username,
+            "usar_liquidez_iol": params.usar_liquidez_iol,
+            "aporte_externo_ars": params.aporte_externo_ars,
+        }
 
     threading.Thread(target=_watch_process, daemon=True).start()
     return JSONResponse({"status": "started"})

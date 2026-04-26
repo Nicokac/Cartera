@@ -159,7 +159,7 @@ class TestPostRun(unittest.TestCase):
             }
         )
         self.assertEqual(server._state["params"]["username"], "demo_user")
-        self.assertEqual(server._state["params"]["password"], "secret")
+        self.assertNotIn("password", server._state["params"])
         self.assertTrue(server._state["params"]["usar_liquidez_iol"])
         self.assertEqual(server._state["params"]["aporte_externo_ars"], 5000.0)
 
@@ -181,7 +181,7 @@ class TestPostRun(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         fake_log.close.assert_called_once()
 
-    def test_run_includes_username_and_password_flags_when_present(self):
+    def test_run_passes_username_and_password_via_child_env(self):
         fake_log = MagicMock()
         with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
              patch("server.subprocess.Popen", return_value=MagicMock()) as popen_mock, \
@@ -197,10 +197,11 @@ class TestPostRun(unittest.TestCase):
             )
         self.assertEqual(r.status_code, 200)
         cmd = popen_mock.call_args.args[0]
-        self.assertIn("--username", cmd)
-        self.assertIn("demo_user", cmd)
-        self.assertIn("--password", cmd)
-        self.assertIn("secret", cmd)
+        self.assertNotIn("--username", cmd)
+        self.assertNotIn("--password", cmd)
+        child_env = popen_mock.call_args.kwargs["env"]
+        self.assertEqual(child_env["IOL_USERNAME"], "demo_user")
+        self.assertEqual(child_env["IOL_PASSWORD"], "secret")
 
 
 class TestWatchProcess(unittest.TestCase):
