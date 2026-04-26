@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import argparse
-import json
 import logging
 import os
 import sys
@@ -11,9 +9,7 @@ from getpass import getpass
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-import numpy as np
 import pandas as pd
-import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -54,6 +50,27 @@ from decision.history import (
     save_decision_history,
     upsert_daily_decision_history,
 )
+from generate_real_report_bonistas import build_real_bonistas_bundle_impl
+from generate_real_report_cli import (
+    load_local_env_impl,
+    parse_args_impl,
+    prompt_money_ars_impl,
+    prompt_yes_no_impl,
+    resolve_iol_credentials_impl,
+)
+from generate_real_report_runtime import (
+    enrich_real_cedears_impl,
+    extract_operation_quote_tickers_impl,
+    extract_quote_tickers_impl,
+    fetch_iol_payloads_impl,
+    fetch_prices_impl,
+    parse_finviz_number_impl,
+    parse_finviz_pct_impl,
+)
+from generate_real_report_snapshots import (
+    load_previous_portfolio_snapshot_impl,
+    write_real_snapshots_impl,
+)
 from pipeline import (
     build_dashboard_bundle,
     build_decision_bundle,
@@ -91,28 +108,7 @@ def configure_logging() -> None:
 
 
 def load_local_env(path: Path = ENV_PATH) -> dict[str, str]:
-    if not path.exists():
-        return {}
-
-    loaded: dict[str, str] = {}
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.lower().startswith("export "):
-            line = line[7:].strip()
-        if "=" not in line:
-            continue
-
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip("'").strip('"')
-        if not key:
-            continue
-        loaded[key] = value
-        os.environ.setdefault(key, value)
-
-    return loaded
+    return load_local_env_impl(path, environ=os.environ)
 
 
 def resolve_iol_credentials(
@@ -121,161 +117,44 @@ def resolve_iol_credentials(
     password_override: str = "",
     non_interactive: bool = False,
 ) -> tuple[str, str]:
-    load_local_env()
-
-    username = username_override.strip() or os.environ.get("IOL_USERNAME", "").strip()
-    password = password_override.strip() or os.environ.get("IOL_PASSWORD", "").strip()
-
-    if not username:
-        if non_interactive:
-            raise ValueError("Usuario IOL faltante en modo no interactivo.")
-        username = input("Usuario IOL: ").strip()
-    else:
-        print("Usuario IOL: cargado desde entorno")
-
-    if not password:
-        if non_interactive:
-            raise ValueError("Password IOL faltante en modo no interactivo.")
-        password = getpass("Password IOL: ").strip()
-    else:
-        print("Password IOL: cargado desde entorno")
-
-    if not username or not password:
-        raise ValueError("Usuario y password son obligatorios.")
-
-    return username, password
+    return resolve_iol_credentials_impl(
+        username_override=username_override,
+        password_override=password_override,
+        non_interactive=non_interactive,
+        load_local_env_fn=load_local_env,
+        environ=os.environ,
+        input_fn=input,
+        getpass_fn=getpass,
+        print_fn=print,
+    )
 
 
 def prompt_yes_no(label: str, *, default: bool = False) -> bool:
-    suffix = " [s/N]: " if not default else " [S/n]: "
-    while True:
-        raw = input(label + suffix).strip().lower()
-        if not raw:
-            return default
-        if raw in {"s", "si", "sí", "y", "yes"}:
-            return True
-        if raw in {"n", "no"}:
-            return False
-        print("Respuesta invalida. Ingresa 's' o 'n'.")
+    return prompt_yes_no_impl(label, default=default, input_fn=input, print_fn=print)
 
 
 def prompt_money_ars(label: str) -> float:
-    while True:
-        raw = input(label + " ").strip()
-        if not raw:
-            return 0.0
-        normalized = raw.replace("$", "").replace(".", "").replace(",", ".").strip()
-        try:
-            amount = float(normalized)
-        except ValueError:
-            print("Monto invalido. Ingresa un numero en ARS, por ejemplo 600000.")
-            continue
-        if amount < 0:
-            print("El monto no puede ser negativo. Ingresa 0 o un valor positivo.")
-            continue
-        return amount
+    return prompt_money_ars_impl(label, input_fn=input, print_fn=print)
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Genera el reporte real de cartera IOL.")
-    parser.add_argument("--username", default="", help="Usuario IOL. Si falta, usa entorno o prompt.")
-    parser.add_argument("--password", default="", help="Password IOL. Si falta, usa entorno o prompt.")
-    parser.add_argument(
-        "--non-interactive",
-        action="store_true",
-        help="Falla si faltan credenciales o politica de fondeo en vez de pedir input por terminal.",
-    )
-    funding_group = parser.add_mutually_exclusive_group()
-    funding_group.add_argument(
-        "--use-iol-liquidity",
-        dest="use_iol_liquidity",
-        action="store_true",
-        help="Usa liquidez actual de IOL para fondear la estrategia.",
-    )
-    funding_group.add_argument(
-        "--no-use-iol-liquidity",
-        dest="use_iol_liquidity",
-        action="store_false",
-        help="No usa liquidez actual de IOL para fondear la estrategia.",
-    )
-    parser.set_defaults(use_iol_liquidity=None)
-    parser.add_argument(
-        "--aporte-externo-ars",
-        type=float,
-        default=None,
-        help="Monto nuevo a ingresar en ARS. Si falta, usa prompt salvo en modo no interactivo.",
-    )
-    return parser.parse_args(argv)
+def parse_args(argv: list[str] | None = None):
+    return parse_args_impl(argv)
 
 
 def parse_finviz_number(value: object) -> float:
-    if value is None or (isinstance(value, float) and np.isnan(value)):
-        return np.nan
-    text = str(value).strip().replace(",", "")
-    if not text or text == "-":
-        return np.nan
-    suffixes = {"K": 1e3, "M": 1e6, "B": 1e9, "T": 1e12}
-    suffix = text[-1].upper()
-    if suffix in suffixes:
-        try:
-            return float(text[:-1]) * suffixes[suffix]
-        except Exception as exc:
-            logger.debug("No se pudo parsear numero Finviz con sufijo %r: %s", value, exc)
-            return np.nan
-    try:
-        return float(text)
-    except Exception as exc:
-        logger.debug("No se pudo parsear numero Finviz %r: %s", value, exc)
-        return np.nan
+    return parse_finviz_number_impl(value, logger=logger)
 
 
 def parse_finviz_pct(value: object) -> float:
-    if value is None or (isinstance(value, float) and np.isnan(value)):
-        return np.nan
-    text = str(value).strip().replace(",", "")
-    if not text or text == "-":
-        return np.nan
-    text = text.replace("%", "")
-    try:
-        return float(text)
-    except Exception as exc:
-        logger.debug("No se pudo parsear porcentaje Finviz %r: %s", value, exc)
-        return np.nan
+    return parse_finviz_pct_impl(value, logger=logger)
 
 
 def extract_quote_tickers(activos: list[dict]) -> list[str]:
-    tickers: set[str] = set()
-    allowed_types = {"CEDEARS", "ACCIONES", "ACCION", "TITULOSPUBLICOS", "TITULOPUBLICO"}
-
-    for activo in activos:
-        titulo = activo.get("titulo", {}) or {}
-        simbolo = str(titulo.get("simbolo") or "").strip()
-        tipo = str(titulo.get("tipo") or "").strip()
-        tipo_norm = tipo.upper().replace(" ", "")
-
-        if not simbolo or tipo_norm not in allowed_types:
-            continue
-        tickers.add(simbolo)
-
-    return sorted(tickers)
+    return extract_quote_tickers_impl(activos)
 
 
 def extract_operation_quote_tickers(operations: list[dict[str, object]] | None, *, limit: int = 20) -> list[str]:
-    if not operations:
-        return []
-
-    tickers: list[str] = []
-    for operation in operations:
-        tipo = str(operation.get("tipo") or "").strip()
-        estado = str(operation.get("estado") or "").strip().lower()
-        simbolo = str(operation.get("simbolo") or "").strip().upper()
-        if tipo not in {"Compra", "Venta"} or estado != "terminada" or not simbolo:
-            continue
-        if simbolo not in tickers:
-            tickers.append(simbolo)
-        if len(tickers) >= limit:
-            break
-    return tickers
+    return extract_operation_quote_tickers_impl(operations, limit=limit)
 
 
 def fetch_prices(
@@ -285,35 +164,17 @@ def fetch_prices(
     username: str,
     password: str,
 ) -> tuple[dict[str, float], str]:
-    prices: dict[str, float] = {}
-    current_token = token
-
-    for ticker in tickers:
-        try:
-            data, current_token = iol_get_quote_with_reauth(
-                ticker,
-                current_token,
-                username=username,
-                password=password,
-                base_url=project_config.IOL_BASE_URL,
-                market=project_config.MARKET,
-            )
-        except requests.HTTPError as exc:
-            status = exc.response.status_code if exc.response is not None else None
-            if status == 404:
-                print(f"  [skip] Sin cotizacion IOL para {ticker} (404)")
-                logger.info("Sin cotizacion IOL para %s (404)", ticker)
-                continue
-            raise
-
-        price = data.get("ultimoPrecio")
-        if price is not None:
-            prices[ticker] = float(price)
-        else:
-            print(f"  [skip] ultimoPrecio ausente para {ticker}")
-            logger.info("ultimoPrecio ausente para %s", ticker)
-
-    return prices, current_token
+    return fetch_prices_impl(
+        tickers,
+        token=token,
+        username=username,
+        password=password,
+        iol_get_quote_with_reauth_fn=iol_get_quote_with_reauth,
+        base_url=project_config.IOL_BASE_URL,
+        market=project_config.MARKET,
+        logger=logger,
+        print_fn=print,
+    )
 
 
 def fetch_iol_payloads(
@@ -322,32 +183,17 @@ def fetch_iol_payloads(
     username: str,
     password: str,
 ) -> tuple[dict[str, object], dict[str, object], list[dict[str, object]], str]:
-    current_token = token
-    try:
-        portfolio_payload = iol_get_portafolio(current_token, base_url=project_config.IOL_BASE_URL, pais="argentina")
-        estado_payload = iol_get_estado_cuenta(current_token, base_url=project_config.IOL_BASE_URL)
-        operaciones_payload = iol_get_operaciones(
-            current_token,
-            base_url=project_config.IOL_BASE_URL,
-            pais="argentina",
-            estado="todas",
-        )
-        return portfolio_payload, estado_payload, operaciones_payload, current_token
-    except requests.HTTPError as exc:
-        status = exc.response.status_code if exc.response is not None else None
-        if status != 401:
-            raise
-        logger.info("IOL token expirado durante descarga inicial. Reautenticando y reintentando.")
-        current_token = iol_login(username, password, base_url=project_config.IOL_BASE_URL)
-        portfolio_payload = iol_get_portafolio(current_token, base_url=project_config.IOL_BASE_URL, pais="argentina")
-        estado_payload = iol_get_estado_cuenta(current_token, base_url=project_config.IOL_BASE_URL)
-        operaciones_payload = iol_get_operaciones(
-            current_token,
-            base_url=project_config.IOL_BASE_URL,
-            pais="argentina",
-            estado="todas",
-        )
-        return portfolio_payload, estado_payload, operaciones_payload, current_token
+    return fetch_iol_payloads_impl(
+        token=token,
+        username=username,
+        password=password,
+        iol_get_portafolio_fn=iol_get_portafolio,
+        iol_get_estado_cuenta_fn=iol_get_estado_cuenta,
+        iol_get_operaciones_fn=iol_get_operaciones,
+        iol_login_fn=iol_login,
+        base_url=project_config.IOL_BASE_URL,
+        logger=logger,
+    )
 
 
 def enrich_real_cedears(
@@ -355,132 +201,18 @@ def enrich_real_cedears(
     *,
     mep_real: float | None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, object]]:
-    if df_cedears.empty:
-        return df_cedears, pd.DataFrame(), {
-            "cedears_total": 0,
-            "fundamentals_covered": 0,
-            "ratings_covered": 0,
-            "coverage_by_field": {},
-            "errors": [],
-        }
-
-    out = df_cedears.copy()
-    ratings_rows: list[dict[str, object]] = []
-    errors: list[str] = []
-
-    defaults = {
-        "Perf Week": np.nan,
-        "Perf Month": np.nan,
-        "Perf YTD": np.nan,
-        "Beta": np.nan,
-        "P/E": np.nan,
-        "ROE": np.nan,
-        "Profit Margin": np.nan,
-        "MEP_Implicito": np.nan,
-    }
-    for col, default in defaults.items():
-        if col not in out.columns:
-            out[col] = default
-
-    tasks: list[tuple[object, dict[str, object]]] = []
-    for idx, row in out.iterrows():
-        row_data = row.to_dict()
-        ticker_finviz = row_data.get("Ticker_Finviz")
-        if ticker_finviz:
-            tasks.append((idx, row_data))
-
-    if tasks:
-        max_workers = min(project_config.FINVIZ_MAX_WORKERS, len(tasks))
-        timeout_seconds = float(project_config.FINVIZ_WORKER_TIMEOUT_SECONDS)
-        submit_delay_seconds = max(float(getattr(project_config, "FINVIZ_SUBMIT_DELAY_SECONDS", 0.0)), 0.0)
-        executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="finviz")
-        future_map = {}
-        for task_index, (idx, row_data) in enumerate(tasks):
-            future = executor.submit(_enrich_cedear_row_payload, idx, row_data=row_data, mep_real=mep_real)
-            future_map[future] = (idx, row_data)
-            if submit_delay_seconds > 0 and task_index < len(tasks) - 1:
-                time.sleep(submit_delay_seconds)
-        done, not_done = wait(future_map.keys(), timeout=timeout_seconds)
-        for future in done:
-            idx, updates, rating_row, error = future.result()
-            if error:
-                errors.append(error)
-                continue
-            for col, value in updates.items():
-                out.loc[idx, col] = value
-            if rating_row is not None:
-                ratings_rows.append(rating_row)
-        for future in not_done:
-            idx, row_data = future_map[future]
-            ticker_finviz = str(row_data.get("Ticker_Finviz") or row_data.get("Ticker_IOL") or idx)
-            future.cancel()
-            errors.append(f"{ticker_finviz}: timeout after {timeout_seconds:.0f}s")
-        executor.shutdown(wait=False, cancel_futures=True)
-
-    df_ratings_res = pd.DataFrame(ratings_rows)
-    if not df_ratings_res.empty:
-        df_ratings_res = df_ratings_res.drop_duplicates(subset=["Ticker_Finviz"]).set_index("Ticker_Finviz")
-    coverage_fields = ["Perf Week", "Perf Month", "Perf YTD", "Beta", "P/E", "ROE", "Profit Margin"]
-    coverage_by_field = {col: int(out[col].notna().sum()) for col in coverage_fields if col in out.columns}
-    fundamentals_covered = int(out[coverage_fields].notna().any(axis=1).sum()) if coverage_fields else 0
-    stats = {
-        "cedears_total": int(len(out)),
-        "fundamentals_covered": fundamentals_covered,
-        "ratings_covered": int(len(df_ratings_res)),
-        "coverage_by_field": coverage_by_field,
-        "errors": errors[:10],
-    }
-    return out, df_ratings_res, stats
-
-
-def _enrich_cedear_row_payload(
-    idx: object,
-    *,
-    row_data: dict[str, object],
-    mep_real: float | None,
-) -> tuple[object, dict[str, object], dict[str, object] | None, str | None]:
-    ticker_finviz = row_data.get("Ticker_Finviz")
-    if not ticker_finviz:
-        return idx, {}, None, None
-
-    try:
-        bundle = fetch_finviz_bundle(str(ticker_finviz))
-    except Exception as exc:
-        logger.warning("Finviz enrichment failed for %s: %s", ticker_finviz, exc)
-        return idx, {}, None, f"{ticker_finviz}: {exc}"
-
-    updates: dict[str, object] = {}
-    fundamentals = bundle.get("fundamentals", {}) or {}
-    updates["Perf Week"] = parse_finviz_pct(fundamentals.get("Perf Week", row_data.get("Perf Week")))
-    updates["Perf Month"] = parse_finviz_pct(fundamentals.get("Perf Month", row_data.get("Perf Month")))
-    updates["Perf YTD"] = parse_finviz_pct(fundamentals.get("Perf YTD", row_data.get("Perf YTD")))
-    updates["Beta"] = parse_finviz_number(fundamentals.get("Beta", row_data.get("Beta")))
-    updates["P/E"] = parse_finviz_number(fundamentals.get("P/E", row_data.get("P/E")))
-    updates["ROE"] = parse_finviz_pct(fundamentals.get("ROE", row_data.get("ROE")))
-    updates["Profit Margin"] = parse_finviz_pct(fundamentals.get("Profit Margin", row_data.get("Profit Margin")))
-
-    if mep_real and pd.notna(row_data.get("Precio_ARS")):
-        try:
-            updates["MEP_Implicito"] = float(row_data["Precio_ARS"]) / max(float(mep_real), 1.0)
-        except Exception as exc:
-            logger.debug("No se pudo calcular MEP implicito para %s: %s", ticker_finviz, exc)
-
-    rating_row = None
-    ratings = bundle.get("ratings")
-    if isinstance(ratings, pd.DataFrame) and not ratings.empty:
-        ratings = ratings.copy()
-        action_col = next((c for c in ratings.columns if c.lower() in {"rating", "action", "status"}), None)
-        if action_col:
-            consenso = str(ratings[action_col].mode().iloc[0]) if not ratings[action_col].mode().empty else None
-            consenso_n = int((ratings[action_col] == consenso).sum()) if consenso else 0
-            rating_row = {
-                "Ticker_Finviz": str(ticker_finviz),
-                "consenso": consenso,
-                "consenso_n": consenso_n,
-                "total_ratings": int(len(ratings)),
-            }
-
-    return idx, updates, rating_row, None
+    return enrich_real_cedears_impl(
+        df_cedears,
+        mep_real=mep_real,
+        fetch_finviz_bundle_fn=fetch_finviz_bundle,
+        finviz_max_workers=project_config.FINVIZ_MAX_WORKERS,
+        finviz_worker_timeout_seconds=float(project_config.FINVIZ_WORKER_TIMEOUT_SECONDS),
+        finviz_submit_delay_seconds=float(getattr(project_config, "FINVIZ_SUBMIT_DELAY_SECONDS", 0.0)),
+        thread_pool_executor_cls=ThreadPoolExecutor,
+        wait_fn=wait,
+        sleep_fn=time.sleep,
+        logger=logger,
+    )
 
 
 def write_real_snapshots(
@@ -490,61 +222,13 @@ def write_real_snapshots(
     decision_bundle: dict[str, object],
     technical_overlay: pd.DataFrame | None,
 ) -> list[Path]:
-    SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = pd.Timestamp.now().strftime("%Y-%m-%d")
-
-    df_total = portfolio_bundle["df_total"].copy()
-    final_decision = decision_bundle["final_decision"].copy()
-    liquidity_contract = dict(portfolio_bundle["liquidity_contract"])
-    kpis = dict(dashboard_bundle["kpis"])
-
-    paths = [
-        SNAPSHOTS_DIR / f"{stamp}_real_portfolio_master.csv",
-        SNAPSHOTS_DIR / f"{stamp}_real_decision_table.csv",
-        SNAPSHOTS_DIR / f"{stamp}_real_liquidity_contract.json",
-        SNAPSHOTS_DIR / f"{stamp}_real_kpis.json",
-        SNAPSHOTS_DIR / f"{stamp}_real_technical_overlay.csv",
-    ]
-
-    df_total.sort_values("Valorizado_ARS", ascending=False).to_csv(paths[0], index=False, encoding="utf-8")
-    final_decision.sort_values("score_unificado", ascending=False).to_csv(paths[1], index=False, encoding="utf-8")
-    paths[2].write_text(json.dumps(liquidity_contract, ensure_ascii=False, indent=2), encoding="utf-8")
-    paths[3].write_text(json.dumps(kpis, ensure_ascii=False, indent=2), encoding="utf-8")
-    technical_df = technical_overlay.copy() if isinstance(technical_overlay, pd.DataFrame) else pd.DataFrame()
-    technical_df.to_csv(paths[4], index=False, encoding="utf-8")
-    return paths
-
-
-def _load_snapshot_csv(path: Path) -> pd.DataFrame:
-    try:
-        previous_df = pd.read_csv(path)
-    except Exception as exc:
-        logger.warning("No se pudo leer snapshot previo %s: %s", path, exc)
-        return pd.DataFrame()
-
-    missing_columns = REQUIRED_SNAPSHOT_COLUMNS - set(previous_df.columns)
-    if missing_columns:
-        logger.warning(
-            "Snapshot previo invalido %s. Faltan columnas requeridas: %s",
-            path,
-            ", ".join(sorted(missing_columns)),
-        )
-        return pd.DataFrame()
-
-    previous_df = previous_df.copy()
-    previous_df["Ticker_IOL"] = previous_df["Ticker_IOL"].fillna("").astype(str).str.strip()
-    previous_df = previous_df.loc[previous_df["Ticker_IOL"] != ""].copy()
-    if previous_df.empty:
-        logger.warning(
-            "Snapshot previo invalido %s. No contiene filas utilizables con Ticker_IOL.",
-            path,
-        )
-        return pd.DataFrame()
-
-    for column in SNAPSHOT_OPTIONAL_NUMERIC_COLUMNS:
-        if column in previous_df.columns:
-            previous_df[column] = pd.to_numeric(previous_df[column], errors="coerce")
-    return previous_df
+    return write_real_snapshots_impl(
+        portfolio_bundle=portfolio_bundle,
+        dashboard_bundle=dashboard_bundle,
+        decision_bundle=decision_bundle,
+        technical_overlay=technical_overlay,
+        snapshots_dir=SNAPSHOTS_DIR,
+    )
 
 
 def load_previous_portfolio_snapshot(
@@ -552,161 +236,44 @@ def load_previous_portfolio_snapshot(
     *,
     snapshots_dir: Path | None = None,
 ) -> tuple[pd.DataFrame, str | None]:
-    run_ts = pd.to_datetime(run_date, errors="coerce")
-    if pd.isna(run_ts):
-        return pd.DataFrame(), None
-    run_ts = run_ts.normalize()
-
-    candidate_dirs: list[Path] = []
-    if snapshots_dir is not None:
-        candidate_dirs.append(snapshots_dir)
-    else:
-        candidate_dirs.append(SNAPSHOTS_DIR)
-        if legacy_snapshots_enabled():
-            candidate_dirs.append(LEGACY_SNAPSHOTS_DIR)
-
-    candidates: list[tuple[pd.Timestamp, Path]] = []
-    seen_paths: set[Path] = set()
-    for base_dir in candidate_dirs:
-        if not base_dir.exists():
-            continue
-        for path in sorted(base_dir.glob("*_real_portfolio_master.csv")):
-            if path in seen_paths:
-                continue
-            seen_paths.add(path)
-            stamp = path.name.split("_real_portfolio_master.csv", 1)[0]
-            ts = pd.to_datetime(stamp, errors="coerce")
-            if pd.isna(ts):
-                continue
-            if ts.normalize() < run_ts:
-                candidates.append((ts.normalize(), path))
-
-    if not candidates:
-        return pd.DataFrame(), None
-
-    for previous_date, previous_path in sorted(candidates, key=lambda item: item[0], reverse=True):
-        previous_df = _load_snapshot_csv(previous_path)
-        if not previous_df.empty:
-            if previous_path.parent == LEGACY_SNAPSHOTS_DIR:
-                logger.warning(
-                    "Usando snapshot legacy desde %s. Migra snapshots operativos a %s o desactiva el fallback con ENABLE_LEGACY_SNAPSHOTS=0.",
-                    previous_path,
-                    SNAPSHOTS_DIR,
-                )
-            return previous_df, previous_date.strftime("%Y-%m-%d")
-    return pd.DataFrame(), None
+    return load_previous_portfolio_snapshot_impl(
+        run_date,
+        snapshots_dir=snapshots_dir,
+        primary_snapshots_dir=SNAPSHOTS_DIR,
+        legacy_snapshots_dir=LEGACY_SNAPSHOTS_DIR,
+        use_legacy_snapshots=legacy_snapshots_enabled(),
+        required_snapshot_columns=REQUIRED_SNAPSHOT_COLUMNS,
+        optional_numeric_columns=SNAPSHOT_OPTIONAL_NUMERIC_COLUMNS,
+        logger=logger,
+    )
 
 
 def build_real_bonistas_bundle(df_bonos: pd.DataFrame, *, mep_real: float | None = None) -> dict[str, object]:
-    if df_bonos.empty:
-        return {}
-
-    tickers = sorted({str(ticker).strip().upper() for ticker in df_bonos["Ticker_IOL"].dropna().tolist() if str(ticker).strip()})
-    if not tickers:
-        return {}
-
-    try:
-        df_bonistas = get_bonds_for_portfolio(tickers)
-    except Exception as exc:
-        print(f"Bonistas instrumentos no disponible: {exc}")
-        logger.warning("Bonistas instrumentos no disponible: %s", exc)
-        df_bonistas = pd.DataFrame()
-    if not df_bonistas.empty and "bonistas_ticker" in df_bonistas.columns and "Ticker_IOL" not in df_bonistas.columns:
-        df_bonistas = df_bonistas.rename(columns={"bonistas_ticker": "Ticker_IOL"})
-
-    try:
-        df_bond_volume = get_bond_volume_context(tickers)
-    except Exception as exc:
-        print(f"PyOBD volumen no disponible: {exc}")
-        logger.warning("PyOBD volumen no disponible: %s", exc)
-        df_bond_volume = pd.DataFrame()
-    if not df_bond_volume.empty:
-        if df_bonistas.empty:
-            df_bonistas = df_bond_volume.copy()
-        else:
-            df_bonistas = df_bonistas.merge(df_bond_volume, on="Ticker_IOL", how="left")
-
-    try:
-        macro_variables = get_macro_variables()
-    except Exception as exc:
-        print(f"Bonistas variables no disponible: {exc}")
-        logger.warning("Bonistas variables no disponible: %s", exc)
-        macro_variables = {}
-
-    try:
-        riesgo_pais = get_riesgo_pais_latest(base_url=project_config.ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL)
-    except Exception as exc:
-        print(f"ArgentinaDatos riesgo pais no disponible: {exc}")
-        logger.warning("ArgentinaDatos riesgo pais no disponible: %s", exc)
-        riesgo_pais = None
-    if riesgo_pais:
-        macro_variables = dict(macro_variables)
-        macro_variables["riesgo_pais_bps"] = float(riesgo_pais["valor"])
-        macro_variables["riesgo_pais_fecha"] = riesgo_pais.get("fecha")
-
-    try:
-        rem_latest = get_rem_latest(
-            base_url=project_config.BCRA_REM_URL,
-            xlsx_url=project_config.BCRA_REM_XLS_URL,
-        )
-    except Exception as exc:
-        print(f"BCRA REM no disponible: {exc}")
-        logger.warning("BCRA REM no disponible: %s", exc)
-        rem_latest = None
-    if rem_latest:
-        macro_variables = dict(macro_variables)
-        macro_variables["rem_inflacion_mensual_pct"] = float(rem_latest["inflacion_mensual_pct"])
-        if rem_latest.get("inflacion_12m_pct") is not None:
-            macro_variables["rem_inflacion_12m_pct"] = float(rem_latest["inflacion_12m_pct"])
-        macro_variables["rem_periodo"] = rem_latest.get("periodo")
-        macro_variables["rem_fecha_publicacion"] = rem_latest.get("fecha_publicacion")
-
-    try:
-        bcra_monetary = get_bcra_monetary_context(
-            base_url=project_config.BCRA_MONETARIAS_API_URL,
-            reservas_id=project_config.BCRA_RESERVAS_ID,
-            a3500_id=project_config.BCRA_A3500_ID,
-            badlar_tna_id=project_config.BCRA_BADLAR_PRIV_TNA_ID,
-            badlar_tea_id=project_config.BCRA_BADLAR_PRIV_TEA_ID,
-        )
-    except Exception as exc:
-        print(f"BCRA monetarias no disponible: {exc}")
-        logger.warning("BCRA monetarias no disponible: %s", exc)
-        bcra_monetary = {}
-    if bcra_monetary:
-        macro_variables = dict(macro_variables)
-        macro_variables.update(bcra_monetary)
-
-    try:
-        ust_latest = get_ust_latest()
-    except Exception as exc:
-        print(f"FRED UST no disponible: {exc}")
-        logger.warning("FRED UST no disponible: %s", exc)
-        ust_latest = None
-        macro_variables = dict(macro_variables)
-        macro_variables["ust_status"] = "error"
-        macro_variables["ust_error"] = str(exc)
-    if ust_latest:
-        macro_variables = dict(macro_variables)
-        macro_variables["ust_status"] = "ok"
-        macro_variables.update(ust_latest)
-
-    if df_bonistas.empty and not macro_variables:
-        return {}
-
-    bond_analytics = enrich_bond_analytics(
+    return build_real_bonistas_bundle_impl(
         df_bonos,
-        df_bonistas,
-        macro_variables=macro_variables,
         mep_real=mep_real,
+        get_bonds_for_portfolio_fn=get_bonds_for_portfolio,
+        get_bond_volume_context_fn=get_bond_volume_context,
+        get_macro_variables_fn=get_macro_variables,
+        get_riesgo_pais_latest_fn=get_riesgo_pais_latest,
+        riesgo_pais_url=project_config.ARGENTINADATOS_RIESGO_PAIS_ULTIMO_URL,
+        get_rem_latest_fn=get_rem_latest,
+        rem_url=project_config.BCRA_REM_URL,
+        rem_xls_url=project_config.BCRA_REM_XLS_URL,
+        get_bcra_monetary_context_fn=get_bcra_monetary_context,
+        bcra_monetarias_api_url=project_config.BCRA_MONETARIAS_API_URL,
+        bcra_reservas_id=project_config.BCRA_RESERVAS_ID,
+        bcra_a3500_id=project_config.BCRA_A3500_ID,
+        bcra_badlar_tna_id=project_config.BCRA_BADLAR_PRIV_TNA_ID,
+        bcra_badlar_tea_id=project_config.BCRA_BADLAR_PRIV_TEA_ID,
+        get_ust_latest_fn=get_ust_latest,
+        enrich_bond_analytics_fn=enrich_bond_analytics,
+        build_bond_monitor_table_fn=build_bond_monitor_table,
+        build_bond_subfamily_summary_fn=build_bond_subfamily_summary,
+        build_bond_local_subfamily_summary_fn=build_bond_local_subfamily_summary,
+        logger=logger,
+        print_fn=print,
     )
-    return {
-        "bond_analytics": bond_analytics,
-        "bond_monitor": build_bond_monitor_table(bond_analytics),
-        "bond_subfamily_summary": build_bond_subfamily_summary(bond_analytics),
-        "bond_local_subfamily_summary": build_bond_local_subfamily_summary(bond_analytics),
-        "macro_variables": macro_variables,
-    }
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -863,8 +430,6 @@ def main(argv: list[str] | None = None) -> None:
         run_date=run_date,
         market_regime=decision_bundle.get("market_regime"),
     )
-    # El real run es el punto canonico donde nacen observaciones nuevas de prediccion.
-    # run_prediction_cycle.py solo mantiene este historial: verifica outcomes y recalibra.
     prediction_history = upsert_prediction_history(
         load_prediction_history(),
         prediction_bundle.get("history_observation", pd.DataFrame()),
@@ -942,4 +507,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-

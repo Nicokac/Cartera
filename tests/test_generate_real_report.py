@@ -1,6 +1,5 @@
 import sys
 import unittest
-from concurrent.futures import Future
 from pathlib import Path
 from unittest.mock import patch
 
@@ -116,242 +115,44 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(result, 600000.0)
         self.assertEqual(print_mock.call_count, 2)
 
-    def test_build_real_bonistas_bundle_accepts_mep_real_and_returns_bundle(self) -> None:
+    def test_build_real_bonistas_bundle_delegates_to_split_module(self) -> None:
         df_bonos = pd.DataFrame(
             [
                 {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar", "Peso_%": 3.62}
             ]
         )
-
-        with patch("generate_real_report.get_bonds_for_portfolio", return_value=pd.DataFrame([{"bonistas_ticker": "GD30"}])), patch(
-            "generate_real_report.get_macro_variables", return_value={"cer_diario": 738.025}
-        ), patch(
-            "generate_real_report.get_riesgo_pais_latest", return_value={"valor": 765.0, "fecha": "2026-04-05"}
-        ), patch(
-            "generate_real_report.get_rem_latest",
-            return_value={
-                "inflacion_mensual_pct": 2.7,
-                "inflacion_12m_pct": 24.6,
-                "periodo": "Febrero De 2026",
-                "fecha_publicacion": "5 de marzo de 2026",
-            },
-        ), patch(
-            "generate_real_report.get_bcra_monetary_context",
-            return_value={
-                "reservas_bcra_musd": 28384.0,
-                "a3500_mayorista": 1387.72,
-                "badlar": 28.31,
-                "tamar": 26.31,
-            },
-        ), patch(
-            "generate_real_report.get_ust_latest",
-            return_value={
-                "ust_date": "2026-04-08",
-                "ust_5y_pct": 3.95,
-                "ust_10y_pct": 4.33,
-                "ust_spread_10y_5y_pct": 0.38,
-            },
-        ), patch(
-            "generate_real_report.get_bond_volume_context",
-            return_value=pd.DataFrame(
-                [
-                    {
-                        "Ticker_IOL": "GD30",
-                        "bonistas_volume_last": 1500000.0,
-                        "bonistas_volume_avg_20d": 1200000.0,
-                        "bonistas_volume_ratio": 1.25,
-                        "bonistas_liquidity_bucket": "alta",
-                    }
-                ]
-            ),
-        ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()) as enrich_mock, patch(
-            "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame([{"Ticker_IOL": "GD30"}])
-        ), patch(
-            "generate_real_report.build_bond_subfamily_summary",
-            return_value=pd.DataFrame([{"asset_subfamily": "bond_sov_ar", "Instrumentos": 1}]),
-        ), patch(
-            "generate_real_report.build_bond_local_subfamily_summary",
-            return_value=pd.DataFrame([{"bonistas_local_subfamily": "bond_hard_dollar", "Instrumentos": 1}]),
-        ):
+        expected = {"bond_monitor": pd.DataFrame([{"Ticker_IOL": "GD30"}])}
+        with patch("generate_real_report.build_real_bonistas_bundle_impl", return_value=expected) as impl_mock:
             bundle = build_real_bonistas_bundle(df_bonos, mep_real=1434.0)
 
-        self.assertIn("bond_monitor", bundle)
-        self.assertIn("bond_subfamily_summary", bundle)
-        self.assertIn("bond_local_subfamily_summary", bundle)
-        self.assertIn("macro_variables", bundle)
-        self.assertEqual(bundle["macro_variables"]["cer_diario"], 738.025)
-        self.assertEqual(bundle["macro_variables"]["riesgo_pais_bps"], 765.0)
-        self.assertEqual(bundle["macro_variables"]["rem_inflacion_mensual_pct"], 2.7)
-        self.assertEqual(bundle["macro_variables"]["rem_inflacion_12m_pct"], 24.6)
-        self.assertEqual(bundle["macro_variables"]["reservas_bcra_musd"], 28384.0)
-        self.assertEqual(bundle["macro_variables"]["a3500_mayorista"], 1387.72)
-        self.assertEqual(bundle["macro_variables"]["badlar"], 28.31)
-        self.assertEqual(bundle["macro_variables"]["tamar"], 26.31)
-        self.assertEqual(bundle["macro_variables"]["ust_status"], "ok")
-        enrich_mock.assert_called_once()
-        self.assertEqual(enrich_mock.call_args.kwargs["mep_real"], 1434.0)
+        self.assertIs(bundle, expected)
+        impl_mock.assert_called_once()
+        self.assertTrue(impl_mock.call_args.args[0].equals(df_bonos))
+        self.assertEqual(impl_mock.call_args.kwargs["mep_real"], 1434.0)
 
-    def test_build_real_bonistas_bundle_marks_ust_status_when_fred_fails(self) -> None:
-        df_bonos = pd.DataFrame(
-            [
-                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar", "Peso_%": 3.62}
-            ]
-        )
-
-        with patch("generate_real_report.get_bonds_for_portfolio", return_value=pd.DataFrame([{"bonistas_ticker": "GD30"}])), patch(
-            "generate_real_report.get_macro_variables", return_value={"cer_diario": 738.025}
-        ), patch(
-            "generate_real_report.get_riesgo_pais_latest", return_value=None
-        ), patch(
-            "generate_real_report.get_rem_latest", return_value=None
-        ), patch(
-            "generate_real_report.get_bcra_monetary_context", return_value={}
-        ), patch(
-            "generate_real_report.get_ust_latest", side_effect=RuntimeError("FRED caido")
-        ), patch(
-            "generate_real_report.get_bond_volume_context", return_value=pd.DataFrame()
-        ), patch("generate_real_report.enrich_bond_analytics", return_value=df_bonos.copy()), patch(
-            "generate_real_report.build_bond_monitor_table", return_value=pd.DataFrame()
-        ), patch(
-            "generate_real_report.build_bond_subfamily_summary", return_value=pd.DataFrame()
-        ), patch(
-            "generate_real_report.build_bond_local_subfamily_summary", return_value=pd.DataFrame()
-        ):
-            bundle = build_real_bonistas_bundle(df_bonos, mep_real=1434.0)
-
-        self.assertEqual(bundle["macro_variables"]["ust_status"], "error")
-        self.assertIn("FRED caido", bundle["macro_variables"]["ust_error"])
-
-    def test_enrich_real_cedears_parallel_fetch_preserves_outputs(self) -> None:
+    def test_enrich_real_cedears_delegates_to_split_module(self) -> None:
         df_cedears = pd.DataFrame(
             [
                 {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
                 {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
             ]
         )
+        expected = (pd.DataFrame(), pd.DataFrame(), {"cedears_total": 2})
+        with patch("generate_real_report.enrich_real_cedears_impl", return_value=expected) as impl_mock:
+            result = enrich_real_cedears(df_cedears, mep_real=1200.0)
 
-        def fake_bundle(ticker: str) -> dict[str, object]:
-            if ticker == "AAPL":
-                return {
-                    "fundamentals": {"Perf Week": "1.5%", "Beta": "1.2", "P/E": "28", "ROE": "20%", "Profit Margin": "25%"},
-                    "ratings": pd.DataFrame([{"Rating": "Buy"}, {"Rating": "Buy"}, {"Rating": "Hold"}]),
-                }
-            return {
-                "fundamentals": {"Perf Month": "2.0%", "Beta": "0.7", "P/E": "22", "ROE": "18%", "Profit Margin": "21%"},
-                "ratings": pd.DataFrame([{"Action": "Hold"}, {"Action": "Hold"}]),
-            }
+        self.assertIs(result, expected)
+        impl_mock.assert_called_once()
+        self.assertTrue(impl_mock.call_args.args[0].equals(df_cedears))
+        self.assertEqual(impl_mock.call_args.kwargs["mep_real"], 1200.0)
 
-        with patch("generate_real_report.fetch_finviz_bundle", side_effect=fake_bundle):
-            enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
+    def test_enrich_real_cedears_passes_runtime_dependencies(self) -> None:
+        df_cedears = pd.DataFrame([{"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL"}])
+        with patch("generate_real_report.enrich_real_cedears_impl", return_value=(pd.DataFrame(), pd.DataFrame(), {})) as impl_mock:
+            _ = enrich_real_cedears(df_cedears, mep_real=1200.0)
 
-        self.assertEqual(stats["cedears_total"], 2)
-        self.assertEqual(stats["fundamentals_covered"], 2)
-        self.assertEqual(stats["ratings_covered"], 2)
-        self.assertEqual(stats["errors"], [])
-        self.assertAlmostEqual(enriched.loc[0, "MEP_Implicito"], 1.0, places=4)
-        self.assertAlmostEqual(enriched.loc[1, "MEP_Implicito"], 0.45, places=4)
-        self.assertEqual(ratings.loc["AAPL", "consenso"], "Buy")
-        self.assertEqual(ratings.loc["KO", "consenso"], "Hold")
-
-    def test_enrich_real_cedears_keeps_per_ticker_errors_without_aborting(self) -> None:
-        df_cedears = pd.DataFrame(
-            [
-                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
-                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
-            ]
-        )
-
-        def fake_bundle(ticker: str) -> dict[str, object]:
-            if ticker == "AAPL":
-                raise RuntimeError("timeout")
-            return {
-                "fundamentals": {"Perf Week": "1.0%", "Beta": "0.7"},
-                "ratings": pd.DataFrame([{"Status": "Hold"}]),
-            }
-
-        with patch("generate_real_report.fetch_finviz_bundle", side_effect=fake_bundle):
-            enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
-
-        self.assertEqual(stats["fundamentals_covered"], 1)
-        self.assertEqual(stats["ratings_covered"], 1)
-        self.assertEqual(len(stats["errors"]), 1)
-        self.assertIn("AAPL: timeout", stats["errors"][0])
-        self.assertTrue(pd.isna(enriched.loc[0, "Beta"]))
-        self.assertEqual(ratings.loc["KO", "consenso"], "Hold")
-
-    def test_enrich_real_cedears_marks_timeout_when_future_does_not_finish(self) -> None:
-        df_cedears = pd.DataFrame(
-            [
-                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
-                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
-            ]
-        )
-        finished = Future()
-        finished.set_result(
-            (
-                0,
-                {"Perf Week": 1.5, "Beta": 1.2, "MEP_Implicito": 1.0},
-                {"Ticker_Finviz": "AAPL", "consenso": "Buy", "consenso_n": 1, "total_ratings": 1},
-                None,
-            )
-        )
-        pending = Future()
-
-        class FakeExecutor:
-            def __init__(self, *_args, **_kwargs) -> None:
-                self._futures = [finished, pending]
-
-            def submit(self, *_args, **_kwargs):
-                return self._futures.pop(0)
-
-            def shutdown(self, *args, **kwargs) -> None:
-                return None
-
-        with patch("generate_real_report.ThreadPoolExecutor", FakeExecutor), patch(
-            "generate_real_report.wait", return_value=({finished}, {pending})
-        ), patch("generate_real_report.project_config.FINVIZ_MAX_WORKERS", 2), patch(
-            "generate_real_report.project_config.FINVIZ_WORKER_TIMEOUT_SECONDS", 7
-        ), patch(
-            "generate_real_report.project_config.FINVIZ_SUBMIT_DELAY_SECONDS", 0.0
-        ):
-            enriched, ratings, stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
-
-        self.assertEqual(stats["fundamentals_covered"], 1)
-        self.assertEqual(stats["ratings_covered"], 1)
-        self.assertIn("KO: timeout after 7s", stats["errors"])
-        self.assertEqual(ratings.loc["AAPL", "consenso"], "Buy")
-        self.assertTrue(pd.isna(enriched.loc[1, "Beta"]))
-
-    def test_enrich_real_cedears_uses_submit_delay_between_tasks(self) -> None:
-        df_cedears = pd.DataFrame(
-            [
-                {"Ticker_IOL": "AAPL", "Ticker_Finviz": "AAPL", "Precio_ARS": 1200.0},
-                {"Ticker_IOL": "KO", "Ticker_Finviz": "KO", "Precio_ARS": 540.0},
-            ]
-        )
-        finished_a = Future()
-        finished_a.set_result((0, {}, None, None))
-        finished_b = Future()
-        finished_b.set_result((1, {}, None, None))
-
-        class FakeExecutor:
-            def __init__(self, *_args, **_kwargs) -> None:
-                self._futures = [finished_a, finished_b]
-
-            def submit(self, *_args, **_kwargs):
-                return self._futures.pop(0)
-
-            def shutdown(self, *args, **kwargs) -> None:
-                return None
-
-        with patch("generate_real_report.ThreadPoolExecutor", FakeExecutor), patch(
-            "generate_real_report.wait", return_value=({finished_a, finished_b}, set())
-        ), patch(
-            "generate_real_report.project_config.FINVIZ_SUBMIT_DELAY_SECONDS", 0.25
-        ), patch("generate_real_report.time.sleep") as sleep_mock:
-            _enriched, _ratings, _stats = enrich_real_cedears(df_cedears, mep_real=1200.0)
-
-        sleep_mock.assert_called_once_with(0.25)
+        self.assertEqual(impl_mock.call_args.kwargs["fetch_finviz_bundle_fn"].__name__, "fetch_finviz_bundle")
+        self.assertEqual(impl_mock.call_args.kwargs["thread_pool_executor_cls"].__name__, "ThreadPoolExecutor")
 
     def test_real_report_bond_context_columns_include_bcra_macro_fields(self) -> None:
         bond_analytics = pd.DataFrame(

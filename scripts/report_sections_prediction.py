@@ -132,17 +132,6 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     summary = prediction_bundle.get("summary", {}) or {}
     config = prediction_bundle.get("config", {}) or {}
 
-    def _votes_html(value: object) -> str:
-        votes = _parse_votes(value)
-        if not votes:
-            return "-"
-        parts = [
-            f'<span style="font-size:10px;color:var(--muted);margin-right:1px">{html.escape(label)}</span>{_sig_cell(float(votes[key]))}'
-            for key, label in _VOTE_KEYS
-            if key in votes
-        ]
-        return '<span style="display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center">' + "".join(parts) + "</span>" if parts else "-"
-
     def _votes_summary(value: object) -> str:
         votes = _parse_votes(value)
         if not votes:
