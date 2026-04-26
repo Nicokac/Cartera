@@ -18,6 +18,9 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - capa experimental de prediccion direccional con historial, verificacion, recalibracion y conviction_label
 - metricas historicas de riesgo por posicion y portfolio agregado (`analytics/portfolio_risk.py`): drawdown, volatilidad y retorno acumulado con metodologia de universo comparable y circuit breaker `serie_confiable`
 - servidor web local (`server.py`) que expone el pipeline real via FastAPI: formulario de parametros, lanzamiento en background, polling de estado y acceso al reporte HTML generado
+- wrappers operativos locales en PowerShell para uso diario:
+  - `scripts/run_local_app.ps1` (menu interactivo)
+  - `scripts/start_local_app.ps1` / `scripts/status_local_app.ps1` / `scripts/stop_local_app.ps1`
 
 ## Estado tecnico vigente
 
@@ -28,6 +31,11 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
   - `GET /reports/*` sirve los HTMLs generados via `StaticFiles`
   - estado protegido por `threading.Lock`; un solo proceso activo a la vez (409 si ya corre)
   - log de corrida en `data/runtime/server_run.log`
+- operacion local simplificada:
+  - `run_local_app.ps1`: menu de start/status/stop/open/tail logs
+  - `start_local_app.ps1`: arranque en background con PID en `data/runtime/local_app.pid`
+  - `status_local_app.ps1`: estado `running/stopped` con deteccion de PID stale
+  - `stop_local_app.ps1`: detencion y limpieza de PID file
 - renderer dividido en:
   - `scripts/report_decision.py`
   - `scripts/report_sections.py`

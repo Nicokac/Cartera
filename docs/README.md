@@ -4,22 +4,22 @@ Indice de la documentacion activa del proyecto.
 
 ## Puntos de entrada
 
-- [README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\README.md)
-- [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
-- [improvement-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\improvement-roadmap.md)
-- [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
-- [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
-- [report-ux-architecture.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\report-ux-architecture.md)
-- [asset-taxonomy.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\asset-taxonomy.md)
-- [repo-cleanup-map.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\repo-cleanup-map.md)
+- [README.md](../README.md)
+- [baseline-actual.md](baseline-actual.md)
+- [improvement-roadmap.md](improvement-roadmap.md)
+- [prediction-engine-roadmap.md](prediction-engine-roadmap.md)
+- [prediction-engine-history.md](prediction-engine-history.md)
+- [report-ux-architecture.md](report-ux-architecture.md)
+- [asset-taxonomy.md](asset-taxonomy.md)
+- [repo-cleanup-map.md](repo-cleanup-map.md)
 
 ## Soporte operativo
 
-- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
-- [data/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\snapshots\README.md)
-- [tests/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\README.md)
-- [tests/snapshots/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
-- [data/reference/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\reference\README.md)
+- [data/examples/README.md](../data/examples/README.md)
+- [data/snapshots/README.md](../data/snapshots/README.md)
+- [tests/README.md](../tests/README.md)
+- [tests/snapshots/README.md](../tests/snapshots/README.md)
+- [data/reference/README.md](../data/reference/README.md)
 
 ## Criterio de mantenimiento
 

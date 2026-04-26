@@ -51,6 +51,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - `test_generate_real_report_split_modules.py` absorbido en 4 suites por dominio (`split_cli`, `split_runtime`, `split_snapshots`, `split_bonistas`)
 - `.coverage` removido de versionado y artefactos de coverage ignorados en `.gitignore`
 - servidor web local (`server.py`) con FastAPI + uvicorn: formulario de parametros, lanzamiento del pipeline en background, polling de estado, mount de reportes y log de corrida en `data/runtime/server_run.log`
+- wrappers operativos para app local: `run_local_app.ps1` (menu) y comandos directos `start/status/stop` con PID file en `data/runtime/`
 
 ## Backlog activo
 

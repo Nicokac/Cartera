@@ -36,3 +36,6 @@ src/*.egg-info/
 
 # Generated HTML reports (keep styles under version control)
 reports/*.html
+
+# Local app runtime artifacts
+data/runtime/*.pid

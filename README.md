@@ -124,12 +124,31 @@ Notas:
 Servidor web local:
 
 ```powershell
-python server.py
+.\scripts\run_local_app.ps1
 ```
 
-Abre `http://localhost:8000` en el browser. El formulario permite lanzar el pipeline real
+Menu interactivo local (start/status/stop/logs/open browser). Alternativa directa:
+
+```powershell
+.\scripts\start_local_app.ps1
+```
+
+Abre `http://127.0.0.1:8000` en el browser. El formulario permite lanzar el pipeline real
 con parametros y ver el estado en tiempo real. El reporte generado queda disponible en
-`http://localhost:8000/reports/real-report.html`.
+`http://127.0.0.1:8000/reports/real-report.html`.
+
+Comandos de operacion local:
+
+```powershell
+.\scripts\status_local_app.ps1
+.\scripts\stop_local_app.ps1
+```
+
+Modo manual equivalente (primer plano):
+
+```powershell
+python server.py
+```
 
 Smoke report:
 
