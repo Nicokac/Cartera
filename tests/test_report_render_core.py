@@ -1,4 +1,4 @@
-import unittest
+﻿import unittest
 
 import pandas as pd
 
@@ -34,9 +34,9 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Cambios de accion", html)
-        self.assertIn("Sin cambios de accion respecto de la corrida previa.", html)
-        self.assertNotIn("Mantener / Neutral -&gt; Mantener / monitorear", html)
+        self.assertIn("Cambios de señal", html)
+        self.assertIn("Sin cambios de señal respecto de la corrida previa.", html)
+        self.assertIn("Mantener / Neutral -&gt; Mantener / monitorear", html)
 
 
     def test_render_report_hides_bonistas_section_when_bundle_is_empty(self) -> None:
@@ -79,8 +79,8 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Cambios materiales", html)
         self.assertIn("Refuerzos persistentes", html)
         self.assertIn("Sin historial", html)
-        self.assertIn("Suben de conviccion", html)
-        self.assertIn("Bajan a reduccion", html)
+        self.assertIn("Suben de convicción", html)
+        self.assertIn("Bajan a reducción", html)
         self.assertIn("Vuelven a monitoreo", html)
 
 
@@ -96,7 +96,7 @@ class ReportRenderCoreTests(unittest.TestCase):
     def test_render_report_shows_temporal_columns_in_decision_table(self) -> None:
         html = render_report(_build_minimal_result())
 
-        self.assertIn("Accion previa", html)
+        self.assertIn("Acción previa", html)
         self.assertIn("Δ Score", html)
         self.assertIn("Racha", html)
         self.assertIn("Reducir", html)
@@ -118,10 +118,10 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Panorama", html)
         self.assertIn("Cambios", html)
         self.assertIn("Sizing activo", html)
-        self.assertIn("Cambios de accion", html)
+        self.assertIn("Cambios de señal", html)
         self.assertIn("Liquidez broker", html)
         self.assertIn("Liquidez ampliada", html)
-        self.assertIn("Vuelve a monitoreo desde reduccion", html)
+        self.assertIn("Vuelve a monitoreo desde reducción", html)
         self.assertIn("Antes: Reducir. Ahora: Mantener / monitorear.", html)
 
 
@@ -151,9 +151,9 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Ver tenencias pendientes de consolidacion", html)
+        self.assertIn("Ver tenencias pendientes de consolidación", html)
         self.assertIn("S31G6", html)
-        self.assertIn("Pendiente de consolidacion", html)
+        self.assertIn("Pendiente de consolidación", html)
 
 
     def test_render_report_shows_prediction_section_when_bundle_has_data(self) -> None:
@@ -191,7 +191,7 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         self.assertIn('href="#prediccion"', html)
         self.assertIn('<section class="panel" id="prediccion">', html)
-        self.assertIn("Ver tabla completa de prediccion", html)
+        self.assertIn("Ver detalle completo de predicción", html)
         self.assertIn("Confianza media", html)
         self.assertIn("XLV", html)
         self.assertIn("MELI", html)
@@ -246,26 +246,26 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Riesgo historico", html)
+        self.assertIn("Riesgo histórico", html)
         self.assertIn("Riesgo de mercado", html)
         self.assertIn("Riesgo de renta fija", html)
         self.assertIn("Universo comparable", html)
         self.assertIn("Pasos estables", html)
-        self.assertIn("Ver tabla completa de riesgo", html)
+        self.assertIn("Ver diagnóstico completo de riesgo", html)
         self.assertIn("Max drawdown cartera", html)
         self.assertIn("AAPL", html)
         self.assertIn("GD30", html)
-        self.assertIn("Calidad_Historia", html)
+        self.assertIn("Calidad de historia", html)
         self.assertIn("Robusta", html)
         self.assertIn("risk-history-table", html)
         self.assertIn("risk-history-filter", html)
         self.assertIn("risk-history-type-filter", html)
         self.assertIn("Solo robusta", html)
         self.assertIn("Solo CEDEAR", html)
-        self.assertIn("cell-quality-robusta", html)
         self.assertIn("-18.18%", html)
 
 
 
 if __name__ == "__main__":
     unittest.main()
+

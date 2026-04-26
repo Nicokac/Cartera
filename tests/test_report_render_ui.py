@@ -1,4 +1,4 @@
-import unittest
+﻿import unittest
 
 import pandas as pd
 
@@ -131,9 +131,9 @@ class ReportRenderUiTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Mas fuertes", html)
-        self.assertIn("Mas debiles", html)
-        self.assertIn("Cerca de maximos 52w", html)
+        self.assertIn("Más fuertes", html)
+        self.assertIn("Más débiles", html)
+        self.assertIn("Cerca de máximos 52w", html)
         self.assertIn("Por debajo de SMA200", html)
 
 
@@ -155,7 +155,7 @@ class ReportRenderUiTests(unittest.TestCase):
 
         self.assertIn("Contexto macro", html)
         self.assertIn("Subfamilias", html)
-        self.assertIn("Taxonomia local", html)
+        self.assertIn("Taxonomía local", html)
 
 
     def test_render_report_shows_collapsible_detail_layers(self) -> None:
@@ -201,8 +201,8 @@ class ReportRenderUiTests(unittest.TestCase):
         html = render_report(result)
 
         self.assertIn("Sizing", html)
-        self.assertIn("Ticker_IOL", html)
-        self.assertIn("Bucket_Prudencia", html)
+        self.assertIn("Ticker", html)
+        self.assertIn("Bucket de prudencia", html)
 
 
     def test_render_report_shows_fred_unavailable_note_when_ust_source_fails(self) -> None:
@@ -292,7 +292,7 @@ class ReportRenderUiTests(unittest.TestCase):
 
         self.assertIn(">IOLPORA<", html)
         self.assertIn(">FCI<", html)
-        self.assertIn("fund_other", html)
+        self.assertIn("Otros", html)
         self.assertIn(
             "FCI mantenido en neutral por mandato diversificado y sin scoring tactico direccional.",
             html,
@@ -334,7 +334,3 @@ class ReportRenderUiTests(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -286,11 +286,21 @@ def build_operations_summary(
         )
 
     if events_count:
-        event_names = (
-            recent_events["simbolo"].dropna().astype(str).head(4).tolist()
-            if isinstance(recent_events, pd.DataFrame) and not recent_events.empty
-            else []
-        )
+        event_names: list[str] = []
+        if isinstance(recent_events, pd.DataFrame) and not recent_events.empty:
+            latest_event_ts = pd.to_datetime(recent_events.get("fecha_evento"), errors="coerce").max()
+            fallback_cutoff_ts = (
+                latest_event_ts - pd.Timedelta(days=3)
+                if pd.notna(latest_event_ts)
+                else pd.NaT
+            )
+            event_view = recent_events.copy()
+            event_view["fecha_evento"] = pd.to_datetime(event_view.get("fecha_evento"), errors="coerce")
+            if pd.notna(fallback_cutoff_ts):
+                event_view = event_view[
+                    event_view["fecha_evento"].isna() | (event_view["fecha_evento"] >= fallback_cutoff_ts)
+                ]
+            event_names = event_view["simbolo"].dropna().astype(str).head(4).tolist()
         event_detail = (
             f"Eventos visibles en {', '.join(event_names)}."
             if event_names

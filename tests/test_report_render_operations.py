@@ -1,4 +1,4 @@
-import unittest
+﻿import unittest
 
 import pandas as pd
 
@@ -80,7 +80,7 @@ class ReportRenderOperationsTests(unittest.TestCase):
                 "items": [
                     {
                         "kicker": "GOOGL",
-                        "title": "Posicion ampliada",
+                        "title": "Posición ampliada",
                         "detail": "GOOGL paso de 20 a 34 unidades. Peso actual 2.00%. Se alinea con una compra reciente del 2026-04-16 12:54 por $118,160.",
                         "badge": "Compra",
                     }
@@ -114,7 +114,7 @@ class ReportRenderOperationsTests(unittest.TestCase):
         self.assertIn("Ver resumen por símbolo", html)
         self.assertIn("Snapshot previo", html)
         self.assertIn("Ver cambios contra snapshot previo", html)
-        self.assertIn("Posicion ampliada", html)
+        self.assertIn("Impacto en cartera", html)
         self.assertNotIn("Compra reciente ya visible en cartera", html)
 
 
@@ -270,7 +270,8 @@ class ReportRenderOperationsTests(unittest.TestCase):
 
         self.assertIn("Operaciones recientes fuera de cartera actual", html)
         self.assertIn("S31G6", html)
-        self.assertIn("Movimiento reciente aun no reflejado en cartera", html)
+        self.assertIn("Pendientes de consolidación", html)
+        self.assertIn("Revisar S31G6 si la operación ya ejecutó pero aún no impactó /portafolio.", html)
 
 
     def test_render_report_hides_old_generic_visible_trade_from_operational_reading(self) -> None:
@@ -352,7 +353,8 @@ class ReportRenderOperationsTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Movimiento reciente aun no reflejado en cartera", html)
+        self.assertIn("Pendientes de consolidación", html)
+        self.assertIn("Revisar S31G6 si la operación ya ejecutó pero aún no impactó /portafolio.", html)
         self.assertNotIn("Compra reciente ya visible en cartera | 2026-04-01 14:06", html)
 
 
@@ -440,10 +442,12 @@ class ReportRenderOperationsTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Cobro o acreditacion reciente | 2026-04-13 15:39", html)
-        self.assertNotIn("Cobro o acreditacion reciente | 2026-03-31 13:23", html)
+        self.assertIn("Eventos recientes", html)
+        self.assertIn("Eventos visibles en DIA US$.", html)
+        self.assertNotIn("Eventos visibles en DIA US$, XLU US$.", html)
 
 
 
 if __name__ == "__main__":
     unittest.main()
+
