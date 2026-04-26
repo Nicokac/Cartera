@@ -18,6 +18,8 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - capa experimental de prediccion direccional con historial, verificacion, recalibracion y conviction_label
 - metricas historicas de riesgo por posicion y portfolio agregado (`analytics/portfolio_risk.py`): drawdown, volatilidad y retorno acumulado con metodologia de universo comparable y circuit breaker `serie_confiable`
 - servidor web local (`server.py`) que expone el pipeline real via FastAPI: formulario de parametros, lanzamiento en background, polling de estado y acceso al reporte HTML generado
+  - el formulario local solicita credenciales IOL por corrida y no persiste password
+  - opcionalmente recuerda solo el usuario en el navegador
 - wrappers operativos locales en PowerShell para uso diario:
   - `scripts/run_local_app.ps1` (menu interactivo)
   - `scripts/start_local_app.ps1` / `scripts/status_local_app.ps1` / `scripts/stop_local_app.ps1`
@@ -27,6 +29,8 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - servidor web local en `server.py` (FastAPI + uvicorn):
   - `GET /` sirve el formulario desde `static/index.html`
   - `POST /run` lanza el pipeline en background con `subprocess.Popen`
+    - acepta `username`, `password`, `usar_liquidez_iol` y `aporte_externo_ars`
+    - defaults UX: `usar_liquidez_iol=true`, `aporte_externo_ars=0`
   - `GET /status` expone el estado actual (`idle` / `running` / `done` / `error`)
   - `GET /status/detail` expone estado enriquecido (`pid`, `uptime_seconds`, `log_path`, `last_log_mtime`, `log_tail`)
   - `GET /health` expone disponibilidad basica (`status=ok`)
@@ -41,6 +45,10 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
     - `-Detailed`: consulta `/status/detail` y muestra el payload enriquecido cuando el server esta corriendo
   - `stop_local_app.ps1`: detencion y limpieza de PID file
   - `smoke_local_app.ps1`: smoke end-to-end (`start -> /status -> /status/detail -> stop`)
+  - presets de fondeo en UI:
+    - `Solo liquidez IOL`
+    - `Aporte externo`
+  - confirmacion previa a la corrida con resumen de fondeo
 - renderer dividido en:
   - `scripts/report_decision.py`
   - `scripts/report_sections.py`

@@ -118,6 +118,7 @@ Notas:
 
 - `ENABLE_LEGACY_SNAPSHOTS=0` fuerza el uso exclusivo de `data/snapshots/`
 - el runner real puede pedir credenciales por terminal si no estan cargadas
+- en la app local, el password IOL no se persiste; solo puede recordarse el usuario en el navegador
 
 ## Uso rapido
 
@@ -136,6 +137,15 @@ Menu interactivo local (start/status/stop/logs/open browser). Alternativa direct
 Abre `http://127.0.0.1:8000` en el browser. El formulario permite lanzar el pipeline real
 con parametros y ver el estado en tiempo real. El reporte generado queda disponible en
 `http://127.0.0.1:8000/reports/real-report.html`.
+Flujo del formulario local:
+
+- solicita `Usuario IOL` y `Password IOL` para cada corrida
+- permite marcar `Recordar solo usuario` (sin persistir password)
+- expone presets de fondeo:
+  - `Solo liquidez IOL` (`use_iol_liquidity=true`, `aporte_externo_ars=0`)
+  - `Aporte externo` (`use_iol_liquidity=false`, `aporte_externo_ars` editable)
+- muestra un dialogo de confirmacion antes de ejecutar con usuario y resumen de fondeo
+
 Health check: `http://127.0.0.1:8000/health`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.
 
