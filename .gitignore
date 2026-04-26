@@ -31,5 +31,8 @@ __pycache__/
 .coverage.*
 htmlcov/
 
+# pip-generated package metadata
+src/*.egg-info/
+
 # Generated HTML reports (keep styles under version control)
 reports/*.html

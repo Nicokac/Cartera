@@ -26,6 +26,9 @@ dependencies = [
 byma = [
   "pypdf>=6.0,<7",
 ]
+test = [
+  "httpx>=0.27,<1",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
