@@ -79,7 +79,11 @@ def post_run(params: RunParams) -> JSONResponse:
         ]
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         log_file = LOG_PATH.open("w", encoding="utf-8")
-        _process = subprocess.Popen(cmd, cwd=str(ROOT), stdout=log_file, stderr=log_file)
+        try:
+            _process = subprocess.Popen(cmd, cwd=str(ROOT), stdout=log_file, stderr=log_file)
+        finally:
+            # Parent process should close its file handle after spawning subprocess.
+            log_file.close()
         _state["status"] = "running"
         _state["started_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         _state["finished_at"] = None
@@ -93,6 +97,11 @@ def post_run(params: RunParams) -> JSONResponse:
 @app.get("/status")
 def get_status() -> JSONResponse:
     return JSONResponse(_state)
+
+
+@app.get("/health")
+def get_health() -> JSONResponse:
+    return JSONResponse({"status": "ok", "service": "cartera-local-app"})
 
 
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")

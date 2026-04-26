@@ -65,6 +65,14 @@ class TestGetStatus(unittest.TestCase):
         self.assertIsNotNone(data["finished_at"])
 
 
+class TestGetHealth(unittest.TestCase):
+    def test_health_endpoint(self):
+        r = _client.get("/health")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["status"], "ok")
+        self.assertEqual(r.json()["service"], "cartera-local-app")
+
+
 class TestPostRun(unittest.TestCase):
     def setUp(self):
         _reset()
@@ -96,6 +104,15 @@ class TestPostRun(unittest.TestCase):
         server._state["status"] = "running"
         r = _client.post("/run", json={})
         self.assertEqual(r.status_code, 409)
+
+    def test_run_closes_parent_log_handle(self):
+        fake_log = MagicMock()
+        with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
+             patch("server.subprocess.Popen", return_value=MagicMock()), \
+             patch("server.threading.Thread", return_value=MagicMock()):
+            r = _client.post("/run", json={})
+        self.assertEqual(r.status_code, 200)
+        fake_log.close.assert_called_once()
 
 
 class TestWatchProcess(unittest.TestCase):

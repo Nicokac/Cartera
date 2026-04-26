@@ -136,6 +136,7 @@ Menu interactivo local (start/status/stop/logs/open browser). Alternativa direct
 Abre `http://127.0.0.1:8000` en el browser. El formulario permite lanzar el pipeline real
 con parametros y ver el estado en tiempo real. El reporte generado queda disponible en
 `http://127.0.0.1:8000/reports/real-report.html`.
+Health check: `http://127.0.0.1:8000/health`.
 
 Comandos de operacion local:
 
