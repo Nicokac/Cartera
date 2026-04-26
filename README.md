@@ -63,6 +63,12 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+Setup rapido (recomendado para testers):
+
+```powershell
+.\scripts\setup_local_app.ps1
+```
+
 Instalacion alternativa desde metadata del proyecto:
 
 ```powershell
@@ -228,6 +234,16 @@ CI actual:
 - coverage minima exigida en CI sobre la suite estable actual: `82%`
 - target de mediano plazo: `90%`
 
+## Versionado
+
+- esquema: SemVer (`MAJOR.MINOR.PATCH`)
+- fuente de verdad de version de paquete: `pyproject.toml` (`[project].version`)
+- historial de cambios: [CHANGELOG.md](CHANGELOG.md)
+- recomendacion de release:
+  1. actualizar `CHANGELOG.md` y version en `pyproject.toml`
+  2. mergear a `main`
+  3. crear tag `vX.Y.Z`
+
 ## Estado de deuda tecnica
 
 Pendientes reales abiertos:
@@ -269,6 +285,8 @@ Entrada canonica:
 
 - [docs/README.md](docs/README.md)
 - [docs/repo-cleanup-map.md](docs/repo-cleanup-map.md)
+- [docs/tester-guide.md](docs/tester-guide.md)
+- [CHANGELOG.md](CHANGELOG.md)
 
 Configuracion de ejemplo:
 
