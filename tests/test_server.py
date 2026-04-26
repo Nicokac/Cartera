@@ -150,9 +150,22 @@ class TestPostRun(unittest.TestCase):
         self.assertIsNotNone(server._state["started_at"])
 
     def test_params_stored_in_state(self):
-        self._post_run({"usar_liquidez_iol": True, "aporte_externo_ars": 5000.0})
+        self._post_run(
+            {
+                "username": "demo_user",
+                "password": "secret",
+                "usar_liquidez_iol": True,
+                "aporte_externo_ars": 5000.0,
+            }
+        )
+        self.assertEqual(server._state["params"]["username"], "demo_user")
+        self.assertEqual(server._state["params"]["password"], "secret")
         self.assertTrue(server._state["params"]["usar_liquidez_iol"])
         self.assertEqual(server._state["params"]["aporte_externo_ars"], 5000.0)
+
+    def test_default_funding_uses_iol_liquidity(self):
+        self._post_run({})
+        self.assertTrue(server._state["params"]["usar_liquidez_iol"])
 
     def test_409_when_already_running(self):
         server._state["status"] = "running"
@@ -167,6 +180,27 @@ class TestPostRun(unittest.TestCase):
             r = _client.post("/run", json={})
         self.assertEqual(r.status_code, 200)
         fake_log.close.assert_called_once()
+
+    def test_run_includes_username_and_password_flags_when_present(self):
+        fake_log = MagicMock()
+        with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
+             patch("server.subprocess.Popen", return_value=MagicMock()) as popen_mock, \
+             patch("server.threading.Thread", return_value=MagicMock()):
+            r = _client.post(
+                "/run",
+                json={
+                    "username": "demo_user",
+                    "password": "secret",
+                    "usar_liquidez_iol": False,
+                    "aporte_externo_ars": 123.0,
+                },
+            )
+        self.assertEqual(r.status_code, 200)
+        cmd = popen_mock.call_args.args[0]
+        self.assertIn("--username", cmd)
+        self.assertIn("demo_user", cmd)
+        self.assertIn("--password", cmd)
+        self.assertIn("secret", cmd)
 
 
 class TestWatchProcess(unittest.TestCase):

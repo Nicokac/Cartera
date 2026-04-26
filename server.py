@@ -30,7 +30,9 @@ _lock = threading.Lock()
 
 
 class RunParams(BaseModel):
-    usar_liquidez_iol: bool = False
+    username: str = ""
+    password: str = ""
+    usar_liquidez_iol: bool = True
     aporte_externo_ars: float = 0.0
 
 
@@ -104,6 +106,12 @@ def post_run(params: RunParams) -> JSONResponse:
             "--aporte-externo-ars",
             str(params.aporte_externo_ars),
         ]
+        username = params.username.strip()
+        password = params.password.strip()
+        if username:
+            cmd.extend(["--username", username])
+        if password:
+            cmd.extend(["--password", password])
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         log_file = LOG_PATH.open("w", encoding="utf-8")
         try:

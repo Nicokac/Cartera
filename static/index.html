@@ -10,15 +10,20 @@
     h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
     section { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
     h2 { font-size: 1rem; margin-bottom: 1rem; color: #555; text-transform: uppercase; letter-spacing: .05em; }
-    .field { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+    .field { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .field-col { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1rem; }
     label { font-size: .95rem; }
-    input[type="number"] { width: 140px; padding: .35rem .5rem; border: 1px solid #ccc; border-radius: 4px; font-size: .95rem; }
-    button { padding: .5rem 1.25rem; background: #2563eb; color: #fff; border: none; border-radius: 5px; font-size: .95rem; cursor: pointer; }
+    input[type="text"], input[type="password"], input[type="number"] { width: 280px; max-width: 100%; padding: .45rem .55rem; border: 1px solid #ccc; border-radius: 4px; font-size: .95rem; }
+    input[type="number"] { width: 160px; }
+    button { padding: .5rem 1rem; background: #2563eb; color: #fff; border: none; border-radius: 5px; font-size: .95rem; cursor: pointer; }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
+    .preset-btn { background: #374151; }
+    .preset-btn:hover { background: #111827; }
     .status-panel { display: flex; flex-direction: column; gap: .5rem; }
     .status-row { display: flex; align-items: center; gap: .75rem; font-size: 1rem; }
     #status-icon { font-size: 1.4rem; }
     #status-time { font-size: .82rem; color: #888; }
+    #run-summary { font-size: .9rem; color: #555; margin-bottom: .75rem; }
     #link-report { display: none; margin-top: .5rem; color: #2563eb; font-weight: 600; text-decoration: none; }
     #link-report:hover { text-decoration: underline; }
   </style>
@@ -27,16 +32,36 @@
   <h1>Cartera de Activos</h1>
 
   <section>
-    <h2>Parámetros</h2>
+    <h2>Parametros</h2>
     <form id="run-form">
+      <div class="field-col">
+        <label for="username">Usuario IOL</label>
+        <input type="text" id="username" autocomplete="username" required />
+      </div>
+      <div class="field-col">
+        <label for="password">Password IOL</label>
+        <input type="password" id="password" autocomplete="current-password" required />
+      </div>
       <div class="field">
-        <input type="checkbox" id="usar_liquidez" />
-        <label for="usar_liquidez">¿Usar liquidez actual de IOL?</label>
+        <input type="checkbox" id="remember-username" />
+        <label for="remember-username">Recordar solo usuario en este navegador</label>
+      </div>
+
+      <div class="field">
+        <button type="button" class="preset-btn" id="preset-liquidez">Preset: Solo liquidez IOL</button>
+        <button type="button" class="preset-btn" id="preset-aporte">Preset: Aporte externo</button>
+      </div>
+
+      <div class="field">
+        <input type="checkbox" id="usar_liquidez" checked />
+        <label for="usar_liquidez">Usar liquidez actual de IOL</label>
       </div>
       <div class="field">
         <label for="aporte">Aporte externo ARS</label>
         <input type="number" id="aporte" value="0" min="0" step="1" />
       </div>
+
+      <div id="run-summary"></div>
       <button type="submit" id="btn-run">Generar reporte</button>
     </form>
   </section>
@@ -49,33 +74,86 @@
         <span id="status-text">Listo para generar</span>
       </div>
       <span id="status-time"></span>
-      <a id="link-report" href="/reports/real-report.html">Ver reporte →</a>
+      <a id="link-report" href="/reports/real-report.html">Ver reporte -></a>
     </div>
   </section>
 
   <script>
     let _pollInterval = null;
+    const USERNAME_KEY = "cartera.username";
+    const REMEMBER_USERNAME_KEY = "cartera.remember_username";
 
     function renderStatus(data) {
-      const icon = document.getElementById('status-icon');
-      const text = document.getElementById('status-text');
-      const time = document.getElementById('status-time');
-      const link = document.getElementById('link-report');
-      const btn  = document.getElementById('btn-run');
+      const icon = document.getElementById("status-icon");
+      const text = document.getElementById("status-text");
+      const time = document.getElementById("status-time");
+      const link = document.getElementById("link-report");
+      const btn = document.getElementById("btn-run");
 
       const map = {
-        idle:    { i: '⚪', t: 'Listo para generar', ts: '' },
-        running: { i: '⏳', t: 'Corriendo...',        ts: data.started_at || '' },
-        done:    { i: '✅', t: 'Reporte listo',       ts: data.finished_at || '' },
-        error:   { i: '❌', t: (data.error || '').slice(0, 300), ts: data.finished_at || '' },
+        idle: { i: "⚪", t: "Listo para generar", ts: "" },
+        running: { i: "⏳", t: "Corriendo...", ts: data.started_at || "" },
+        done: { i: "✅", t: "Reporte listo", ts: data.finished_at || "" },
+        error: { i: "❌", t: (data.error || "").slice(0, 300), ts: data.finished_at || "" },
       };
 
       const s = map[data.status] || map.idle;
       icon.textContent = s.i;
       text.textContent = s.t;
       time.textContent = s.ts;
-      link.style.display = data.status === 'done' ? 'block' : 'none';
-      btn.disabled = data.status === 'running';
+      link.style.display = data.status === "done" ? "block" : "none";
+      btn.disabled = data.status === "running";
+    }
+
+    function formatArs(value) {
+      const parsed = Number(value) || 0;
+      return parsed.toLocaleString("es-AR", { maximumFractionDigits: 0 });
+    }
+
+    function fundingSummary() {
+      const usarLiquidez = document.getElementById("usar_liquidez").checked;
+      const aporte = parseFloat(document.getElementById("aporte").value) || 0;
+      const source = usarLiquidez ? "Liquidez IOL + aporte externo" : "Solo aporte externo";
+      return `Fondeo: ${source}. Aporte externo: ARS ${formatArs(aporte)}.`;
+    }
+
+    function updateSummary() {
+      document.getElementById("run-summary").textContent = fundingSummary();
+    }
+
+    function applyPresetSoloLiquidez() {
+      document.getElementById("usar_liquidez").checked = true;
+      document.getElementById("aporte").value = "0";
+      updateSummary();
+    }
+
+    function applyPresetAporteExterno() {
+      document.getElementById("usar_liquidez").checked = false;
+      if ((parseFloat(document.getElementById("aporte").value) || 0) <= 0) {
+        document.getElementById("aporte").value = "600000";
+      }
+      updateSummary();
+    }
+
+    function loadUsernamePreference() {
+      const remember = localStorage.getItem(REMEMBER_USERNAME_KEY) === "1";
+      const username = localStorage.getItem(USERNAME_KEY) || "";
+      document.getElementById("remember-username").checked = remember;
+      if (remember && username) {
+        document.getElementById("username").value = username;
+      }
+    }
+
+    function persistUsernamePreference() {
+      const remember = document.getElementById("remember-username").checked;
+      const username = document.getElementById("username").value.trim();
+      if (remember && username) {
+        localStorage.setItem(REMEMBER_USERNAME_KEY, "1");
+        localStorage.setItem(USERNAME_KEY, username);
+      } else {
+        localStorage.removeItem(REMEMBER_USERNAME_KEY);
+        localStorage.removeItem(USERNAME_KEY);
+      }
     }
 
     function startPolling() {
@@ -84,10 +162,10 @@
       }
       _pollInterval = setInterval(async () => {
         try {
-          const res = await fetch('/status');
+          const res = await fetch("/status");
           const data = await res.json();
           renderStatus(data);
-          if (data.status !== 'running') {
+          if (data.status !== "running") {
             clearInterval(_pollInterval);
             _pollInterval = null;
           }
@@ -97,32 +175,70 @@
 
     async function submitForm(event) {
       event.preventDefault();
-      const usar_liquidez_iol = document.getElementById('usar_liquidez').checked;
-      const aporte_externo_ars = parseFloat(document.getElementById('aporte').value) || 0;
-      document.getElementById('btn-run').disabled = true;
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const usar_liquidez_iol = document.getElementById("usar_liquidez").checked;
+      const aporte_externo_ars = parseFloat(document.getElementById("aporte").value) || 0;
+      const btnRun = document.getElementById("btn-run");
 
-      const res = await fetch('/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usar_liquidez_iol, aporte_externo_ars }),
+      if (!username || !password) {
+        alert("Usuario y password IOL son obligatorios.");
+        return;
+      }
+
+      const confirmText = [
+        `Usuario IOL: ${username}`,
+        `Fondeo: ${usar_liquidez_iol ? "usa liquidez IOL" : "sin liquidez IOL"}`,
+        `Aporte externo ARS: ${formatArs(aporte_externo_ars)}`,
+        "Confirmar corrida del reporte real?",
+      ].join("\n");
+      if (!window.confirm(confirmText)) {
+        return;
+      }
+
+      persistUsernamePreference();
+      btnRun.disabled = true;
+
+      const res = await fetch("/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          password,
+          usar_liquidez_iol,
+          aporte_externo_ars,
+        }),
       });
 
       if (res.status === 409) {
-        alert('Ya hay un reporte en progreso');
-        document.getElementById('btn-run').disabled = false;
+        alert("Ya hay un reporte en progreso.");
+        btnRun.disabled = false;
+        return;
+      }
+      if (!res.ok) {
+        alert("No se pudo iniciar la corrida.");
+        btnRun.disabled = false;
         return;
       }
 
       startPolling();
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      document.getElementById('run-form').addEventListener('submit', submitForm);
+    document.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById("run-form").addEventListener("submit", submitForm);
+      document.getElementById("usar_liquidez").addEventListener("change", updateSummary);
+      document.getElementById("aporte").addEventListener("input", updateSummary);
+      document.getElementById("preset-liquidez").addEventListener("click", applyPresetSoloLiquidez);
+      document.getElementById("preset-aporte").addEventListener("click", applyPresetAporteExterno);
+
+      loadUsernamePreference();
+      updateSummary();
+
       try {
-        const res = await fetch('/status');
+        const res = await fetch("/status");
         const data = await res.json();
         renderStatus(data);
-        if (data.status === 'running') {
+        if (data.status === "running") {
           startPolling();
         }
       } catch (_) {}
