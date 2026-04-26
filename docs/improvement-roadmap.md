@@ -54,8 +54,10 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - wrappers operativos para app local: `run_local_app.ps1` (menu) y comandos directos `start/status/stop` con PID file en `data/runtime/`
 - hardening local app:
   - endpoint `GET /health` para check rapido
+  - endpoint `GET /status/detail` para observabilidad enriquecida (pid, uptime y tail de log)
   - `POST /run` cierra handle de `server_run.log` en proceso padre para evitar warnings de descriptor abierto
-  - smoke automatizado `smoke_local_app.ps1` para validar ciclo start/status/stop
+  - `status_local_app.ps1 -Detailed` para inspeccion operativa sin abrir archivos manualmente
+  - smoke automatizado `smoke_local_app.ps1` para validar ciclo start/status/status_detail/stop
 
 ## Backlog activo
 

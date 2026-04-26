@@ -28,6 +28,7 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
   - `GET /` sirve el formulario desde `static/index.html`
   - `POST /run` lanza el pipeline en background con `subprocess.Popen`
   - `GET /status` expone el estado actual (`idle` / `running` / `done` / `error`)
+  - `GET /status/detail` expone estado enriquecido (`pid`, `uptime_seconds`, `log_path`, `last_log_mtime`, `log_tail`)
   - `GET /health` expone disponibilidad basica (`status=ok`)
   - `GET /reports/*` sirve los HTMLs generados via `StaticFiles`
   - estado protegido por `threading.Lock`; un solo proceso activo a la vez (409 si ya corre)
@@ -37,8 +38,9 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
   - `run_local_app.ps1`: menu de start/status/stop/open/tail logs
   - `start_local_app.ps1`: arranque en background con PID en `data/runtime/local_app.pid`
   - `status_local_app.ps1`: estado `running/stopped` con `url` y `checked_at`; limpia PID stale automaticamente
+    - `-Detailed`: consulta `/status/detail` y muestra el payload enriquecido cuando el server esta corriendo
   - `stop_local_app.ps1`: detencion y limpieza de PID file
-  - `smoke_local_app.ps1`: smoke end-to-end (`start -> /status -> stop`)
+  - `smoke_local_app.ps1`: smoke end-to-end (`start -> /status -> /status/detail -> stop`)
 - renderer dividido en:
   - `scripts/report_decision.py`
   - `scripts/report_sections.py`
