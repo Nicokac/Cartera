@@ -30,12 +30,17 @@ if (Test-Path $pidPath) {
     }
 }
 
-$python = Get-Command python -ErrorAction Stop
-$args = @("-m", "uvicorn", "server:app", "--host", $BindHost, "--port", "$Port")
+$venvPython = Join-Path $root ".venv\Scripts\python.exe"
+if (Test-Path $venvPython) {
+    $pythonExe = $venvPython
+} else {
+    $pythonExe = (Get-Command python -ErrorAction Stop).Source
+}
+$uvicornArgs = @("-m", "uvicorn", "server:app", "--host", $BindHost, "--port", "$Port")
 
 $proc = Start-Process `
-    -FilePath $python.Source `
-    -ArgumentList $args `
+    -FilePath $pythonExe `
+    -ArgumentList $uvicornArgs `
     -WorkingDirectory $root `
     -RedirectStandardOutput $outLog `
     -RedirectStandardError $errLog `
