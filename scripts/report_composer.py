@@ -22,10 +22,10 @@ from report_layout import (
 from report_operations import build_executive_summary, build_operations_summary
 from report_sections import (
     build_bonistas_section,
-    build_prediction_section,
     build_sizing_section,
     build_summary_section,
 )
+from report_sections_prediction import build_prediction_section
 from portfolio.operations import build_pending_trade_portfolio_rows
 
 from decision.action_constants import NEUTRAL_ACTIONS

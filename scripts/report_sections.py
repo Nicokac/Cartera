@@ -4,37 +4,20 @@ import html
 import pandas as pd
 
 from report_primitives import (
-    badge_class,
     build_collapsible,
     build_focus_list,
     build_table,
-    build_technical_table,
     ensure_table_columns,
     esc_text,
     fmt_ars,
-    fmt_label,
     fmt_pct,
     fmt_score,
     fmt_usd,
     safe_int,
-    truncate_text,
 )
 
-from decision.action_constants import ACTION_REDUCIR, ACTION_REFUERZO
+from report_sections_risk import _build_risk_focus_block, build_score_distribution
 
-
-# ── Signal matrix helpers ──────────────────────────────────────────────────────
-
-_VOTE_KEYS = [
-    ("rsi", "RSI"),
-    ("momentum_20d", "m20"),
-    ("momentum_60d", "m60"),
-    ("sma_trend", "SMA"),
-    ("score_unificado", "Sc"),
-    ("market_regime", "Rg"),
-    ("adx", "ADX"),
-    ("relative_volume", "rVol"),
-]
 
 _BOND_LABELS = {
     "bond_sov_ar": "Soberano AR",
@@ -50,104 +33,7 @@ def _bond_label(value: object) -> str:
     return _BOND_LABELS.get(key, key or "-")
 
 
-def _parse_votes(value: object) -> dict[str, float]:
-    if isinstance(value, dict):
-        out: dict[str, float] = {}
-        for k, v in value.items():
-            try:
-                out[str(k)] = float(v)
-            except Exception:
-                out[str(k)] = 0.0
-        return out
-    if isinstance(value, str) and value and value != "-":
-        out = {}
-        for part in value.split("|"):
-            part = part.strip()
-            if ":" in part:
-                k, v = part.rsplit(":", 1)
-                try:
-                    out[k.strip()] = float(v.strip().replace("+", ""))
-                except ValueError:
-                    pass
-        return out
-    return {}
-
-
-def _sig_cell(vote: float) -> str:
-    if vote > 0:
-        return '<span class="sig sig-pos">+</span>'
-    if vote < 0:
-        return '<span class="sig sig-neg">\u2212</span>'
-    return '<span class="sig sig-neu">\u25cb</span>'
-
-
-def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
-    if not isinstance(predictions_view, pd.DataFrame) or predictions_view.empty:
-        return '<div class="empty">Sin datos para mostrar.</div>'
-
-    vote_headers = "".join(
-        f'<th class="sig-th" title="{html.escape(key)}">{html.escape(label)}</th>'
-        for key, label in _VOTE_KEYS
-    )
-    header = (
-        "<tr><th>Ticker</th><th>Dirección</th><th>Confianza</th>"
-        + vote_headers
-        + "<th>Acción</th><th>Fecha objetivo</th></tr>"
-    )
-
-    rows_html: list[str] = []
-    for _, row in predictions_view.iterrows():
-        votes = _parse_votes(row.get("signal_votes"))
-        sig_cells = "".join(
-            f"<td>{_sig_cell(votes.get(key, 0))}</td>" for key, _ in _VOTE_KEYS
-        )
-        ticker = html.escape(str(row.get("ticker", "-")))
-        direction_raw = str(row.get("direction", "-")).strip().lower()
-        direction = html.escape(
-            {
-                "up": "Suba",
-                "down": "Baja",
-                "neutral": "Neutral",
-            }.get(direction_raw, direction_raw or "-")
-        )
-        conf_raw = row.get("confidence")
-        _CONV_COLORS = {"alta": "#1a7f4b", "media": "#b07e0f", "baja": "#8a9ba8"}
-        if pd.notna(conf_raw):
-            conf_val = float(conf_raw)
-            raw_label = str(row.get("conviction_label") or "").strip()
-            conv_label = raw_label if raw_label in _CONV_COLORS else (
-                "alta" if conf_val >= 0.35 else "media" if conf_val >= 0.20 else "baja"
-            )
-            conv_color = _CONV_COLORS[conv_label]
-            conf_html = (
-                f'<span style="color:{conv_color};font-size:10px;font-weight:600;margin-right:3px">{conv_label}</span>'
-                f"{html.escape(fmt_pct(conf_val * 100.0))}"
-            )
-        else:
-            conf_html = "-"
-        accion = html.escape(str(row.get("accion_sugerida_v2", "-")))
-        outcome = html.escape(str(row.get("outcome_date", "-")))
-        rows_html.append(
-            f"<tr>"
-            f"<td><strong>{ticker}</strong></td>"
-            f"<td>{direction}</td>"
-            f"<td>{conf_html}</td>"
-            f"{sig_cells}"
-            f"<td>{accion}</td>"
-            f"<td>{outcome}</td>"
-            f"</tr>"
-        )
-
-    return (
-        '<div class="table-wrap">'
-        '<table class="signal-table">'
-        f"<thead>{header}</thead>"
-        f"<tbody>{''.join(rows_html)}</tbody>"
-        "</table></div>"
-    )
-
-
-# ── Allocation bar helpers ─────────────────────────────────────────────────────
+# ── Allocation bar ─────────────────────────────────────────────────────────────
 
 _TIPO_COLOR: dict[str, str] = {
     "cedear": "#0f6c5c",
@@ -212,154 +98,7 @@ def build_allocation_bar(resumen_tipos: pd.DataFrame) -> str:
     )
 
 
-def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
-    predictions = prediction_bundle.get("predictions", pd.DataFrame())
-    if not isinstance(predictions, pd.DataFrame) or predictions.empty:
-        return ""
-
-    work = predictions.copy()
-    summary = prediction_bundle.get("summary", {}) or {}
-    config = prediction_bundle.get("config", {}) or {}
-
-    def _votes_html(value: object) -> str:
-        votes = _parse_votes(value)
-        if not votes:
-            return "-"
-        parts = [
-            f'<span style="font-size:10px;color:var(--muted);margin-right:1px">{html.escape(label)}</span>{_sig_cell(float(votes[key]))}'
-            for key, label in _VOTE_KEYS
-            if key in votes
-        ]
-        return '<span style="display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center">' + "".join(parts) + "</span>" if parts else "-"
-
-    def _votes_summary(value: object) -> str:
-        votes = _parse_votes(value)
-        if not votes:
-            return "Sin matriz de señales."
-        favorable = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) > 0)
-        adverse = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) < 0)
-        neutral_count = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) == 0)
-        return f"Favorables {favorable} | Neutrales {neutral_count} | Adversas {adverse}"
-
-    def _direction_badge(direction: object) -> str:
-        direction_text = str(direction or "").strip().lower()
-        if direction_text == "up":
-            return "Refuerzo"
-        if direction_text == "down":
-            return "Reducir"
-        return "Mantener / Neutral"
-
-    def _focus_items(source: pd.DataFrame, *, tone: str) -> str:
-        items: list[dict[str, str]] = []
-        for _, row in source.head(3).iterrows():
-            direction_text = str(row.get("direction", "")).strip().lower()
-            direction_label = {
-                "up": "Suba",
-                "down": "Baja",
-                "neutral": "Neutral",
-            }.get(direction_text, direction_text.upper() or "-")
-            items.append(
-                {
-                    "kicker": str(row.get("ticker", "-")),
-                    "title": f"Confianza {fmt_pct(float(row.get('confidence', 0.0)) * 100.0)}",
-                    "detail": _votes_summary(row.get("signal_votes")),
-                    "badge": direction_label,
-                    "badge_class": badge_class(_direction_badge(row.get("direction"))),
-                }
-            )
-        return build_focus_list(items, empty_message="Sin nombres para mostrar.", tone=tone)
-
-    bullish = work.loc[work["direction"].astype(str) == "up"].sort_values("confidence", ascending=False)
-    bearish = work.loc[work["direction"].astype(str) == "down"].sort_values("confidence", ascending=False)
-    neutral = work.loc[work["direction"].astype(str) == "neutral"].sort_values("confidence", ascending=False)
-
-    def _accion_con_advertencia(row: object) -> str:
-        direction = str(row.get("direction", "")).strip().lower()
-        accion = str(row.get("accion_sugerida_v2", "")).strip()
-        if not accion or accion == "-":
-            return accion
-        contradice = (
-            (direction == "down" and accion == ACTION_REFUERZO)
-            or (direction == "up" and accion == ACTION_REDUCIR)
-            or (direction == "neutral" and accion in {ACTION_REFUERZO, ACTION_REDUCIR})
-        )
-        return f"⚠ {accion}" if contradice else accion
-
-    work = work.copy()
-    work["accion_sugerida_v2"] = work.apply(_accion_con_advertencia, axis=1)
-
-    predictions_view = ensure_table_columns(
-        work,
-        [
-            "ticker",
-            "direction",
-            "confidence",
-            "consensus_raw",
-            "score_unificado",
-            "accion_sugerida_v2",
-            "outcome_date",
-            "signal_votes",
-        ],
-    )
-    signal_legend = """
-      <div class="prediction-legend">
-        <div class="signal-legend">
-          <span class="signal-key"><span class="sig sig-pos">+</span> Señal favorable</span>
-          <span class="signal-key"><span class="sig sig-neu">&#9675;</span> Señal neutral</span>
-          <span class="signal-key"><span class="sig sig-neg">&#8722;</span> Señal adversa</span>
-        </div>
-        <div class="signal-map">
-          <span><strong>Sc</strong> Score</span>
-          <span><strong>Rg</strong> Régimen</span>
-          <span><strong>m20</strong> Momentum 20d</span>
-          <span><strong>m60</strong> Momentum 60d</span>
-          <span><strong>rVol</strong> Volumen relativo</span>
-        </div>
-      </div>
-    """
-    prediction_detail = f"""
-      {signal_legend}
-      <div class="focus-columns focus-columns-wide">
-        <div>
-          <h3>Zona neutral</h3>
-          {_focus_items(neutral, tone='neutral')}
-        </div>
-      </div>
-      {build_prediction_signal_table(predictions_view)}
-    """
-    return f"""
-    <section class="panel" id="prediccion">
-      <h2>Predicción</h2>
-      <div class="meta">
-        <span>Total: <strong>{int(summary.get('total', len(work)))}</strong></span>
-        <span>Suba: <strong>{int(summary.get('up', 0))}</strong></span>
-        <span>Baja: <strong>{int(summary.get('down', 0))}</strong></span>
-        <span>Neutral: <strong>{int(summary.get('neutral', 0))}</strong></span>
-        <span>Confianza media: <strong>{fmt_pct(float(summary.get('mean_confidence', 0.0)) * 100.0)}</strong></span>
-        <span>Horizonte: <strong>{safe_int(config.get('horizon_days'))} ruedas</strong></span>
-      </div>
-      <div class="meta">
-        <span>La predicción direccional combina señales técnicas, <strong>score_unificado</strong> y régimen; puede diferir de la decisión final, que pondera además criterios de cartera y sizing.</span>
-      </div>
-      <div class="focus-columns focus-columns-wide">
-        <div>
-          <h3>Señales de suba</h3>
-          {_focus_items(bullish, tone='buy')}
-        </div>
-        <div>
-          <h3>Señales de baja</h3>
-          {_focus_items(bearish, tone='sell')}
-        </div>
-      </div>
-      {build_collapsible(
-          "Ver detalle completo de predicción",
-          prediction_detail,
-          compact=True,
-      )}
-    </section>
-    """
-
-
+# ── Technical summary ──────────────────────────────────────────────────────────
 
 def build_technical_summary(technical_view: pd.DataFrame) -> str:
     if technical_view.empty:
@@ -422,6 +161,7 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     """
 
 
+# ── Bond summary ───────────────────────────────────────────────────────────────
 
 def build_bond_summary(
     bond_subfamily_summary: pd.DataFrame,
@@ -493,127 +233,7 @@ def build_bond_summary(
     """
 
 
-# ── Score distribution SVG ────────────────────────────────────────────────────
-
-def build_score_distribution(
-    decision_view: pd.DataFrame,
-    action_col: str,
-) -> str:
-    if not isinstance(decision_view, pd.DataFrame) or decision_view.empty:
-        return ""
-    if "score_unificado" not in decision_view.columns:
-        return ""
-
-    work = decision_view[["Ticker_IOL", "score_unificado", action_col]].dropna(subset=["score_unificado"]).copy()
-    if work.empty:
-        return ""
-
-    W, H, PAD = 600, 52, 24
-    axis_y = 30
-
-    def _score_x(score: float) -> float:
-        return PAD + (max(-1.0, min(1.0, float(score))) + 1) / 2 * (W - 2 * PAD)
-
-    _ACTION_COLOR = {
-        ACTION_REFUERZO: "#0f6c5c",
-        ACTION_REDUCIR: "#9f3a22",
-    }
-
-    work = work.sort_values("score_unificado")
-    dots: list[str] = []
-    for i, (_, row) in enumerate(work.iterrows()):
-        score = float(row["score_unificado"])
-        ticker = str(row["Ticker_IOL"])
-        accion = str(row.get(action_col, ""))
-        color = _ACTION_COLOR.get(accion, "#6a7478")
-        cx = _score_x(score)
-        cy = axis_y - 5 if i % 2 == 0 else axis_y + 5
-        r = 5 if accion == ACTION_REFUERZO else 4
-        title = html.escape(f"{ticker}: {score:+.2f}")
-        dots.append(
-            f'<circle cx="{cx:.1f}" cy="{cy}" r="{r}" fill="{color}" '
-            f'fill-opacity="0.82" stroke="none">'
-            f"<title>{title}</title></circle>"
-        )
-
-    axis_x0, axis_x1 = PAD, W - PAD
-    cx_zero = _score_x(0.0)
-    axis_line = f'<line x1="{axis_x0}" y1="{axis_y}" x2="{axis_x1}" y2="{axis_y}" stroke="#d7d0c6" stroke-width="1.5"/>'
-    center_line = f'<line x1="{cx_zero:.1f}" y1="{axis_y - 8}" x2="{cx_zero:.1f}" y2="{axis_y + 8}" stroke="#6a7478" stroke-width="1"/>'
-    labels = (
-        f'<text x="{axis_x0}" y="{H - 2}" font-size="8" fill="#9f3a22" text-anchor="start">\u2190 Reducci\u00f3n</text>'
-        f'<text x="{cx_zero:.1f}" y="{H - 2}" font-size="8" fill="#6a7478" text-anchor="middle">0</text>'
-        f'<text x="{axis_x1}" y="{H - 2}" font-size="8" fill="#0f6c5c" text-anchor="end">Refuerzo \u2192</text>'
-    )
-    svg = (
-        f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
-        f'class="score-dist" role="img" aria-label="Distribucion de scores">'
-        f"{axis_line}{center_line}{''.join(dots)}{labels}"
-        f"</svg>"
-    )
-    legend = (
-        '<div class="score-dist-legend">'
-        '<span><span class="score-dist-dot" style="background:#0f6c5c"></span>Refuerzo</span>'
-        '<span><span class="score-dist-dot" style="background:#9f3a22"></span>Reducir</span>'
-        '<span><span class="score-dist-dot" style="background:#6a7478"></span>Neutral / Monitoreo</span>'
-        "</div>"
-    )
-    return f'<div class="score-dist-wrap">{svg}{legend}</div>'
-
-
-def _build_risk_focus_block(source: pd.DataFrame, *, title: str, empty_message: str) -> str:
-    if source.empty:
-        return f'<div class="risk-subsection"><h3>{html.escape(title)}</h3><div class="empty compact-empty">{html.escape(empty_message)}</div></div>'
-
-    dd_items: list[dict[str, str]] = []
-    vol_items: list[dict[str, str]] = []
-    ret_items: list[dict[str, str]] = []
-
-    for _, row in source.nsmallest(3, "Drawdown_Max_%").iterrows():
-        dd_items.append(
-            {
-                "kicker": str(row.get("Ticker_IOL", "-")),
-                "title": f"Drawdown {fmt_pct(row.get('Drawdown_Max_%'))}",
-                "detail": f"{fmt_label(row.get('Tipo'))} / {fmt_label(row.get('Bloque'))} | Base {fmt_label(row.get('Base_Riesgo'))}",
-            }
-        )
-    for _, row in source.nlargest(3, "Volatilidad_Diaria_%").iterrows():
-        vol_items.append(
-            {
-                "kicker": str(row.get("Ticker_IOL", "-")),
-                "title": f"Vol diaria {fmt_pct(row.get('Volatilidad_Diaria_%'))}",
-                "detail": f"Peso {fmt_pct(row.get('Peso_%'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
-            }
-        )
-    for _, row in source.nlargest(3, "Retorno_Acum_%").iterrows():
-        ret_items.append(
-            {
-                "kicker": str(row.get("Ticker_IOL", "-")),
-                "title": f"Retorno {fmt_pct(row.get('Retorno_Acum_%'))}",
-                "detail": f"Base {fmt_label(row.get('Base_Riesgo'))} | Obs {safe_int(row.get('Observaciones'))} | Historia {fmt_label(row.get('Calidad_Historia'))}",
-            }
-        )
-
-    return f"""
-      <div class="risk-subsection">
-        <h3>{html.escape(title)}</h3>
-        <div class="focus-columns focus-columns-wide">
-          <div>
-            <h3>Mayores drawdowns</h3>
-            {build_focus_list(dd_items, empty_message='Sin drawdowns relevantes.', tone='sell')}
-          </div>
-          <div>
-            <h3>Mayor volatilidad</h3>
-            {build_focus_list(vol_items, empty_message='Sin volatilidad relevante.', tone='neutral')}
-          </div>
-          <div>
-            <h3>Mejor rendimiento</h3>
-            {build_focus_list(ret_items, empty_message='Sin rendimientos históricos.', tone='buy')}
-          </div>
-        </div>
-      </div>
-            """
-
+# ── Summary section ────────────────────────────────────────────────────────────
 
 def build_summary_section(
     *,
@@ -655,7 +275,7 @@ def build_summary_section(
             "etf": "ETF",
             "fund": "FCI",
             "liquidity": "Liquidez",
-            "stock": "Acci\u00f3n",
+            "stock": "Acción",
         }
         subfamily_labels = {
             "bond_bopreal": "Bopreal",
@@ -663,7 +283,7 @@ def build_summary_section(
             "bond_other": "Otros",
             "bond_sov_ar": "Soberano AR",
             "etf_core": "Core",
-            "etf_country_region": "Pa\u00eds / Regi\u00f3n",
+            "etf_country_region": "País / Región",
             "etf_sector": "Sectorial",
             "fund_other": "Otros",
             "liquidity_other": "Liquidez",
@@ -785,6 +405,8 @@ def build_summary_section(
     """
 
 
+# ── Drift chart ────────────────────────────────────────────────────────────────
+
 def build_drift_chart(
     asignacion_final: pd.DataFrame,
     df_total: pd.DataFrame,
@@ -844,6 +466,8 @@ def build_drift_chart(
     return f'<div class="drift-chart">{legend}{"".join(rows_html)}</div>'
 
 
+# ── Sizing section ─────────────────────────────────────────────────────────────
+
 def build_sizing_section(
     sizing_bundle: dict[str, object],
     asignacion_final: pd.DataFrame,
@@ -885,6 +509,8 @@ def build_sizing_section(
     </section>
     """
 
+
+# ── Bonistas section ───────────────────────────────────────────────────────────
 
 def build_bonistas_section(
     *,

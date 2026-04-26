@@ -11,7 +11,7 @@ for _p in (str(SRC), str(SCRIPTS)):
     if _p not in sys.path:
         sys.path.append(_p)
 
-from report_sections import _build_risk_focus_block
+from report_sections_risk import _build_risk_focus_block
 
 
 def _risk_row(
