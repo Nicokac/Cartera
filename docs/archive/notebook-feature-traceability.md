@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Registrar, celda por celda de [Cartera.ipynb](c:\Users\kachu\Python user\Colab\Cartera de Activos\Cartera.ipynb), si la funcionalidad:
+Registrar, celda por celda de [Cartera.ipynb](Cartera.ipynb), si la funcionalidad:
 - `Se usa`
 - `Se usa parcialmente`
 - `No se usa`
@@ -34,8 +34,8 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - pero esta celda como bloque de imports/config visual no es la ruta canónica de ejecución
   - la parte de `matplotlib`, `seaborn`, `pd.set_option(...)` y `warnings.filterwarnings(...)` no influye en el pipeline real actual
 - Ruta canónica actual:
-  - imports distribuidos en [src](c:\Users\kachu\Python user\Colab\Cartera de Activos\src)
-  - runners en [scripts](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts)
+  - imports distribuidos en [src](src)
+  - runners en [scripts](scripts)
 
 ### Celda 3. Bootstrap del notebook e imports desde `src/`
 
@@ -45,10 +45,10 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - los módulos importados sí se usan hoy
   - pero el ajuste de `sys.path`, el `input(...)` del notebook y los wrappers transicionales definidos dentro de la celda no son la forma principal de ejecución del proyecto
 - Ruta canónica actual:
-  - configuración: [src/config.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\config.py)
-  - clientes: [src/clients](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\clients)
-  - pipeline: [src/pipeline.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\pipeline.py)
-  - runner real: [scripts/generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+  - configuración: [src/config.py](src/config.py)
+  - clientes: [src/clients](src/clients)
+  - pipeline: [src/pipeline.py](src/pipeline.py)
+  - runner real: [scripts/generate_real_report.py](scripts/generate_real_report.py)
 - Observación:
   - esta celda mezcla código vigente con bootstrap específico de notebook
 
@@ -61,9 +61,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - la parte hardcodeada original de `FINVIZ_MAP`, `BLOCK_MAP`, `RATIOS`, `VN_FACTOR_MAP` ya no es canónica
   - el loop manual de clasificación quedó reemplazado por la llamada final a `classify_iol_portfolio(...)`
 - Ruta canónica actual:
-  - clientes IOL: [src/clients/iol.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\clients\iol.py)
-  - mappings: [data/mappings](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings)
-  - clasificación: [src/portfolio/classify.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\classify.py)
+  - clientes IOL: [src/clients/iol.py](src/clients/iol.py)
+  - mappings: [data/mappings](data/mappings)
+  - clasificación: [src/portfolio/classify.py](src/portfolio/classify.py)
 - Importante:
   - el bloque manual intermedio de clasificación no debe considerarse fuente de verdad
   - la fuente de verdad es la reclasificación final con `classify_iol_portfolio(...)`
@@ -85,7 +85,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - pero la implementación manual extensa de la celda fue reemplazada por la ruta canónica al final de la misma celda:
     - `rebuild_liquidity(...)`
 - Ruta canónica actual:
-  - [liquidity.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\liquidity.py)
+  - [liquidity.py](src/portfolio/liquidity.py)
 - Qué sí sobrevive conceptualmente:
   - normalización de moneda de cuenta
   - separación entre cash inmediato y pendiente
@@ -99,7 +99,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - la visualización y prints del notebook
 - Importante:
   - esta celda fue una de las que más divergió entre notebook original y código actual
-- además, la versión manual original llegó a duplicar liquidez, algo que ya fue corregido en la implementación canónica de [liquidity.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\liquidity.py)
+- además, la versión manual original llegó a duplicar liquidez, algo que ya fue corregido en la implementación canónica de [liquidity.py](src/portfolio/liquidity.py)
 
 ### Celda 7. MEP, precios, valuación y enriquecimiento Finviz
 
@@ -115,10 +115,10 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - conversión a USD
   - estructura base para `df_ratings_res`
 - Ruta canónica actual:
-  - MEP: [argentinadatos.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\clients\argentinadatos.py)
-  - precios IOL: [iol.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\clients\iol.py)
-  - valuación: [valuation.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\valuation.py)
-  - pipeline: [pipeline.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\pipeline.py)
+  - MEP: [argentinadatos.py](src/clients/argentinadatos.py)
+  - precios IOL: [iol.py](src/clients/iol.py)
+  - valuación: [valuation.py](src/portfolio/valuation.py)
+  - pipeline: [pipeline.py](src/pipeline.py)
 - Qué no debe considerarse fuente de verdad:
   - los helpers manuales definidos al principio de la celda
   - el loop manual de fetch cuando luego se reemplaza por funciones canónicas
@@ -138,9 +138,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `build_integrity_report(...)`
   - `build_executive_dashboard_data(...)`
 - Ruta canónica actual:
-  - [valuation.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\valuation.py)
-  - [checks.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\checks.py)
-  - [dashboard.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\analytics\dashboard.py)
+  - [valuation.py](src/portfolio/valuation.py)
+  - [checks.py](src/portfolio/checks.py)
+  - [dashboard.py](src/analytics/dashboard.py)
 - Qué no se usa como fuente principal:
   - los `print(...)`
   - los `display(...)` manuales del notebook
@@ -178,7 +178,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - la idea analítica de top ganadoras/perdedoras sigue viva en el dashboard actual
   - pero esta celda es reporting del notebook, no la ruta funcional principal
 - Ruta canónica actual:
-  - [dashboard.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\analytics\dashboard.py)
+  - [dashboard.py](src/analytics/dashboard.py)
 - Qué no se usa:
   - el gráfico y `display(...)` del notebook como fuente principal
 - Impacto en estrategia:
@@ -197,8 +197,8 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `total_ratings`
   - su traducción a `Consensus_Score` y `Consensus_Final`
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [scoring_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - [scoring.py](src/decision/scoring.py)
+  - [scoring_rules.json](data/strategy/scoring_rules.json)
 - Importante:
   - esta es una celda directamente relevante para la decisión actual, porque confirma que la señal de ratings sí sobrevivió al core
 
@@ -217,9 +217,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - el armado manual de `df_alertas`
   - la salida tipo reporte del notebook
 - Ruta canónica parcial actual:
-  - checks: [checks.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\checks.py)
-  - scoring: [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - reglas: [scoring_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - checks: [checks.py](src/portfolio/checks.py)
+  - scoring: [scoring.py](src/decision/scoring.py)
+  - reglas: [scoring_rules.json](data/strategy/scoring_rules.json)
 - Punto importante:
   - esta celda es una candidata fuerte a revisión posterior, porque parte de su lógica puede haberse simplificado al pasar a `src/`
   - especialmente concentración, beta y desvíos de MEP
@@ -251,8 +251,8 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `MEP_Premium_%`
   - su efecto en scoring
 - Ruta canónica actual:
-  - [valuation.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\valuation.py)
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [valuation.py](src/portfolio/valuation.py)
+  - [scoring.py](src/decision/scoring.py)
 - Qué no se usa:
   - el gráfico y tabla del notebook
   - la señal textual `Prima / Descuento / En línea` como objeto funcional
@@ -270,8 +270,8 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `Ganancia_%`
   - clipping y ranking de ganancia para score
 - Ruta canónica actual:
-  - [valuation.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\valuation.py)
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [valuation.py](src/portfolio/valuation.py)
+  - [scoring.py](src/decision/scoring.py)
 - Qué no se usa:
   - el gráfico horizontal y tabla del notebook
 
@@ -290,7 +290,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `Perf YTD`
 - Ruta canónica actual:
   - enriquecimiento / fetch en flujo refactorizado
-  - scoring en [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - scoring en [scoring.py](src/decision/scoring.py)
 - Qué no se usa:
   - la tabla renderizada del notebook
 - Importante:
@@ -307,7 +307,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - momentum mensual
   - momentum YTD
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [scoring.py](src/decision/scoring.py)
 - Qué no se usa:
   - el heatmap ni la tabla estilo notebook
 - Importante:
@@ -323,7 +323,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `P/E`
   - ranking relativo de valuación cara/barata
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [scoring.py](src/decision/scoring.py)
 - Qué no se usa:
   - el gráfico del notebook
   - la señal textual derivada de umbrales fijos de esta celda
@@ -340,9 +340,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `Beta`
   - su efecto sobre `score_refuerzo`, `score_reduccion` y bucket de sizing
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [sizing.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
-  - [sizing_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
+  - [scoring.py](src/decision/scoring.py)
+  - [sizing.py](src/decision/sizing.py)
+  - [sizing_rules.json](data/strategy/sizing_rules.json)
 - Qué no se usa:
   - el gráfico de la celda
   - la señal textual `Defensivo / Moderado / Alta volatilidad` como lógica principal
@@ -358,7 +358,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - consenso dominante
   - cantidad relativa de ratings del consenso
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+  - [scoring.py](src/decision/scoring.py)
 - Qué no se usa:
   - la distribución visual del notebook
   - el detalle tabular reciente como parte del score
@@ -388,7 +388,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - los checks de integridad sí siguen existiendo en el proyecto actual
   - pero esta implementación manual del notebook no es la fuente canónica
 - Ruta canónica actual:
-  - [checks.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\portfolio\checks.py)
+  - [checks.py](src/portfolio/checks.py)
 - Qué sí se usa hoy:
   - disponibilidad de valuaciones
   - pesos consistentes
@@ -410,9 +410,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - la idea de dashboard final sí sigue viva en el reporte HTML actual
   - pero esta celda puntual no es la implementación canónica
 - Ruta canónica actual:
-  - [dashboard.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\analytics\dashboard.py)
-  - [generate_smoke_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_smoke_report.py)
-  - [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+  - [dashboard.py](src/analytics/dashboard.py)
+  - [generate_smoke_report.py](scripts/generate_smoke_report.py)
+  - [generate_real_report.py](scripts/generate_real_report.py)
 
 ### Celda 28. Score base de refuerzo / reducción
 
@@ -433,10 +433,10 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `score_despliegue_liquidez`
   - asignación de acción base
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [actions.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
-  - [scoring_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
-  - [action_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
+  - [scoring.py](src/decision/scoring.py)
+  - [actions.py](src/decision/actions.py)
+  - [scoring_rules.json](data/strategy/scoring_rules.json)
+  - [action_rules.json](data/strategy/action_rules.json)
 - Diferencias relevantes contra el notebook:
   - `Es_Core` ya no influye en scoring
   - la taxonomía de consenso ya no está hardcodeada en código
@@ -460,9 +460,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `Drawdown_desde_Max3m_%`
   - `Tech_Trend`
 - Ruta canónica actual:
-  - [technical.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\analytics\technical.py)
-  - [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
-  - [generate_smoke_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_smoke_report.py)
+  - [technical.py](src/analytics/technical.py)
+  - [generate_real_report.py](scripts/generate_real_report.py)
+  - [generate_smoke_report.py](scripts/generate_smoke_report.py)
 - Observación:
   - el cálculo sigue requiriendo `yfinance` en el entorno donde corre el runner real
   - el HTML ahora expone `Overlay técnico: Sí/No` y `Cobertura técnica: X/Y`
@@ -481,10 +481,10 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `score_reduccion_v2`
   - `score_unificado_v2`
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [pipeline.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\pipeline.py)
-  - [generate_real_report.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
-  - [scoring_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - [scoring.py](src/decision/scoring.py)
+  - [pipeline.py](src/pipeline.py)
+  - [generate_real_report.py](scripts/generate_real_report.py)
+  - [scoring_rules.json](data/strategy/scoring_rules.json)
 - Importante:
   - esta brecha ya quedó cerrada
   - una corrida real con cobertura técnica `24/24` mostró cambios materiales en refuerzos y reducciones frente al score base puro
@@ -509,9 +509,9 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - explicación automática enriquecida
   - idea de top refuerzo / reducción / rebalanceo
 - Ruta canónica actual:
-  - [scoring.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
-  - [actions.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
-  - [sizing.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
+  - [scoring.py](src/decision/scoring.py)
+  - [actions.py](src/decision/actions.py)
+  - [sizing.py](src/decision/sizing.py)
 - Qué no se usa hoy:
   - la lógica manual de `conviccion_operativa(...)`
   - la lógica manual de `comentario_automatico(...)`
@@ -538,7 +538,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
   - `monto_fondeo_ars`
   - `monto_fondeo_usd`
 - Ruta canónica actual:
-  - [sizing.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
+  - [sizing.py](src/decision/sizing.py)
 - Qué no se usa hoy:
   - el bloque manual de reetiquetado previo
   - la lógica manual de comentario ejecutivo
@@ -556,8 +556,8 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
 - Qué sí se usa hoy:
   - `build_prudent_allocation(...)`
 - Ruta canónica actual:
-  - [sizing.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
-  - [sizing_rules.json](c:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
+  - [sizing.py](src/decision/sizing.py)
+  - [sizing_rules.json](data/strategy/sizing_rules.json)
 - Qué no se usa hoy:
   - bucket manual por ticker
   - dependencias a `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS`
@@ -574,7 +574,7 @@ La referencia de verdad para el proyecto actual es `src/` y los runners de `scri
 - Qué sí se usa hoy:
   - `build_dynamic_allocation(...)`
 - Ruta canónica actual:
-  - [sizing.py](c:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
+  - [sizing.py](src/decision/sizing.py)
 - Qué no se usa hoy:
   - bucket manual por ticker
   - `DEFENSIVE_TICKERS` / `AGGRESSIVE_TICKERS`
@@ -626,8 +626,8 @@ La corrida real del `2026-04-04` quedó como primer baseline completo posterior 
 - ajuste fino adicional para no sobrepenalizar ETFs/core amplios como `SPY`
 
 La baseline operativa vigente ya no es esa, sino la del `2026-04-07`, documentada en:
-- [refactor-roadmap.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\refactor-roadmap.md)
-- [README.md](c:\Users\kachu\Python user\Colab\Cartera de Activos\tests\snapshots\README.md)
+- [refactor-roadmap.md](docs/archive/refactor-roadmap.md)
+- [README.md](tests/snapshots/README.md)
 
 El próximo punto abierto ya no es de trazabilidad, sino de evolución de producto:
 - incorporar sensibilidad a régimen de mercado;

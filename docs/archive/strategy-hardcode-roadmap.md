@@ -27,9 +27,9 @@ Luego de la Fase F, ya no quedan influyendo de forma material:
 - taxonomia textual embebida en codigo
 
 Siguen existiendo decisiones parametrizadas de estrategia, pero ya viven fuera del codigo en:
-- [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
-- [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
-- [sizing_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\sizing_rules.json)
+- [scoring_rules.json](data/strategy/scoring_rules.json)
+- [action_rules.json](data/strategy/action_rules.json)
+- [sizing_rules.json](data/strategy/sizing_rules.json)
 
 Actualizacion de cierre al `2026-04-07`:
 
@@ -53,7 +53,7 @@ Actualizacion de cierre al `2026-04-07`:
 ### Cierre
 
 - Se relevo el inventario de hardcodes que afectan estrategia.
-- Se creo [docs/archive/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\strategy-hardcode-inventory.md).
+- Se creo [docs/archive/strategy-hardcode-inventory.md](docs/archive/strategy-hardcode-inventory.md).
 
 ## Fase B. Parametrizacion externa
 
@@ -71,7 +71,7 @@ Actualizacion de cierre al `2026-04-07`:
 
 ### Cierre
 
-- [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py) ya no usa listas de tickers para definir `Bucket_Prudencia`.
+- [src/decision/sizing.py](src/decision/sizing.py) ya no usa listas de tickers para definir `Bucket_Prudencia`.
 - El bucket ahora se deriva desde tipo, beta y peso relativo.
 
 ## Fase D. Desacople de `BLOCK_MAP` en scoring
@@ -80,7 +80,7 @@ Actualizacion de cierre al `2026-04-07`:
 
 ### Cierre
 
-- [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) dejo de usar `Es_Core`.
+- [src/decision/scoring.py](src/decision/scoring.py) dejo de usar `Es_Core`.
 - `Bloque` sigue existiendo para reporting, pero ya no sesga la decision.
 
 ## Fase E. Politica de liquidez explicita
@@ -103,9 +103,9 @@ Actualizacion de cierre al `2026-04-07`:
 
 - el runner real ya pregunta politica de fondeo antes de armar la estrategia
 - la liquidez se bloquea cuando el usuario decide no usar IOL
-- [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py) ya no privilegia `CAUCION` por nombre
+- [src/decision/sizing.py](src/decision/sizing.py) ya no privilegia `CAUCION` por nombre
 - la fuente de fondeo ahora sale de la liquidez efectivamente candidata, ordenada por score y monto
-- [tests/test_sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\tests\test_sizing.py) valida que una liquidez con mejor score desplaza a caucion como fuente
+- [tests/test_sizing.py](tests/test_sizing.py) valida que una liquidez con mejor score desplaza a caucion como fuente
 
 ## Fase F. Validacion y cierre
 
@@ -128,8 +128,8 @@ Actualizacion de cierre al `2026-04-07`:
 
 ### Cierre
 
-- la taxonomia de consenso quedo externalizada en [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
-- [scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py) ya no define listas textuales de consenso en el flujo principal
+- la taxonomia de consenso quedo externalizada en [scoring_rules.json](data/strategy/scoring_rules.json)
+- [scoring.py](src/decision/scoring.py) ya no define listas textuales de consenso en el flujo principal
 - los tests validan override de taxonomia y estabilidad de la estrategia parametrizada
 - el roadmap de deshardcodeo estrategico queda cerrado
 
@@ -138,7 +138,7 @@ Actualizacion de cierre al `2026-04-07`:
 ### 2026-04-03
 
 - Se cerro la Fase A con el relevamiento completo de hardcodes que afectan la estrategia.
-- Se creo [docs/archive/strategy-hardcode-inventory.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\archive\strategy-hardcode-inventory.md) como documento base de inventario.
+- Se creo [docs/archive/strategy-hardcode-inventory.md](docs/archive/strategy-hardcode-inventory.md) como documento base de inventario.
 - Se cerro la Fase B con la externalizacion de thresholds y pesos de estrategia a `data/strategy/`.
 - El pipeline ya toma reglas de scoring, acciones y sizing desde archivos configurables.
 - Se cerro la Fase C con la eliminacion de `DEFENSIVE_TICKERS` y `AGGRESSIVE_TICKERS` del sizing.
@@ -148,7 +148,7 @@ Actualizacion de cierre al `2026-04-07`:
 
 ### 2026-04-07
 
-- Se externalizaron los rangos del overlay tecnico y sus subscores de reduccion a [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json).
+- Se externalizaron los rangos del overlay tecnico y sus subscores de reduccion a [scoring_rules.json](data/strategy/scoring_rules.json).
 - Se activo scoring absoluto conservador (`0.9` relativo / `0.1` absoluto) sin dejar pesos embebidos en codigo.
 - La narrativa operativa paso a tomar thresholds desde configuracion en vez de usar cortes fijos solo en `actions.py`.
-- Los thresholds de `Refuerzo` para subfamilias de bonos quedaron externalizados en [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json).
+- Los thresholds de `Refuerzo` para subfamilias de bonos quedaron externalizados en [action_rules.json](data/strategy/action_rules.json).

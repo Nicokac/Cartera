@@ -41,13 +41,13 @@ No quedan hardcodes materiales afectando estrategia.
 
 ## Inventario vigente
 
-### [src/decision/scoring.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\scoring.py)
+### [src/decision/scoring.py](src/decision/scoring.py)
 
 #### `consensus_to_score(...)`
 
 - Tipo: `Estrategia`
 - Estado:
-  - taxonomia textual parametrizada via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - taxonomia textual parametrizada via [scoring_rules.json](data/strategy/scoring_rules.json)
 - Impacta en:
   - `Consensus_Score`
   - `score_refuerzo`
@@ -57,19 +57,19 @@ No quedan hardcodes materiales afectando estrategia.
 
 - Tipo: `Estrategia`
 - Estado:
-  - parametrizado via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - parametrizado via [scoring_rules.json](data/strategy/scoring_rules.json)
 
 #### `Ganancia_%_Cap`
 
 - Tipo: `Estrategia`
 - Estado:
-  - parametrizado via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - parametrizado via [scoring_rules.json](data/strategy/scoring_rules.json)
 
 #### `score_refuerzo`
 
 - Tipo: `Estrategia`
 - Estado:
-  - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - pesos y castigos parametrizados via [scoring_rules.json](data/strategy/scoring_rules.json)
   - sin sesgo por `Bloque`
   - con blend absoluto opcional parametrizado
 
@@ -77,44 +77,44 @@ No quedan hardcodes materiales afectando estrategia.
 
 - Tipo: `Estrategia`
 - Estado:
-  - pesos y castigos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - pesos y castigos parametrizados via [scoring_rules.json](data/strategy/scoring_rules.json)
   - sin sesgo por `Bloque`
 
 #### overlay tecnico v2
 
 - Tipo: `Estrategia`
 - Estado:
-  - rangos y subscores parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - rangos y subscores parametrizados via [scoring_rules.json](data/strategy/scoring_rules.json)
   - `tech_reduccion` ya no depende de la inversion mecanica de `tech_refuerzo`
 
 #### `score_despliegue_liquidez`
 
 - Tipo: `Estrategia`
 - Estado:
-  - pesos parametrizados via [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - pesos parametrizados via [scoring_rules.json](data/strategy/scoring_rules.json)
 
-### [src/decision/actions.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\actions.py)
+### [src/decision/actions.py](src/decision/actions.py)
 
 #### `assign_base_action(...)`
 
 - Tipo: `Estrategia`
 - Estado:
-  - thresholds parametrizados via [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
+  - thresholds parametrizados via [action_rules.json](data/strategy/action_rules.json)
 
 #### `assign_action_v2(...)`
 
 - Tipo: `Estrategia`
 - Estado:
-  - thresholds parametrizados via [action_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\action_rules.json)
+  - thresholds parametrizados via [action_rules.json](data/strategy/action_rules.json)
 
 #### labels y mensajes
 
 - Tipo: `Presentacion`
 - Estado:
-  - narrativa de umbrales operativos alineada con [scoring_rules.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\strategy\scoring_rules.json)
+  - narrativa de umbrales operativos alineada con [scoring_rules.json](data/strategy/scoring_rules.json)
   - quedan solo textos de presentacion como hardcode menor
 
-### [src/decision/sizing.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\src\decision\sizing.py)
+### [src/decision/sizing.py](src/decision/sizing.py)
 
 #### `_bucket_prudencia(...)`
 
@@ -158,11 +158,11 @@ No quedan hardcodes materiales afectando estrategia.
 
 ## Hardcodes de integracion que no son prioridad estrategica
 
-- [finviz_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\finviz_map.json)
-- [ratios.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\ratios.json)
-- [vn_factor_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\vn_factor_map.json)
-- [block_map.json](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\mappings\block_map.json) como taxonomia de reporting
-- tipos cotizables permitidos en [generate_real_report.py](C:\Users\kachu\Python user\Colab\Cartera de Activos\scripts\generate_real_report.py)
+- [finviz_map.json](data/mappings/finviz_map.json)
+- [ratios.json](data/mappings/ratios.json)
+- [vn_factor_map.json](data/mappings/vn_factor_map.json)
+- [block_map.json](data/mappings/block_map.json) como taxonomia de reporting
+- tipos cotizables permitidos en [generate_real_report.py](scripts/generate_real_report.py)
 
 ## Prioridad actual de remocion
 
