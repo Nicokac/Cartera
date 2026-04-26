@@ -1,4 +1,4 @@
-﻿import unittest
+import unittest
 
 import pandas as pd
 
@@ -358,7 +358,7 @@ class ReportRenderOperationsTests(unittest.TestCase):
         self.assertNotIn("Compra reciente ya visible en cartera | 2026-04-01 14:06", html)
 
 
-    def test_render_report_hides_old_passive_event_from_operational_reading(self) -> None:
+    def test_render_report_filters_old_passive_events_from_operational_summary(self) -> None:
         result = _build_minimal_result()
         result["operations_bundle"] = {
             "recent_operations": pd.DataFrame(
@@ -414,6 +414,54 @@ class ReportRenderOperationsTests(unittest.TestCase):
                     },
                 ]
             ),
+            "symbol_summary": pd.DataFrame(),
+            "position_transitions": {"items": [], "summary": pd.DataFrame()},
+            "previous_snapshot_date": "2026-04-15",
+            "stats": {"total": 2, "trading": 0, "events": 2, "completed": 2},
+        }
+
+        html = render_report(result)
+
+        self.assertIn("Eventos recientes", html)
+        self.assertIn("Eventos visibles en DIA US$.", html)
+        self.assertNotIn("Eventos visibles en DIA US$, XLU US$.", html)
+
+    def test_render_report_keeps_recent_passive_events_inside_three_day_summary_window(self) -> None:
+        result = _build_minimal_result()
+        result["operations_bundle"] = {
+            "recent_operations": pd.DataFrame(
+                [
+                    {
+                        "numero": 170443236,
+                        "fecha_evento": pd.Timestamp("2026-04-13 15:39:56"),
+                        "tipo": "Pago de Dividendos",
+                        "operation_bucket": "evento",
+                        "estado": "terminada",
+                        "mercado": "BCBA",
+                        "simbolo": "DIA US$",
+                        "operation_currency": "USD",
+                        "cantidad_final": None,
+                        "precio_final": None,
+                        "monto_final": 0.06,
+                        "plazo": "inmediata",
+                    },
+                    {
+                        "numero": 170440000,
+                        "fecha_evento": pd.Timestamp("2026-04-11 10:00:00"),
+                        "tipo": "Pago de Dividendos",
+                        "operation_bucket": "evento",
+                        "estado": "terminada",
+                        "mercado": "BCBA",
+                        "simbolo": "SPY US$",
+                        "operation_currency": "USD",
+                        "cantidad_final": None,
+                        "precio_final": None,
+                        "monto_final": 0.11,
+                        "plazo": "inmediata",
+                    },
+                ]
+            ),
+            "recent_trades": pd.DataFrame(),
             "recent_events": pd.DataFrame(
                 [
                     {
@@ -425,10 +473,10 @@ class ReportRenderOperationsTests(unittest.TestCase):
                         "estado": "terminada",
                     },
                     {
-                        "simbolo": "XLU US$",
+                        "simbolo": "SPY US$",
                         "tipo": "Pago de Dividendos",
-                        "fecha_evento": pd.Timestamp("2026-03-31 13:23:04"),
-                        "monto_final": 0.37,
+                        "fecha_evento": pd.Timestamp("2026-04-11 10:00:00"),
+                        "monto_final": 0.11,
                         "operation_currency": "USD",
                         "estado": "terminada",
                     },
@@ -443,8 +491,7 @@ class ReportRenderOperationsTests(unittest.TestCase):
         html = render_report(result)
 
         self.assertIn("Eventos recientes", html)
-        self.assertIn("Eventos visibles en DIA US$.", html)
-        self.assertNotIn("Eventos visibles en DIA US$, XLU US$.", html)
+        self.assertIn("Eventos visibles en DIA US$, SPY US$.", html)
 
 
 
