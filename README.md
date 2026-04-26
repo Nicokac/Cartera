@@ -142,6 +142,7 @@ Comandos de operacion local:
 ```powershell
 .\scripts\status_local_app.ps1
 .\scripts\stop_local_app.ps1
+.\scripts\smoke_local_app.ps1
 ```
 
 Modo manual equivalente (primer plano):
