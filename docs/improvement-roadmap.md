@@ -68,7 +68,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 ### P2.1. Higiene de docs y artefactos
 
 - mantener alineados `README.md`, `docs/README.md` y `tests/README.md` cuando se muevan suites o runners
-- usar [repo-cleanup-map.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\repo-cleanup-map.md) como fuente de verdad para candidatos de borrado
+- usar [repo-cleanup-map.md](repo-cleanup-map.md) como fuente de verdad para candidatos de borrado
 
 ### P3. Motor de prediccion direccional
 
@@ -81,8 +81,8 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
   - sumar metricas historicas de acierto al HTML
   - decidir si conviene una opcion B con clasificador sobre `signal_votes`
 - registrar trazabilidad de cada fase en:
-  - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
-  - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
+  - [prediction-engine-roadmap.md](prediction-engine-roadmap.md)
+  - [prediction-engine-history.md](prediction-engine-history.md)
 - evitar dependencias nuevas o LLM externos mientras siga en etapa experimental
 
 ## Frentes ya absorbidos

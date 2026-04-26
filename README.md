@@ -35,7 +35,7 @@ El repo esta en una etapa operativa estable:
 
 Resumen funcional vigente:
 
-- [baseline-actual.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\baseline-actual.md)
+- [baseline-actual.md](docs/baseline-actual.md)
 
 ## Estructura
 
@@ -101,7 +101,7 @@ En la practica hoy se usa para crear:
 
 Mas detalle:
 
-- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
+- [data/examples/README.md](data/examples/README.md)
 
 ## Variables de entorno
 
@@ -186,7 +186,9 @@ CI actual:
 Pendientes reales abiertos:
 
 - retirar el fallback legacy cuando `data/snapshots/` tenga una ventana operativa suficiente
-- seguir calibrando scoring, sizing y prediccion con corridas reales antes de endurecer nuevas reglas
+- calibracion por `asset_family` en prediccion (bloqueada por datos: requiere >= 30 outcomes verificados por familia x senal)
+- `tests/test_strategy_rules.py` sigue como outlier de tamano y candidato a split
+- monitorear crecimiento de `tests/test_report_render_operations.py` y `tests/test_generate_real_report_split_runtime.py`
 
 Frentes ya cerrados recientemente:
 
@@ -200,6 +202,8 @@ Frentes ya cerrados recientemente:
 - `test_decision_scoring.py`: 28 tests sobre helpers y smoke de `apply_base_scores`
 - `test_portfolio_risk.py`: 7 tests sobre el modulo de riesgo historico
 - `test_report_sections.py`: 8 tests sobre `_build_risk_focus_block`
+- artefactos generados fuera de versionado: `.coverage*`, `htmlcov/` y `reports/*.html`
+- suite split de real run en modulos: `split_cli`, `split_runtime`, `split_snapshots`, `split_bonistas`
 
 ## Memoria temporal
 
@@ -216,17 +220,17 @@ Frentes ya cerrados recientemente:
 
 Entrada canonica:
 
-- [docs/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\README.md)
-- [docs/repo-cleanup-map.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\repo-cleanup-map.md)
+- [docs/README.md](docs/README.md)
+- [docs/repo-cleanup-map.md](docs/repo-cleanup-map.md)
 
 Configuracion de ejemplo:
 
-- [data/examples/README.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\data\examples\README.md)
+- [data/examples/README.md](data/examples/README.md)
 
 Track de prediccion direccional:
 
-- [docs/prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
-- [docs/prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
+- [docs/prediction-engine-roadmap.md](docs/prediction-engine-roadmap.md)
+- [docs/prediction-engine-history.md](docs/prediction-engine-history.md)
 
 Estado actual del track:
 

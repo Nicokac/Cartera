@@ -140,5 +140,5 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
     - `run_prediction_cycle.py` consume el historial existente para verificar outcomes y recalibrar pesos
     - el runner de mantenimiento no genera observaciones nuevas por si solo
   - su arquitectura y trazabilidad viven en:
-    - [prediction-engine-roadmap.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-roadmap.md)
-    - [prediction-engine-history.md](C:\Users\kachu\Python user\Colab\Cartera de Activos\docs\prediction-engine-history.md)
+    - [prediction-engine-roadmap.md](prediction-engine-roadmap.md)
+    - [prediction-engine-history.md](prediction-engine-history.md)
