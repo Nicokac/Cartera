@@ -39,3 +39,6 @@ reports/*.html
 
 # Local app runtime artifacts
 data/runtime/*.pid
+
+# Local Claude/Codex workspace settings
+.claude/
