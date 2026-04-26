@@ -1,7 +1,7 @@
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pandas as pd
 
@@ -11,6 +11,11 @@ if str(SCRIPTS) not in sys.path:
     sys.path.append(str(SCRIPTS))
 
 from generate_real_report import (
+    _collect_market_runtime_inputs,
+    _build_report_payload,
+    _merge_bond_context_into_decision,
+    _render_and_persist_report,
+    _resolve_funding_policy,
     build_real_bonistas_bundle,
     enrich_real_cedears,
     extract_quote_tickers,
@@ -27,6 +32,123 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_resolve_funding_policy_uses_args_values_in_non_interactive(self) -> None:
+        class Args:
+            use_iol_liquidity = True
+            aporte_externo_ars = 120000.0
+            non_interactive = True
+
+        usar_liquidez_iol, aporte_externo_ars = _resolve_funding_policy(Args())
+        self.assertTrue(usar_liquidez_iol)
+        self.assertEqual(aporte_externo_ars, 120000.0)
+
+    def test_merge_bond_context_into_decision_adds_available_columns(self) -> None:
+        decision_bundle = {"final_decision": pd.DataFrame([{"Ticker_IOL": "GD30", "accion": "Reducir"}])}
+        bonistas_bundle = {
+            "bond_analytics": pd.DataFrame(
+                [
+                    {
+                        "Ticker_IOL": "GD30",
+                        "bonistas_tir_pct": 7.8,
+                        "bonistas_paridad_pct": 87.2,
+                        "extra": "ignored",
+                    }
+                ]
+            )
+        }
+
+        out = _merge_bond_context_into_decision(decision_bundle, bonistas_bundle)
+        self.assertIn("bonistas_tir_pct", out["final_decision"].columns)
+        self.assertIn("bonistas_paridad_pct", out["final_decision"].columns)
+        self.assertNotIn("extra", out["final_decision"].columns)
+
+    def test_build_report_payload_contains_expected_keys(self) -> None:
+        payload = _build_report_payload(
+            mep_real=1400.0,
+            run_ts=pd.Timestamp("2026-04-26 10:30:00"),
+            precios_iol={"AAPL": 100.0},
+            portfolio_bundle={"df_total": pd.DataFrame()},
+            dashboard_bundle={"kpis": {"total_ars": 1.0}},
+            decision_bundle={"final_decision": pd.DataFrame()},
+            sizing_bundle={"asignacion_final": pd.DataFrame()},
+            technical_overlay=pd.DataFrame(),
+            price_history={},
+            finviz_stats={"cedears_total": 0},
+            bonistas_bundle={},
+            operations_bundle={},
+            prediction_bundle={},
+            risk_bundle={},
+        )
+        self.assertEqual(payload["mep_real"], 1400.0)
+        self.assertEqual(payload["generated_at_label"], "2026-04-26 10:30:00")
+        self.assertIn("portfolio_bundle", payload)
+        self.assertIn("risk_bundle", payload)
+
+    def test_render_and_persist_report_delegates_render_and_snapshots(self) -> None:
+        report = {"k": "v"}
+        portfolio_bundle = {"df_total": pd.DataFrame([{"Ticker_IOL": "AAPL"}])}
+        dashboard_bundle = {"kpis": {"total_ars": 1000.0}}
+        decision_bundle = {"final_decision": pd.DataFrame([{"Ticker_IOL": "AAPL", "score_unificado": 0.1}])}
+        technical_overlay = pd.DataFrame([{"Ticker_IOL": "AAPL", "RSI_14": 50.0}])
+
+        html_path_mock = Mock()
+        with patch("generate_real_report.render_report", return_value="<html>ok</html>") as render_mock, patch(
+            "generate_real_report.write_real_snapshots",
+            return_value=[Path("a.csv"), Path("b.json")],
+        ) as snapshots_mock, patch("generate_real_report.HTML_PATH", html_path_mock), patch(
+            "generate_real_report.logger.info"
+        ) as logger_mock, patch("builtins.print") as print_mock:
+            _render_and_persist_report(
+                report,
+                portfolio_bundle=portfolio_bundle,
+                dashboard_bundle=dashboard_bundle,
+                decision_bundle=decision_bundle,
+                technical_overlay=technical_overlay,
+            )
+
+        render_mock.assert_called_once()
+        self.assertIs(render_mock.call_args.args[0], report)
+        html_path_mock.write_text.assert_called_once_with("<html>ok</html>", encoding="utf-8")
+        snapshots_mock.assert_called_once()
+        self.assertIs(snapshots_mock.call_args.kwargs["portfolio_bundle"], portfolio_bundle)
+        self.assertIs(snapshots_mock.call_args.kwargs["dashboard_bundle"], dashboard_bundle)
+        self.assertIs(snapshots_mock.call_args.kwargs["decision_bundle"], decision_bundle)
+        self.assertTrue(snapshots_mock.call_args.kwargs["technical_overlay"].equals(technical_overlay))
+        logger_mock.assert_called()
+        self.assertGreaterEqual(print_mock.call_count, 3)
+
+    def test_collect_market_runtime_inputs_fetches_payload_and_prices(self) -> None:
+        portfolio_payload = {"activos": [{"titulo": {"simbolo": "AAPL", "tipo": "CEDEARS"}}]}
+        estado_payload = {"ok": True}
+        operaciones_payload = [{"tipo": "Compra", "estado": "terminada", "simbolo": "AAPL"}]
+
+        with patch("generate_real_report.iol_login", return_value="token0"), patch(
+            "generate_real_report.fetch_iol_payloads",
+            return_value=(portfolio_payload, estado_payload, operaciones_payload, "token1"),
+        ) as payloads_mock, patch(
+            "generate_real_report.get_mep_real",
+            return_value={"promedio": 1400.5},
+        ), patch(
+            "generate_real_report.extract_quote_tickers",
+            return_value=["AAPL"],
+        ), patch(
+            "generate_real_report.extract_operation_quote_tickers",
+            return_value=["AAPL"],
+        ), patch(
+            "generate_real_report.fetch_prices",
+            return_value=({"AAPL": 101.0}, "token2"),
+        ) as prices_mock, patch("builtins.print") as print_mock:
+            out = _collect_market_runtime_inputs(username="u", password="p")
+
+        self.assertEqual(out["activos"], portfolio_payload["activos"])
+        self.assertEqual(out["estado_payload"], estado_payload)
+        self.assertEqual(out["operaciones_payload"], operaciones_payload)
+        self.assertEqual(out["mep_real"], 1400.5)
+        self.assertEqual(out["precios_iol"], {"AAPL": 101.0})
+        payloads_mock.assert_called_once_with(token="token0", username="u", password="p")
+        prices_mock.assert_called_once()
+        self.assertGreaterEqual(print_mock.call_count, 3)
+
     def test_parse_finviz_number_handles_suffixes_and_missing_values(self) -> None:
         self.assertEqual(parse_finviz_number("1.5B"), 1_500_000_000.0)
         self.assertEqual(parse_finviz_number("2,400M"), 2_400_000_000.0)
