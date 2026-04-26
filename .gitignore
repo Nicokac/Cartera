@@ -25,3 +25,8 @@ __pycache__/
 
 #Notebooks
 *.ipynb
+
+# Test / coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
