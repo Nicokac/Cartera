@@ -34,6 +34,33 @@ class RunParams(BaseModel):
     aporte_externo_ars: float = 0.0
 
 
+def _parse_ts(value: object) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
+
+def _read_log_tail(limit: int = 1200) -> str:
+    try:
+        if not LOG_PATH.exists():
+            return ""
+        return LOG_PATH.read_text(encoding="utf-8")[-limit:]
+    except Exception:
+        return ""
+
+
+def _read_log_mtime() -> str | None:
+    try:
+        if not LOG_PATH.exists():
+            return None
+        return datetime.fromtimestamp(LOG_PATH.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return None
+
+
 def _watch_process() -> None:
     global _process
     if _process is None:
@@ -97,6 +124,28 @@ def post_run(params: RunParams) -> JSONResponse:
 @app.get("/status")
 def get_status() -> JSONResponse:
     return JSONResponse(_state)
+
+
+@app.get("/status/detail")
+def get_status_detail() -> JSONResponse:
+    started_dt = _parse_ts(_state.get("started_at"))
+    uptime_seconds = None
+    if started_dt is not None:
+        uptime_seconds = max(0, int((datetime.now() - started_dt).total_seconds()))
+
+    pid = None
+    if _process is not None:
+        pid = getattr(_process, "pid", None)
+
+    payload = {
+        **_state,
+        "pid": pid,
+        "uptime_seconds": uptime_seconds,
+        "log_path": str(LOG_PATH),
+        "last_log_mtime": _read_log_mtime(),
+        "log_tail": _read_log_tail(),
+    }
+    return JSONResponse(payload)
 
 
 @app.get("/health")

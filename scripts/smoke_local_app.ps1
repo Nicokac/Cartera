@@ -10,6 +10,7 @@ $statusScript = Join-Path $PSScriptRoot "status_local_app.ps1"
 $stopScript = Join-Path $PSScriptRoot "stop_local_app.ps1"
 $baseUrl = "http://$BindHost`:$Port"
 $statusUrl = "$baseUrl/status"
+$detailUrl = "$baseUrl/status/detail"
 
 function Wait-ForStatusEndpoint {
     param(
@@ -43,6 +44,13 @@ try {
 
     if (-not ($payload -match '"status"\s*:\s*"(idle|running|done|error)"')) {
         throw "Payload /status no tiene estructura esperada."
+    }
+
+    Write-Host "[smoke] waiting for /status/detail endpoint..."
+    $detailPayload = Wait-ForStatusEndpoint -Url $detailUrl -MaxSeconds 20
+    Write-Host "[smoke] /status/detail payload: $detailPayload"
+    if (-not ($detailPayload -match '"log_path"\s*:')) {
+        throw "Payload /status/detail no tiene estructura esperada."
     }
 
     Write-Host "[smoke] local app health OK"

@@ -137,11 +137,13 @@ Abre `http://127.0.0.1:8000` en el browser. El formulario permite lanzar el pipe
 con parametros y ver el estado en tiempo real. El reporte generado queda disponible en
 `http://127.0.0.1:8000/reports/real-report.html`.
 Health check: `http://127.0.0.1:8000/health`.
+Estado detallado: `http://127.0.0.1:8000/status/detail`.
 
 Comandos de operacion local:
 
 ```powershell
 .\scripts\status_local_app.ps1
+.\scripts\status_local_app.ps1 -Detailed
 .\scripts\stop_local_app.ps1
 .\scripts\smoke_local_app.ps1
 ```

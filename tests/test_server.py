@@ -1,5 +1,6 @@
 import sys
 import unittest
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -71,6 +72,59 @@ class TestGetHealth(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["status"], "ok")
         self.assertEqual(r.json()["service"], "cartera-local-app")
+
+
+class TestGetStatusDetail(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
+    def test_idle_without_process(self):
+        r = _client.get("/status/detail")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertEqual(data["status"], "idle")
+        self.assertIsNone(data["pid"])
+        self.assertIsNone(data["uptime_seconds"])
+        self.assertIn("log_tail", data)
+
+    def test_running_with_process_and_uptime(self):
+        server._state["status"] = "running"
+        server._state["started_at"] = "2026-04-26 10:00:00"
+        proc = MagicMock()
+        proc.pid = 12345
+        server._process = proc
+
+        data = _client.get("/status/detail").json()
+        self.assertEqual(data["status"], "running")
+        self.assertEqual(data["pid"], 12345)
+        self.assertIsInstance(data["uptime_seconds"], int)
+        self.assertGreaterEqual(data["uptime_seconds"], 0)
+
+    def test_error_with_log_present(self):
+        server._state["status"] = "error"
+        server._state["error"] = "pipeline failed"
+        with TemporaryDirectory() as tmp:
+            log_path = Path(tmp) / "server_run.log"
+            log_path.write_text("line1\nline2\npipeline failed", encoding="utf-8")
+            with patch.object(server, "LOG_PATH", log_path):
+                data = _client.get("/status/detail").json()
+        self.assertEqual(data["status"], "error")
+        self.assertIn("pipeline failed", data["log_tail"])
+        self.assertIsNotNone(data["last_log_mtime"])
+
+    def test_missing_log_does_not_fail(self):
+        server._state["status"] = "done"
+        with TemporaryDirectory() as tmp:
+            missing_log = Path(tmp) / "missing.log"
+            with patch.object(server, "LOG_PATH", missing_log):
+                r = _client.get("/status/detail")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertEqual(data["log_tail"], "")
+        self.assertIsNone(data["last_log_mtime"])
 
 
 class TestPostRun(unittest.TestCase):

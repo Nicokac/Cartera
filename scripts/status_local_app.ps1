@@ -1,6 +1,7 @@
 param(
     [string]$BindHost = "127.0.0.1",
-    [int]$Port = 8000
+    [int]$Port = 8000,
+    [switch]$Detailed
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,6 +25,14 @@ if (-not $pidValue) {
 $proc = Get-Process -Id $pidValue -ErrorAction SilentlyContinue
 if ($proc) {
     Write-Host "status=running pid=$pidValue url=$url checked_at=$checkedAt"
+    if ($Detailed) {
+        try {
+            $detail = Invoke-WebRequest -Uri "$url/status/detail" -UseBasicParsing -TimeoutSec 2
+            Write-Host $detail.Content
+        } catch {
+            Write-Host "detail_error=$($_.Exception.Message)"
+        }
+    }
     exit 0
 }
 
