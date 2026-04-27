@@ -20,6 +20,10 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - servidor web local (`server.py`) que expone el pipeline real via FastAPI: formulario de parametros, lanzamiento en background, polling de estado y acceso al reporte HTML generado
   - el formulario local solicita credenciales IOL por corrida y no persiste password
   - opcionalmente recuerda solo el usuario en el navegador
+- distribuible win64 para usuarios finales sin conocimiento tecnico (`scripts/build_dist.ps1`):
+  - genera `dist/cartera-vX.Y.Z-win64.zip` con Python 3.12 embeddable y deps pre-instaladas
+  - `Iniciar Cartera.bat` y `Detener Cartera.bat` como interfaz de uso (doble clic)
+  - estrategia de updates: `data/runtime/`, `data/strategy/` y `reports/` sobreviven al extraer el nuevo zip con "reemplazar todo"
 - wrappers operativos locales en PowerShell para uso diario:
   - `scripts/run_local_app.ps1` (menu interactivo)
   - `scripts/start_local_app.ps1` / `scripts/status_local_app.ps1` / `scripts/stop_local_app.ps1`
@@ -34,6 +38,7 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
   - `GET /status` expone el estado actual (`idle` / `running` / `done` / `error`)
   - `GET /status/detail` expone estado enriquecido (`pid`, `uptime_seconds`, `log_path`, `last_log_mtime`, `log_tail`)
   - `GET /health` expone disponibilidad basica (`status=ok`)
+  - `GET /version` expone la version activa (lee `version.txt`; fallback a `pyproject.toml` con sufijo `-dev`)
   - `GET /reports/*` sirve los HTMLs generados via `StaticFiles`
   - estado protegido por `threading.Lock`; un solo proceso activo a la vez (409 si ya corre)
   - log de corrida en `data/runtime/server_run.log`

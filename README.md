@@ -48,6 +48,7 @@ Resumen funcional vigente:
 - `reports/`: HTMLs generados
 - `static/`: frontend del servidor web local
 - `server.py`: servidor web local (FastAPI)
+- `dist/`: distribuibles generados (excluido de git; ver `scripts/build_dist.ps1`)
 
 ## Requisitos
 
@@ -125,6 +126,31 @@ Notas:
 - `ENABLE_LEGACY_SNAPSHOTS=0` fuerza el uso exclusivo de `data/snapshots/`
 - el runner real puede pedir credenciales por terminal si no estan cargadas
 - en la app local, el password IOL no se persiste; solo puede recordarse el usuario en el navegador
+
+## Distribucion para usuarios finales
+
+Para generar el zip distribuible (`dist/cartera-v0.2.0-win64.zip`):
+
+```powershell
+.\scripts\build_dist.ps1
+```
+
+El zip incluye Python 3.12 embeddable y todas las dependencias pre-instaladas.
+No requiere Python instalado en la maquina del usuario final.
+
+Contenido del zip:
+
+- `Iniciar Cartera.bat`: doble clic para arrancar la app y abrir el browser
+- `Detener Cartera.bat`: detiene la app
+- `LEEME.txt`: instrucciones para usuarios no tecnicos
+- `app/`: codigo fuente, Python embeddable y dependencias
+
+Estrategia de actualizacion: el zip no incluye `data/runtime/`, `reports/` ni
+`data/strategy/`, por lo que esos datos sobreviven al extraer el nuevo zip con
+"reemplazar todo". El usuario solo tiene que pedir el zip nuevo a Nicolas.
+
+Nota: el primer build descarga Python embeddable y todas las dependencias (~5-10 min).
+Las corridas siguientes reutilizan el cache en `dist/_cache/`.
 
 ## Uso rapido
 
@@ -254,6 +280,8 @@ Pendientes reales abiertos:
 
 Frentes ya cerrados recientemente:
 
+- distribuible win64 para usuarios finales: `scripts/build_dist.ps1`, bat files y estrategia de updates sin romper datos
+- endpoint `/version` y footer de version en UI con mensaje de contacto para updates
 - `report_renderer.py` ya quedo como orquestador puro
 - `rank_score` ya tiene tests de borde explicitos para cohorts `N=3` y `N=4`
 - snapshots previos ahora validan filas utilizables de `Ticker_IOL` y coercion numerica defensiva

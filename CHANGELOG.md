@@ -6,10 +6,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-26
+
 ### Added
 
-- script `scripts/setup_local_app.ps1` para bootstrap rapido de entorno local
-- guia de tester en `docs/tester-guide.md`
+- `scripts/build_dist.ps1`: genera `dist/cartera-vX.Y.Z-win64.zip` con Python 3.12
+  embeddable, dependencias pre-instaladas y bat files de inicio/detencion
+  - `Iniciar Cartera.bat`: doble clic, crea directorios, carga `.env`, abre browser
+  - `Detener Cartera.bat`: detiene el proceso por PID
+  - `LEEME.txt`: instrucciones para usuarios finales sin conocimiento tecnico
+  - estrategia de updates: `data/runtime/`, `reports/` y `data/strategy/` no se incluyen
+    en el zip y sobreviven al extraer con "reemplazar todo"
+- `GET /version`: expone la version activa (lee `version.txt`; fallback a `pyproject.toml`
+  con sufijo `-dev` en entorno de desarrollo)
+- footer de version en `static/index.html` con mensaje de contacto para updates
+- `scripts/setup_local_app.ps1`: bootstrap rapido de entorno local para developers/testers
+- `docs/tester-guide.md`: guia de uso para testers con credenciales IOL
 
 ## [0.1.0] - 2026-04-26
 
