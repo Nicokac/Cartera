@@ -16,6 +16,7 @@ REPORTS_DIR = ROOT / "reports"
 STATIC_DIR = ROOT / "static"
 SCRIPT = ROOT / "scripts" / "generate_real_report.py"
 LOG_PATH = ROOT / "data" / "runtime" / "server_run.log"
+VERSION_FILE = ROOT / "version.txt"
 
 app = FastAPI(title="Cartera")
 
@@ -171,6 +172,20 @@ def get_status_detail() -> JSONResponse:
 @app.get("/health")
 def get_health() -> JSONResponse:
     return JSONResponse({"status": "ok", "service": "cartera-local-app"})
+
+
+@app.get("/version")
+def get_version() -> JSONResponse:
+    if VERSION_FILE.exists():
+        return JSONResponse({"version": VERSION_FILE.read_text(encoding="utf-8").strip()})
+    # Fallback para entorno de desarrollo: leer pyproject.toml
+    import re
+    pyproject = ROOT / "pyproject.toml"
+    if pyproject.exists():
+        m = re.search(r'^version\s*=\s*"([^"]+)"', pyproject.read_text(encoding="utf-8"), re.MULTILINE)
+        if m:
+            return JSONResponse({"version": m.group(1) + "-dev"})
+    return JSONResponse({"version": "desconocida"})
 
 
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")

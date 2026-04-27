@@ -26,6 +26,7 @@
     #run-summary { font-size: .9rem; color: #555; margin-bottom: .75rem; }
     #link-report { display: none; margin-top: .5rem; color: #2563eb; font-weight: 600; text-decoration: none; }
     #link-report:hover { text-decoration: underline; }
+    footer { margin-top: 2rem; text-align: center; font-size: .78rem; color: #aaa; }
   </style>
 </head>
 <body>
@@ -77,6 +78,12 @@
       <a id="link-report" href="/reports/real-report.html">Ver reporte -></a>
     </div>
   </section>
+
+  <footer>
+    <span id="version-label">Cartera de Activos</span>
+    &nbsp;&middot;&nbsp;
+    &iquest;Hay una versi&oacute;n nueva? Ped&iacute;sela a Nicol&aacute;s.
+  </footer>
 
   <script>
     let _pollInterval = null;
@@ -241,6 +248,12 @@
         if (data.status === "running") {
           startPolling();
         }
+      } catch (_) {}
+
+      try {
+        const vRes = await fetch("/version");
+        const vData = await vRes.json();
+        document.getElementById("version-label").textContent = `Cartera de Activos v${vData.version}`;
       } catch (_) {}
     });
   </script>

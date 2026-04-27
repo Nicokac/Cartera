@@ -42,3 +42,9 @@ data/runtime/*.pid
 
 # Local Claude/Codex workspace settings
 .claude/
+
+# Distribuible: build artifacts y cache de downloads
+dist/_build/
+dist/_cache/
+dist/*.zip
+dist/Cartera de Activos/
