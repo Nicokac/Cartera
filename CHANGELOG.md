@@ -23,6 +23,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `scripts/setup_local_app.ps1`: bootstrap rapido de entorno local para developers/testers
 - `docs/tester-guide.md`: guia de uso para testers con credenciales IOL
 
+### Fixed
+
+- `styles.css` movido de `reports/` a `static/` (lugar correcto para assets de la app)
+- HTML del reporte generado ahora es autocontenido: CSS inlineado en `<style>` en lugar
+  de `<link href="styles.css">` — funciona offline, por mail y sin dependencias externas
+
 ## [0.1.0] - 2026-04-26
 
 ### Added

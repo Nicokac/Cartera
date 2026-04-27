@@ -127,6 +127,7 @@ foreach ($f in @("server.py", "requirements.txt")) {
     Copy-Item -Path (Join-Path $root $f) -Destination (Join-Path $buildApp $f) -Force
 }
 
+
 Set-Content -Path (Join-Path $buildApp "version.txt") -Value $version -Encoding ascii
 
 $envExSrc = Join-Path $root ".env.example"
@@ -154,7 +155,7 @@ Doble clic en "Detener Cartera.bat".
 ACTUALIZACIONES
 ---------------
 La app muestra la version actual en el pie de pagina.
-Si hay una version nueva disponible, pedirsela a Nicolas.
+Si hay una version nueva disponible, pedirsela a Nicolas Kachuk.
 
 Para actualizar: descomprimir el nuevo ZIP en la misma carpeta
 y elegir "Reemplazar todo". Los datos y reportes guardados
@@ -169,7 +170,7 @@ de la app y no se guardan en ningun archivo.
 
 SOPORTE
 -------
-Ante cualquier problema, avisar a Nicolas con:
+Ante cualquier problema, avisar a Nicolas Kachuk con:
 - Descripcion de lo que paso
 - Captura de pantalla si es posible
 "@

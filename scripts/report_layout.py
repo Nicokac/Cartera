@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import html
+from pathlib import Path
 import pandas as pd
+
+_CSS_PATH = Path(__file__).resolve().parent.parent / "static" / "styles.css"
 
 from report_decision import build_decision_priority_board, build_decision_table
 from report_primitives import (
@@ -481,7 +484,7 @@ def build_report_body(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{esc_text(tab_title)}</title>
   <meta name="description" content="{esc_text(meta_description)}">
-  <link rel="stylesheet" href="styles.css">
+  <style>{_CSS_PATH.read_text(encoding="utf-8")}</style>
 </head>
 <body>
   <main class="page">

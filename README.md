@@ -147,7 +147,7 @@ Contenido del zip:
 
 Estrategia de actualizacion: el zip no incluye `data/runtime/`, `reports/` ni
 `data/strategy/`, por lo que esos datos sobreviven al extraer el nuevo zip con
-"reemplazar todo". El usuario solo tiene que pedir el zip nuevo a Nicolas.
+"reemplazar todo". El usuario solo tiene que pedir el zip nuevo a Nicolas Kachuk.
 
 Nota: el primer build descarga Python embeddable y todas las dependencias (~5-10 min).
 Las corridas siguientes reutilizan el cache en `dist/_cache/`.
