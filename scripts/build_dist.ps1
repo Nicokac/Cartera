@@ -285,6 +285,9 @@ if (-not $NoPack) {
     Compress-Archive -Path $buildRoot -DestinationPath $outputZip
     $sizeMB = [math]::Round((Get-Item $outputZip).Length / 1MB, 1)
     Write-Host "[build] listo: $outputZip ($sizeMB MB)"
+    # Limpiar carpeta de build intermedia; el zip es el unico artefacto
+    Remove-Item -Recurse -Force $buildRoot
+    Write-Host "[build] carpeta de build limpiada"
 } else {
     Write-Host "[build] -NoPack: zip omitido. Archivos en: $buildRoot"
 }
