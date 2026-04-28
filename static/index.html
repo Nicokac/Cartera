@@ -28,6 +28,14 @@
     #run-summary { font-size: .9rem; color: #555; margin-bottom: .75rem; }
     #link-report { display: none; margin-top: .5rem; color: #2563eb; font-weight: 600; text-decoration: none; }
     #link-report:hover { text-decoration: underline; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(17, 24, 39, .45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 20; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: 100%; max-width: 460px; background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 1rem 1rem .9rem 1rem; }
+    .modal h3 { font-size: 1rem; margin-bottom: .6rem; color: #111827; }
+    .modal p { font-size: .92rem; color: #374151; margin-bottom: .35rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .85rem; }
+    #modal-cancel { background: #6b7280; }
+    #modal-confirm { background: #1d4ed8; }
     footer { margin-top: 2rem; text-align: center; font-size: .78rem; color: #aaa; }
     details summary { cursor: pointer; font-size: .95rem; font-weight: 600; color: #374151; }
     details summary:hover { color: #111827; }
@@ -105,6 +113,19 @@
       <a id="link-report" href="/reports/real-report.html">Ver reporte -></a>
     </div>
   </section>
+
+  <div id="confirm-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+    <div class="modal">
+      <h3 id="confirm-modal-title">Confirmar corrida</h3>
+      <p id="confirm-modal-user"></p>
+      <p id="confirm-modal-funding"></p>
+      <p id="confirm-modal-aporte"></p>
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel">Cancelar</button>
+        <button type="button" id="modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <span id="version-label">Cartera de Activos</span>
@@ -211,6 +232,48 @@
       }, 2000);
     }
 
+    function openConfirmModal({ username, usar_liquidez_iol, aporte_externo_ars }) {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById("confirm-modal-backdrop");
+        const btnConfirm = document.getElementById("modal-confirm");
+        const btnCancel = document.getElementById("modal-cancel");
+        const modalUser = document.getElementById("confirm-modal-user");
+        const modalFunding = document.getElementById("confirm-modal-funding");
+        const modalAporte = document.getElementById("confirm-modal-aporte");
+
+        modalUser.textContent = `Usuario IOL: ${username}`;
+        modalFunding.textContent = `Fondeo: ${usar_liquidez_iol ? "usa liquidez IOL" : "sin liquidez IOL"}`;
+        modalAporte.textContent = `Aporte externo ARS: ${formatArs(aporte_externo_ars)}`;
+
+        const cleanup = () => {
+          backdrop.classList.remove("open");
+          btnConfirm.removeEventListener("click", onConfirm);
+          btnCancel.removeEventListener("click", onCancel);
+          backdrop.removeEventListener("click", onBackdropClick);
+          document.removeEventListener("keydown", onKeyDown);
+        };
+
+        const onConfirm = () => { cleanup(); resolve(true); };
+        const onCancel = () => { cleanup(); resolve(false); };
+        const onBackdropClick = (event) => {
+          if (event.target === backdrop) {
+            onCancel();
+          }
+        };
+        const onKeyDown = (event) => {
+          if (event.key === "Escape") {
+            onCancel();
+          }
+        };
+
+        btnConfirm.addEventListener("click", onConfirm);
+        btnCancel.addEventListener("click", onCancel);
+        backdrop.addEventListener("click", onBackdropClick);
+        document.addEventListener("keydown", onKeyDown);
+        backdrop.classList.add("open");
+      });
+    }
+
     async function submitForm(event) {
       event.preventDefault();
       const username = document.getElementById("username").value.trim();
@@ -224,13 +287,12 @@
         return;
       }
 
-      const confirmText = [
-        `Usuario IOL: ${username}`,
-        `Fondeo: ${usar_liquidez_iol ? "usa liquidez IOL" : "sin liquidez IOL"}`,
-        `Aporte externo ARS: ${formatArs(aporte_externo_ars)}`,
-        "Confirmar corrida del reporte real?",
-      ].join("\n");
-      if (!window.confirm(confirmText)) {
+      const confirmed = await openConfirmModal({
+        username,
+        usar_liquidez_iol,
+        aporte_externo_ars,
+      });
+      if (!confirmed) {
         return;
       }
 

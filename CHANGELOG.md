@@ -43,6 +43,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   ramas de edge-cases, fallbacks y comentarios operativos
 - `README.md`, `docs/baseline-actual.md`, `docs/improvement-roadmap.md` y `docs/product-roadmap.md`
   actualizados para reflejar operacion Bash cross-platform
+- `static/index.html`: reemplazo de `window.confirm()` por modal custom HTML/CSS/JS
+  para confirmar corrida con datos de usuario/fondeo antes de `POST /run`
 
 ### Testing
 

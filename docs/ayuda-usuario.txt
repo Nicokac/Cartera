@@ -20,6 +20,8 @@ COMO USAR LA APP
    - Fondeo         : elegir entre usar la liquidez disponible en IOL,
                       ingresar un aporte externo, o ambas cosas
 4. Hacer clic en "Generar reporte"
+4.1 Se abre una ventana de confirmacion con usuario y fondeo elegido
+4.2 Confirmar para iniciar la corrida (o cancelar para volver al formulario)
 5. Esperar a que el estado cambie a "Reporte listo" (tarda unos minutos)
 6. Hacer clic en "Ver reporte" para abrirlo
 
