@@ -52,6 +52,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 - `.coverage` removido de versionado y artefactos de coverage ignorados en `.gitignore`
 - servidor web local (`server.py`) con FastAPI + uvicorn: formulario de parametros, lanzamiento del pipeline en background, polling de estado, mount de reportes y log de corrida en `data/runtime/server_run.log`
 - wrappers operativos para app local: `run_local_app.ps1` (menu) y comandos directos `start/status/stop` con PID file en `data/runtime/`
+- wrappers Bash equivalentes para macOS/Linux: `setup/start/status/stop/smoke/run_local_app.sh`
 - hardening local app:
   - endpoint `GET /health` para check rapido
   - endpoint `GET /status/detail` para observabilidad enriquecida (pid, uptime y tail de log)

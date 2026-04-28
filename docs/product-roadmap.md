@@ -22,6 +22,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado cuarto item P1 de v0.3 (retry con backoff en clientes IOL y BCRA).
 - 2026-04-28: completado quinto item P1 de v0.3 (cobertura >=82% en `sizing.py` y `bcra.py`).
 - 2026-04-28: completado sexto item P1 de v0.3 (backup diario automatico de `data/runtime/*.csv`).
+- 2026-04-28: completado septimo item P1 de v0.3 (scripts Bash Fase 1 cross-platform).
 
 ## Contexto
 
@@ -358,7 +359,8 @@ Estado v0.3 (P1) al 2026-04-28:
 - Completado: item 4.
 - Completado: item 5.
 - Completado: item 6.
-- Pendiente: item 7.
+- Completado: item 7.
+- Pendiente: sin pendientes P1.
 
 ### v0.4 - UX, calidad y observabilidad (P2)
 

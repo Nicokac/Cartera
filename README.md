@@ -194,6 +194,17 @@ Comandos de operacion local:
 .\scripts\smoke_local_app.ps1
 ```
 
+Equivalentes Bash (macOS/Linux):
+
+```bash
+./scripts/setup_local_app.sh
+./scripts/start_local_app.sh --bind-host 127.0.0.1 --port 8000
+./scripts/status_local_app.sh --detailed
+./scripts/stop_local_app.sh
+./scripts/smoke_local_app.sh
+./scripts/run_local_app.sh
+```
+
 Modo manual equivalente (primer plano):
 
 ```powershell

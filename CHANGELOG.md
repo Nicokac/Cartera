@@ -18,6 +18,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - backup diario automatico de runtime CSVs en corridas reales:
   - nuevo helper `backup_runtime_csvs_impl` en `scripts/generate_real_report_runtime.py`
   - integracion en `run_real_report` para copiar `data/runtime/*.csv` a `data/backups/YYYY-MM-DD/`
+- scripts Bash Fase 1 para operacion local cross-platform (macOS/Linux):
+  - `scripts/setup_local_app.sh`
+  - `scripts/start_local_app.sh`
+  - `scripts/status_local_app.sh`
+  - `scripts/stop_local_app.sh`
+  - `scripts/smoke_local_app.sh`
+  - `scripts/run_local_app.sh`
 
 ### Changed
 
@@ -34,6 +41,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   escenarios de timeout transitorio
 - cobertura ampliada en `tests/test_sizing.py` y `tests/test_bcra_client.py` para
   ramas de edge-cases, fallbacks y comentarios operativos
+- `README.md`, `docs/baseline-actual.md`, `docs/improvement-roadmap.md` y `docs/product-roadmap.md`
+  actualizados para reflejar operacion Bash cross-platform
 
 ### Testing
 

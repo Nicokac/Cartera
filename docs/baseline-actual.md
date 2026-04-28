@@ -27,6 +27,11 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - wrappers operativos locales en PowerShell para uso diario:
   - `scripts/run_local_app.ps1` (menu interactivo)
   - `scripts/start_local_app.ps1` / `scripts/status_local_app.ps1` / `scripts/stop_local_app.ps1`
+- wrappers operativos locales equivalentes en Bash (macOS/Linux):
+  - `scripts/run_local_app.sh` (menu interactivo)
+  - `scripts/setup_local_app.sh`
+  - `scripts/start_local_app.sh` / `scripts/status_local_app.sh` / `scripts/stop_local_app.sh`
+  - `scripts/smoke_local_app.sh`
 
 ## Estado tecnico vigente
 
@@ -50,6 +55,12 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
     - `-Detailed`: consulta `/status/detail` y muestra el payload enriquecido cuando el server esta corriendo
   - `stop_local_app.ps1`: detencion y limpieza de PID file
   - `smoke_local_app.ps1`: smoke end-to-end (`start -> /status -> /status/detail -> stop`)
+  - `run_local_app.sh`: menu de start/status/stop/open/tail logs
+  - `start_local_app.sh`: arranque en background con PID en `data/runtime/local_app.pid`
+  - `status_local_app.sh`: estado `running/stopped` con `url` y `checked_at`; limpia PID stale automaticamente
+    - `--detailed`: consulta `/status/detail` cuando el server esta corriendo
+  - `stop_local_app.sh`: detencion y limpieza de PID file
+  - `smoke_local_app.sh`: smoke end-to-end (`start -> /status -> /status/detail -> stop`)
   - presets de fondeo en UI:
     - `Solo liquidez IOL`
     - `Aporte externo`
