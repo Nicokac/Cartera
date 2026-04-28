@@ -11,12 +11,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - endpoint `POST /cancel` en `server.py` para cancelar corridas en progreso
 - boton `Cancelar corrida` en `static/index.html` (visible solo en estado `running`)
 - cobertura de cancelacion en `tests/test_server.py` (endpoint y transicion a `interrupted`)
+- recuperacion de corrida huerfana al startup en `server.py`:
+  - persistencia de PID de corrida en `data/runtime/server_run.pid`
+  - deteccion al iniciar servidor y marcado de estado `interrupted`
+  - intento de terminar el proceso huerfano si sigue vivo
 
 ### Changed
 
 - `server.py`: cuando una corrida se cancela, el estado final queda en `interrupted`
   y se limpia la referencia del proceso al finalizar el watcher
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion
+- `tests/test_server.py`: nuevas pruebas para recuperacion de huérfanos y limpieza de PID file de corrida
 
 ### Fixed
 

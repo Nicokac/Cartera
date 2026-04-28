@@ -17,6 +17,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 ## Avance de ejecucion
 
 - 2026-04-28: completado primer item P1 de v0.3 (`POST /cancel` + boton UI).
+- 2026-04-28: completado segundo item P1 de v0.3 (deteccion de corrida huerfana al startup y marcado `interrupted`).
 
 ## Contexto
 
@@ -36,7 +37,6 @@ Estado: pipeline completo y funcional; flujo principal cubierto.
 
 Hallazgos:
 
-- Subproceso puede quedar huerfano si el servidor reinicia durante corrida.
 - `aporte_externo_ars` en API no valida `>= 0`.
 - Sin manejo explicito si falla `subprocess.Popen`.
 
@@ -347,6 +347,12 @@ Roadmap:
 5. Subir cobertura de `sizing.py` y `bcra.py` a >=82%.
 6. Backup automatico de `data/runtime/`.
 7. Scripts Bash Fase 1 (cross-platform).
+
+Estado v0.3 (P1) al 2026-04-28:
+
+- Completado: item 1.
+- Completado: item 2.
+- Pendiente: items 3 a 7.
 
 ### v0.4 - UX, calidad y observabilidad (P2)
 

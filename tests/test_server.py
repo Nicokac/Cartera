@@ -221,42 +221,50 @@ class TestWatchProcess(unittest.TestCase):
     def test_done_on_returncode_zero(self):
         server._process = self._make_proc(0)
         server._state["status"] = "running"
-        server._watch_process()
+        with patch("server._clear_run_pid") as clear_pid:
+            server._watch_process()
         self.assertEqual(server._state["status"], "done")
         self.assertIsNotNone(server._state["finished_at"])
         self.assertIsNone(server._process)
+        clear_pid.assert_called_once()
 
     def test_error_on_nonzero_returncode(self):
         server._process = self._make_proc(1)
         server._state["status"] = "running"
         mock_log = MagicMock()
         mock_log.read_text.return_value = "pipeline failed"
-        with patch.object(server, "LOG_PATH", mock_log):
+        with patch.object(server, "LOG_PATH", mock_log), \
+             patch("server._clear_run_pid") as clear_pid:
             server._watch_process()
         self.assertEqual(server._state["status"], "error")
         self.assertIn("pipeline failed", server._state["error"])
         self.assertIsNone(server._process)
+        clear_pid.assert_called_once()
 
     def test_error_fallback_on_unreadable_log(self):
         server._process = self._make_proc(2)
         server._state["status"] = "running"
         mock_log = MagicMock()
         mock_log.read_text.side_effect = OSError("no log")
-        with patch.object(server, "LOG_PATH", mock_log):
+        with patch.object(server, "LOG_PATH", mock_log), \
+             patch("server._clear_run_pid") as clear_pid:
             server._watch_process()
         self.assertEqual(server._state["status"], "error")
         self.assertIn("2", server._state["error"])
         self.assertIsNone(server._process)
+        clear_pid.assert_called_once()
 
     def test_interrupted_when_cancel_requested(self):
         server._process = self._make_proc(-15)
         server._state["status"] = "running"
         server._cancel_requested = True
-        server._watch_process()
+        with patch("server._clear_run_pid") as clear_pid:
+            server._watch_process()
         self.assertEqual(server._state["status"], "interrupted")
         self.assertIsNone(server._state["error"])
         self.assertIsNotNone(server._state["finished_at"])
         self.assertIsNone(server._process)
+        clear_pid.assert_called_once()
 
     def test_noop_when_process_is_none(self):
         server._process = None
@@ -296,6 +304,40 @@ class TestPostCancel(unittest.TestCase):
         r = _client.post("/cancel")
         self.assertEqual(r.status_code, 409)
         proc.terminate.assert_not_called()
+
+
+class TestRecoverOrphanRun(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
+    def test_noop_when_no_pid_file(self):
+        with patch("server._read_run_pid", return_value=None):
+            server._recover_orphan_run()
+        self.assertEqual(server._state["status"], "idle")
+
+    def test_marks_interrupted_and_clears_pid_when_stale(self):
+        with patch("server._read_run_pid", return_value=12345), \
+             patch("server._is_process_alive", return_value=False), \
+             patch("server._terminate_pid") as terminate_pid, \
+             patch("server._clear_run_pid") as clear_pid:
+            server._recover_orphan_run()
+        self.assertEqual(server._state["status"], "interrupted")
+        self.assertIn("interrumpida", server._state["error"])
+        terminate_pid.assert_not_called()
+        clear_pid.assert_called_once()
+
+    def test_terminates_alive_orphan_and_marks_interrupted(self):
+        with patch("server._read_run_pid", return_value=23456), \
+             patch("server._is_process_alive", return_value=True), \
+             patch("server._terminate_pid") as terminate_pid, \
+             patch("server._clear_run_pid") as clear_pid:
+            server._recover_orphan_run()
+        self.assertEqual(server._state["status"], "interrupted")
+        terminate_pid.assert_called_once_with(23456)
+        clear_pid.assert_called_once()
 
 
 if __name__ == "__main__":

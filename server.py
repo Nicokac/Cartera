@@ -1,4 +1,5 @@
 import os
+import signal
 import subprocess
 import sys
 import threading
@@ -16,6 +17,7 @@ REPORTS_DIR = ROOT / "reports"
 STATIC_DIR = ROOT / "static"
 SCRIPT = ROOT / "scripts" / "generate_real_report.py"
 LOG_PATH = ROOT / "data" / "runtime" / "server_run.log"
+RUN_PID_PATH = ROOT / "data" / "runtime" / "server_run.pid"
 VERSION_FILE = ROOT / "version.txt"
 
 app = FastAPI(title="Cartera")
@@ -66,6 +68,59 @@ def _read_log_mtime() -> str | None:
         return None
 
 
+def _read_run_pid() -> int | None:
+    try:
+        if not RUN_PID_PATH.exists():
+            return None
+        raw = RUN_PID_PATH.read_text(encoding="utf-8").strip()
+        if not raw:
+            return None
+        return int(raw)
+    except Exception:
+        return None
+
+
+def _write_run_pid(pid: int) -> None:
+    RUN_PID_PATH.parent.mkdir(parents=True, exist_ok=True)
+    RUN_PID_PATH.write_text(str(pid), encoding="utf-8")
+
+
+def _clear_run_pid() -> None:
+    try:
+        if RUN_PID_PATH.exists():
+            RUN_PID_PATH.unlink()
+    except Exception:
+        pass
+
+
+def _is_process_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _terminate_pid(pid: int) -> None:
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except OSError:
+        pass
+
+
+def _recover_orphan_run() -> None:
+    orphan_pid = _read_run_pid()
+    if orphan_pid is None:
+        return
+    alive = _is_process_alive(orphan_pid)
+    if alive:
+        _terminate_pid(orphan_pid)
+    _clear_run_pid()
+    _state["status"] = "interrupted"
+    _state["finished_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    _state["error"] = "Corrida previa interrumpida por reinicio del servidor."
+
+
 def _watch_process() -> None:
     global _process, _cancel_requested
     if _process is None:
@@ -90,6 +145,7 @@ def _watch_process() -> None:
             _state["error"] = text
         _process = None
         _cancel_requested = False
+        _clear_run_pid()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -132,6 +188,7 @@ def post_run(params: RunParams) -> JSONResponse:
                 stderr=log_file,
                 env=child_env,
             )
+            _write_run_pid(_process.pid)
         finally:
             # Parent process should close its file handle after spawning subprocess.
             log_file.close()
@@ -207,6 +264,11 @@ def get_version() -> JSONResponse:
         if m:
             return JSONResponse({"version": m.group(1) + "-dev"})
     return JSONResponse({"version": "desconocida"})
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    _recover_orphan_run()
 
 
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")

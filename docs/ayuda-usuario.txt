@@ -27,6 +27,9 @@ Opcional durante una corrida:
 - Mientras el estado muestra "Corriendo...", aparece el boton "Cancelar corrida".
 - Si se cancela, el estado final queda como "Corrida cancelada".
 
+Si cerras o reinicias la app durante una corrida:
+- Al volver a abrirla, la corrida previa aparece como "Corrida cancelada".
+
 
 SECCIONES DEL REPORTE
 ======================
