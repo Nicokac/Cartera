@@ -2,8 +2,9 @@ import sys
 import unittest
 from io import BytesIO
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import zipfile
+import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -14,6 +15,22 @@ from clients.bcra import discover_tamar_variable_ids, get_bcra_monetary_context,
 
 
 class BcraClientTests(unittest.TestCase):
+    def test_fetch_json_retries_on_timeout(self) -> None:
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"ok": True}
+
+        with patch("clients.bcra.requests.get", side_effect=[requests.Timeout("timeout"), response]) as get_mock, patch(
+            "clients.bcra.time.sleep"
+        ) as sleep_mock:
+            from clients.bcra import _fetch_json
+
+            payload = _fetch_json("https://api.bcra.gob.ar/test")
+
+        self.assertEqual(payload, {"ok": True})
+        self.assertEqual(get_mock.call_count, 2)
+        sleep_mock.assert_called_once()
+
     def test_get_rem_latest_parses_monthly_inflation_expectation(self) -> None:
         html = """
         <html>

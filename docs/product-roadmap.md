@@ -19,6 +19,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado primer item P1 de v0.3 (`POST /cancel` + boton UI).
 - 2026-04-28: completado segundo item P1 de v0.3 (deteccion de corrida huerfana al startup y marcado `interrupted`).
 - 2026-04-28: completado tercer item P1 de v0.3 (sanitizacion de secretos en `/status/detail`).
+- 2026-04-28: completado cuarto item P1 de v0.3 (retry con backoff en clientes IOL y BCRA).
 
 ## Contexto
 
@@ -159,7 +160,6 @@ Estado: retry robusto en Finviz; caches parciales.
 
 Hallazgos:
 
-- IOL/BCRA sin retry equivalente.
 - Sin tiempo estimado expuesto al usuario.
 - Sin cache intradia de precios.
 
@@ -353,7 +353,8 @@ Estado v0.3 (P1) al 2026-04-28:
 - Completado: item 1.
 - Completado: item 2.
 - Completado: item 3.
-- Pendiente: items 4 a 7.
+- Completado: item 4.
+- Pendiente: items 5 a 7.
 
 ### v0.4 - UX, calidad y observabilidad (P2)
 

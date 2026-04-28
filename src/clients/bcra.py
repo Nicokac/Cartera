@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from io import BytesIO
+import logging
 import re
+import time
 from typing import Any
 import zipfile
 import xml.etree.ElementTree as ET
@@ -10,6 +12,35 @@ import requests
 
 
 DEFAULT_TIMEOUT = 10
+BCRA_MAX_ATTEMPTS = 3
+BCRA_BACKOFF_SECONDS = 0.25
+_RETRY_STATUS_CODES = {408, 429, 500, 502, 503, 504}
+logger = logging.getLogger(__name__)
+
+
+def _get_with_retry(
+    url: str,
+    *,
+    timeout: int = DEFAULT_TIMEOUT,
+) -> requests.Response:
+    last_exc: Exception | None = None
+    for attempt in range(1, BCRA_MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.get(url, timeout=timeout)
+            resp.raise_for_status()
+            return resp
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            last_exc = exc
+            logger.warning("BCRA call failed on attempt %s/%s: %s", attempt, BCRA_MAX_ATTEMPTS, exc)
+        except requests.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else None
+            if status not in _RETRY_STATUS_CODES:
+                raise
+            last_exc = exc
+            logger.warning("BCRA call failed on attempt %s/%s with HTTP %s", attempt, BCRA_MAX_ATTEMPTS, status)
+        if attempt < BCRA_MAX_ATTEMPTS:
+            time.sleep(BCRA_BACKOFF_SECONDS * attempt)
+    raise last_exc or RuntimeError("BCRA request failed")
 
 
 def _fetch_text(
@@ -17,8 +48,7 @@ def _fetch_text(
     *,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> str:
-    resp = requests.get(url, timeout=timeout)
-    resp.raise_for_status()
+    resp = _get_with_retry(url, timeout=timeout)
     return resp.text
 
 
@@ -27,8 +57,7 @@ def _fetch_bytes(
     *,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> bytes:
-    resp = requests.get(url, timeout=timeout)
-    resp.raise_for_status()
+    resp = _get_with_retry(url, timeout=timeout)
     return resp.content
 
 
@@ -37,8 +66,7 @@ def _fetch_json(
     *,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> Any:
-    resp = requests.get(url, timeout=timeout)
-    resp.raise_for_status()
+    resp = _get_with_retry(url, timeout=timeout)
     return resp.json()
 
 

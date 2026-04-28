@@ -19,11 +19,11 @@ class IolClientTests(unittest.TestCase):
         response.json.return_value = {"access_token": "token-demo"}
         response.raise_for_status.return_value = None
 
-        with patch("clients.iol.requests.post", return_value=response) as post_mock:
+        with patch("clients.iol.requests.request", return_value=response) as request_mock:
             token = iol_login("user", "pass", base_url="https://iol.example")
 
         self.assertEqual(token, "token-demo")
-        post_mock.assert_called_once()
+        request_mock.assert_called_once()
 
     def test_get_quote_with_reauth_refreshes_token_after_401(self) -> None:
         unauthorized = Mock(status_code=401)
@@ -32,7 +32,7 @@ class IolClientTests(unittest.TestCase):
         refreshed.raise_for_status.return_value = None
         refreshed.json.return_value = {"simbolo": "GGAL"}
 
-        with patch("clients.iol.requests.get", side_effect=[unauthorized, refreshed]) as get_mock, patch(
+        with patch("clients.iol.requests.request", side_effect=[unauthorized, refreshed]) as get_mock, patch(
             "clients.iol.iol_login", return_value="new-token"
         ) as login_mock:
             payload, token = iol_get_quote_with_reauth(
@@ -54,7 +54,7 @@ class IolClientTests(unittest.TestCase):
         ok_response.raise_for_status.return_value = None
         ok_response.json.return_value = {"simbolo": "AL30"}
 
-        with patch("clients.iol.requests.get", return_value=ok_response) as get_mock, patch(
+        with patch("clients.iol.requests.request", return_value=ok_response) as get_mock, patch(
             "clients.iol.iol_login"
         ) as login_mock:
             payload, token = iol_get_quote_with_reauth(
@@ -76,7 +76,7 @@ class IolClientTests(unittest.TestCase):
         response.raise_for_status.return_value = None
         response.json.return_value = [{"numero": 123, "tipo": "Compra"}]
 
-        with patch("clients.iol.requests.get", return_value=response) as get_mock:
+        with patch("clients.iol.requests.request", return_value=response) as get_mock:
             payload = iol_get_operaciones(
                 "token-demo",
                 base_url="https://iol.example",
@@ -92,6 +92,20 @@ class IolClientTests(unittest.TestCase):
         self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.pais"], "argentina")
         self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.fechaDesde"], "2026-04-01T00:00:00")
         self.assertEqual(get_mock.call_args.kwargs["params"]["filtro.fechaHasta"], "2026-04-16T23:59:59")
+
+    def test_iol_login_retries_on_timeout(self) -> None:
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"access_token": "token-ok"}
+
+        with patch("clients.iol.requests.request", side_effect=[requests.Timeout("timeout"), response]) as request_mock, patch(
+            "clients.iol.time.sleep"
+        ) as sleep_mock:
+            token = iol_login("user", "pass", base_url="https://iol.example")
+
+        self.assertEqual(token, "token-ok")
+        self.assertEqual(request_mock.call_count, 2)
+        sleep_mock.assert_called_once()
 
 
 if __name__ == "__main__":

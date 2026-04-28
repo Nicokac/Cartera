@@ -23,6 +23,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion
 - `tests/test_server.py`: nuevas pruebas para recuperacion de huérfanos y limpieza de PID file de corrida
 - `tests/test_server.py`: nueva cobertura de redaccion de secretos en `/status/detail`
+- `src/clients/iol.py`: requests criticos ahora usan retry con backoff para timeouts,
+  errores de conexion y HTTP transitorios (408/429/5xx)
+- `src/clients/bcra.py`: `_fetch_text`, `_fetch_bytes` y `_fetch_json` ahora usan retry
+  con backoff para timeouts, errores de conexion y HTTP transitorios (408/429/5xx)
+- `tests/test_iol_client.py` y `tests/test_bcra_client.py`: cobertura de retry en
+  escenarios de timeout transitorio
 
 ### Security
 
