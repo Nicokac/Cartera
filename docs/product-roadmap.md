@@ -1,0 +1,377 @@
+# Product Roadmap v0.3
+
+Fecha de validacion: 2026-04-28
+
+## Resultado del analisis
+
+El roadmap propuesto coincide en lineas generales con el estado actual del proyecto y es aplicable como plan de ejecucion.
+
+Ajustes puntuales detectados al validar contra el repo actual:
+
+- Cobertura total actual: 84% (no 87%).
+- Suite actual: 47 archivos `test_*.py` (alineado con el plan).
+- Piso de cobertura en CI: 82% (alineado con el plan de subir a 85%).
+- `POST /cancel` y boton de cancelacion en UI ya implementados (estado final `interrupted`).
+- `status/detail` sigue con `log_tail` de 1200 chars.
+
+## Avance de ejecucion
+
+- 2026-04-28: completado primer item P1 de v0.3 (`POST /cancel` + boton UI).
+
+## Contexto
+
+Este documento complementa `docs/improvement-roadmap.md` (foco dominio financiero) con foco producto/ingenieria y priorizacion por robustez operativa.
+
+## Archivo objetivo
+
+- `docs/product-roadmap.md`
+
+---
+
+## Roadmap por 18 dimensiones
+
+### 1) Funcionalidad
+
+Estado: pipeline completo y funcional; flujo principal cubierto.
+
+Hallazgos:
+
+- Subproceso puede quedar huerfano si el servidor reinicia durante corrida.
+- `aporte_externo_ars` en API no valida `>= 0`.
+- Sin manejo explicito si falla `subprocess.Popen`.
+
+Roadmap:
+
+- P1: `POST /cancel` para terminar proceso y limpiar estado.
+- P1: Detectar PID file huerfano al arrancar y marcar `interrupted`.
+- P2: Validar `aporte_externo_ars >= 0` en Pydantic.
+- P2: Manejar excepcion de `Popen` con 500 claro.
+
+### 2) UX / Experiencia
+
+Estado: UX funcional con presets, confirmacion y polling.
+
+Hallazgos:
+
+- Error truncado a 300 chars sin acceso directo a log completo.
+- Sin historial persistente de corridas.
+- Campo de aporte externo sin ayuda contextual.
+- Sin progreso detallado.
+
+Roadmap:
+
+- P1: Boton "Cancelar corrida" cuando `running`.
+- P1: Boton "Ver log completo" en error apuntando a `/status/detail`.
+- P2: Panel de corridas recientes (ultimas 5).
+- P2: Tooltip para "Aporte externo ARS".
+- P3: Barra de progreso estimada.
+
+### 3) UI / Interfaz
+
+Estado: UI limpia y autocontenida, responsive basico.
+
+Hallazgos:
+
+- Estados solo con emojis (accesibilidad limitada).
+- Sin visual de reportes previos.
+- `window.confirm()` nativo.
+- Panel de estado con poco contexto.
+
+Roadmap:
+
+- P2: Modal custom para confirmacion.
+- P2: Texto/ARIA junto a indicadores de estado.
+- P2: Seccion de reportes anteriores (`/reports/`).
+- P3: Indicador de progreso animado.
+
+### 4) Arquitectura
+
+Estado: capas separadas, sin ciclos; server aislado del pipeline.
+
+Hallazgos:
+
+- `src/decision/scoring.py` mantiene alta complejidad.
+- Orquestador principal del real run sigue denso (aunque ya split por modulos de apoyo).
+- Faltan contratos formales por `Protocol`.
+
+Roadmap:
+
+- P2: Partir `apply_base_scores` en sub-funciones tematicas.
+- P2: Extraer `_comentario_operativo` de sizing.
+- P3: Formalizar interfaces con `typing.Protocol`.
+
+### 5) Calidad de codigo
+
+Estado: base clara y consistente, con baja deuda accidental.
+
+Hallazgos:
+
+- Duplicacion utilitaria (`_normalize_text`, `_safe_float`) en distintos modulos.
+- Funciones extensas en scoring/sizing.
+- Type hints aun heterogeneos en algunos puntos.
+
+Roadmap:
+
+- P2: Centralizar utilidades comunes en `src/common/`.
+- P2: Refactor de funciones largas.
+- P3: Completar type hints donde queden `object` genericos.
+
+### 6) Testing
+
+Estado: CI activa, 47 archivos de tests y cobertura global 84% (floor 82%).
+
+Hallazgos:
+
+- `src/decision/sizing.py`: 67%.
+- `src/clients/bcra.py`: 60%.
+- `src/clients/bonistas_client.py`: 62%.
+- Sin pruebas de concurrencia para `/run`.
+
+Roadmap:
+
+- P1: Llevar sizing y bcra a >=82%.
+- P1: Subir floor de CI de 82% a 85%.
+- P2: Smoke de scripts Bash en Unix.
+- P3: Test concurrente: segundo `/run` devuelve 409.
+
+### 7) Seguridad
+
+Estado: entorno local (`127.0.0.1`) y password no persistida en navegador.
+
+Hallazgos:
+
+- Sin autenticacion en endpoints operativos.
+- Sin TLS (mitigado por localhost).
+- `/status/detail` puede exponer fragmentos sensibles via logs.
+- Sin rate limiting ni limites de longitud en credenciales.
+
+Roadmap:
+
+- P1: Auditar que nunca se impriman credenciales.
+- P1: Filtrar `log_tail` para secretos.
+- P2: Token de sesion simple para `/run`.
+- P2: Limitar largo de `username/password`.
+- P3: Rate limiting de `/run` (3/min).
+
+### 8) Performance
+
+Estado: retry robusto en Finviz; caches parciales.
+
+Hallazgos:
+
+- IOL/BCRA sin retry equivalente.
+- Sin tiempo estimado expuesto al usuario.
+- Sin cache intradia de precios.
+
+Roadmap:
+
+- P1: Retry con backoff para IOL y BCRA.
+- P2: Exponer `elapsed_seconds`.
+- P3: Cache intradia TTL 15 min.
+
+### 9) Datos / Persistencia
+
+Estado: CSV/JSON versionados por fecha; sin BD.
+
+Hallazgos:
+
+- Montos monetarios en `float`.
+- Sin backup automatico de `data/runtime/`.
+- Historial crece sin purga automatica.
+
+Roadmap:
+
+- P1: Backup diario de CSV runtime.
+- P2: Migrar montos criticos a `Decimal`.
+- P2: Retencion configurable (default 90 dias).
+- P3: Validacion de integridad al arranque.
+
+### 10) DevOps e Infra
+
+Estado: GitHub Actions y distribucion ZIP vigente.
+
+Hallazgos:
+
+- Sin release automation end-to-end.
+- Sin Docker para entorno dev/test.
+- Cobertura de OS aun centrada en Linux CI.
+
+Roadmap:
+
+- P1: Script de release (version + tag + build).
+- P2: Agregar `macos-latest` a matriz CI.
+- P3: Dockerfile para dev/testing.
+
+### 11) Mantenibilidad
+
+Estado: modularidad razonable y documentacion operativa.
+
+Hallazgos:
+
+- Sin ADR formales.
+- `apply_base_scores` sigue como punto caliente.
+- Sin `CONTRIBUTING.md`.
+
+Roadmap:
+
+- P2: Crear `docs/decisions/` con ADRs base.
+- P2: Crear `CONTRIBUTING.md`.
+- P2: Refactor `apply_base_scores`.
+
+### 12) Escalabilidad
+
+Estado: diseno single-user, objetivo personal.
+
+Hallazgos:
+
+- Historiales sin limite de crecimiento.
+- Onboarding de nuevos instrumentos con varios puntos manuales.
+- Faltan abstracciones para nuevas APIs.
+
+Roadmap:
+
+- P2: Retencion configurable de historiales.
+- P2: Checklist formal para alta de instrumento.
+- P3: Protocol de clientes externos.
+
+### 13) Accesibilidad
+
+Estado: labels basicos presentes.
+
+Hallazgos:
+
+- Indicadores por emoji sin texto equivalente.
+- Sin `aria-live` en estado.
+- Sin `role="alert"` en errores.
+- Tablas del reporte con oportunidades semanticas.
+
+Roadmap:
+
+- P2: `aria-label` para estado.
+- P2: `aria-live="polite"` en panel.
+- P2: `role="alert"` en errores.
+- P3: auditoria WCAG de contraste.
+
+### 14) Compatibilidad
+
+Estado: Windows cubierto; macOS/Linux parcial.
+
+Hallazgos:
+
+- Flujo operativo principal sigue centrado en PS1.
+- Faltan scripts Bash equivalentes.
+- Sin matriz formal de navegadores soportados.
+
+Roadmap:
+
+- P1: Fase 1 cross-platform (scripts Bash).
+- P2: Fase 2 con `pwsh` cross-platform.
+- P3: pruebas mobile/responsive del reporte.
+
+### 15) Observabilidad
+
+Estado: logging plano + `/status/detail`.
+
+Hallazgos:
+
+- Sin logging estructurado JSON opcional.
+- `log_tail` corto para fallas largas.
+- Sin metricas por fase ni notificaciones de fin de corrida.
+
+Roadmap:
+
+- P1: ampliar `log_tail` a 3000 + `log_lines`.
+- P2: tiempos por fase en pipeline.
+- P2: `LOG_FORMAT=json` opcional.
+- P3: webhook on-completion.
+
+### 16) Documentacion
+
+Estado: README y guias base existentes.
+
+Hallazgos:
+
+- Falta referenciar mas explicitamente docs de API FastAPI.
+- Sin ADRs ni guia de contribucion.
+- Roadmaps tecnicos existen pero parte sigue sin implementacion.
+
+Roadmap:
+
+- P1: Referenciar `/docs` y `/openapi.json` en README.
+- P2: `CONTRIBUTING.md`.
+- P2: ADRs minimos.
+- P3: diagrama Mermaid de arquitectura.
+
+### 17) Integraciones
+
+Estado: multiples APIs externas con fallback a snapshots.
+
+Hallazgos:
+
+- Retry completo concentrado en Finviz.
+- Sin circuit breaker por proveedor.
+- Sin endpoint de salud de integraciones.
+
+Roadmap:
+
+- P1: `_call_with_retry()` en IOL y BCRA.
+- P2: circuit breaker simple por API.
+- P3: `GET /api-health`.
+
+### 18) Usabilidad operativa
+
+Estado: operacion con scripts y UI simple.
+
+Hallazgos:
+
+- Sin gestion de reportes previos desde UI.
+- Config de scoring solo por edicion manual de JSON.
+- Sin scheduler para corrida periodica.
+
+Roadmap:
+
+- P2: Panel de reportes en UI.
+- P3: scheduler opcional.
+- P3: pagina de configuracion basica en UI.
+
+---
+
+## Plan de fases
+
+### v0.3 - Robustez y seguridad (P1)
+
+1. `POST /cancel` + boton UI.
+2. Deteccion de PID huerfano al iniciar.
+3. Auditoria/filtrado de credenciales en logs.
+4. Retry en IOL y BCRA (patron Finviz).
+5. Subir cobertura de `sizing.py` y `bcra.py` a >=82%.
+6. Backup automatico de `data/runtime/`.
+7. Scripts Bash Fase 1 (cross-platform).
+
+### v0.4 - UX, calidad y observabilidad (P2)
+
+1. Modal custom de confirmacion.
+2. Panel de reportes anteriores.
+3. Centralizar utilidades comunes en `src/common/`.
+4. Refactor `apply_base_scores`.
+5. Token de sesion para `/run`.
+6. Logs estructurados opcionales.
+7. `log_tail` ampliado + tiempos por fase.
+8. ADRs iniciales.
+
+### v0.5 - Escalabilidad y polish (P3)
+
+1. Rate limiting en `/run`.
+2. Cache intradia de precios.
+3. Circuit breakers de APIs.
+4. Diagrama de arquitectura.
+5. Scheduler opcional.
+6. `CONTRIBUTING.md`.
+
+---
+
+## Verificacion de aplicabilidad
+
+- No requiere cambios de codigo para iniciar: es documento de ejecucion.
+- Es compatible con el estado real del repo al 2026-04-28.
+- Puede ejecutarse en commits pequenos, independientes y verificables.

@@ -23,6 +23,10 @@ COMO USAR LA APP
 5. Esperar a que el estado cambie a "Reporte listo" (tarda unos minutos)
 6. Hacer clic en "Ver reporte" para abrirlo
 
+Opcional durante una corrida:
+- Mientras el estado muestra "Corriendo...", aparece el boton "Cancelar corrida".
+- Si se cancela, el estado final queda como "Corrida cancelada".
+
 
 SECCIONES DEL REPORTE
 ======================

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -17,6 +17,8 @@
     input[type="number"] { width: 160px; }
     button { padding: .5rem 1rem; background: #2563eb; color: #fff; border: none; border-radius: 5px; font-size: .95rem; cursor: pointer; }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
+    #btn-cancel { background: #b91c1c; margin-left: .5rem; display: none; }
+    #btn-cancel:disabled { background: #ef9a9a; }
     .preset-btn { background: #374151; }
     .preset-btn:hover { background: #111827; }
     .status-panel { display: flex; flex-direction: column; gap: .5rem; }
@@ -88,6 +90,7 @@
 
       <div id="run-summary"></div>
       <button type="submit" id="btn-run">Generar reporte</button>
+      <button type="button" id="btn-cancel">Cancelar corrida</button>
     </form>
   </section>
 
@@ -95,7 +98,7 @@
     <h2>Estado</h2>
     <div class="status-panel">
       <div class="status-row">
-        <span id="status-icon">⚪</span>
+        <span id="status-icon">&#9898;</span>
         <span id="status-text">Listo para generar</span>
       </div>
       <span id="status-time"></span>
@@ -120,12 +123,14 @@
       const time = document.getElementById("status-time");
       const link = document.getElementById("link-report");
       const btn = document.getElementById("btn-run");
+      const btnCancel = document.getElementById("btn-cancel");
 
       const map = {
-        idle: { i: "⚪", t: "Listo para generar", ts: "" },
-        running: { i: "⏳", t: "Corriendo...", ts: data.started_at || "" },
-        done: { i: "✅", t: "Reporte listo", ts: data.finished_at || "" },
-        error: { i: "❌", t: (data.error || "").slice(0, 300), ts: data.finished_at || "" },
+        idle: { i: "\u26AA", t: "Listo para generar", ts: "" },
+        running: { i: "\u23F3", t: "Corriendo...", ts: data.started_at || "" },
+        done: { i: "\u2705", t: "Reporte listo", ts: data.finished_at || "" },
+        interrupted: { i: "\u23F9", t: "Corrida cancelada", ts: data.finished_at || "" },
+        error: { i: "\u274C", t: (data.error || "").slice(0, 300), ts: data.finished_at || "" },
       };
 
       const s = map[data.status] || map.idle;
@@ -134,6 +139,8 @@
       time.textContent = s.ts;
       link.style.display = data.status === "done" ? "block" : "none";
       btn.disabled = data.status === "running";
+      btnCancel.style.display = data.status === "running" ? "inline-block" : "none";
+      btnCancel.disabled = data.status !== "running";
     }
 
     function formatArs(value) {
@@ -255,12 +262,27 @@
       startPolling();
     }
 
+    async function cancelRun() {
+      const btnCancel = document.getElementById("btn-cancel");
+      btnCancel.disabled = true;
+      try {
+        const res = await fetch("/cancel", { method: "POST" });
+        if (!res.ok && res.status !== 409) {
+          alert("No se pudo cancelar la corrida.");
+        }
+      } catch (_) {
+        alert("No se pudo cancelar la corrida.");
+      }
+      startPolling();
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("run-form").addEventListener("submit", submitForm);
       document.getElementById("usar_liquidez").addEventListener("change", updateSummary);
       document.getElementById("aporte").addEventListener("input", updateSummary);
       document.getElementById("preset-liquidez").addEventListener("click", applyPresetSoloLiquidez);
       document.getElementById("preset-aporte").addEventListener("click", applyPresetAporteExterno);
+      document.getElementById("btn-cancel").addEventListener("click", cancelRun);
 
       loadUsernamePreference();
       updateSummary();
@@ -283,3 +305,5 @@
   </script>
 </body>
 </html>
+
+

@@ -29,6 +29,7 @@ _state: dict = {
 }
 _process: subprocess.Popen | None = None
 _lock = threading.Lock()
+_cancel_requested = False
 
 
 class RunParams(BaseModel):
@@ -66,13 +67,17 @@ def _read_log_mtime() -> str | None:
 
 
 def _watch_process() -> None:
-    global _process
+    global _process, _cancel_requested
     if _process is None:
         return
     _process.wait()
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with _lock:
-        if _process.returncode == 0:
+        if _cancel_requested:
+            _state["status"] = "interrupted"
+            _state["finished_at"] = ts
+            _state["error"] = None
+        elif _process.returncode == 0:
             _state["status"] = "done"
             _state["finished_at"] = ts
         else:
@@ -83,6 +88,8 @@ def _watch_process() -> None:
             _state["status"] = "error"
             _state["finished_at"] = ts
             _state["error"] = text
+        _process = None
+        _cancel_requested = False
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -95,7 +102,7 @@ def get_index() -> HTMLResponse:
 
 @app.post("/run")
 def post_run(params: RunParams) -> JSONResponse:
-    global _process
+    global _process, _cancel_requested
     with _lock:
         if _state["status"] == "running":
             raise HTTPException(status_code=409, detail="Ya hay un reporte en progreso.")
@@ -137,9 +144,23 @@ def post_run(params: RunParams) -> JSONResponse:
             "usar_liquidez_iol": params.usar_liquidez_iol,
             "aporte_externo_ars": params.aporte_externo_ars,
         }
+        _cancel_requested = False
 
     threading.Thread(target=_watch_process, daemon=True).start()
     return JSONResponse({"status": "started"})
+
+
+@app.post("/cancel")
+def post_cancel() -> JSONResponse:
+    global _cancel_requested
+    with _lock:
+        if _state["status"] != "running" or _process is None:
+            raise HTTPException(status_code=409, detail="No hay una corrida en progreso para cancelar.")
+        if _process.poll() is not None:
+            raise HTTPException(status_code=409, detail="La corrida ya finalizo.")
+        _cancel_requested = True
+        _process.terminate()
+    return JSONResponse({"status": "cancelling"})
 
 
 @app.get("/status")

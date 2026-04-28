@@ -25,6 +25,7 @@ _IDLE = {
 def _reset():
     server._state.update(_IDLE)
     server._process = None
+    server._cancel_requested = False
 
 
 class TestGetIndex(unittest.TestCase):
@@ -223,6 +224,7 @@ class TestWatchProcess(unittest.TestCase):
         server._watch_process()
         self.assertEqual(server._state["status"], "done")
         self.assertIsNotNone(server._state["finished_at"])
+        self.assertIsNone(server._process)
 
     def test_error_on_nonzero_returncode(self):
         server._process = self._make_proc(1)
@@ -233,6 +235,7 @@ class TestWatchProcess(unittest.TestCase):
             server._watch_process()
         self.assertEqual(server._state["status"], "error")
         self.assertIn("pipeline failed", server._state["error"])
+        self.assertIsNone(server._process)
 
     def test_error_fallback_on_unreadable_log(self):
         server._process = self._make_proc(2)
@@ -243,11 +246,56 @@ class TestWatchProcess(unittest.TestCase):
             server._watch_process()
         self.assertEqual(server._state["status"], "error")
         self.assertIn("2", server._state["error"])
+        self.assertIsNone(server._process)
+
+    def test_interrupted_when_cancel_requested(self):
+        server._process = self._make_proc(-15)
+        server._state["status"] = "running"
+        server._cancel_requested = True
+        server._watch_process()
+        self.assertEqual(server._state["status"], "interrupted")
+        self.assertIsNone(server._state["error"])
+        self.assertIsNotNone(server._state["finished_at"])
+        self.assertIsNone(server._process)
 
     def test_noop_when_process_is_none(self):
         server._process = None
         server._watch_process()
         self.assertEqual(server._state["status"], "idle")
+
+
+class TestPostCancel(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
+    def test_cancel_returns_cancelling_when_running(self):
+        proc = MagicMock()
+        proc.poll.return_value = None
+        server._process = proc
+        server._state["status"] = "running"
+
+        r = _client.post("/cancel")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), {"status": "cancelling"})
+        proc.terminate.assert_called_once()
+        self.assertTrue(server._cancel_requested)
+
+    def test_cancel_409_when_not_running(self):
+        r = _client.post("/cancel")
+        self.assertEqual(r.status_code, 409)
+
+    def test_cancel_409_when_process_already_finished(self):
+        proc = MagicMock()
+        proc.poll.return_value = 0
+        server._process = proc
+        server._state["status"] = "running"
+
+        r = _client.post("/cancel")
+        self.assertEqual(r.status_code, 409)
+        proc.terminate.assert_not_called()
 
 
 if __name__ == "__main__":

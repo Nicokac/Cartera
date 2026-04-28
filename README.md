@@ -177,6 +177,8 @@ Flujo del formulario local:
   - `Solo liquidez IOL` (`use_iol_liquidity=true`, `aporte_externo_ars=0`)
   - `Aporte externo` (`use_iol_liquidity=false`, `aporte_externo_ars` editable)
 - muestra un dialogo de confirmacion antes de ejecutar con usuario y resumen de fondeo
+- muestra boton `Cancelar corrida` mientras el estado esta en `running`
+- si se cancela una corrida, el estado final pasa a `interrupted`
 
 Health check: `http://127.0.0.1:8000/health`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.

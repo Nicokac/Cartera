@@ -6,6 +6,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
+### Added
+
+- endpoint `POST /cancel` en `server.py` para cancelar corridas en progreso
+- boton `Cancelar corrida` en `static/index.html` (visible solo en estado `running`)
+- cobertura de cancelacion en `tests/test_server.py` (endpoint y transicion a `interrupted`)
+
+### Changed
+
+- `server.py`: cuando una corrida se cancela, el estado final queda en `interrupted`
+  y se limpia la referencia del proceso al finalizar el watcher
+- `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion
+
+### Fixed
+
+- `static/index.html`: iconos de estado en UI normalizados con secuencias Unicode escapadas
+  para evitar mojibake por problemas de encoding (ejemplo: `Corrida cancelada`)
+
 ## [0.2.2] - 2026-04-27
 
 ### Added
