@@ -18,6 +18,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 
 - 2026-04-28: completado primer item P1 de v0.3 (`POST /cancel` + boton UI).
 - 2026-04-28: completado segundo item P1 de v0.3 (deteccion de corrida huerfana al startup y marcado `interrupted`).
+- 2026-04-28: completado tercer item P1 de v0.3 (sanitizacion de secretos en `/status/detail`).
 
 ## Contexto
 
@@ -142,7 +143,6 @@ Hallazgos:
 
 - Sin autenticacion en endpoints operativos.
 - Sin TLS (mitigado por localhost).
-- `/status/detail` puede exponer fragmentos sensibles via logs.
 - Sin rate limiting ni limites de longitud en credenciales.
 
 Roadmap:
@@ -352,7 +352,8 @@ Estado v0.3 (P1) al 2026-04-28:
 
 - Completado: item 1.
 - Completado: item 2.
-- Pendiente: items 3 a 7.
+- Completado: item 3.
+- Pendiente: items 4 a 7.
 
 ### v0.4 - UX, calidad y observabilidad (P2)
 

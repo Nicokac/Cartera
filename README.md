@@ -183,6 +183,7 @@ Flujo del formulario local:
 
 Health check: `http://127.0.0.1:8000/health`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.
+`/status/detail` filtra credenciales sensibles en `error` y `log_tail` (`IOL_USERNAME`, `IOL_PASSWORD`, `username`, `password`).
 
 Comandos de operacion local:
 

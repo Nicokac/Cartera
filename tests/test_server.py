@@ -127,6 +127,26 @@ class TestGetStatusDetail(unittest.TestCase):
         self.assertEqual(data["log_tail"], "")
         self.assertIsNone(data["last_log_mtime"])
 
+    def test_status_detail_redacts_credentials_from_log_tail_and_error(self):
+        server._state["status"] = "error"
+        server._state["error"] = "IOL_PASSWORD=supersecret password: 123456"
+        with TemporaryDirectory() as tmp:
+            log_path = Path(tmp) / "server_run.log"
+            log_path.write_text(
+                "IOL_USERNAME=demo_user\npassword=abc123\nusername: user@example.com",
+                encoding="utf-8",
+            )
+            with patch.object(server, "LOG_PATH", log_path):
+                data = _client.get("/status/detail").json()
+        self.assertIn("IOL_USERNAME=<redacted>", data["log_tail"])
+        self.assertIn("password=<redacted>", data["log_tail"])
+        self.assertIn("username=<redacted>", data["log_tail"])
+        self.assertNotIn("demo_user", data["log_tail"])
+        self.assertNotIn("abc123", data["log_tail"])
+        self.assertNotIn("user@example.com", data["log_tail"])
+        self.assertIn("IOL_PASSWORD=<redacted>", data["error"])
+        self.assertNotIn("supersecret", data["error"])
+
 
 class TestPostRun(unittest.TestCase):
     def setUp(self):

@@ -22,6 +22,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   y se limpia la referencia del proceso al finalizar el watcher
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion
 - `tests/test_server.py`: nuevas pruebas para recuperacion de huérfanos y limpieza de PID file de corrida
+- `tests/test_server.py`: nueva cobertura de redaccion de secretos en `/status/detail`
+
+### Security
+
+- `server.py`: `/status/detail` ahora sanitiza `log_tail` y `error` para ocultar
+  secretos si aparecen en logs (`IOL_USERNAME`, `IOL_PASSWORD`, `username`, `password`)
 
 ### Fixed
 

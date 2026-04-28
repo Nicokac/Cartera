@@ -30,6 +30,10 @@ Opcional durante una corrida:
 Si cerras o reinicias la app durante una corrida:
 - Al volver a abrirla, la corrida previa aparece como "Corrida cancelada".
 
+Privacidad:
+- El estado detallado de la app oculta automaticamente datos sensibles
+  de credenciales si aparecen en logs de error.
+
 
 SECCIONES DEL REPORTE
 ======================

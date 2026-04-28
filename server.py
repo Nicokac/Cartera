@@ -1,4 +1,5 @@
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -57,6 +58,21 @@ def _read_log_tail(limit: int = 1200) -> str:
         return LOG_PATH.read_text(encoding="utf-8")[-limit:]
     except Exception:
         return ""
+
+
+_SECRET_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"(?i)\b(IOL_USERNAME|IOL_PASSWORD)\b\s*[:=]\s*([^\s,;]+)"),
+    re.compile(r"(?i)\b(username|password)\b\s*[:=]\s*([^\s,;]+)"),
+)
+
+
+def _sanitize_secrets(text: str) -> str:
+    if not text:
+        return text
+    sanitized = text
+    for pattern in _SECRET_PATTERNS:
+        sanitized = pattern.sub(lambda m: f"{m.group(1)}=<redacted>", sanitized)
+    return sanitized
 
 
 def _read_log_mtime() -> str | None:
@@ -242,8 +258,10 @@ def get_status_detail() -> JSONResponse:
         "uptime_seconds": uptime_seconds,
         "log_path": str(LOG_PATH),
         "last_log_mtime": _read_log_mtime(),
-        "log_tail": _read_log_tail(),
+        "log_tail": _sanitize_secrets(_read_log_tail()),
     }
+    if isinstance(payload.get("error"), str):
+        payload["error"] = _sanitize_secrets(payload["error"])
     return JSONResponse(payload)
 
 
