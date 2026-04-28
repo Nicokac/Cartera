@@ -175,6 +175,12 @@ Ante cualquier problema, avisar a Nicolas Kachuk con:
 - Captura de pantalla si es posible
 "@
 
+# AYUDA.txt en la raiz del zip (copiado desde docs/ayuda-usuario.txt)
+$ayudaSrc = Join-Path $root "docs\ayuda-usuario.txt"
+if (Test-Path $ayudaSrc) {
+    Copy-Item -Path $ayudaSrc -Destination (Join-Path $buildRoot "AYUDA.txt") -Force
+}
+
 # ---------------------------------------------------------------
 # 6. Bat files
 # ---------------------------------------------------------------

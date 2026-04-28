@@ -6,6 +6,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-27
+
+### Added
+
+- `docs/ayuda-usuario.txt`: guia de uso para usuarios finales con descripcion
+  de cada seccion del reporte, preguntas frecuentes y contacto de soporte
+- `AYUDA.txt` incluido en el zip generado por `build_dist.ps1`
+
+## [0.2.1] - 2026-04-27
+
+### Added
+
+- seccion "¿Que hace esta app?" colapsable en `static/index.html`: explica el proposito,
+  como usar el formulario y que credenciales se necesitan — visible para usuarios finales
+  al abrir la app por primera vez
+
 ## [0.2.0] - 2026-04-26
 
 ### Added

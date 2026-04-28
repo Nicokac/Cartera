@@ -27,10 +27,34 @@
     #link-report { display: none; margin-top: .5rem; color: #2563eb; font-weight: 600; text-decoration: none; }
     #link-report:hover { text-decoration: underline; }
     footer { margin-top: 2rem; text-align: center; font-size: .78rem; color: #aaa; }
+    details summary { cursor: pointer; font-size: .95rem; font-weight: 600; color: #374151; }
+    details summary:hover { color: #111827; }
+    details p { margin-top: .75rem; font-size: .92rem; color: #444; line-height: 1.55; }
+    details p + p { margin-top: .5rem; }
   </style>
 </head>
 <body>
   <h1>Cartera de Activos</h1>
+
+  <section>
+    <details>
+      <summary>&#191;Qu&#233; hace esta app?</summary>
+      <p>
+        Genera un an&#225;lisis completo de tu cartera en IOL: valuaci&#243;n por tipo de instrumento,
+        scoring operativo, se&#241;ales t&#233;cnicas y una decisi&#243;n clara para cada posici&#243;n
+        (reforzar, reducir o monitorear).
+      </p>
+      <p>
+        <strong>C&#243;mo usarla:</strong> ingres&#225; tus credenciales IOL, eleg&#237; si usar&#225;s
+        la liquidez disponible o un aporte externo, y hac&#233; clic en
+        <em>Generar reporte</em>. En unos minutos el reporte se abre autom&#225;ticamente.
+      </p>
+      <p>
+        <strong>Qu&#233; necesit&#225;s:</strong> usuario y contrase&#241;a de IOL. La contrase&#241;a
+        no se guarda en ning&#250;n lado.
+      </p>
+    </details>
+  </section>
 
   <section>
     <h2>Parametros</h2>

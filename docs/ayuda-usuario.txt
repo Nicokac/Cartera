@@ -1,0 +1,129 @@
+CARTERA DE ACTIVOS — GUIA DE USO
+=================================
+
+QUE ES ESTA APP
+---------------
+Analiza tu cartera de inversiones en InvertirOnline (IOL) y genera un reporte
+detallado con valuacion, scoring y recomendaciones de accion para cada posicion.
+
+No reemplaza el criterio propio ni el de un asesor financiero. Es una herramienta
+de apoyo para tener una lectura sistematica y reproducible de la cartera.
+
+
+COMO USAR LA APP
+----------------
+1. Hacer doble clic en "Iniciar Cartera.bat"
+2. El browser se abre automaticamente en http://127.0.0.1:8000
+3. Completar el formulario:
+   - Usuario IOL    : tu email registrado en IOL
+   - Password IOL   : tu contrasena de IOL (no se guarda en ningun lado)
+   - Fondeo         : elegir entre usar la liquidez disponible en IOL,
+                      ingresar un aporte externo, o ambas cosas
+4. Hacer clic en "Generar reporte"
+5. Esperar a que el estado cambie a "Reporte listo" (tarda unos minutos)
+6. Hacer clic en "Ver reporte" para abrirlo
+
+
+SECCIONES DEL REPORTE
+======================
+
+PANORAMA
+--------
+Vista ejecutiva de la cartera. Muestra el total valorizado en ARS y USD,
+la liquidez disponible, el tipo de cambio MEP usado, y un resumen de los
+movimientos y alertas mas relevantes de la corrida.
+
+CAMBIOS
+-------
+Comparacion contra la corrida anterior. Indica cuantos instrumentos subieron
+o bajaron de conviccion, cuantos cambios son materiales y cuantos todavia
+no tienen historial suficiente para interpretar.
+
+OPERACIONES
+-----------
+Operaciones recientes registradas en IOL: compras, ventas, dividendos y
+amortizaciones. Muestra que ya esta reflejado en la cartera y que todavia
+esta pendiente de consolidar (por ejemplo, una compra ejecutada que aun
+no aparece en el saldo de tenencias).
+
+PREDICCION
+----------
+Senales de direccion para los proximos 5 dias de mercado, calculadas a partir
+de indicadores tecnicos y el score operativo. Es una capa experimental y
+complementaria; puede diferir de la decision final.
+
+REGIMEN
+-------
+Estado del mercado: si el contexto macro justifica ser mas activo o mas
+conservador. Los flags activos (inflacion local alta, tasas UST altas,
+stress soberano) condicionan las recomendaciones de sizing.
+
+RESUMEN
+-------
+Distribucion de la cartera por tipo de instrumento: CEDEAR, Bono, FCI,
+Accion Local y Liquidez. Incluye totales en ARS y USD, ganancia acumulada
+y peso porcentual de cada bloque.
+
+SIZING
+------
+Cuanto invertir en cada instrumento recomendado, calculado en base al fondeo
+disponible y criterios de prudencia configurados. Si no hay fondeo, las
+columnas aparecen vacias.
+
+TECNICO
+-------
+Overlay de tendencia y momentum para cada posicion: las mas fuertes y las
+mas debiles en el periodo reciente. Indica si la tendencia es alcista fuerte,
+alcista, lateral o bajista segun el comportamiento del precio.
+
+BONOS
+-----
+Analisis especifico de bonos locales: TIR, paridad, duration modificada (MD)
+y contexto macro relevante (CER, tipo de cambio, reservas BCRA, curva UST).
+Incluye resumen por subfamilia (soberano hard dollar, CER, Bopreal, etc.).
+
+DECISION
+--------
+La recomendacion final para cada instrumento: Refuerzo, Reduccion, Despliegue
+o Neutral / Monitoreo. Incluye el score, la racha de senales consecutivas y
+los factores que mas pesaron en la decision (valuacion, momentum, beta, peso
+en cartera, etc.).
+
+CARTERA
+-------
+Listado completo de todas las posiciones con precio, cantidad, valorizado en
+ARS y USD, ganancia acumulada y peso en la cartera total.
+
+INTEGRIDAD
+----------
+Verificacion automatica de la calidad de los datos de la corrida: si todos
+los precios se pudieron obtener, si hay posiciones sin cobertura tecnica,
+si el snapshot previo es valido, etc.
+
+
+PREGUNTAS FRECUENTES
+====================
+
+El reporte dice "Sin fondeo disponible" en Sizing
+  Significa que la liquidez en IOL es muy baja o que el aporte externo es cero.
+  Si queres ver sugerencias de inversion, ingresa un monto en "Aporte externo ARS"
+  o asegurate de tener liquidez disponible en tu cuenta IOL.
+
+Hay instrumentos sin historial (racha = 1, sin accion previa)
+  Es normal al principio. El sistema acumula historial con cada corrida.
+  Despues de algunas corridas, la columna "Accion previa" y "Racha" se completan.
+
+Una operacion aparece en "Operaciones" pero no en "Cartera"
+  La operacion fue ejecutada en IOL pero todavia no se reflejo en el saldo de
+  tenencias. Suele resolverse solo en la proxima corrida.
+
+Aparece un error de credenciales
+  Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,
+  volver a intentar en la app.
+
+
+SOPORTE
+=======
+Ante cualquier problema, avisar a Nicolas Kachuk con:
+  - Descripcion de lo que paso
+  - Captura de pantalla si es posible
