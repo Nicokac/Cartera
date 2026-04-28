@@ -10,7 +10,15 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from decision.sizing import build_dynamic_allocation, build_operational_proposal, build_prudent_allocation
+from decision.sizing import (
+    _comentario_operativo,
+    _format_funding_sources,
+    _join_with_y,
+    build_dynamic_allocation,
+    build_operational_proposal,
+    build_prudent_allocation,
+)
+from decision.action_constants import ACTION_MANTENER_MONITOREAR, ACTION_REBALANCEAR, ACTION_REFUERZO
 
 
 class SizingTests(unittest.TestCase):
@@ -456,6 +464,227 @@ class SizingTests(unittest.TestCase):
         self.assertLessEqual(dinamica["Peso_Fondeo_%"].max(), 65.0)
         self.assertTrue(math.isclose(dinamica["Monto_ARS"].sum(), 200000, rel_tol=0, abs_tol=1))
 
+
+class SizingBranchTests(unittest.TestCase):
+    def test_join_and_format_funding_helpers(self) -> None:
+        self.assertEqual(_join_with_y([]), "")
+        self.assertEqual(_join_with_y(["A"]), "A")
+        self.assertEqual(_join_with_y(["A", "B", "C"]), "A, B y C")
+        self.assertIsNone(_format_funding_sources([]))
+        self.assertEqual(_format_funding_sources(["CAUCION"]), "CAUCION")
+        self.assertIn("Fuentes multiples", _format_funding_sources(["CAUCION", "CASH_USD"]))
+
+    def test_comentario_operativo_key_paths(self) -> None:
+        row_hard = pd.Series(
+            {
+                "accion_operativa": ACTION_MANTENER_MONITOREAR,
+                "bonistas_local_subfamily": "bond_hard_dollar",
+                "bonistas_paridad_pct": 88.1,
+                "bonistas_tir_pct": 7.1,
+                "bonistas_riesgo_pais_bps": 710.0,
+                "bonistas_spread_vs_ust_pct": 3.2,
+                "bonistas_reservas_bcra_musd": 43000.0,
+                "bonistas_a3500_mayorista": 1200.0,
+            }
+        )
+        self.assertIn("Hard-dollar", _comentario_operativo(row_hard))
+
+        row_cer = pd.Series(
+            {
+                "accion_operativa": "Refuerzo",
+                "bonistas_local_subfamily": "bond_cer",
+                "bonistas_tir_pct": -3.1,
+                "bonistas_paridad_pct": 101.2,
+                "bonistas_rem_inflacion_mensual_pct": 2.2,
+                "bonistas_rem_inflacion_12m_pct": 21.5,
+            }
+        )
+        self.assertIn("Refuerzo CER", _comentario_operativo(row_cer))
+
+        row_bopreal = pd.Series(
+            {
+                "accion_operativa": ACTION_REBALANCEAR,
+                "bonistas_local_subfamily": "bond_bopreal",
+                "bonistas_paridad_pct": 102.0,
+                "bonistas_put_flag": True,
+                "bonistas_spread_vs_ust_pct": -0.8,
+            }
+        )
+        self.assertIn("Bopreal", _comentario_operativo(row_bopreal))
+
+        row_reducir = pd.Series({"accion_operativa": "Reducir", "Tech_Trend": "Bajista", "Beta": 1.7})
+        self.assertIn("Reduccion", _comentario_operativo(row_reducir))
+
+        row_liq = pd.Series({"accion_operativa": "Desplegar liquidez"})
+        self.assertIn("Liquidez disponible", _comentario_operativo(row_liq))
+
+        row_default = pd.Series({"accion_operativa": "Unknown"})
+        self.assertIn("Mantener y monitorear", _comentario_operativo(row_default))
+
+    def test_comentario_operativo_more_branches(self) -> None:
+        row_rebalance_hard = pd.Series(
+            {
+                "accion_operativa": ACTION_REBALANCEAR,
+                "bonistas_local_subfamily": "bond_hard_dollar",
+                "bonistas_paridad_pct": 90.0,
+                "bonistas_tir_pct": 9.0,
+                "bonistas_riesgo_pais_bps": 800.0,
+                "bonistas_spread_vs_ust_pct": 4.0,
+            }
+        )
+        self.assertIn("Hard-dollar", _comentario_operativo(row_rebalance_hard))
+
+        row_ref_bopreal = pd.Series(
+            {
+                "accion_operativa": ACTION_REFUERZO,
+                "bonistas_local_subfamily": "bond_bopreal",
+                "bonistas_paridad_pct": 101.0,
+                "bonistas_tir_pct": 3.0,
+                "bonistas_put_flag": True,
+                "bonistas_spread_vs_ust_pct": -0.6,
+            }
+        )
+        self.assertIn("Bopreal", _comentario_operativo(row_ref_bopreal))
+
+        row_ref_other = pd.Series(
+            {"accion_operativa": ACTION_REFUERZO, "asset_subfamily": "bond_other", "bonistas_tir_pct": 8.0, "bonistas_md": 2.0}
+        )
+        self.assertIn("bono local", _comentario_operativo(row_ref_other))
+
+        row_mon_cer = pd.Series(
+            {
+                "accion_operativa": ACTION_MANTENER_MONITOREAR,
+                "bonistas_local_subfamily": "bond_cer",
+                "bonistas_tir_pct": -4.0,
+                "bonistas_paridad_pct": 99.0,
+                "bonistas_rem_inflacion_mensual_pct": 2.0,
+                "bonistas_rem_inflacion_12m_pct": 20.0,
+            }
+        )
+        self.assertIn("Bono CER en monitoreo", _comentario_operativo(row_mon_cer))
+
+        row_mon_bopreal = pd.Series(
+            {
+                "accion_operativa": ACTION_MANTENER_MONITOREAR,
+                "bonistas_local_subfamily": "bond_bopreal",
+                "bonistas_paridad_pct": 103.0,
+                "bonistas_put_flag": True,
+                "bonistas_spread_vs_ust_pct": -0.5,
+                "bonistas_riesgo_pais_bps": 700.0,
+            }
+        )
+        self.assertIn("Bopreal en monitoreo", _comentario_operativo(row_mon_bopreal))
+
+    def test_build_prudent_allocation_early_return(self) -> None:
+        df = pd.DataFrame([{"accion_operativa": "Reducir", "score_unificado": -0.1}])
+        out = build_prudent_allocation(
+            df,
+            monto_fondeo_ars=0,
+            monto_fondeo_usd=0,
+            mep_real=1000,
+            bucket_weights={"Defensivo": 1.0, "Intermedio": 0.75, "Agresivo": 0.5},
+        )
+        self.assertTrue(out.empty or "accion_operativa" in out.columns)
+
+    def test_operational_proposal_mixed_source_default_pct_and_equal_weights(self) -> None:
+        final_decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "A",
+                    "Tipo": "CEDEAR",
+                    "accion_sugerida_v2": "Refuerzo",
+                    "score_unificado": -0.2,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                },
+                {
+                    "Ticker_IOL": "B",
+                    "Tipo": "CEDEAR",
+                    "accion_sugerida_v2": "Refuerzo",
+                    "score_unificado": -0.1,
+                    "score_despliegue_liquidez": 0.0,
+                    "Valorizado_ARS": 0.0,
+                    "Valor_USD": 0.0,
+                },
+                {
+                    "Ticker_IOL": "CAUCION",
+                    "Tipo": "Liquidez",
+                    "accion_sugerida_v2": "Mantener / Neutral",
+                    "score_unificado": 0.0,
+                    "score_despliegue_liquidez": 0.9,
+                    "Valorizado_ARS": 100000.0,
+                    "Valor_USD": 100.0,
+                },
+            ]
+        )
+        out = build_operational_proposal(final_decision, mep_real=1000, aporte_externo_ars=50000)
+        self.assertIn("Mixto", out["fuente_fondeo"])
+        self.assertAlmostEqual(out["pct_fondeo"], 0.10, places=3)
+        self.assertTrue((out["top_reforzar_final"]["Fondeo_Sugerido_ARS"].fillna(0) >= 0).all())
+
+    def test_comentario_liquidez_variants(self) -> None:
+        self.assertIn("reserva tactica", _comentario_operativo(pd.Series({"accion_operativa": "Mantener liquidez"})))
+        self.assertIn(
+            "excluida del fondeo",
+            _comentario_operativo(pd.Series({"accion_operativa": "Mantener liquidez bloqueada"})),
+        )
+
+    def test_comentario_monitor_asset_subfamilies_and_reducir_variants(self) -> None:
+        for sub, expected in [
+            ("bond_cer", "Bono CER en zona neutral"),
+            ("bond_bopreal", "Bopreal en zona prudente"),
+            ("bond_other", "Bono sin clasificar"),
+            ("bond_sov_ar", "Soberano AR sin senal extrema"),
+        ]:
+            txt = _comentario_operativo(pd.Series({"accion_operativa": ACTION_MANTENER_MONITOREAR, "asset_subfamily": sub}))
+            self.assertIn(expected, txt)
+
+        self.assertIn(
+            "beta alta",
+            _comentario_operativo(pd.Series({"accion_operativa": "Reducir", "Tech_Trend": "Lateral", "Beta": 1.6})),
+        )
+        self.assertIn(
+            "score compuesto debil",
+            _comentario_operativo(pd.Series({"accion_operativa": "Reducir", "Tech_Trend": "Lateral", "Beta": 1.0})),
+        )
+
+    def test_operational_proposal_without_funding_sets_nan_suggestions(self) -> None:
+        final_decision = pd.DataFrame(
+            [
+                {"Ticker_IOL": "A", "Tipo": "CEDEAR", "accion_sugerida_v2": "Refuerzo", "score_unificado": 0.4, "score_despliegue_liquidez": 0.0, "Valorizado_ARS": 0.0, "Valor_USD": 0.0},
+                {"Ticker_IOL": "B", "Tipo": "CEDEAR", "accion_sugerida_v2": "Refuerzo", "score_unificado": 0.3, "score_despliegue_liquidez": 0.0, "Valorizado_ARS": 0.0, "Valor_USD": 0.0},
+            ]
+        )
+        out = build_operational_proposal(final_decision, mep_real=1000, usar_liquidez_iol=False, aporte_externo_ars=0)
+        self.assertEqual(out["fuente_fondeo"], "Sin fondeo disponible")
+        self.assertTrue(out["top_reforzar_final"]["Fondeo_Sugerido_ARS"].isna().all())
+
+    def test_dynamic_allocation_bucket_defaults_and_empty(self) -> None:
+        empty = build_dynamic_allocation(
+            pd.DataFrame(),
+            monto_fondeo_ars=1000,
+            monto_fondeo_usd=1,
+            mep_real=1000,
+            bucket_weights={"Defensivo": 1.0, "Intermedio": 0.75, "Agresivo": 0.5},
+        )
+        self.assertTrue(empty.empty)
+
+        df = pd.DataFrame(
+            [
+                {"Ticker_IOL": "BONO1", "Tipo": "Bono", "Es_Liquidez": False, "Peso_%": 2.0, "Beta": 0.2, "score_unificado": 0.3},
+                {"Ticker_IOL": "EQ1", "Tipo": "CEDEAR", "Es_Liquidez": False, "Peso_%": 10.0, "Beta": 1.0, "score_unificado": 0.2},
+            ]
+        )
+        out = build_dynamic_allocation(
+            df,
+            monto_fondeo_ars=100000,
+            monto_fondeo_usd=100,
+            mep_real=1000,
+            bucket_weights={"Defensivo": 1.0, "Intermedio": 0.75, "Agresivo": 0.5},
+            sizing_rules={"bucket_type_defaults": {"Bono": "Defensivo"}},
+        )
+        self.assertIn("Bucket_Prudencia", out.columns)
 
 if __name__ == "__main__":
     unittest.main()

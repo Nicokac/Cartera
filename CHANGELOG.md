@@ -29,6 +29,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   con backoff para timeouts, errores de conexion y HTTP transitorios (408/429/5xx)
 - `tests/test_iol_client.py` y `tests/test_bcra_client.py`: cobertura de retry en
   escenarios de timeout transitorio
+- cobertura ampliada en `tests/test_sizing.py` y `tests/test_bcra_client.py` para
+  ramas de edge-cases, fallbacks y comentarios operativos
+
+### Testing
+
+- cobertura de modulos clave de P1 validada con suites dirigidas:
+  - `src/clients/bcra.py`: 82%
+  - `src/decision/sizing.py`: 86%
 
 ### Security
 

@@ -20,6 +20,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado segundo item P1 de v0.3 (deteccion de corrida huerfana al startup y marcado `interrupted`).
 - 2026-04-28: completado tercer item P1 de v0.3 (sanitizacion de secretos en `/status/detail`).
 - 2026-04-28: completado cuarto item P1 de v0.3 (retry con backoff en clientes IOL y BCRA).
+- 2026-04-28: completado quinto item P1 de v0.3 (cobertura >=82% en `sizing.py` y `bcra.py`).
 
 ## Contexto
 
@@ -354,7 +355,8 @@ Estado v0.3 (P1) al 2026-04-28:
 - Completado: item 2.
 - Completado: item 3.
 - Completado: item 4.
-- Pendiente: items 5 a 7.
+- Completado: item 5.
+- Pendiente: items 6 y 7.
 
 ### v0.4 - UX, calidad y observabilidad (P2)
 
