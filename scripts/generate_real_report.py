@@ -60,6 +60,7 @@ from generate_real_report_cli import (
     resolve_iol_credentials_impl,
 )
 from generate_real_report_runtime import (
+    backup_runtime_csvs_impl,
     enrich_real_cedears_impl,
     extract_operation_quote_tickers_impl,
     extract_quote_tickers_impl,
@@ -87,6 +88,8 @@ from report_renderer import REPORTS_DIR, render_report
 HTML_PATH = REPORTS_DIR / "real-report.html"
 SNAPSHOTS_DIR = ROOT / "data" / "snapshots"
 LEGACY_SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
+RUNTIME_DIR = ROOT / "data" / "runtime"
+BACKUPS_DIR = ROOT / "data" / "backups"
 ENV_PATH = ROOT / ".env"
 logger = logging.getLogger(__name__)
 
@@ -201,6 +204,18 @@ def parse_finviz_number(value: object) -> float:
 
 def parse_finviz_pct(value: object) -> float:
     return parse_finviz_pct_impl(value, logger=logger)
+
+
+def backup_runtime_csvs(*, run_date_value: object) -> list[Path]:
+    run_ts = pd.Timestamp(run_date_value)
+    backed_up = backup_runtime_csvs_impl(
+        runtime_dir=RUNTIME_DIR,
+        backups_root=BACKUPS_DIR,
+        run_date=run_ts.date(),
+    )
+    if backed_up:
+        logger.info("Backup runtime CSVs: %s", ", ".join(path.name for path in backed_up))
+    return backed_up
 
 
 def extract_quote_tickers(activos: list[dict]) -> list[str]:
@@ -637,6 +652,7 @@ def run_real_report(args: object) -> None:
     SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     run_ts = pd.Timestamp.now(tz=ZoneInfo("America/Argentina/Buenos_Aires"))
     run_date = resolve_market_run_date(run_ts)
+    backup_runtime_csvs(run_date_value=run_date)
 
     username, password = resolve_iol_credentials(
         username_override=args.username,

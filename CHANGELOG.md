@@ -15,6 +15,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - persistencia de PID de corrida en `data/runtime/server_run.pid`
   - deteccion al iniciar servidor y marcado de estado `interrupted`
   - intento de terminar el proceso huerfano si sigue vivo
+- backup diario automatico de runtime CSVs en corridas reales:
+  - nuevo helper `backup_runtime_csvs_impl` en `scripts/generate_real_report_runtime.py`
+  - integracion en `run_real_report` para copiar `data/runtime/*.csv` a `data/backups/YYYY-MM-DD/`
 
 ### Changed
 
@@ -37,6 +40,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - cobertura de modulos clave de P1 validada con suites dirigidas:
   - `src/clients/bcra.py`: 82%
   - `src/decision/sizing.py`: 86%
+- tests de backup runtime agregados:
+  - `tests/test_generate_real_report_split_runtime.py`
+  - `tests/test_generate_real_report.py`
 
 ### Security
 

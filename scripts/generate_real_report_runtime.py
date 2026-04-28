@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import logging
+from datetime import date
+from pathlib import Path
+import shutil
 from collections.abc import Callable
 from concurrent.futures import wait
 from typing import Any
@@ -8,6 +11,27 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import requests
+
+
+def backup_runtime_csvs_impl(
+    *,
+    runtime_dir: Path,
+    backups_root: Path,
+    run_date: date | None = None,
+) -> list[Path]:
+    effective_date = run_date or date.today()
+    target_dir = backups_root / effective_date.strftime("%Y-%m-%d")
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    backed_up: list[Path] = []
+    if not runtime_dir.exists():
+        return backed_up
+
+    for csv_path in sorted(runtime_dir.glob("*.csv")):
+        target_path = target_dir / csv_path.name
+        shutil.copy2(csv_path, target_path)
+        backed_up.append(target_path)
+    return backed_up
 
 
 def parse_finviz_number_impl(value: object, *, logger: logging.Logger) -> float:

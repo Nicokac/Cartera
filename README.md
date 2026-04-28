@@ -218,6 +218,11 @@ Real run:
 python scripts\generate_real_report.py
 ```
 
+Backup runtime automatico:
+
+- cada corrida real genera backup diario de `data/runtime/*.csv` en `data/backups/YYYY-MM-DD/`
+- incluye historiales operativos (`decision_history.csv`, `prediction_history.csv`) cuando existan
+
 Real run no interactivo:
 
 ```powershell

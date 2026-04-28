@@ -1,6 +1,7 @@
 import logging
 import sys
 import unittest
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -14,6 +15,7 @@ if str(SCRIPTS) not in sys.path:
 
 from generate_real_report_runtime import (
     _enrich_cedear_row_payload_impl,
+    backup_runtime_csvs_impl,
     enrich_real_cedears_impl,
     extract_operation_quote_tickers_impl,
     fetch_iol_payloads_impl,
@@ -30,6 +32,33 @@ def _http_error(status_code: int) -> requests.HTTPError:
 
 
 class GenerateRealReportSplitRuntimeTests(unittest.TestCase):
+    def test_backup_runtime_csvs_impl_copies_all_csvs_for_date(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            runtime = root / "runtime"
+            backups = root / "backups"
+            runtime.mkdir(parents=True, exist_ok=True)
+            (runtime / "decision_history.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+            (runtime / "prediction_history.csv").write_text("x,y\n3,4\n", encoding="utf-8")
+            (runtime / "ignore.txt").write_text("nope", encoding="utf-8")
+
+            out = backup_runtime_csvs_impl(runtime_dir=runtime, backups_root=backups, run_date=pd.Timestamp("2026-04-28").date())
+
+            self.assertEqual(len(out), 2)
+            self.assertTrue((backups / "2026-04-28" / "decision_history.csv").exists())
+            self.assertTrue((backups / "2026-04-28" / "prediction_history.csv").exists())
+            self.assertFalse((backups / "2026-04-28" / "ignore.txt").exists())
+
+    def test_backup_runtime_csvs_impl_no_runtime_dir_returns_empty(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            out = backup_runtime_csvs_impl(
+                runtime_dir=root / "missing_runtime",
+                backups_root=root / "backups",
+                run_date=pd.Timestamp("2026-04-28").date(),
+            )
+            self.assertEqual(out, [])
+
     def test_extract_operation_quote_tickers_impl_applies_filters_and_limit(self) -> None:
         operations = [
             {"tipo": "Compra", "estado": "terminada", "simbolo": "AAPL"},

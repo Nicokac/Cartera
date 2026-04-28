@@ -29,10 +29,20 @@ from generate_real_report import (
     prompt_money_ars,
     prompt_yes_no,
     resolve_iol_credentials,
+    backup_runtime_csvs,
 )
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_backup_runtime_csvs_delegates_to_runtime_impl_with_resolved_date(self) -> None:
+        expected = [Path("x.csv")]
+        with patch("generate_real_report.backup_runtime_csvs_impl", return_value=expected) as backup_impl_mock:
+            out = backup_runtime_csvs(run_date_value="2026-04-28")
+
+        self.assertIs(out, expected)
+        backup_impl_mock.assert_called_once()
+        self.assertEqual(str(backup_impl_mock.call_args.kwargs["run_date"]), "2026-04-28")
+
     def test_main_delegates_to_run_real_report(self) -> None:
         args_obj = object()
         with patch("generate_real_report.parse_args", return_value=args_obj) as parse_mock, patch(
