@@ -201,6 +201,7 @@ Estado detallado: `http://127.0.0.1:8000/status/detail`.
 `POST /run` requiere token de sesion en header `X-Session-Token` (la UI lo obtiene automaticamente via `GET /session`).
 `POST /run` valida `aporte_externo_ars >= 0` y limita `username/password` a 200 caracteres.
 `POST /run` rechaza credenciales vacias (`username/password`) con `422` para evitar corridas invalidas.
+`POST /run` aplica rate limiting: maximo 3 requests por minuto (`429` si excede).
 `GET /runs/recent` devuelve historial de las ultimas 5 corridas.
 
 Comandos de operacion local:

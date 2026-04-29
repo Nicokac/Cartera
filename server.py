@@ -8,6 +8,7 @@ import uuid
 import json
 from datetime import datetime
 from pathlib import Path
+import time
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -38,6 +39,9 @@ _process: subprocess.Popen | None = None
 _lock = threading.Lock()
 _cancel_requested = False
 _session_token = ""
+_run_request_timestamps: list[float] = []
+_RUN_RATE_LIMIT_WINDOW_SECONDS = 60.0
+_RUN_RATE_LIMIT_MAX_REQUESTS = 3
 
 
 class RunParams(BaseModel):
@@ -263,10 +267,16 @@ def get_index() -> HTMLResponse:
 
 @app.post("/run")
 def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JSONResponse:
-    global _process, _cancel_requested
+    global _process, _cancel_requested, _run_request_timestamps
     if not _session_token or x_session_token != _session_token:
         raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     with _lock:
+        now_ts = time.time()
+        cutoff = now_ts - _RUN_RATE_LIMIT_WINDOW_SECONDS
+        _run_request_timestamps = [ts for ts in _run_request_timestamps if ts >= cutoff]
+        if len(_run_request_timestamps) >= _RUN_RATE_LIMIT_MAX_REQUESTS:
+            raise HTTPException(status_code=429, detail="Rate limit excedido en /run. Reintenta en unos segundos.")
+        _run_request_timestamps.append(now_ts)
         if _state["status"] == "running":
             raise HTTPException(status_code=409, detail="Ya hay un reporte en progreso.")
         username = params.username.strip()

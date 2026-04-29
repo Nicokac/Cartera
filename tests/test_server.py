@@ -29,6 +29,7 @@ def _reset():
     server._process = None
     server._cancel_requested = False
     server._session_token = "test-session-token"
+    server._run_request_timestamps = []
 
 
 class TestGetIndex(unittest.TestCase):
@@ -352,6 +353,29 @@ class TestPostRun(unittest.TestCase):
             )
         self.assertEqual(r.status_code, 500)
         self.assertIn("No se pudo iniciar la corrida", r.json()["detail"])
+
+    def test_429_when_run_rate_limit_exceeded(self):
+        fake_log = MagicMock()
+        with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
+             patch("server.subprocess.Popen", return_value=MagicMock()), \
+             patch("server.threading.Thread", return_value=MagicMock()):
+            for _ in range(3):
+                r_ok = _client.post(
+                    "/run",
+                    json={"username": "demo_user", "password": "secret"},
+                    headers={"X-Session-Token": "test-session-token"},
+                )
+                self.assertEqual(r_ok.status_code, 200)
+                server._state.update(_IDLE)
+                server._process = None
+                server._cancel_requested = False
+                server._session_token = "test-session-token"
+            r_limit = _client.post(
+                "/run",
+                json={"username": "demo_user", "password": "secret"},
+                headers={"X-Session-Token": "test-session-token"},
+            )
+        self.assertEqual(r_limit.status_code, 429)
 
 
 class TestWatchProcess(unittest.TestCase):

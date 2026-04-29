@@ -104,6 +104,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - link `Ver log completo` visible cuando estado es `error` (abre `/status/detail`)
 - `server.py`: `POST /run` ahora rechaza `username/password` vacios con `422`
   antes de lanzar subprocess (defensa en profundidad)
+- `server.py`: `POST /run` incorpora rate limiting basico
+  (maximo 3 requests por minuto, respuesta `429` al exceder)
 - `.github/workflows/ci.yml`: se intento matriz de OS con `macos-latest`,
   pero se revierte temporalmente a `ubuntu-latest` y queda como deuda tecnica
   pendiente por inestabilidad en GitHub Actions
@@ -136,6 +138,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_server.py`: nuevos tests para rechazo `422` cuando `username` o
   `password` llegan vacios/blancos en `POST /run`
 - `tests/test_server.py`: cobertura de `GET /runs/recent`
+- `tests/test_server.py`: nuevo test de rate limit en `/run` (`429`)
 
 ### Security
 

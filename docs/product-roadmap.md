@@ -44,6 +44,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P1 de documentacion API: README referencia `/docs` y `/openapi.json` de FastAPI.
 - 2026-04-29: completado item P2 de UX: panel de corridas recientes (ultimas 5) con endpoint `GET /runs/recent`.
 - 2026-04-29: completado item P3 de UX/UI: indicador de progreso estimado durante corrida (barra + etapa textual por tiempo transcurrido).
+- 2026-04-29: completado item P3 de seguridad: rate limiting basico en `POST /run` (maximo 3 requests/minuto).
 
 ## Contexto
 
@@ -172,7 +173,7 @@ Roadmap:
 - P1: Filtrar `log_tail` para secretos.
 - P2: Token de sesion simple para `/run`.
 - P2: Limitar largo de `username/password`. (completado)
-- P3: Rate limiting de `/run` (3/min).
+- P3: Rate limiting de `/run` (3/min). (completado)
 
 ### 8) Performance
 

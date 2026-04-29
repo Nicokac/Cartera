@@ -1,1 +1,11 @@
 {"status": "interrupted", "started_at": "2026-04-29 18:29:52", "finished_at": "2026-04-29 18:30:40", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": ""}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 18:31:37", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 18:31:37", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 18:31:37", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Código de salida: 2"}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 18:31:37", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 18:31:37", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 18:31:56", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 18:31:56", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 18:31:56", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Código de salida: 2"}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 18:31:56", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 18:31:56", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}
