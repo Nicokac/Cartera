@@ -36,6 +36,7 @@ El repo esta en una etapa operativa estable:
 Resumen funcional vigente:
 
 - [baseline-actual.md](docs/baseline-actual.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Estructura
 

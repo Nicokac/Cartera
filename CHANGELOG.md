@@ -36,6 +36,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - soporte de logging estructurado opcional en runner real:
   - variable de entorno `LOG_FORMAT=json`
   - salida JSON por linea con `ts`, `level`, `logger`, `message`
+- `CONTRIBUTING.md` con guia de colaboracion:
+  - setup local
+  - convenciones de codigo
+  - estrategia de testing por area
+  - flujo sugerido de PR y mantenimiento de docs/changelog
 
 ### Changed
 

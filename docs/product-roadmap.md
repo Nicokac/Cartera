@@ -32,6 +32,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado item P2 de performance/observabilidad: `/status/detail` ahora expone `elapsed_seconds`.
 - 2026-04-28: completado item P2 de observabilidad: log de tiempos por fase en `generate_real_report.py` (formato `Fase <nombre>: <seg>s`).
 - 2026-04-28: completado item P2 de observabilidad: `LOG_FORMAT=json` opcional para structured logging en `generate_real_report.py`.
+- 2026-04-28: completado item P2 de mantenibilidad/documentacion: nuevo `CONTRIBUTING.md` con setup, convenciones, tests y flujo de PR.
 
 ## Contexto
 
@@ -223,7 +224,7 @@ Hallazgos:
 Roadmap:
 
 - P2: Crear `docs/decisions/` con ADRs base.
-- P2: Crear `CONTRIBUTING.md`.
+- P2: Crear `CONTRIBUTING.md`. (completado)
 - P2: Refactor `apply_base_scores`.
 
 ### 12) Escalabilidad
@@ -306,7 +307,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Referenciar `/docs` y `/openapi.json` en README.
-- P2: `CONTRIBUTING.md`.
+- P2: `CONTRIBUTING.md`. (completado)
 - P2: ADRs minimos.
 - P3: diagrama Mermaid de arquitectura.
 
@@ -385,7 +386,7 @@ Estado v0.3 (P1) al 2026-04-28:
 3. Circuit breakers de APIs.
 4. Diagrama de arquitectura.
 5. Scheduler opcional.
-6. `CONTRIBUTING.md`.
+6. Cierre de deuda documental remanente.
 
 ---
 
