@@ -6,7 +6,9 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from getpass import getpass
+import json
 from pathlib import Path
 from typing import TypedDict
 from zoneinfo import ZoneInfo
@@ -156,8 +158,30 @@ def legacy_snapshots_enabled() -> bool:
     return raw not in {"0", "false", "no", "off"}
 
 
+class _JsonLogFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload: dict[str, object] = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(payload, ensure_ascii=False)
+
+
 def configure_logging() -> None:
     if logging.getLogger().handlers:
+        return
+    log_format = str(os.environ.get("LOG_FORMAT", "")).strip().lower()
+    if log_format == "json":
+        handler = logging.StreamHandler()
+        handler.setFormatter(_JsonLogFormatter())
+        logging.basicConfig(
+            level=logging.INFO,
+            handlers=[handler],
+        )
         return
     logging.basicConfig(
         level=logging.INFO,

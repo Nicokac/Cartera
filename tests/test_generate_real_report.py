@@ -15,6 +15,7 @@ from generate_real_report import (
     _collect_market_runtime_inputs,
     _log_phase_duration,
     _build_report_payload,
+    configure_logging,
     _merge_bond_context_into_decision,
     _render_and_persist_report,
     _resolve_funding_policy,
@@ -35,6 +36,43 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_configure_logging_default_text_format(self) -> None:
+        root_logger = Mock()
+        root_logger.handlers = []
+        with patch("generate_real_report.logging.getLogger", return_value=root_logger), patch(
+            "generate_real_report.logging.basicConfig"
+        ) as basic_config_mock, patch.dict("generate_real_report.os.environ", {}, clear=False):
+            configure_logging()
+
+        basic_config_mock.assert_called_once()
+        kwargs = basic_config_mock.call_args.kwargs
+        self.assertEqual(kwargs["level"], 20)
+        self.assertIn("%(asctime)s", kwargs["format"])
+
+    def test_configure_logging_json_format(self) -> None:
+        root_logger = Mock()
+        root_logger.handlers = []
+        with patch("generate_real_report.logging.getLogger", return_value=root_logger), patch(
+            "generate_real_report.logging.basicConfig"
+        ) as basic_config_mock, patch.dict("generate_real_report.os.environ", {"LOG_FORMAT": "json"}, clear=False):
+            configure_logging()
+
+        basic_config_mock.assert_called_once()
+        kwargs = basic_config_mock.call_args.kwargs
+        self.assertEqual(kwargs["level"], 20)
+        self.assertIn("handlers", kwargs)
+        self.assertEqual(len(kwargs["handlers"]), 1)
+        self.assertIsNotNone(kwargs["handlers"][0].formatter)
+
+    def test_configure_logging_is_noop_when_root_has_handlers(self) -> None:
+        root_logger = Mock()
+        root_logger.handlers = [object()]
+        with patch("generate_real_report.logging.getLogger", return_value=root_logger), patch(
+            "generate_real_report.logging.basicConfig"
+        ) as basic_config_mock:
+            configure_logging()
+        basic_config_mock.assert_not_called()
+
     def test_log_phase_duration_emits_elapsed_log(self) -> None:
         with patch("generate_real_report.time.perf_counter", side_effect=[10.0, 12.25]), patch(
             "generate_real_report.logger.info"

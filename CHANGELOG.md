@@ -33,6 +33,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validaciones de entrada en `POST /run`:
   - `aporte_externo_ars` debe ser `>= 0`
   - `username` y `password` limitados a 200 caracteres
+- soporte de logging estructurado opcional en runner real:
+  - variable de entorno `LOG_FORMAT=json`
+  - salida JSON por linea con `ts`, `level`, `logger`, `message`
 
 ### Changed
 
@@ -72,6 +75,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `scripts/generate_real_report.py`: logging de duracion por fase principal
   (`Backup runtime`, `Credenciales`, `Datos de mercado`, `Analisis y decision`,
   `Render y persistencia`) con formato `Fase <nombre>: <seg>s`
+- `scripts/generate_real_report.py`: `configure_logging()` ahora selecciona
+  formato texto o JSON segun `LOG_FORMAT`
 
 ### Testing
 
@@ -91,6 +96,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `elapsed_seconds` en `/status/detail` para corridas `running` y `done`
 - `tests/test_generate_real_report.py`: nuevo test de `_log_phase_duration`
   para validar emision de log de duracion por fase
+- `tests/test_generate_real_report.py`: nuevos tests de `configure_logging()`
+  para modo texto default, modo JSON y escenario no-op con handlers existentes
 
 ### Security
 

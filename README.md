@@ -124,6 +124,7 @@ ENABLE_LEGACY_SNAPSHOTS=1
 Notas:
 
 - `ENABLE_LEGACY_SNAPSHOTS=0` fuerza el uso exclusivo de `data/snapshots/`
+- `LOG_FORMAT=json` habilita logs estructurados JSON en el runner real
 - el runner real puede pedir credenciales por terminal si no estan cargadas
 - en la app local, el password IOL no se persiste; solo puede recordarse el usuario en el navegador
 

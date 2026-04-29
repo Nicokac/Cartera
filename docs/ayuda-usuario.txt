@@ -45,6 +45,8 @@ Privacidad:
   (`elapsed_seconds`) para seguimiento operativo.
 - El log de corrida ahora incluye tiempos por fase con formato
   `Fase <nombre>: <seg>s`, util para soporte y diagnostico.
+- En instalaciones tecnicas, se puede activar formato JSON del log
+  definiendo `LOG_FORMAT=json`.
 
 
 SECCIONES DEL REPORTE
