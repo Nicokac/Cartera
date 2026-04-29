@@ -13,6 +13,7 @@ if str(SCRIPTS) not in sys.path:
 from generate_real_report import (
     _build_analysis_context,
     _collect_market_runtime_inputs,
+    _log_phase_duration,
     _build_report_payload,
     _merge_bond_context_into_decision,
     _render_and_persist_report,
@@ -34,6 +35,15 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_log_phase_duration_emits_elapsed_log(self) -> None:
+        with patch("generate_real_report.time.perf_counter", side_effect=[10.0, 12.25]), patch(
+            "generate_real_report.logger.info"
+        ) as info_mock:
+            with _log_phase_duration("Demo"):
+                pass
+
+        info_mock.assert_called_once_with("Fase %s: %.1fs", "Demo", 2.25)
+
     def test_backup_runtime_csvs_delegates_to_runtime_impl_with_resolved_date(self) -> None:
         expected = [Path("x.csv")]
         with patch("generate_real_report.backup_runtime_csvs_impl", return_value=expected) as backup_impl_mock:

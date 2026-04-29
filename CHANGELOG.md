@@ -69,6 +69,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   con respuesta HTTP 500 y mensaje claro
 - `server.py`: `/status/detail` agrega `elapsed_seconds` (duracion total desde
   `started_at` hasta `finished_at` o `now`)
+- `scripts/generate_real_report.py`: logging de duracion por fase principal
+  (`Backup runtime`, `Credenciales`, `Datos de mercado`, `Analisis y decision`,
+  `Render y persistencia`) con formato `Fase <nombre>: <seg>s`
 
 ### Testing
 
@@ -86,6 +89,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - rechazo `422` con `username/password` de mas de 200 caracteres
   - respuesta `500` si falla `subprocess.Popen` al lanzar corrida
   - `elapsed_seconds` en `/status/detail` para corridas `running` y `done`
+- `tests/test_generate_real_report.py`: nuevo test de `_log_phase_duration`
+  para validar emision de log de duracion por fase
 
 ### Security
 

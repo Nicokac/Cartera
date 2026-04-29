@@ -237,6 +237,8 @@ Backup runtime automatico:
 
 - cada corrida real genera backup diario de `data/runtime/*.csv` en `data/backups/YYYY-MM-DD/`
 - incluye historiales operativos (`decision_history.csv`, `prediction_history.csv`) cuando existan
+- el log de corrida (`data/runtime/server_run.log`) ahora incluye duracion por fase
+  con lineas `Fase <nombre>: <seg>s` para diagnostico de performance
 
 Real run no interactivo:
 

@@ -30,6 +30,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completada mejora de observabilidad en `/status/detail` (`log_tail` ampliado + `log_lines`).
 - 2026-04-28: completados items P2 de validacion de input en `/run` (aporte externo no negativo, `username/password` con maximo 200 chars) y manejo explicito de error de `Popen` (HTTP 500 claro).
 - 2026-04-28: completado item P2 de performance/observabilidad: `/status/detail` ahora expone `elapsed_seconds`.
+- 2026-04-28: completado item P2 de observabilidad: log de tiempos por fase en `generate_real_report.py` (formato `Fase <nombre>: <seg>s`).
 
 ## Contexto
 
@@ -287,7 +288,7 @@ Hallazgos:
 Roadmap:
 
 - P1: ampliar `log_tail` a 3000 + `log_lines`.
-- P2: tiempos por fase en pipeline.
+- P2: tiempos por fase en pipeline. (completado)
 - P2: `LOG_FORMAT=json` opcional.
 - P3: webhook on-completion.
 
