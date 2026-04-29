@@ -234,6 +234,30 @@ class TestPostRun(unittest.TestCase):
         r = _client.post("/run", json={}, headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 409)
 
+    def test_422_when_aporte_externo_is_negative(self):
+        r = _client.post(
+            "/run",
+            json={"aporte_externo_ars": -1},
+            headers={"X-Session-Token": "test-session-token"},
+        )
+        self.assertEqual(r.status_code, 422)
+
+    def test_422_when_username_exceeds_max_length(self):
+        r = _client.post(
+            "/run",
+            json={"username": "u" * 201},
+            headers={"X-Session-Token": "test-session-token"},
+        )
+        self.assertEqual(r.status_code, 422)
+
+    def test_422_when_password_exceeds_max_length(self):
+        r = _client.post(
+            "/run",
+            json={"password": "p" * 201},
+            headers={"X-Session-Token": "test-session-token"},
+        )
+        self.assertEqual(r.status_code, 422)
+
     def test_run_closes_parent_log_handle(self):
         fake_log = MagicMock()
         with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
@@ -265,6 +289,15 @@ class TestPostRun(unittest.TestCase):
         child_env = popen_mock.call_args.kwargs["env"]
         self.assertEqual(child_env["IOL_USERNAME"], "demo_user")
         self.assertEqual(child_env["IOL_PASSWORD"], "secret")
+
+    def test_run_returns_500_when_subprocess_fails_to_start(self):
+        fake_log = MagicMock()
+        with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
+             patch("server.subprocess.Popen", side_effect=OSError("spawn failed")), \
+             patch("server.threading.Thread", return_value=MagicMock()):
+            r = _client.post("/run", json={}, headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r.status_code, 500)
+        self.assertIn("No se pudo iniciar la corrida", r.json()["detail"])
 
 
 class TestWatchProcess(unittest.TestCase):

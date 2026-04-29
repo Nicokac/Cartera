@@ -28,6 +28,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado tercer item P2 de v0.4 (centralizacion de utilidades de texto/numericas en `src/common/`).
 - 2026-04-28: completado cuarto item P2 de v0.4 (token de sesion simple para `POST /run`).
 - 2026-04-28: completada mejora de observabilidad en `/status/detail` (`log_tail` ampliado + `log_lines`).
+- 2026-04-28: completados items P2 de validacion de input en `/run` (aporte externo no negativo, `username/password` con maximo 200 chars) y manejo explicito de error de `Popen` (HTTP 500 claro).
 
 ## Contexto
 
@@ -47,15 +48,14 @@ Estado: pipeline completo y funcional; flujo principal cubierto.
 
 Hallazgos:
 
-- `aporte_externo_ars` en API no valida `>= 0`.
-- Sin manejo explicito si falla `subprocess.Popen`.
+- validaciones de entrada y errores de spawn ya cubiertos en `/run`.
 
 Roadmap:
 
 - P1: `POST /cancel` para terminar proceso y limpiar estado.
 - P1: Detectar PID file huerfano al arrancar y marcar `interrupted`.
-- P2: Validar `aporte_externo_ars >= 0` en Pydantic.
-- P2: Manejar excepcion de `Popen` con 500 claro.
+- P2: Validar `aporte_externo_ars >= 0` en Pydantic. (completado)
+- P2: Manejar excepcion de `Popen` con 500 claro. (completado)
 
 ### 2) UX / Experiencia
 
@@ -149,14 +149,14 @@ Hallazgos:
 
 - Sin autenticacion en endpoints operativos (quedan abiertos `/cancel`, `/status`, `/status/detail`).
 - Sin TLS (mitigado por localhost).
-- Sin rate limiting ni limites de longitud en credenciales.
+- Sin rate limiting en `POST /run`.
 
 Roadmap:
 
 - P1: Auditar que nunca se impriman credenciales.
 - P1: Filtrar `log_tail` para secretos.
 - P2: Token de sesion simple para `/run`.
-- P2: Limitar largo de `username/password`.
+- P2: Limitar largo de `username/password`. (completado)
 - P3: Rate limiting de `/run` (3/min).
 
 ### 8) Performance

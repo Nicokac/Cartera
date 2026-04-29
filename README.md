@@ -187,6 +187,7 @@ Estado detallado: `http://127.0.0.1:8000/status/detail`.
 `/status/detail` filtra credenciales sensibles en `error` y `log_tail` (`IOL_USERNAME`, `IOL_PASSWORD`, `username`, `password`).
 `/status/detail` expone `log_tail` ampliado y `log_lines` para diagnostico rapido.
 `POST /run` requiere token de sesion en header `X-Session-Token` (la UI lo obtiene automaticamente via `GET /session`).
+`POST /run` valida `aporte_externo_ars >= 0` y limita `username/password` a 200 caracteres.
 
 Comandos de operacion local:
 

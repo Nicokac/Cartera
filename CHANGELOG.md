@@ -30,6 +30,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `GET /session` devuelve token actual
   - `POST /run` exige header `X-Session-Token`
   - persistencia en `data/runtime/session.txt`
+- validaciones de entrada en `POST /run`:
+  - `aporte_externo_ars` debe ser `>= 0`
+  - `username` y `password` limitados a 200 caracteres
 
 ### Changed
 
@@ -62,6 +65,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_server.py`: cobertura de `GET /session` y rechazo `401` de `/run` con token invalido
 - `server.py`: `/status/detail` ahora devuelve `log_tail` ampliado y campo `log_lines`
   para mejorar observabilidad operativa
+- `server.py`: manejo explicito de error al iniciar subprocess en `/run`
+  con respuesta HTTP 500 y mensaje claro
 
 ### Testing
 
@@ -74,6 +79,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - nuevos tests de utilidades:
   - `tests/test_text_utils.py`
   - ampliacion de `tests/test_numeric_utils.py`
+- `tests/test_server.py`: nuevos casos para validar:
+  - rechazo `422` con `aporte_externo_ars` negativo
+  - rechazo `422` con `username/password` de mas de 200 caracteres
+  - respuesta `500` si falla `subprocess.Popen` al lanzar corrida
 
 ### Security
 

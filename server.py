@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 import uvicorn
 
 ROOT = Path(__file__).resolve().parent
@@ -39,10 +39,17 @@ _session_token = ""
 
 
 class RunParams(BaseModel):
-    username: str = ""
-    password: str = ""
+    username: str = Field(default="", max_length=200)
+    password: str = Field(default="", max_length=200)
     usar_liquidez_iol: bool = True
     aporte_externo_ars: float = 0.0
+
+    @field_validator("aporte_externo_ars")
+    @classmethod
+    def validate_aporte_externo_non_negative(cls, value: float) -> float:
+        if value < 0:
+            raise ValueError("aporte_externo_ars debe ser mayor o igual a 0")
+        return value
 
 
 def _parse_ts(value: object) -> datetime | None:
@@ -236,6 +243,12 @@ def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JS
                 env=child_env,
             )
             _write_run_pid(_process.pid)
+        except Exception as exc:
+            _process = None
+            raise HTTPException(
+                status_code=500,
+                detail=f"No se pudo iniciar la corrida: {exc}",
+            ) from exc
         finally:
             # Parent process should close its file handle after spawning subprocess.
             log_file.close()
