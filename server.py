@@ -284,6 +284,25 @@ def get_version() -> JSONResponse:
     return JSONResponse({"version": "desconocida"})
 
 
+@app.get("/reports/list")
+def get_reports_list() -> JSONResponse:
+    try:
+        REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+        rows = []
+        for path in sorted(REPORTS_DIR.glob("*.html"), key=lambda p: p.stat().st_mtime, reverse=True):
+            rows.append(
+                {
+                    "name": path.name,
+                    "url": f"/reports/{path.name}",
+                    "size_bytes": path.stat().st_size,
+                    "modified_at": datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+        return JSONResponse({"reports": rows})
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"No se pudo listar reportes: {exc}")
+
+
 @app.on_event("startup")
 def on_startup() -> None:
     _recover_orphan_run()

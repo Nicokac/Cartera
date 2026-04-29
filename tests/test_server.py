@@ -1,5 +1,7 @@
+import os
 import sys
 import unittest
+from datetime import datetime
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -73,6 +75,28 @@ class TestGetHealth(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["status"], "ok")
         self.assertEqual(r.json()["service"], "cartera-local-app")
+
+
+class TestGetReportsList(unittest.TestCase):
+    def test_returns_reports_sorted_by_mtime_desc(self):
+        with TemporaryDirectory() as tmp:
+            reports_dir = Path(tmp)
+            older = reports_dir / "older.html"
+            newer = reports_dir / "newer.html"
+            older.write_text("<html>old</html>", encoding="utf-8")
+            newer.write_text("<html>new</html>", encoding="utf-8")
+            old_ts = datetime(2026, 4, 26, 10, 0, 0).timestamp()
+            new_ts = datetime(2026, 4, 27, 10, 0, 0).timestamp()
+            os.utime(older, (old_ts, old_ts))
+            os.utime(newer, (new_ts, new_ts))
+
+            with patch.object(server, "REPORTS_DIR", reports_dir):
+                r = _client.get("/reports/list")
+
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertEqual([x["name"] for x in data["reports"]], ["newer.html", "older.html"])
+        self.assertEqual(data["reports"][0]["url"], "/reports/newer.html")
 
 
 class TestGetStatusDetail(unittest.TestCase):

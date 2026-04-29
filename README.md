@@ -180,6 +180,7 @@ Flujo del formulario local:
 - muestra boton `Cancelar corrida` mientras el estado esta en `running`
 - si se cancela una corrida, el estado final pasa a `interrupted`
 - si el servidor se reinicia durante una corrida, al volver a iniciar marca la corrida previa como `interrupted`
+- muestra seccion `Reportes anteriores` con HTMLs disponibles en `reports/`
 
 Health check: `http://127.0.0.1:8000/health`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.

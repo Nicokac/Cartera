@@ -28,6 +28,11 @@
     #run-summary { font-size: .9rem; color: #555; margin-bottom: .75rem; }
     #link-report { display: none; margin-top: .5rem; color: #2563eb; font-weight: 600; text-decoration: none; }
     #link-report:hover { text-decoration: underline; }
+    .reports-list { list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+    .reports-list li { font-size: .92rem; color: #374151; }
+    .reports-list a { color: #1d4ed8; text-decoration: none; font-weight: 600; }
+    .reports-list a:hover { text-decoration: underline; }
+    .reports-empty { font-size: .9rem; color: #6b7280; }
     .modal-backdrop { position: fixed; inset: 0; background: rgba(17, 24, 39, .45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 20; }
     .modal-backdrop.open { display: flex; }
     .modal { width: 100%; max-width: 460px; background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 1rem 1rem .9rem 1rem; }
@@ -114,6 +119,12 @@
     </div>
   </section>
 
+  <section>
+    <h2>Reportes anteriores</h2>
+    <ul id="reports-list" class="reports-list"></ul>
+    <p id="reports-empty" class="reports-empty" style="display:none;">No hay reportes disponibles.</p>
+  </section>
+
   <div id="confirm-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
     <div class="modal">
       <h3 id="confirm-modal-title">Confirmar corrida</h3>
@@ -135,6 +146,7 @@
 
   <script>
     let _pollInterval = null;
+    let _reportsLoaded = false;
     const USERNAME_KEY = "cartera.username";
     const REMEMBER_USERNAME_KEY = "cartera.remember_username";
 
@@ -227,9 +239,54 @@
           if (data.status !== "running") {
             clearInterval(_pollInterval);
             _pollInterval = null;
+            loadReportsList();
           }
         } catch (_) {}
       }, 2000);
+    }
+
+    function formatDateTimeLabel(value) {
+      if (!value) return "";
+      return value;
+    }
+
+    async function loadReportsList() {
+      const listEl = document.getElementById("reports-list");
+      const emptyEl = document.getElementById("reports-empty");
+      try {
+        const res = await fetch("/reports/list");
+        if (!res.ok) {
+          throw new Error("fetch failed");
+        }
+        const payload = await res.json();
+        const rows = Array.isArray(payload.reports) ? payload.reports : [];
+        listEl.innerHTML = "";
+        if (rows.length === 0) {
+          emptyEl.style.display = "block";
+          return;
+        }
+        emptyEl.style.display = "none";
+        for (const row of rows) {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = row.url;
+          a.textContent = row.name;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          const meta = document.createElement("span");
+          meta.textContent = ` - ${formatDateTimeLabel(row.modified_at)}`;
+          li.appendChild(a);
+          li.appendChild(meta);
+          listEl.appendChild(li);
+        }
+      } catch (_) {
+        if (!_reportsLoaded) {
+          listEl.innerHTML = "";
+          emptyEl.style.display = "block";
+        }
+      } finally {
+        _reportsLoaded = true;
+      }
     }
 
     function openConfirmModal({ username, usar_liquidez_iol, aporte_externo_ars }) {
@@ -357,6 +414,8 @@
           startPolling();
         }
       } catch (_) {}
+
+      loadReportsList();
 
       try {
         const vRes = await fetch("/version");

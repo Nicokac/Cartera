@@ -24,6 +24,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado sexto item P1 de v0.3 (backup diario automatico de `data/runtime/*.csv`).
 - 2026-04-28: completado septimo item P1 de v0.3 (scripts Bash Fase 1 cross-platform).
 - 2026-04-28: completado primer item P2 de v0.4 (modal custom de confirmacion; reemplaza `window.confirm()`).
+- 2026-04-28: completado segundo item P2 de v0.4 (panel de reportes anteriores en UI).
 
 ## Contexto
 
@@ -79,7 +80,6 @@ Estado: UI limpia y autocontenida, responsive basico.
 Hallazgos:
 
 - Estados solo con emojis (accesibilidad limitada).
-- Sin visual de reportes previos.
 - Panel de estado con poco contexto.
 
 Roadmap:

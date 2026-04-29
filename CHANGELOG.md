@@ -25,6 +25,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/stop_local_app.sh`
   - `scripts/smoke_local_app.sh`
   - `scripts/run_local_app.sh`
+- endpoint `GET /reports/list` en `server.py` para listar reportes HTML disponibles
 
 ### Changed
 
@@ -45,6 +46,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   actualizados para reflejar operacion Bash cross-platform
 - `static/index.html`: reemplazo de `window.confirm()` por modal custom HTML/CSS/JS
   para confirmar corrida con datos de usuario/fondeo antes de `POST /run`
+- `static/index.html`: nueva seccion `Reportes anteriores` que consume `/reports/list`
+  y permite abrir reportes historicos directamente desde la UI
 
 ### Testing
 
