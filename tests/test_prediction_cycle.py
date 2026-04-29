@@ -51,6 +51,9 @@ class PredictionCycleTests(unittest.TestCase):
             "run_prediction_cycle.verify_prediction_history",
             return_value=verified,
         ) as verify_mock, patch(
+            "run_prediction_cycle.apply_prediction_history_retention",
+            return_value=verified,
+        ) as retention_mock, patch(
             "run_prediction_cycle.calibrate_prediction_weights",
             return_value=({"signals": {"rsi": {"weight": 0.4}}}, calibration_summary),
         ) as calibrate_mock, patch("run_prediction_cycle.save_prediction_history") as save_history_mock, patch(
@@ -59,6 +62,7 @@ class PredictionCycleTests(unittest.TestCase):
             result = run_prediction_cycle(today="2026-04-24")
 
         verify_mock.assert_called_once()
+        retention_mock.assert_called_once()
         calibrate_mock.assert_called_once()
         save_history_mock.assert_called_once_with(verified)
         save_weights_mock.assert_called_once()

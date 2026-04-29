@@ -13,7 +13,12 @@ if str(SRC) not in sys.path:
 
 import config as project_config
 from prediction.calibration import calibrate_prediction_weights, save_prediction_weights
-from prediction.store import load_prediction_history, save_prediction_history
+from prediction.store import (
+    DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS,
+    apply_prediction_history_retention,
+    load_prediction_history,
+    save_prediction_history,
+)
 from prediction.verifier import verify_prediction_history
 
 
@@ -26,6 +31,12 @@ def run_prediction_cycle(*, today: object | None = None) -> dict[str, object]:
     """
     history = load_prediction_history()
     verified_history = verify_prediction_history(history, today=today)
+    retention_days = int(project_config.PREDICTION_WEIGHTS.get("history_retention_days", DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS))
+    verified_history = apply_prediction_history_retention(
+        verified_history,
+        retention_days=retention_days,
+        today=today,
+    )
     save_prediction_history(verified_history)
 
     completed_mask = verified_history.get("outcome", pd.Series(dtype=object)).fillna("").astype(str).str.strip() != ""

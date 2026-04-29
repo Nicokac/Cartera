@@ -84,7 +84,13 @@ from pipeline import (
     build_sizing_bundle,
 )
 from portfolio.operations import build_operations_bundle, enrich_operations_bundle
-from prediction.store import load_prediction_history, save_prediction_history, upsert_prediction_history
+from prediction.store import (
+    DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS,
+    apply_prediction_history_retention,
+    load_prediction_history,
+    save_prediction_history,
+    upsert_prediction_history,
+)
 from report_renderer import REPORTS_DIR, render_report
 
 
@@ -441,6 +447,12 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
     prediction_history = upsert_prediction_history(
         load_prediction_history(),
         prediction_bundle.get("history_observation", pd.DataFrame()),
+    )
+    retention_days = int(os.environ.get("PREDICTION_HISTORY_RETENTION_DAYS", DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS))
+    prediction_history = apply_prediction_history_retention(
+        prediction_history,
+        retention_days=retention_days,
+        today=run_date,
     )
     save_prediction_history(prediction_history)
     prediction_bundle["history_size"] = int(len(prediction_history))

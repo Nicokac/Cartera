@@ -119,6 +119,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   resuelve la deuda tecnica de CI
 - `server.py`: asegura creacion de `reports/` antes de `app.mount("/reports", ...)`
   para evitar fallo de import en CI cuando el directorio no existe
+- retencion automatica de `prediction_history.csv`:
+  - nueva funcion `apply_prediction_history_retention()` en `src/prediction/store.py`
+  - retencion default de 90 dias (configurable)
+  - aplicada en `scripts/generate_real_report.py` y `scripts/run_prediction_cycle.py`
 
 ### Testing
 
@@ -145,6 +149,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_server.py`: cobertura de `GET /runs/recent`
 - `tests/test_server.py`: nuevo test de rate limit en `/run` (`429`)
 - `tests/test_server.py`: nuevos tests para `/api-health` (caso OK y fallo parcial)
+- `tests/test_prediction_store.py`: cobertura de retencion por antiguedad y validacion de `retention_days`
+- `tests/test_prediction_cycle.py`: cobertura de aplicacion de retencion dentro del ciclo
 
 ### Security
 

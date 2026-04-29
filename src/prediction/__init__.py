@@ -1,4 +1,6 @@
 from .store import (
+    DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS,
+    apply_prediction_history_retention,
     PREDICTION_HISTORY_COLUMNS,
     PREDICTION_HISTORY_PATH,
     build_prediction_observation,
@@ -22,6 +24,8 @@ from .calibration import (
 __all__ = [
     "PREDICTION_HISTORY_COLUMNS",
     "PREDICTION_HISTORY_PATH",
+    "DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS",
+    "apply_prediction_history_retention",
     "build_prediction_observation",
     "load_prediction_history",
     "resolve_prediction_outcome_date",

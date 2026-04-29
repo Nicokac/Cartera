@@ -46,6 +46,11 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P3 de UX/UI: indicador de progreso estimado durante corrida (barra + etapa textual por tiempo transcurrido).
 - 2026-04-29: completado item P3 de seguridad: rate limiting basico en `POST /run` (maximo 3 requests/minuto).
 - 2026-04-29: completado item P3 de integraciones: nuevo endpoint `GET /api-health` para chequeo resumido de conectividad externa.
+- 2026-04-29: completado item P2 de datos/escalabilidad: purga automatica de `prediction_history.csv` con retencion configurable (default 90 dias).
+
+Prueba de cierre (si aplica):
+- correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
+- ejecutar una corrida real/no interactiva y verificar que `data/runtime/prediction_history.csv` no conserve filas con `run_date` fuera de ventana de retencion
 
 ## Contexto
 

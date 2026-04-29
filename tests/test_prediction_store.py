@@ -11,6 +11,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from prediction.store import (
+    apply_prediction_history_retention,
     PREDICTION_HISTORY_COLUMNS,
     build_prediction_observation,
     load_prediction_history,
@@ -144,6 +145,51 @@ class PredictionStoreTests(unittest.TestCase):
     def test_resolve_prediction_outcome_date_uses_business_days(self) -> None:
         self.assertEqual(resolve_prediction_outcome_date("2026-04-17", horizon_days=1), "2026-04-20")
         self.assertEqual(resolve_prediction_outcome_date("2026-04-17", horizon_days=5), "2026-04-24")
+
+    def test_apply_prediction_history_retention_keeps_recent_rows(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-01-01",
+                    "ticker": "AAPL",
+                    "direction": "up",
+                    "confidence": 0.4,
+                    "conviction_label": "media",
+                    "consensus_raw": 0.4,
+                    "signal_votes": "{}",
+                    "horizon_days": 5,
+                    "outcome_date": "2026-01-08",
+                    "outcome": "",
+                    "correct": None,
+                },
+                {
+                    "run_date": "2026-04-20",
+                    "ticker": "MSFT",
+                    "direction": "down",
+                    "confidence": 0.5,
+                    "conviction_label": "media",
+                    "consensus_raw": -0.5,
+                    "signal_votes": "{}",
+                    "horizon_days": 5,
+                    "outcome_date": "2026-04-27",
+                    "outcome": "",
+                    "correct": None,
+                },
+            ]
+        )
+
+        retained = apply_prediction_history_retention(
+            history,
+            retention_days=90,
+            today="2026-04-29",
+        )
+
+        self.assertEqual(len(retained), 1)
+        self.assertEqual(retained.loc[0, "ticker"], "MSFT")
+
+    def test_apply_prediction_history_retention_rejects_invalid_days(self) -> None:
+        with self.assertRaises(ValueError):
+            apply_prediction_history_retention(pd.DataFrame(columns=PREDICTION_HISTORY_COLUMNS), retention_days=0)
 
 
 if __name__ == "__main__":

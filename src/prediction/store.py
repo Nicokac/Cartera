@@ -25,6 +25,7 @@ PREDICTION_HISTORY_COLUMNS = [
     "outcome",
     "correct",
 ]
+DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS = 90
 
 
 def _empty_prediction_history() -> pd.DataFrame:
@@ -138,3 +139,30 @@ def save_prediction_history(history: pd.DataFrame, path: Path | None = None) -> 
     path.parent.mkdir(parents=True, exist_ok=True)
     history.to_csv(path, index=False, encoding="utf-8")
     return path
+
+
+def apply_prediction_history_retention(
+    history: pd.DataFrame,
+    *,
+    retention_days: int = DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS,
+    today: object | None = None,
+) -> pd.DataFrame:
+    days = int(retention_days)
+    if days < 1:
+        raise ValueError("retention_days debe ser >= 1")
+    if history.empty:
+        return _empty_prediction_history()
+
+    retained = history.copy()
+    for column in PREDICTION_HISTORY_COLUMNS:
+        if column not in retained.columns:
+            retained[column] = np.nan
+    retained = retained[PREDICTION_HISTORY_COLUMNS].copy()
+
+    retained["run_date"] = pd.to_datetime(retained["run_date"], errors="coerce")
+    base_today = pd.Timestamp(today).normalize() if today is not None else pd.Timestamp.now().normalize()
+    min_date = base_today - pd.Timedelta(days=days)
+    retained = retained.loc[retained["run_date"].notna() & (retained["run_date"] >= min_date)].copy()
+    retained["run_date"] = retained["run_date"].dt.strftime("%Y-%m-%d")
+    retained = retained.reset_index(drop=True)
+    return retained[PREDICTION_HISTORY_COLUMNS].copy()
