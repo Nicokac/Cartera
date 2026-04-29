@@ -48,6 +48,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   para confirmar corrida con datos de usuario/fondeo antes de `POST /run`
 - `static/index.html`: nueva seccion `Reportes anteriores` que consume `/reports/list`
   y permite abrir reportes historicos directamente desde la UI
+- utilidades comunes centralizadas:
+  - `src/common/text.py` agrega `normalize_text_basic` y `normalize_text_folded`
+  - `src/common/numeric.py` agrega `safe_float`
+  - `src/clients/bcra.py`, `src/clients/bonistas_client.py` y `src/prediction/predictor.py`
+    pasan a reutilizar utilidades compartidas en lugar de implementaciones duplicadas
+- `.github/workflows/ci.yml`: agrega `tests.test_text_utils` a la suite estable
 
 ### Testing
 
@@ -57,6 +63,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - tests de backup runtime agregados:
   - `tests/test_generate_real_report_split_runtime.py`
   - `tests/test_generate_real_report.py`
+- nuevos tests de utilidades:
+  - `tests/test_text_utils.py`
+  - ampliacion de `tests/test_numeric_utils.py`
 
 ### Security
 

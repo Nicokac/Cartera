@@ -13,6 +13,7 @@ from typing import Any
 
 import pandas as pd
 import requests
+from common.numeric import safe_float
 
 
 DEFAULT_TIMEOUT = 30
@@ -93,19 +94,7 @@ def _fetch_html(path: str, *, timeout: int = DEFAULT_TIMEOUT) -> str:
 
 
 def _safe_float(value: Any) -> float | None:
-    if value is None:
-        return None
-    text = str(value).strip()
-    if not text or text in {"-", "N/A", "nan"}:
-        return None
-    text = text.replace("%", "").replace("$", "").replace(",", ".")
-    text = re.sub(r"[^0-9.\-]", "", text)
-    if not text:
-        return None
-    try:
-        return float(text)
-    except ValueError:
-        return None
+    return safe_float(value)
 
 
 def _safe_date(value: Any) -> str | None:

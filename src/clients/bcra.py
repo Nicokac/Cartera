@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from io import BytesIO
 import logging
@@ -9,6 +9,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 import requests
+from common.numeric import safe_float
+from common.text import normalize_text_folded
 
 
 DEFAULT_TIMEOUT = 10
@@ -71,24 +73,8 @@ def _fetch_json(
 
 
 def _normalize_text(value: object) -> str:
-    text = str(value or "").strip().lower()
-    replacements = {
-        "á": "a",
-        "é": "e",
-        "í": "i",
-        "ó": "o",
-        "ú": "u",
-        "ñ": "n",
-        "Ã¡": "a",
-        "Ã©": "e",
-        "Ã­": "i",
-        "Ã³": "o",
-        "Ãº": "u",
-        "Ã±": "n",
-    }
-    for src, dst in replacements.items():
-        text = text.replace(src, dst)
-    return " ".join(text.split())
+    return normalize_text_folded(value)
+
 
 
 def _build_url_with_params(base_url: str, params: dict[str, object] | None = None) -> str:
@@ -224,11 +210,8 @@ def discover_tamar_variable_ids(
 
 
 def _safe_float(value: object) -> float | None:
-    try:
-        number = float(str(value).replace(",", "."))
-    except Exception:
-        return None
-    return number
+    return safe_float(value)
+
 
 
 def _is_plausible_rate(value: object) -> bool:
@@ -440,7 +423,7 @@ def _extract_rem_12m_from_excel_content(content: bytes) -> float | None:
 
             if section_label:
                 normalized = _normalize_text(section_label)
-                if "ipc-gba" in normalized and "prox. 12 meses" in normalized:
+                if "ipc-gba" in normalized and "12 meses" in normalized:
                     current_section = "ipc_12m"
                     continue
                 if current_section == "ipc_12m" and normalized not in {
@@ -479,16 +462,24 @@ def get_rem_latest(
 ) -> dict[str, Any] | None:
     text = _fetch_text(base_url, timeout=timeout)
 
-    monthly_match = re.search(r"inflaci[oó]n mensual de\s+(\d+(?:,\d+)?)%", text, flags=re.IGNORECASE)
+    monthly_match = re.search(
+        r"inflaci(?:o|ó|Ã³|ã³)n mensual de\s+(\d+(?:,\d+)?)%",
+        text,
+        flags=re.IGNORECASE,
+    )
     if not monthly_match:
         return None
 
     month_match = re.search(
-        r"(?:#+\s*)?RESUMEN EJECUTIVO\s*\|\s*([A-ZÁÉÍÓÚÑ]+\s+DE\s+\d{4})",
+        r"(?:#+\s*)?RESUMEN EJECUTIVO\s*\|\s*([A-ZÁÉÍÓÚÑÃÃ‰ÃÃ“ÃšÃ‘]+\s+DE\s+\d{4})",
         text,
         flags=re.IGNORECASE,
     )
-    published_match = re.search(r"publicado el d[ií]a\s+(\d{1,2}\s+de\s+\w+\s+de\s+\d{4})", text, flags=re.IGNORECASE)
+    published_match = re.search(
+        r"publicado el d(?:i|í|Ã­|ã­)a\s+(\d{1,2}\s+de\s+\w+\s+de\s+\d{4})",
+        text,
+        flags=re.IGNORECASE,
+    )
 
     rem_12m_pct = None
     if xlsx_url:
@@ -505,3 +496,5 @@ def get_rem_latest(
         "source_url": base_url,
         "source_xlsx_url": xlsx_url,
     }
+
+

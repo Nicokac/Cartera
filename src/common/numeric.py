@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import re
 
 
 def to_float_or_none(value: object) -> float | None:
@@ -15,3 +16,23 @@ def positive_float_or_none(value: object) -> float | None:
     if numeric is None or numeric <= 0:
         return None
     return numeric
+
+
+def safe_float(value: object) -> float | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text or text in {"-", "N/A", "nan"}:
+        return None
+    text = text.replace("%", "").replace("$", "")
+    if "." in text and "," in text:
+        text = text.replace(".", "").replace(",", ".")
+    else:
+        text = text.replace(",", ".")
+    text = re.sub(r"[^0-9.\-]", "", text)
+    if not text:
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None

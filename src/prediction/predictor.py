@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+from common.text import normalize_text_basic
 
 
 SIGNAL_COLUMN_MAP = {
@@ -25,7 +26,7 @@ def _as_float(value: object) -> float | None:
 
 
 def _normalize_text(value: object) -> str:
-    return str(value or "").strip()
+    return normalize_text_basic(value)
 
 
 def _normalize_key(value: object) -> str:

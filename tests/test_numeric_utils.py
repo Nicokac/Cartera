@@ -8,7 +8,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
-from common.numeric import positive_float_or_none, to_float_or_none
+from common.numeric import positive_float_or_none, safe_float, to_float_or_none
 
 
 class NumericUtilsTests(unittest.TestCase):
@@ -21,3 +21,8 @@ class NumericUtilsTests(unittest.TestCase):
         self.assertEqual(positive_float_or_none("10"), 10.0)
         self.assertIsNone(positive_float_or_none(0))
         self.assertIsNone(positive_float_or_none(-3))
+
+    def test_safe_float_parses_loose_numeric_strings(self) -> None:
+        self.assertEqual(safe_float("12,5%"), 12.5)
+        self.assertEqual(safe_float("$ 1.234,56"), 1234.56)
+        self.assertIsNone(safe_float("N/A"))

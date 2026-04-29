@@ -25,6 +25,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado septimo item P1 de v0.3 (scripts Bash Fase 1 cross-platform).
 - 2026-04-28: completado primer item P2 de v0.4 (modal custom de confirmacion; reemplaza `window.confirm()`).
 - 2026-04-28: completado segundo item P2 de v0.4 (panel de reportes anteriores en UI).
+- 2026-04-28: completado tercer item P2 de v0.4 (centralizacion de utilidades de texto/numericas en `src/common/`).
 
 ## Contexto
 
@@ -111,7 +112,6 @@ Estado: base clara y consistente, con baja deuda accidental.
 
 Hallazgos:
 
-- Duplicacion utilitaria (`_normalize_text`, `_safe_float`) en distintos modulos.
 - Funciones extensas en scoring/sizing.
 - Type hints aun heterogeneos en algunos puntos.
 
