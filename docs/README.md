@@ -11,6 +11,7 @@ Indice de la documentacion activa del proyecto.
 - [prediction-engine-history.md](prediction-engine-history.md)
 - [report-ux-architecture.md](report-ux-architecture.md)
 - [asset-taxonomy.md](asset-taxonomy.md)
+- [instrument-onboarding-checklist.md](instrument-onboarding-checklist.md)
 - [repo-cleanup-map.md](repo-cleanup-map.md)
 - [decisions/README.md](decisions/README.md)
 

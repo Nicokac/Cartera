@@ -45,6 +45,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `ADR-0001` runner en subprocess
   - `ADR-0002` persistencia operativa en CSV (sin DB por ahora)
   - `ADR-0003` migracion gradual de `float` a `Decimal` para montos
+- `docs/instrument-onboarding-checklist.md`: checklist formal para alta de
+  instrumentos (taxonomia, mappings, validacion funcional, tests y cierre documental)
 
 ### Changed
 

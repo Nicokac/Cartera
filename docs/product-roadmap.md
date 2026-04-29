@@ -40,6 +40,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: item P2 de DevOps (`macos-latest` en CI) queda como deuda tecnica pendiente por inestabilidad actual en GitHub Actions.
 - 2026-04-29: fix de estabilidad CI: `server.py` asegura creacion de `reports/` antes del mount de archivos estaticos.
 - 2026-04-29: `ubuntu-latest` en CI tambien queda temporalmente desactivado y marcado como deuda tecnica pendiente para no bloquear entregas.
+- 2026-04-29: completado item P2 de escalabilidad/documentacion: checklist formal de alta de instrumento (`docs/instrument-onboarding-checklist.md`).
 
 ## Contexto
 
@@ -247,7 +248,7 @@ Hallazgos:
 Roadmap:
 
 - P2: Retencion configurable de historiales.
-- P2: Checklist formal para alta de instrumento.
+- P2: Checklist formal para alta de instrumento. (completado)
 - P3: Protocol de clientes externos.
 
 ### 13) Accesibilidad
