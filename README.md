@@ -188,6 +188,7 @@ Flujo del formulario local:
 - si el servidor se reinicia durante una corrida, al volver a iniciar marca la corrida previa como `interrupted`
 - muestra seccion `Reportes anteriores` con HTMLs disponibles en `reports/`
 - muestra seccion `Corridas recientes` con las ultimas 5 ejecuciones
+- durante `running` muestra barra de progreso estimada y etapa actual de pipeline
 - mejoras de accesibilidad en estado/errores: `aria-live`, `aria-label` y alertas con `role="alert"`
 - en estado `error` muestra link `Ver log completo` hacia `/status/detail`
 

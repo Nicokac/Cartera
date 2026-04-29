@@ -30,6 +30,7 @@ COMO USAR LA APP
 
 Opcional durante una corrida:
 - Mientras el estado muestra "Corriendo...", aparece el boton "Cancelar corrida".
+- Mientras corre, se muestra barra de progreso estimada con etapa actual.
 - Si se cancela, el estado final queda como "Corrida cancelada".
 - Si la corrida falla, aparece "Ver log completo" para abrir el detalle tecnico.
 

@@ -43,6 +43,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de escalabilidad/documentacion: checklist formal de alta de instrumento (`docs/instrument-onboarding-checklist.md`).
 - 2026-04-29: completado item P1 de documentacion API: README referencia `/docs` y `/openapi.json` de FastAPI.
 - 2026-04-29: completado item P2 de UX: panel de corridas recientes (ultimas 5) con endpoint `GET /runs/recent`.
+- 2026-04-29: completado item P3 de UX/UI: indicador de progreso estimado durante corrida (barra + etapa textual por tiempo transcurrido).
 
 ## Contexto
 
@@ -88,7 +89,7 @@ Roadmap:
 - P1: Boton "Ver log completo" en error apuntando a `/status/detail`. (completado)
 - P2: Panel de corridas recientes (ultimas 5). (completado)
 - P2: Tooltip para "Aporte externo ARS". (completado)
-- P3: Barra de progreso estimada.
+- P3: Barra de progreso estimada. (completado)
 
 ### 3) UI / Interfaz
 
@@ -104,7 +105,7 @@ Roadmap:
 - P2: Modal custom para confirmacion.
 - P2: Texto/ARIA junto a indicadores de estado.
 - P2: Seccion de reportes anteriores (`/reports/`).
-- P3: Indicador de progreso animado.
+- P3: Indicador de progreso animado. (completado)
 
 ### 4) Arquitectura
 

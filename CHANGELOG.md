@@ -52,6 +52,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `/openapi.json`
 - `server.py`: nuevo endpoint `GET /runs/recent` con ultimas 5 corridas
 - `static/index.html`: nueva seccion `Corridas recientes` consumiendo `/runs/recent`
+- `static/index.html`: indicador de progreso estimado durante corrida
+  (barra + etapa textual en estado `running`)
 
 ### Changed
 
