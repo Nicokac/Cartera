@@ -157,3 +157,6 @@ SOPORTE
 Ante cualquier problema, avisar a Nicolas Kachuk con:
   - Descripcion de lo que paso
   - Captura de pantalla si es posible
+
+Corridas recientes:
+- En la app se muestran las ultimas 5 corridas ejecutadas (estado y fecha).

@@ -130,6 +130,12 @@
     <p id="reports-empty" class="reports-empty" style="display:none;">No hay reportes disponibles.</p>
   </section>
 
+  <section>
+    <h2>Corridas recientes</h2>
+    <ul id="runs-list" class="reports-list"></ul>
+    <p id="runs-empty" class="reports-empty" style="display:none;">No hay corridas registradas.</p>
+  </section>
+
   <div id="confirm-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
     <div class="modal">
       <h3 id="confirm-modal-title">Confirmar corrida</h3>
@@ -263,6 +269,7 @@
             clearInterval(_pollInterval);
             _pollInterval = null;
             loadReportsList();
+            loadRunsRecent();
           }
         } catch (_) {}
       }, 2000);
@@ -309,6 +316,36 @@
         }
       } finally {
         _reportsLoaded = true;
+      }
+    }
+
+    async function loadRunsRecent() {
+      const listEl = document.getElementById("runs-list");
+      const emptyEl = document.getElementById("runs-empty");
+      try {
+        const res = await fetch("/runs/recent");
+        if (!res.ok) {
+          throw new Error("fetch failed");
+        }
+        const payload = await res.json();
+        const rows = Array.isArray(payload.runs) ? payload.runs : [];
+        listEl.innerHTML = "";
+        if (rows.length === 0) {
+          emptyEl.style.display = "block";
+          return;
+        }
+        emptyEl.style.display = "none";
+        for (const row of rows) {
+          const li = document.createElement("li");
+          const who = row.username ? ` (${row.username})` : "";
+          const when = row.finished_at || row.started_at || "";
+          const extra = row.status === "error" && row.error ? ` - ${row.error}` : "";
+          li.textContent = `${row.status || "unknown"}${who} - ${when}${extra}`;
+          listEl.appendChild(li);
+        }
+      } catch (_) {
+        listEl.innerHTML = "";
+        emptyEl.style.display = "block";
       }
     }
 
@@ -449,6 +486,7 @@
       } catch (_) {}
 
       loadReportsList();
+      loadRunsRecent();
 
       try {
         const vRes = await fetch("/version");

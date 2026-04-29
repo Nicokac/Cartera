@@ -5,6 +5,7 @@ import subprocess
 import sys
 import threading
 import uuid
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -21,6 +22,7 @@ SCRIPT = ROOT / "scripts" / "generate_real_report.py"
 LOG_PATH = ROOT / "data" / "runtime" / "server_run.log"
 RUN_PID_PATH = ROOT / "data" / "runtime" / "server_run.pid"
 SESSION_FILE = ROOT / "data" / "runtime" / "session.txt"
+RUN_HISTORY_FILE = ROOT / "data" / "runtime" / "run_history.jsonl"
 VERSION_FILE = ROOT / "version.txt"
 
 app = FastAPI(title="Cartera")
@@ -154,6 +156,17 @@ def _recover_orphan_run() -> None:
     _state["status"] = "interrupted"
     _state["finished_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     _state["error"] = "Corrida previa interrumpida por reinicio del servidor."
+    _append_run_history(
+        {
+            "status": "interrupted",
+            "started_at": None,
+            "finished_at": _state["finished_at"],
+            "username": None,
+            "usar_liquidez_iol": None,
+            "aporte_externo_ars": None,
+            "error": _state["error"],
+        }
+    )
 
 
 def _ensure_session_token() -> str:
@@ -171,6 +184,35 @@ def _ensure_session_token() -> str:
     except Exception:
         _session_token = _session_token or str(uuid.uuid4())
         return _session_token
+
+
+def _append_run_history(entry: dict[str, object]) -> None:
+    try:
+        RUN_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with RUN_HISTORY_FILE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def _read_recent_runs(limit: int = 5) -> list[dict[str, object]]:
+    try:
+        if not RUN_HISTORY_FILE.exists():
+            return []
+        rows: list[dict[str, object]] = []
+        for line in RUN_HISTORY_FILE.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                payload = json.loads(line)
+                if isinstance(payload, dict):
+                    rows.append(payload)
+            except json.JSONDecodeError:
+                continue
+        return rows[-limit:][::-1]
+    except Exception:
+        return []
 
 
 def _watch_process() -> None:
@@ -198,6 +240,17 @@ def _watch_process() -> None:
         _process = None
         _cancel_requested = False
         _clear_run_pid()
+        _append_run_history(
+            {
+                "status": _state.get("status"),
+                "started_at": _state.get("started_at"),
+                "finished_at": _state.get("finished_at"),
+                "username": ((_state.get("params") or {}).get("username") if isinstance(_state.get("params"), dict) else None),
+                "usar_liquidez_iol": ((_state.get("params") or {}).get("usar_liquidez_iol") if isinstance(_state.get("params"), dict) else None),
+                "aporte_externo_ars": ((_state.get("params") or {}).get("aporte_externo_ars") if isinstance(_state.get("params"), dict) else None),
+                "error": _sanitize_secrets(str(_state.get("error") or ""))[:300],
+            }
+        )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -360,6 +413,11 @@ def get_reports_list() -> JSONResponse:
         return JSONResponse({"reports": rows})
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"No se pudo listar reportes: {exc}")
+
+
+@app.get("/runs/recent")
+def get_runs_recent() -> JSONResponse:
+    return JSONResponse({"runs": _read_recent_runs(limit=5)})
 
 
 @app.on_event("startup")

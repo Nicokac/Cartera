@@ -187,6 +187,7 @@ Flujo del formulario local:
 - si se cancela una corrida, el estado final pasa a `interrupted`
 - si el servidor se reinicia durante una corrida, al volver a iniciar marca la corrida previa como `interrupted`
 - muestra seccion `Reportes anteriores` con HTMLs disponibles en `reports/`
+- muestra seccion `Corridas recientes` con las ultimas 5 ejecuciones
 - mejoras de accesibilidad en estado/errores: `aria-live`, `aria-label` y alertas con `role="alert"`
 - en estado `error` muestra link `Ver log completo` hacia `/status/detail`
 
@@ -199,6 +200,7 @@ Estado detallado: `http://127.0.0.1:8000/status/detail`.
 `POST /run` requiere token de sesion en header `X-Session-Token` (la UI lo obtiene automaticamente via `GET /session`).
 `POST /run` valida `aporte_externo_ars >= 0` y limita `username/password` a 200 caracteres.
 `POST /run` rechaza credenciales vacias (`username/password`) con `422` para evitar corridas invalidas.
+`GET /runs/recent` devuelve historial de las ultimas 5 corridas.
 
 Comandos de operacion local:
 

@@ -50,6 +50,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `README.md`: referencia explicita a docs de API local de FastAPI:
   - `/docs`
   - `/openapi.json`
+- `server.py`: nuevo endpoint `GET /runs/recent` con ultimas 5 corridas
+- `static/index.html`: nueva seccion `Corridas recientes` consumiendo `/runs/recent`
 
 ### Changed
 
@@ -131,6 +133,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   para modo texto default, modo JSON y escenario no-op con handlers existentes
 - `tests/test_server.py`: nuevos tests para rechazo `422` cuando `username` o
   `password` llegan vacios/blancos en `POST /run`
+- `tests/test_server.py`: cobertura de `GET /runs/recent`
 
 ### Security
 

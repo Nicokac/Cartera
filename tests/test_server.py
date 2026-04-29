@@ -108,6 +108,24 @@ class TestGetReportsList(unittest.TestCase):
         self.assertEqual(data["reports"][0]["url"], "/reports/newer.html")
 
 
+class TestGetRunsRecent(unittest.TestCase):
+    def test_returns_last_five_runs_desc(self):
+        with TemporaryDirectory() as tmp:
+            history_path = Path(tmp) / "run_history.jsonl"
+            rows = [
+                {"status": "done", "finished_at": f"2026-04-2{i} 10:00:00", "username": f"user{i}"}
+                for i in range(1, 8)
+            ]
+            history_path.write_text("\n".join([__import__("json").dumps(r) for r in rows]), encoding="utf-8")
+            with patch.object(server, "RUN_HISTORY_FILE", history_path):
+                r = _client.get("/runs/recent")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertEqual(len(data["runs"]), 5)
+        self.assertEqual(data["runs"][0]["username"], "user7")
+        self.assertEqual(data["runs"][-1]["username"], "user3")
+
+
 class TestGetStatusDetail(unittest.TestCase):
     def setUp(self):
         _reset()
@@ -352,12 +370,14 @@ class TestWatchProcess(unittest.TestCase):
     def test_done_on_returncode_zero(self):
         server._process = self._make_proc(0)
         server._state["status"] = "running"
-        with patch("server._clear_run_pid") as clear_pid:
+        server._state["params"] = {"username": "demo_user", "usar_liquidez_iol": True, "aporte_externo_ars": 0.0}
+        with patch("server._clear_run_pid") as clear_pid, patch("server._append_run_history") as append_history:
             server._watch_process()
         self.assertEqual(server._state["status"], "done")
         self.assertIsNotNone(server._state["finished_at"])
         self.assertIsNone(server._process)
         clear_pid.assert_called_once()
+        append_history.assert_called_once()
 
     def test_error_on_nonzero_returncode(self):
         server._process = self._make_proc(1)

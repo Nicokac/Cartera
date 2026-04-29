@@ -42,6 +42,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: `ubuntu-latest` en CI tambien queda temporalmente desactivado y marcado como deuda tecnica pendiente para no bloquear entregas.
 - 2026-04-29: completado item P2 de escalabilidad/documentacion: checklist formal de alta de instrumento (`docs/instrument-onboarding-checklist.md`).
 - 2026-04-29: completado item P1 de documentacion API: README referencia `/docs` y `/openapi.json` de FastAPI.
+- 2026-04-29: completado item P2 de UX: panel de corridas recientes (ultimas 5) con endpoint `GET /runs/recent`.
 
 ## Contexto
 
@@ -85,7 +86,7 @@ Roadmap:
 
 - P1: Boton "Cancelar corrida" cuando `running`.
 - P1: Boton "Ver log completo" en error apuntando a `/status/detail`. (completado)
-- P2: Panel de corridas recientes (ultimas 5).
+- P2: Panel de corridas recientes (ultimas 5). (completado)
 - P2: Tooltip para "Aporte externo ARS". (completado)
 - P3: Barra de progreso estimada.
 
