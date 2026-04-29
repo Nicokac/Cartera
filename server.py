@@ -54,13 +54,22 @@ def _parse_ts(value: object) -> datetime | None:
         return None
 
 
-def _read_log_tail(limit: int = 1200) -> str:
+def _read_log_tail(limit: int = 3000) -> str:
     try:
         if not LOG_PATH.exists():
             return ""
         return LOG_PATH.read_text(encoding="utf-8")[-limit:]
     except Exception:
         return ""
+
+
+def _count_log_lines() -> int:
+    try:
+        if not LOG_PATH.exists():
+            return 0
+        return len(LOG_PATH.read_text(encoding="utf-8").splitlines())
+    except Exception:
+        return 0
 
 
 _SECRET_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -280,6 +289,7 @@ def get_status_detail() -> JSONResponse:
         "uptime_seconds": uptime_seconds,
         "log_path": str(LOG_PATH),
         "last_log_mtime": _read_log_mtime(),
+        "log_lines": _count_log_lines(),
         "log_tail": _sanitize_secrets(_read_log_tail()),
     }
     if isinstance(payload.get("error"), str):

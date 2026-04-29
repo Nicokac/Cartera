@@ -60,6 +60,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `.github/workflows/ci.yml`: agrega `tests.test_text_utils` a la suite estable
 - `static/index.html`: obtiene token via `GET /session` y lo envia en `POST /run`
 - `tests/test_server.py`: cobertura de `GET /session` y rechazo `401` de `/run` con token invalido
+- `server.py`: `/status/detail` ahora devuelve `log_tail` ampliado y campo `log_lines`
+  para mejorar observabilidad operativa
 
 ### Testing
 

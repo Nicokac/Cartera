@@ -27,6 +27,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado segundo item P2 de v0.4 (panel de reportes anteriores en UI).
 - 2026-04-28: completado tercer item P2 de v0.4 (centralizacion de utilidades de texto/numericas en `src/common/`).
 - 2026-04-28: completado cuarto item P2 de v0.4 (token de sesion simple para `POST /run`).
+- 2026-04-28: completada mejora de observabilidad en `/status/detail` (`log_tail` ampliado + `log_lines`).
 
 ## Contexto
 

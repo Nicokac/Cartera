@@ -123,6 +123,7 @@ class TestGetStatusDetail(unittest.TestCase):
         self.assertIsNone(data["pid"])
         self.assertIsNone(data["uptime_seconds"])
         self.assertIn("log_tail", data)
+        self.assertIn("log_lines", data)
 
     def test_running_with_process_and_uptime(self):
         server._state["status"] = "running"
@@ -147,6 +148,7 @@ class TestGetStatusDetail(unittest.TestCase):
                 data = _client.get("/status/detail").json()
         self.assertEqual(data["status"], "error")
         self.assertIn("pipeline failed", data["log_tail"])
+        self.assertEqual(data["log_lines"], 3)
         self.assertIsNotNone(data["last_log_mtime"])
 
     def test_missing_log_does_not_fail(self):
