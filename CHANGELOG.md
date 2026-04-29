@@ -97,6 +97,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   antes de lanzar subprocess (defensa en profundidad)
 - `.github/workflows/ci.yml`: job de `unittest` pasa a matriz de OS
   (`ubuntu-latest`, `macos-latest`)
+- `server.py`: asegura creacion de `reports/` antes de `app.mount("/reports", ...)`
+  para evitar fallo de import en CI cuando el directorio no existe
 
 ### Testing
 

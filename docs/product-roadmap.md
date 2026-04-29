@@ -38,6 +38,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: hardening adicional en `/run`: rechazo backend de `username/password` vacios (HTTP 422) para evitar corridas invalidas ante fallos de validacion en frontend/autocompletado.
 - 2026-04-29: completados pendientes UX: tooltip explicativo en `Aporte externo ARS` y link `Ver log completo` cuando el estado es `error`.
 - 2026-04-29: completado item P2 de DevOps: matriz CI extendida a `ubuntu-latest` + `macos-latest`.
+- 2026-04-29: fix de estabilidad CI: `server.py` asegura creacion de `reports/` antes del mount de archivos estaticos.
 
 ## Contexto
 

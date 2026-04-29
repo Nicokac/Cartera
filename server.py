@@ -368,6 +368,7 @@ def on_startup() -> None:
     _ensure_session_token()
 
 
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
 
 

@@ -32,6 +32,7 @@ El repo esta en una etapa operativa estable:
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
 - capa experimental de prediccion direccional integrada al smoke y al real run
 - CI basada en `unittest` con suites estables declaradas en `.github/workflows/ci.yml`
+  - el server local crea `reports/` al importar para que la suite de servidor corra en entornos limpios de CI
 
 Resumen funcional vigente:
 
