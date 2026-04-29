@@ -53,6 +53,10 @@ Privacidad:
 - La interfaz anuncia cambios de estado y errores con mejoras de
   accesibilidad para lectores de pantalla.
 
+Chequeo tecnico de APIs:
+- Existe un endpoint de diagnostico (`/api-health`) para validar conectividad
+  basica con proveedores externos.
+
 
 SECCIONES DEL REPORTE
 ======================

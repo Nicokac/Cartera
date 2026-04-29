@@ -193,6 +193,7 @@ Flujo del formulario local:
 - en estado `error` muestra link `Ver log completo` hacia `/status/detail`
 
 Health check: `http://127.0.0.1:8000/health`.
+Salud de integraciones externas: `http://127.0.0.1:8000/api-health`.
 Documentacion interactiva de API: `http://127.0.0.1:8000/docs`.
 Esquema OpenAPI: `http://127.0.0.1:8000/openapi.json`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.

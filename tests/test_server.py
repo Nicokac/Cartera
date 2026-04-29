@@ -78,6 +78,35 @@ class TestGetHealth(unittest.TestCase):
         self.assertEqual(r.json()["status"], "ok")
         self.assertEqual(r.json()["service"], "cartera-local-app")
 
+    def test_api_health_all_ok(self):
+        ok_response = MagicMock()
+        ok_response.status_code = 200
+        with patch("server.requests.get", return_value=ok_response):
+            r = _client.get("/api-health")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertTrue(data["ok"])
+        self.assertEqual(len(data["apis"]), 6)
+        self.assertTrue(all(item["ok"] for item in data["apis"]))
+
+    def test_api_health_with_partial_failure(self):
+        ok_response = MagicMock()
+        ok_response.status_code = 200
+
+        def fake_get(url, timeout):
+            if "bonistas.com" in url:
+                raise RuntimeError("timeout")
+            return ok_response
+
+        with patch("server.requests.get", side_effect=fake_get):
+            r = _client.get("/api-health")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertFalse(data["ok"])
+        bonistas = next(item for item in data["apis"] if item["name"] == "bonistas")
+        self.assertFalse(bonistas["ok"])
+        self.assertIn("error", bonistas)
+
 
 class TestSession(unittest.TestCase):
     def test_get_session_returns_token(self):

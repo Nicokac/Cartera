@@ -106,6 +106,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   antes de lanzar subprocess (defensa en profundidad)
 - `server.py`: `POST /run` incorpora rate limiting basico
   (maximo 3 requests por minuto, respuesta `429` al exceder)
+- `server.py`: nuevo endpoint `GET /api-health` para chequear conectividad
+  resumida de APIs externas (IOL, ArgentinaDatos, BCRA, Bonistas, FRED, Finviz)
 - `.github/workflows/ci.yml`: se intento matriz de OS con `macos-latest`,
   pero se revierte temporalmente a `ubuntu-latest` y queda como deuda tecnica
   pendiente por inestabilidad en GitHub Actions
@@ -139,6 +141,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   `password` llegan vacios/blancos en `POST /run`
 - `tests/test_server.py`: cobertura de `GET /runs/recent`
 - `tests/test_server.py`: nuevo test de rate limit en `/run` (`429`)
+- `tests/test_server.py`: nuevos tests para `/api-health` (caso OK y fallo parcial)
 
 ### Security
 

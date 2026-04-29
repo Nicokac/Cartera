@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 import time
+import requests
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -384,6 +385,40 @@ def get_status_detail() -> JSONResponse:
 @app.get("/health")
 def get_health() -> JSONResponse:
     return JSONResponse({"status": "ok", "service": "cartera-local-app"})
+
+
+def _check_url_health(name: str, url: str, timeout_seconds: float = 3.0) -> dict[str, object]:
+    try:
+        response = requests.get(url, timeout=timeout_seconds)
+        return {
+            "name": name,
+            "url": url,
+            "ok": bool(response.status_code < 500),
+            "status_code": int(response.status_code),
+        }
+    except Exception as exc:
+        return {
+            "name": name,
+            "url": url,
+            "ok": False,
+            "status_code": None,
+            "error": str(exc),
+        }
+
+
+@app.get("/api-health")
+def get_api_health() -> JSONResponse:
+    checks = [
+        ("iol", "https://api.invertironline.com"),
+        ("argentinadatos", "https://api.argentinadatos.com"),
+        ("bcra", "https://api.bcra.gob.ar"),
+        ("bonistas", "https://bonistas.com"),
+        ("fred", "https://api.stlouisfed.org"),
+        ("finviz", "https://finviz.com"),
+    ]
+    results = [_check_url_health(name, url) for name, url in checks]
+    overall_ok = all(bool(item.get("ok")) for item in results)
+    return JSONResponse({"ok": overall_ok, "apis": results})
 
 
 @app.get("/version")

@@ -45,6 +45,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de UX: panel de corridas recientes (ultimas 5) con endpoint `GET /runs/recent`.
 - 2026-04-29: completado item P3 de UX/UI: indicador de progreso estimado durante corrida (barra + etapa textual por tiempo transcurrido).
 - 2026-04-29: completado item P3 de seguridad: rate limiting basico en `POST /run` (maximo 3 requests/minuto).
+- 2026-04-29: completado item P3 de integraciones: nuevo endpoint `GET /api-health` para chequeo resumido de conectividad externa.
 
 ## Contexto
 
@@ -337,7 +338,7 @@ Roadmap:
 
 - P1: `_call_with_retry()` en IOL y BCRA.
 - P2: circuit breaker simple por API.
-- P3: `GET /api-health`.
+- P3: `GET /api-health`. (completado)
 
 ### 18) Usabilidad operativa
 
