@@ -147,6 +147,7 @@
   <script>
     let _pollInterval = null;
     let _reportsLoaded = false;
+    let _sessionToken = "";
     const USERNAME_KEY = "cartera.username";
     const REMEMBER_USERNAME_KEY = "cartera.remember_username";
 
@@ -358,7 +359,10 @@
 
       const res = await fetch("/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-Token": _sessionToken,
+        },
         body: JSON.stringify({
           username,
           password,
@@ -405,6 +409,12 @@
 
       loadUsernamePreference();
       updateSummary();
+
+      try {
+        const sRes = await fetch("/session");
+        const sData = await sRes.json();
+        _sessionToken = sData.token || "";
+      } catch (_) {}
 
       try {
         const res = await fetch("/status");

@@ -4,10 +4,11 @@ import signal
 import subprocess
 import sys
 import threading
+import uuid
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -19,6 +20,7 @@ STATIC_DIR = ROOT / "static"
 SCRIPT = ROOT / "scripts" / "generate_real_report.py"
 LOG_PATH = ROOT / "data" / "runtime" / "server_run.log"
 RUN_PID_PATH = ROOT / "data" / "runtime" / "server_run.pid"
+SESSION_FILE = ROOT / "data" / "runtime" / "session.txt"
 VERSION_FILE = ROOT / "version.txt"
 
 app = FastAPI(title="Cartera")
@@ -33,6 +35,7 @@ _state: dict = {
 _process: subprocess.Popen | None = None
 _lock = threading.Lock()
 _cancel_requested = False
+_session_token = ""
 
 
 class RunParams(BaseModel):
@@ -137,6 +140,23 @@ def _recover_orphan_run() -> None:
     _state["error"] = "Corrida previa interrumpida por reinicio del servidor."
 
 
+def _ensure_session_token() -> str:
+    global _session_token
+    try:
+        if SESSION_FILE.exists():
+            existing = SESSION_FILE.read_text(encoding="utf-8").strip()
+            if existing:
+                _session_token = existing
+                return _session_token
+        SESSION_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _session_token = str(uuid.uuid4())
+        SESSION_FILE.write_text(_session_token, encoding="utf-8")
+        return _session_token
+    except Exception:
+        _session_token = _session_token or str(uuid.uuid4())
+        return _session_token
+
+
 def _watch_process() -> None:
     global _process, _cancel_requested
     if _process is None:
@@ -173,8 +193,10 @@ def get_index() -> HTMLResponse:
 
 
 @app.post("/run")
-def post_run(params: RunParams) -> JSONResponse:
+def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JSONResponse:
     global _process, _cancel_requested
+    if not _session_token or x_session_token != _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     with _lock:
         if _state["status"] == "running":
             raise HTTPException(status_code=409, detail="Ya hay un reporte en progreso.")
@@ -284,6 +306,12 @@ def get_version() -> JSONResponse:
     return JSONResponse({"version": "desconocida"})
 
 
+@app.get("/session")
+def get_session() -> JSONResponse:
+    token = _ensure_session_token()
+    return JSONResponse({"token": token})
+
+
 @app.get("/reports/list")
 def get_reports_list() -> JSONResponse:
     try:
@@ -306,6 +334,7 @@ def get_reports_list() -> JSONResponse:
 @app.on_event("startup")
 def on_startup() -> None:
     _recover_orphan_run()
+    _ensure_session_token()
 
 
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")

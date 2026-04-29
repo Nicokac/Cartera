@@ -28,6 +28,7 @@ def _reset():
     server._state.update(_IDLE)
     server._process = None
     server._cancel_requested = False
+    server._session_token = "test-session-token"
 
 
 class TestGetIndex(unittest.TestCase):
@@ -75,6 +76,14 @@ class TestGetHealth(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["status"], "ok")
         self.assertEqual(r.json()["service"], "cartera-local-app")
+
+
+class TestSession(unittest.TestCase):
+    def test_get_session_returns_token(self):
+        with patch("server._ensure_session_token", return_value="abc-token"):
+            r = _client.get("/session")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["token"], "abc-token")
 
 
 class TestGetReportsList(unittest.TestCase):
@@ -182,7 +191,13 @@ class TestPostRun(unittest.TestCase):
     def _post_run(self, body=None):
         with patch("server.subprocess.Popen", return_value=MagicMock()), \
              patch("server.threading.Thread", return_value=MagicMock()):
-            return _client.post("/run", json=body or {})
+            return _client.post("/run", json=body or {}, headers={"X-Session-Token": "test-session-token"})
+
+    def test_401_without_valid_session_token(self):
+        with patch("server.subprocess.Popen", return_value=MagicMock()), \
+             patch("server.threading.Thread", return_value=MagicMock()):
+            r = _client.post("/run", json={}, headers={"X-Session-Token": "bad-token"})
+        self.assertEqual(r.status_code, 401)
 
     def test_returns_started(self):
         r = self._post_run()
@@ -214,7 +229,7 @@ class TestPostRun(unittest.TestCase):
 
     def test_409_when_already_running(self):
         server._state["status"] = "running"
-        r = _client.post("/run", json={})
+        r = _client.post("/run", json={}, headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 409)
 
     def test_run_closes_parent_log_handle(self):
@@ -222,7 +237,7 @@ class TestPostRun(unittest.TestCase):
         with patch.object(server, "LOG_PATH", MagicMock(open=MagicMock(return_value=fake_log))), \
              patch("server.subprocess.Popen", return_value=MagicMock()), \
              patch("server.threading.Thread", return_value=MagicMock()):
-            r = _client.post("/run", json={})
+            r = _client.post("/run", json={}, headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         fake_log.close.assert_called_once()
 
@@ -239,6 +254,7 @@ class TestPostRun(unittest.TestCase):
                     "usar_liquidez_iol": False,
                     "aporte_externo_ars": 123.0,
                 },
+                headers={"X-Session-Token": "test-session-token"},
             )
         self.assertEqual(r.status_code, 200)
         cmd = popen_mock.call_args.args[0]

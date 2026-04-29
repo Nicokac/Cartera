@@ -26,6 +26,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/smoke_local_app.sh`
   - `scripts/run_local_app.sh`
 - endpoint `GET /reports/list` en `server.py` para listar reportes HTML disponibles
+- token de sesion simple para corridas:
+  - `GET /session` devuelve token actual
+  - `POST /run` exige header `X-Session-Token`
+  - persistencia en `data/runtime/session.txt`
 
 ### Changed
 
@@ -54,6 +58,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `src/clients/bcra.py`, `src/clients/bonistas_client.py` y `src/prediction/predictor.py`
     pasan a reutilizar utilidades compartidas en lugar de implementaciones duplicadas
 - `.github/workflows/ci.yml`: agrega `tests.test_text_utils` a la suite estable
+- `static/index.html`: obtiene token via `GET /session` y lo envia en `POST /run`
+- `tests/test_server.py`: cobertura de `GET /session` y rechazo `401` de `/run` con token invalido
 
 ### Testing
 

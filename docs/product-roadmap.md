@@ -26,6 +26,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado primer item P2 de v0.4 (modal custom de confirmacion; reemplaza `window.confirm()`).
 - 2026-04-28: completado segundo item P2 de v0.4 (panel de reportes anteriores en UI).
 - 2026-04-28: completado tercer item P2 de v0.4 (centralizacion de utilidades de texto/numericas en `src/common/`).
+- 2026-04-28: completado cuarto item P2 de v0.4 (token de sesion simple para `POST /run`).
 
 ## Contexto
 
@@ -145,7 +146,7 @@ Estado: entorno local (`127.0.0.1`) y password no persistida en navegador.
 
 Hallazgos:
 
-- Sin autenticacion en endpoints operativos.
+- Sin autenticacion en endpoints operativos (quedan abiertos `/cancel`, `/status`, `/status/detail`).
 - Sin TLS (mitigado por localhost).
 - Sin rate limiting ni limites de longitud en credenciales.
 
