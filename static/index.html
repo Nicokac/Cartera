@@ -99,7 +99,7 @@
         <label for="usar_liquidez">Usar liquidez actual de IOL</label>
       </div>
       <div class="field">
-        <label for="aporte">Aporte externo ARS</label>
+        <label for="aporte" title="Dinero nuevo que queres inyectar en esta corrida, adicional a la liquidez IOL.">Aporte externo ARS</label>
         <input type="number" id="aporte" value="0" min="0" step="1" />
       </div>
 
@@ -120,6 +120,7 @@
       <span id="status-label">Estado: inactivo</span>
       <span id="status-time"></span>
       <a id="link-report" href="/reports/real-report.html">Ver reporte -></a>
+      <a id="link-status-detail" href="/status/detail" target="_blank" rel="noopener noreferrer" style="display:none;">Ver log completo -></a>
     </div>
   </section>
 
@@ -161,6 +162,7 @@
       const label = document.getElementById("status-label");
       const time = document.getElementById("status-time");
       const link = document.getElementById("link-report");
+      const linkStatusDetail = document.getElementById("link-status-detail");
       const btn = document.getElementById("btn-run");
       const btnCancel = document.getElementById("btn-cancel");
 
@@ -179,6 +181,7 @@
       label.textContent = `Estado: ${s.a}`;
       time.textContent = s.ts;
       link.style.display = data.status === "done" ? "block" : "none";
+      linkStatusDetail.style.display = data.status === "error" ? "block" : "none";
       btn.disabled = data.status === "running";
       btnCancel.style.display = data.status === "running" ? "inline-block" : "none";
       btnCancel.disabled = data.status !== "running";

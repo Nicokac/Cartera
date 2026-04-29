@@ -19,6 +19,7 @@ COMO USAR LA APP
    - Password IOL   : tu contrasena de IOL (no se guarda en ningun lado)
    - Fondeo         : elegir entre usar la liquidez disponible en IOL,
                       ingresar un aporte externo, o ambas cosas
+                      (el campo de aporte tiene ayuda contextual al pasar el mouse)
    - Validaciones   : el aporte externo no puede ser negativo; usuario y
                       password admiten hasta 200 caracteres
 4. Hacer clic en "Generar reporte"
@@ -30,6 +31,7 @@ COMO USAR LA APP
 Opcional durante una corrida:
 - Mientras el estado muestra "Corriendo...", aparece el boton "Cancelar corrida".
 - Si se cancela, el estado final queda como "Corrida cancelada".
+- Si la corrida falla, aparece "Ver log completo" para abrir el detalle tecnico.
 
 Si cerras o reinicias la app durante una corrida:
 - Al volver a abrirla, la corrida previa aparece como "Corrida cancelada".

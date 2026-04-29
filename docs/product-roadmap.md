@@ -36,6 +36,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado item P2 de documentacion: `docs/decisions/` con ADRs iniciales (subprocess, CSV sin DB, float->Decimal gradual).
 - 2026-04-29: completado item P2 de accesibilidad en UI (`aria-live` en estado, `aria-label` de icono y mensajes de error con `role=\"alert\"`).
 - 2026-04-29: hardening adicional en `/run`: rechazo backend de `username/password` vacios (HTTP 422) para evitar corridas invalidas ante fallos de validacion en frontend/autocompletado.
+- 2026-04-29: completados pendientes UX: tooltip explicativo en `Aporte externo ARS` y link `Ver log completo` cuando el estado es `error`.
 
 ## Contexto
 
@@ -78,9 +79,9 @@ Hallazgos:
 Roadmap:
 
 - P1: Boton "Cancelar corrida" cuando `running`.
-- P1: Boton "Ver log completo" en error apuntando a `/status/detail`.
+- P1: Boton "Ver log completo" en error apuntando a `/status/detail`. (completado)
 - P2: Panel de corridas recientes (ultimas 5).
-- P2: Tooltip para "Aporte externo ARS".
+- P2: Tooltip para "Aporte externo ARS". (completado)
 - P3: Barra de progreso estimada.
 
 ### 3) UI / Interfaz

@@ -90,6 +90,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - panel de estado con `aria-live="polite"`
   - icono de estado con `aria-label` descriptivo
   - mensajes de error de formulario/corrida en contenedor con `role="alert"`
+- `static/index.html`: mejoras UX adicionales:
+  - tooltip explicativo en `Aporte externo ARS`
+  - link `Ver log completo` visible cuando estado es `error` (abre `/status/detail`)
 - `server.py`: `POST /run` ahora rechaza `username/password` vacios con `422`
   antes de lanzar subprocess (defensa en profundidad)
 
