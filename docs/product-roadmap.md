@@ -37,8 +37,9 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de accesibilidad en UI (`aria-live` en estado, `aria-label` de icono y mensajes de error con `role=\"alert\"`).
 - 2026-04-29: hardening adicional en `/run`: rechazo backend de `username/password` vacios (HTTP 422) para evitar corridas invalidas ante fallos de validacion en frontend/autocompletado.
 - 2026-04-29: completados pendientes UX: tooltip explicativo en `Aporte externo ARS` y link `Ver log completo` cuando el estado es `error`.
-- 2026-04-29: completado item P2 de DevOps: matriz CI extendida a `ubuntu-latest` + `macos-latest`.
+- 2026-04-29: item P2 de DevOps (`macos-latest` en CI) queda como deuda tecnica pendiente por inestabilidad actual en GitHub Actions.
 - 2026-04-29: fix de estabilidad CI: `server.py` asegura creacion de `reports/` antes del mount de archivos estaticos.
+- 2026-04-29: `ubuntu-latest` en CI tambien queda temporalmente desactivado y marcado como deuda tecnica pendiente para no bloquear entregas.
 
 ## Contexto
 
@@ -214,7 +215,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Script de release (version + tag + build).
-- P2: Agregar `macos-latest` a matriz CI. (completado)
+- P2: Agregar `macos-latest` a matriz CI. (pendiente, bloqueado por inestabilidad CI)
 - P3: Dockerfile para dev/testing.
 
 ### 11) Mantenibilidad

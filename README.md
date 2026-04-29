@@ -289,7 +289,8 @@ python -m unittest tests.test_report_sections_prediction -v
 CI actual:
 
 - workflow: `.github/workflows/ci.yml`
-- matriz de OS: `ubuntu-latest` y `macos-latest`
+- ejecucion de unittest en GitHub Actions temporalmente deshabilitada
+  (pendiente reactivar `ubuntu-latest` y `macos-latest`)
 - bootstrap automatico de configuracion de ejemplo antes de testear
 - bateria estable del repo sin red real ni credenciales
 - coverage minima exigida en CI sobre la suite estable actual: `82%`
