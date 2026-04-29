@@ -80,23 +80,47 @@ class TestGetHealth(unittest.TestCase):
 
     def test_api_health_all_ok(self):
         ok_response = MagicMock()
-        ok_response.status_code = 200
-        with patch("server.requests.get", return_value=ok_response):
+        status_by_url = {
+            "https://api.invertironline.com/token": 401,
+            "https://api.argentinadatos.com/v1/cotizaciones/dolares/bolsa": 200,
+            "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias": 200,
+            "https://bonistas.com": 200,
+            "https://api.stlouisfed.org/fred/series?series_id=DGS10": 400,
+            "https://finviz.com/quote.ashx?t=AAPL": 403,
+        }
+
+        def fake_get(url, timeout):
+            resp = MagicMock()
+            resp.status_code = status_by_url[url]
+            return resp
+
+        with patch("server.requests.get", side_effect=fake_get):
             r = _client.get("/api-health")
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertTrue(data["ok"])
         self.assertEqual(len(data["apis"]), 6)
         self.assertTrue(all(item["ok"] for item in data["apis"]))
+        self.assertTrue(all(isinstance(item["latency_ms"], int) for item in data["apis"]))
 
     def test_api_health_with_partial_failure(self):
-        ok_response = MagicMock()
-        ok_response.status_code = 200
-
         def fake_get(url, timeout):
             if "bonistas.com" in url:
                 raise RuntimeError("timeout")
-            return ok_response
+            resp = MagicMock()
+            if "invertironline.com/token" in url:
+                resp.status_code = 401
+            elif "argentinadatos.com" in url:
+                resp.status_code = 200
+            elif "api.bcra.gob.ar/estadisticas/v4.0/monetarias" in url:
+                resp.status_code = 200
+            elif "stlouisfed.org" in url:
+                resp.status_code = 400
+            elif "finviz.com/quote.ashx" in url:
+                resp.status_code = 403
+            else:
+                resp.status_code = 200
+            return resp
 
         with patch("server.requests.get", side_effect=fake_get):
             r = _client.get("/api-health")

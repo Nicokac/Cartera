@@ -55,7 +55,7 @@ Privacidad:
 
 Chequeo tecnico de APIs:
 - Existe un endpoint de diagnostico (`/api-health`) para validar conectividad
-  basica con proveedores externos.
+  basica con proveedores externos, incluyendo latencia y codigos esperados.
 
 
 SECCIONES DEL REPORTE

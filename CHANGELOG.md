@@ -108,6 +108,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   (maximo 3 requests por minuto, respuesta `429` al exceder)
 - `server.py`: nuevo endpoint `GET /api-health` para chequear conectividad
   resumida de APIs externas (IOL, ArgentinaDatos, BCRA, Bonistas, FRED, Finviz)
+  - usa endpoints canonicos por proveedor
+  - valida codigos esperados por API
+  - reporta `latency_ms` por chequeo
 - `.github/workflows/ci.yml`: se intento matriz de OS con `macos-latest`,
   pero se revierte temporalmente a `ubuntu-latest` y queda como deuda tecnica
   pendiente por inestabilidad en GitHub Actions

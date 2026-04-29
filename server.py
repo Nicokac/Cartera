@@ -387,21 +387,35 @@ def get_health() -> JSONResponse:
     return JSONResponse({"status": "ok", "service": "cartera-local-app"})
 
 
-def _check_url_health(name: str, url: str, timeout_seconds: float = 3.0) -> dict[str, object]:
+def _check_url_health(
+    name: str,
+    url: str,
+    *,
+    expected_status_codes: set[int],
+    timeout_seconds: float = 3.0,
+) -> dict[str, object]:
+    started = time.perf_counter()
     try:
         response = requests.get(url, timeout=timeout_seconds)
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        status_code = int(response.status_code)
         return {
             "name": name,
             "url": url,
-            "ok": bool(response.status_code < 500),
-            "status_code": int(response.status_code),
+            "ok": status_code in expected_status_codes,
+            "status_code": status_code,
+            "expected_status_codes": sorted(expected_status_codes),
+            "latency_ms": latency_ms,
         }
     except Exception as exc:
+        latency_ms = int((time.perf_counter() - started) * 1000)
         return {
             "name": name,
             "url": url,
             "ok": False,
             "status_code": None,
+            "expected_status_codes": sorted(expected_status_codes),
+            "latency_ms": latency_ms,
             "error": str(exc),
         }
 
@@ -409,14 +423,17 @@ def _check_url_health(name: str, url: str, timeout_seconds: float = 3.0) -> dict
 @app.get("/api-health")
 def get_api_health() -> JSONResponse:
     checks = [
-        ("iol", "https://api.invertironline.com"),
-        ("argentinadatos", "https://api.argentinadatos.com"),
-        ("bcra", "https://api.bcra.gob.ar"),
-        ("bonistas", "https://bonistas.com"),
-        ("fred", "https://api.stlouisfed.org"),
-        ("finviz", "https://finviz.com"),
+        ("iol", "https://api.invertironline.com/token", {400, 401, 403, 405}),
+        ("argentinadatos", "https://api.argentinadatos.com/v1/cotizaciones/dolares/bolsa", {200}),
+        ("bcra", "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias", {200}),
+        ("bonistas", "https://bonistas.com", {200}),
+        ("fred", "https://api.stlouisfed.org/fred/series?series_id=DGS10", {400}),
+        ("finviz", "https://finviz.com/quote.ashx?t=AAPL", {200, 403}),
     ]
-    results = [_check_url_health(name, url) for name, url in checks]
+    results = [
+        _check_url_health(name, url, expected_status_codes=expected_status_codes)
+        for name, url, expected_status_codes in checks
+    ]
     overall_ok = all(bool(item.get("ok")) for item in results)
     return JSONResponse({"ok": overall_ok, "apis": results})
 
