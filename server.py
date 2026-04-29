@@ -288,9 +288,14 @@ def get_status() -> JSONResponse:
 @app.get("/status/detail")
 def get_status_detail() -> JSONResponse:
     started_dt = _parse_ts(_state.get("started_at"))
+    finished_dt = _parse_ts(_state.get("finished_at"))
     uptime_seconds = None
-    if started_dt is not None:
+    if started_dt is not None and _state.get("status") == "running":
         uptime_seconds = max(0, int((datetime.now() - started_dt).total_seconds()))
+    elapsed_seconds = None
+    if started_dt is not None:
+        end_dt = finished_dt or datetime.now()
+        elapsed_seconds = max(0, int((end_dt - started_dt).total_seconds()))
 
     pid = None
     if _process is not None:
@@ -300,6 +305,7 @@ def get_status_detail() -> JSONResponse:
         **_state,
         "pid": pid,
         "uptime_seconds": uptime_seconds,
+        "elapsed_seconds": elapsed_seconds,
         "log_path": str(LOG_PATH),
         "last_log_mtime": _read_log_mtime(),
         "log_lines": _count_log_lines(),

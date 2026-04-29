@@ -67,6 +67,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   para mejorar observabilidad operativa
 - `server.py`: manejo explicito de error al iniciar subprocess en `/run`
   con respuesta HTTP 500 y mensaje claro
+- `server.py`: `/status/detail` agrega `elapsed_seconds` (duracion total desde
+  `started_at` hasta `finished_at` o `now`)
 
 ### Testing
 
@@ -83,6 +85,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - rechazo `422` con `aporte_externo_ars` negativo
   - rechazo `422` con `username/password` de mas de 200 caracteres
   - respuesta `500` si falla `subprocess.Popen` al lanzar corrida
+  - `elapsed_seconds` en `/status/detail` para corridas `running` y `done`
 
 ### Security
 

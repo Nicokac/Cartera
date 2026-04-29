@@ -41,6 +41,8 @@ Reportes anteriores:
 Privacidad:
 - El estado detallado de la app oculta automaticamente datos sensibles
   de credenciales si aparecen en logs de error.
+- El estado detallado tambien informa duracion acumulada de la corrida
+  (`elapsed_seconds`) para seguimiento operativo.
 
 
 SECCIONES DEL REPORTE

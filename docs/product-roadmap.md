@@ -29,6 +29,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado cuarto item P2 de v0.4 (token de sesion simple para `POST /run`).
 - 2026-04-28: completada mejora de observabilidad en `/status/detail` (`log_tail` ampliado + `log_lines`).
 - 2026-04-28: completados items P2 de validacion de input en `/run` (aporte externo no negativo, `username/password` con maximo 200 chars) y manejo explicito de error de `Popen` (HTTP 500 claro).
+- 2026-04-28: completado item P2 de performance/observabilidad: `/status/detail` ahora expone `elapsed_seconds`.
 
 ## Contexto
 
@@ -171,7 +172,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Retry con backoff para IOL y BCRA.
-- P2: Exponer `elapsed_seconds`.
+- P2: Exponer `elapsed_seconds`. (completado)
 - P3: Cache intradia TTL 15 min.
 
 ### 9) Datos / Persistencia

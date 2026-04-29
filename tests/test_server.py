@@ -122,6 +122,7 @@ class TestGetStatusDetail(unittest.TestCase):
         self.assertEqual(data["status"], "idle")
         self.assertIsNone(data["pid"])
         self.assertIsNone(data["uptime_seconds"])
+        self.assertIsNone(data["elapsed_seconds"])
         self.assertIn("log_tail", data)
         self.assertIn("log_lines", data)
 
@@ -137,6 +138,8 @@ class TestGetStatusDetail(unittest.TestCase):
         self.assertEqual(data["pid"], 12345)
         self.assertIsInstance(data["uptime_seconds"], int)
         self.assertGreaterEqual(data["uptime_seconds"], 0)
+        self.assertIsInstance(data["elapsed_seconds"], int)
+        self.assertGreaterEqual(data["elapsed_seconds"], 0)
 
     def test_error_with_log_present(self):
         server._state["status"] = "error"
@@ -150,6 +153,14 @@ class TestGetStatusDetail(unittest.TestCase):
         self.assertIn("pipeline failed", data["log_tail"])
         self.assertEqual(data["log_lines"], 3)
         self.assertIsNotNone(data["last_log_mtime"])
+        self.assertIsNone(data["elapsed_seconds"])
+
+    def test_done_uses_finished_at_for_elapsed_seconds(self):
+        server._state["status"] = "done"
+        server._state["started_at"] = "2026-04-26 10:00:00"
+        server._state["finished_at"] = "2026-04-26 10:05:30"
+        data = _client.get("/status/detail").json()
+        self.assertEqual(data["elapsed_seconds"], 330)
 
     def test_missing_log_does_not_fail(self):
         server._state["status"] = "done"
