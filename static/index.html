@@ -24,7 +24,9 @@
     .status-panel { display: flex; flex-direction: column; gap: .5rem; }
     .status-row { display: flex; align-items: center; gap: .75rem; font-size: 1rem; }
     #status-icon { font-size: 1.4rem; }
+    #status-label { font-size: .9rem; color: #4b5563; }
     #status-time { font-size: .82rem; color: #888; }
+    .form-alert { margin-top: .75rem; padding: .55rem .65rem; border-radius: 6px; background: #fee2e2; color: #991b1b; font-size: .9rem; display: none; }
     #run-summary { font-size: .9rem; color: #555; margin-bottom: .75rem; }
     #link-report { display: none; margin-top: .5rem; color: #2563eb; font-weight: 600; text-decoration: none; }
     #link-report:hover { text-decoration: underline; }
@@ -104,16 +106,18 @@
       <div id="run-summary"></div>
       <button type="submit" id="btn-run">Generar reporte</button>
       <button type="button" id="btn-cancel">Cancelar corrida</button>
+      <div id="form-alert" class="form-alert" role="alert"></div>
     </form>
   </section>
 
   <section>
     <h2>Estado</h2>
-    <div class="status-panel">
+    <div class="status-panel" aria-live="polite">
       <div class="status-row">
-        <span id="status-icon">&#9898;</span>
+        <span id="status-icon" aria-label="Estado: inactivo">&#9898;</span>
         <span id="status-text">Listo para generar</span>
       </div>
+      <span id="status-label">Estado: inactivo</span>
       <span id="status-time"></span>
       <a id="link-report" href="/reports/real-report.html">Ver reporte -></a>
     </div>
@@ -154,27 +158,42 @@
     function renderStatus(data) {
       const icon = document.getElementById("status-icon");
       const text = document.getElementById("status-text");
+      const label = document.getElementById("status-label");
       const time = document.getElementById("status-time");
       const link = document.getElementById("link-report");
       const btn = document.getElementById("btn-run");
       const btnCancel = document.getElementById("btn-cancel");
 
       const map = {
-        idle: { i: "\u26AA", t: "Listo para generar", ts: "" },
-        running: { i: "\u23F3", t: "Corriendo...", ts: data.started_at || "" },
-        done: { i: "\u2705", t: "Reporte listo", ts: data.finished_at || "" },
-        interrupted: { i: "\u23F9", t: "Corrida cancelada", ts: data.finished_at || "" },
-        error: { i: "\u274C", t: (data.error || "").slice(0, 300), ts: data.finished_at || "" },
+        idle: { i: "\u26AA", t: "Listo para generar", ts: "", a: "inactivo" },
+        running: { i: "\u23F3", t: "Corriendo...", ts: data.started_at || "", a: "en ejecucion" },
+        done: { i: "\u2705", t: "Reporte listo", ts: data.finished_at || "", a: "completado" },
+        interrupted: { i: "\u23F9", t: "Corrida cancelada", ts: data.finished_at || "", a: "interrumpido" },
+        error: { i: "\u274C", t: (data.error || "").slice(0, 300), ts: data.finished_at || "", a: "error" },
       };
 
       const s = map[data.status] || map.idle;
       icon.textContent = s.i;
+      icon.setAttribute("aria-label", `Estado: ${s.a}`);
       text.textContent = s.t;
+      label.textContent = `Estado: ${s.a}`;
       time.textContent = s.ts;
       link.style.display = data.status === "done" ? "block" : "none";
       btn.disabled = data.status === "running";
       btnCancel.style.display = data.status === "running" ? "inline-block" : "none";
       btnCancel.disabled = data.status !== "running";
+    }
+
+    function showFormAlert(message) {
+      const el = document.getElementById("form-alert");
+      el.textContent = message;
+      el.style.display = "block";
+    }
+
+    function clearFormAlert() {
+      const el = document.getElementById("form-alert");
+      el.textContent = "";
+      el.style.display = "none";
     }
 
     function formatArs(value) {
@@ -339,9 +358,10 @@
       const usar_liquidez_iol = document.getElementById("usar_liquidez").checked;
       const aporte_externo_ars = parseFloat(document.getElementById("aporte").value) || 0;
       const btnRun = document.getElementById("btn-run");
+      clearFormAlert();
 
       if (!username || !password) {
-        alert("Usuario y password IOL son obligatorios.");
+        showFormAlert("Usuario y password IOL son obligatorios.");
         return;
       }
 
@@ -372,12 +392,12 @@
       });
 
       if (res.status === 409) {
-        alert("Ya hay un reporte en progreso.");
+        showFormAlert("Ya hay un reporte en progreso.");
         btnRun.disabled = false;
         return;
       }
       if (!res.ok) {
-        alert("No se pudo iniciar la corrida.");
+        showFormAlert("No se pudo iniciar la corrida.");
         btnRun.disabled = false;
         return;
       }
@@ -391,10 +411,10 @@
       try {
         const res = await fetch("/cancel", { method: "POST" });
         if (!res.ok && res.status !== 409) {
-          alert("No se pudo cancelar la corrida.");
+          showFormAlert("No se pudo cancelar la corrida.");
         }
       } catch (_) {
-        alert("No se pudo cancelar la corrida.");
+        showFormAlert("No se pudo cancelar la corrida.");
       }
       startPolling();
     }

@@ -34,6 +34,8 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado item P2 de observabilidad: `LOG_FORMAT=json` opcional para structured logging en `generate_real_report.py`.
 - 2026-04-28: completado item P2 de mantenibilidad/documentacion: nuevo `CONTRIBUTING.md` con setup, convenciones, tests y flujo de PR.
 - 2026-04-28: completado item P2 de documentacion: `docs/decisions/` con ADRs iniciales (subprocess, CSV sin DB, float->Decimal gradual).
+- 2026-04-29: completado item P2 de accesibilidad en UI (`aria-live` en estado, `aria-label` de icono y mensajes de error con `role=\"alert\"`).
+- 2026-04-29: hardening adicional en `/run`: rechazo backend de `username/password` vacios (HTTP 422) para evitar corridas invalidas ante fallos de validacion en frontend/autocompletado.
 
 ## Contexto
 
@@ -257,9 +259,9 @@ Hallazgos:
 
 Roadmap:
 
-- P2: `aria-label` para estado.
-- P2: `aria-live="polite"` en panel.
-- P2: `role="alert"` en errores.
+- P2: `aria-label` para estado. (completado)
+- P2: `aria-live="polite"` en panel. (completado)
+- P2: `role="alert"` en errores. (completado)
 - P3: auditoria WCAG de contraste.
 
 ### 14) Compatibilidad

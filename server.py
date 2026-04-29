@@ -216,6 +216,10 @@ def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JS
     with _lock:
         if _state["status"] == "running":
             raise HTTPException(status_code=409, detail="Ya hay un reporte en progreso.")
+        username = params.username.strip()
+        password = params.password.strip()
+        if not username or not password:
+            raise HTTPException(status_code=422, detail="Usuario y password IOL son obligatorios.")
         liquidity_flag = "--use-iol-liquidity" if params.usar_liquidez_iol else "--no-use-iol-liquidity"
         cmd = [
             sys.executable,
@@ -225,8 +229,6 @@ def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JS
             "--aporte-externo-ars",
             str(params.aporte_externo_ars),
         ]
-        username = params.username.strip()
-        password = params.password.strip()
         child_env = os.environ.copy()
         if username:
             child_env["IOL_USERNAME"] = username

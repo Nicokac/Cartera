@@ -47,6 +47,8 @@ Privacidad:
   `Fase <nombre>: <seg>s`, util para soporte y diagnostico.
 - En instalaciones tecnicas, se puede activar formato JSON del log
   definiendo `LOG_FORMAT=json`.
+- La interfaz anuncia cambios de estado y errores con mejoras de
+  accesibilidad para lectores de pantalla.
 
 
 SECCIONES DEL REPORTE
@@ -145,6 +147,7 @@ Una operacion aparece en "Operaciones" pero no en "Cartera"
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,
   volver a intentar en la app.
+  Si quedan vacios, la app rechaza la corrida antes de ejecutarla.
 
 
 SOPORTE

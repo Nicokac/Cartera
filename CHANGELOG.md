@@ -86,6 +86,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   `Render y persistencia`) con formato `Fase <nombre>: <seg>s`
 - `scripts/generate_real_report.py`: `configure_logging()` ahora selecciona
   formato texto o JSON segun `LOG_FORMAT`
+- `static/index.html`: mejoras de accesibilidad en UI local:
+  - panel de estado con `aria-live="polite"`
+  - icono de estado con `aria-label` descriptivo
+  - mensajes de error de formulario/corrida en contenedor con `role="alert"`
+- `server.py`: `POST /run` ahora rechaza `username/password` vacios con `422`
+  antes de lanzar subprocess (defensa en profundidad)
 
 ### Testing
 
@@ -107,6 +113,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   para validar emision de log de duracion por fase
 - `tests/test_generate_real_report.py`: nuevos tests de `configure_logging()`
   para modo texto default, modo JSON y escenario no-op con handlers existentes
+- `tests/test_server.py`: nuevos tests para rechazo `422` cuando `username` o
+  `password` llegan vacios/blancos en `POST /run`
 
 ### Security
 
