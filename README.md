@@ -191,6 +191,8 @@ Flujo del formulario local:
 - en estado `error` muestra link `Ver log completo` hacia `/status/detail`
 
 Health check: `http://127.0.0.1:8000/health`.
+Documentacion interactiva de API: `http://127.0.0.1:8000/docs`.
+Esquema OpenAPI: `http://127.0.0.1:8000/openapi.json`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.
 `/status/detail` filtra credenciales sensibles en `error` y `log_tail` (`IOL_USERNAME`, `IOL_PASSWORD`, `username`, `password`).
 `/status/detail` expone `log_tail` ampliado, `log_lines` y `elapsed_seconds` para diagnostico rapido.

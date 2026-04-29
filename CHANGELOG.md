@@ -47,6 +47,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `ADR-0003` migracion gradual de `float` a `Decimal` para montos
 - `docs/instrument-onboarding-checklist.md`: checklist formal para alta de
   instrumentos (taxonomia, mappings, validacion funcional, tests y cierre documental)
+- `README.md`: referencia explicita a docs de API local de FastAPI:
+  - `/docs`
+  - `/openapi.json`
 
 ### Changed
 

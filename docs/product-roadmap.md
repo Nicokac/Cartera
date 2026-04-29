@@ -41,6 +41,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: fix de estabilidad CI: `server.py` asegura creacion de `reports/` antes del mount de archivos estaticos.
 - 2026-04-29: `ubuntu-latest` en CI tambien queda temporalmente desactivado y marcado como deuda tecnica pendiente para no bloquear entregas.
 - 2026-04-29: completado item P2 de escalabilidad/documentacion: checklist formal de alta de instrumento (`docs/instrument-onboarding-checklist.md`).
+- 2026-04-29: completado item P1 de documentacion API: README referencia `/docs` y `/openapi.json` de FastAPI.
 
 ## Contexto
 
@@ -314,7 +315,7 @@ Hallazgos:
 
 Roadmap:
 
-- P1: Referenciar `/docs` y `/openapi.json` en README.
+- P1: Referenciar `/docs` y `/openapi.json` en README. (completado)
 - P2: `CONTRIBUTING.md`. (completado)
 - P2: ADRs minimos. (completado)
 - P3: diagrama Mermaid de arquitectura.
