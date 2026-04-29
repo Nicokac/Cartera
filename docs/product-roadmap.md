@@ -37,6 +37,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de accesibilidad en UI (`aria-live` en estado, `aria-label` de icono y mensajes de error con `role=\"alert\"`).
 - 2026-04-29: hardening adicional en `/run`: rechazo backend de `username/password` vacios (HTTP 422) para evitar corridas invalidas ante fallos de validacion en frontend/autocompletado.
 - 2026-04-29: completados pendientes UX: tooltip explicativo en `Aporte externo ARS` y link `Ver log completo` cuando el estado es `error`.
+- 2026-04-29: completado item P2 de DevOps: matriz CI extendida a `ubuntu-latest` + `macos-latest`.
 
 ## Contexto
 
@@ -212,7 +213,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Script de release (version + tag + build).
-- P2: Agregar `macos-latest` a matriz CI.
+- P2: Agregar `macos-latest` a matriz CI. (completado)
 - P3: Dockerfile para dev/testing.
 
 ### 11) Mantenibilidad

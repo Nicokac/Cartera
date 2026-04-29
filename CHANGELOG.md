@@ -95,6 +95,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - link `Ver log completo` visible cuando estado es `error` (abre `/status/detail`)
 - `server.py`: `POST /run` ahora rechaza `username/password` vacios con `422`
   antes de lanzar subprocess (defensa en profundidad)
+- `.github/workflows/ci.yml`: job de `unittest` pasa a matriz de OS
+  (`ubuntu-latest`, `macos-latest`)
 
 ### Testing
 
