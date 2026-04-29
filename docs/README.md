@@ -12,6 +12,7 @@ Indice de la documentacion activa del proyecto.
 - [report-ux-architecture.md](report-ux-architecture.md)
 - [asset-taxonomy.md](asset-taxonomy.md)
 - [repo-cleanup-map.md](repo-cleanup-map.md)
+- [decisions/README.md](decisions/README.md)
 
 ## Soporte operativo
 

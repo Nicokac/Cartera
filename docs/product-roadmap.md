@@ -33,6 +33,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-28: completado item P2 de observabilidad: log de tiempos por fase en `generate_real_report.py` (formato `Fase <nombre>: <seg>s`).
 - 2026-04-28: completado item P2 de observabilidad: `LOG_FORMAT=json` opcional para structured logging en `generate_real_report.py`.
 - 2026-04-28: completado item P2 de mantenibilidad/documentacion: nuevo `CONTRIBUTING.md` con setup, convenciones, tests y flujo de PR.
+- 2026-04-28: completado item P2 de documentacion: `docs/decisions/` con ADRs iniciales (subprocess, CSV sin DB, float->Decimal gradual).
 
 ## Contexto
 
@@ -223,7 +224,7 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Crear `docs/decisions/` con ADRs base.
+- P2: Crear `docs/decisions/` con ADRs base. (completado)
 - P2: Crear `CONTRIBUTING.md`. (completado)
 - P2: Refactor `apply_base_scores`.
 
@@ -308,7 +309,7 @@ Roadmap:
 
 - P1: Referenciar `/docs` y `/openapi.json` en README.
 - P2: `CONTRIBUTING.md`. (completado)
-- P2: ADRs minimos.
+- P2: ADRs minimos. (completado)
 - P3: diagrama Mermaid de arquitectura.
 
 ### 17) Integraciones

@@ -41,6 +41,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - convenciones de codigo
   - estrategia de testing por area
   - flujo sugerido de PR y mantenimiento de docs/changelog
+- ADRs iniciales en `docs/decisions/`:
+  - `ADR-0001` runner en subprocess
+  - `ADR-0002` persistencia operativa en CSV (sin DB por ahora)
+  - `ADR-0003` migracion gradual de `float` a `Decimal` para montos
 
 ### Changed
 

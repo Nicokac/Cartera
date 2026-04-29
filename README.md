@@ -37,6 +37,7 @@ Resumen funcional vigente:
 
 - [baseline-actual.md](docs/baseline-actual.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+- [ADRs de arquitectura](docs/decisions/README.md)
 
 ## Estructura
 
