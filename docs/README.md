@@ -48,6 +48,24 @@ Indice de la documentacion activa del proyecto.
 - si una deuda tecnica ya fue cerrada en codigo y tests, no debe seguir figurando como backlog activo
 - si un doc historico sigue siendo util solo por trazabilidad, debe vivir en `docs/archive/`
 
+## Diagrama de arquitectura
+
+```mermaid
+flowchart LR
+    UI["UI local<br/>static/index.html"] --> API["FastAPI<br/>server.py"]
+    API --> RUNNER["Runner real<br/>scripts/generate_real_report.py"]
+    RUNNER --> PIPE["Pipeline<br/>src/pipeline.py"]
+    PIPE --> DEC["Decision & Sizing<br/>src/decision/*"]
+    PIPE --> PRED["Prediction<br/>src/prediction/*"]
+    PIPE --> RENDER["Renderer HTML<br/>src/report_renderer.py"]
+
+    RUNNER --> EXT["APIs externas<br/>IOL/BCRA/FRED/Finviz/Bonistas"]
+    RUNNER --> RUNTIME["Runtime CSV/JSON<br/>data/runtime/*"]
+    RUNTIME --> BACKUP["Backups diarios<br/>data/backups/YYYY-MM-DD/*"]
+    RENDER --> REPORTS["Reportes HTML<br/>reports/*.html"]
+    API --> REPORTS
+```
+
 ## Historico
 
 `docs/archive/` guarda roadmaps absorbidos, auditorias cerradas y notas historicas. No es punto de entrada operativo y no debe tomarse como estado actual salvo que se lo consulte por trazabilidad.
