@@ -81,6 +81,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental en `apply_base_scores` extrayendo ajustes efectivos de ETF/calidad a helper dedicado (`_apply_etf_effective_scores`) sin cambios funcionales.
 - 2026-04-30: mejora de compatibilidad FastAPI: migracion de startup a `lifespan` en `server.py` (se elimina uso de `@app.on_event("startup")` deprecado, manteniendo `on_startup()` como helper de compatibilidad para tests).
 - 2026-04-30: hardening UX/operabilidad en errores de corrida: `server.py` resume fallas de autenticacion IOL (`401 /token`) con mensaje amigable en `status/error` y deja traceback completo en `log_tail` para diagnostico.
+- 2026-04-30: hardening de CI en GitHub Actions: workflow `unittest` fuerza runtime Node 24 para acciones JavaScript (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`) y evita dependencia en Node 20 deprecado.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -156,6 +157,9 @@ Prueba de cierre (si aplica):
 - correr una corrida con password IOL invalida y validar en `/status/detail`:
   - `error = "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente."`
   - `log_tail` conserva el traceback tecnico completo para soporte
+- disparar un run de CI en GitHub Actions y validar:
+  - job `unittest` ejecuta normalmente en `ubuntu-latest` y `macos-latest`
+  - ya no aparece el warning de deprecacion por acciones en Node 20
 
 ## Contexto
 

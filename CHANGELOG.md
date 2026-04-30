@@ -233,6 +233,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - cuando IOL responde `401 Unauthorized` en `/token`, `status/error`
     ahora devuelve mensaje amigable de credenciales invalidas
   - el traceback tecnico completo se conserva en `log_tail` de `/status/detail`
+- `.github/workflows/ci.yml`: job `unittest` ahora fuerza Node 24 para
+  acciones JavaScript (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`) para evitar
+  la deprecacion operativa de Node 20 en runners de GitHub Actions
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

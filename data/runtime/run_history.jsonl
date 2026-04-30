@@ -74,3 +74,5 @@
 {"status": "error", "started_at": null, "finished_at": "2026-04-30 13:26:38", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente."}
 {"status": "error", "started_at": null, "finished_at": "2026-04-30 13:26:38", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
 {"status": "interrupted", "started_at": null, "finished_at": "2026-04-30 13:26:38", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}
+{"status": "error", "started_at": "2026-04-30 13:40:24", "finished_at": "2026-04-30 13:40:27", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente."}
+{"status": "done", "started_at": "2026-04-30 13:41:32", "finished_at": "2026-04-30 13:42:47", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": ""}
