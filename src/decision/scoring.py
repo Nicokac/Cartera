@@ -563,6 +563,57 @@ def _apply_reduccion_score(
     return out
 
 
+def _apply_etf_effective_scores(
+    out: pd.DataFrame,
+    *,
+    rank_neutral: float,
+    etf_adjustments: dict[str, object],
+) -> pd.DataFrame:
+    etf_quality_floor = float(etf_adjustments.get("quality_floor", rank_neutral))
+    etf_pe_discount = float(etf_adjustments.get("pe_expensive_discount", 1.0))
+    etf_low_quality_discount = float(etf_adjustments.get("low_quality_discount", 1.0))
+    etf_concentration_discount = float(etf_adjustments.get("concentration_pressure_discount", 1.0))
+    core_concentration_discount = float(etf_adjustments.get("core_concentration_pressure_discount", 1.0))
+    core_momentum_discount = float(etf_adjustments.get("core_momentum_reduccion_discount", 1.0))
+
+    out["s_quality_effective"] = np.where(
+        out["Es_ETF"],
+        np.maximum(out["s_quality"], etf_quality_floor),
+        out["s_quality"],
+    )
+    out["has_quality_data"] = out[["ROE", "Profit Margin"]].notna().any(axis=1)
+    out["has_valuation_data"] = out["P/E"].notna()
+    out["has_ratings_data"] = out.get("total_ratings", pd.Series(index=out.index, dtype=float)).fillna(0) > 0
+    out["has_fundamental_support"] = out["has_quality_data"] | out["has_valuation_data"] | out["has_ratings_data"]
+    out["s_low_quality_effective"] = 1 - out["s_quality_effective"]
+    out["s_pe_expensive_effective"] = np.where(
+        out["Es_ETF"],
+        rank_neutral + (out["s_pe_expensive"] - rank_neutral) * etf_pe_discount,
+        out["s_pe_expensive"],
+    )
+    out["s_low_quality_effective"] = np.where(
+        out["Es_ETF"],
+        rank_neutral + (out["s_low_quality_effective"] - rank_neutral) * etf_low_quality_discount,
+        out["s_low_quality_effective"],
+    )
+    out["s_concentration_pressure_effective"] = np.where(
+        out["Es_ETF"],
+        out["s_concentration_pressure"] * etf_concentration_discount,
+        out["s_concentration_pressure"],
+    )
+    out["s_concentration_pressure_effective"] = np.where(
+        out["Es_Core_ETF"],
+        out["s_concentration_pressure_effective"] * core_concentration_discount,
+        out["s_concentration_pressure_effective"],
+    )
+    out["Momentum_Reduccion_Effective"] = np.where(
+        out["Es_Core_ETF"],
+        out["Momentum_Reduccion"] * core_momentum_discount,
+        out["Momentum_Reduccion"],
+    )
+    return out
+
+
 def apply_base_scores(
     decision: pd.DataFrame,
     *,
@@ -612,46 +663,10 @@ def apply_base_scores(
         mom_month=mom_month,
         mom_ytd=mom_ytd,
     )
-    etf_quality_floor = float(etf_adjustments.get("quality_floor", rank_neutral))
-    etf_pe_discount = float(etf_adjustments.get("pe_expensive_discount", 1.0))
-    etf_low_quality_discount = float(etf_adjustments.get("low_quality_discount", 1.0))
-    etf_concentration_discount = float(etf_adjustments.get("concentration_pressure_discount", 1.0))
-    core_concentration_discount = float(etf_adjustments.get("core_concentration_pressure_discount", 1.0))
-    core_momentum_discount = float(etf_adjustments.get("core_momentum_reduccion_discount", 1.0))
-    out["s_quality_effective"] = np.where(
-        out["Es_ETF"],
-        np.maximum(out["s_quality"], etf_quality_floor),
-        out["s_quality"],
-    )
-    out["has_quality_data"] = out[["ROE", "Profit Margin"]].notna().any(axis=1)
-    out["has_valuation_data"] = out["P/E"].notna()
-    out["has_ratings_data"] = out.get("total_ratings", pd.Series(index=out.index, dtype=float)).fillna(0) > 0
-    out["has_fundamental_support"] = out["has_quality_data"] | out["has_valuation_data"] | out["has_ratings_data"]
-    out["s_low_quality_effective"] = 1 - out["s_quality_effective"]
-    out["s_pe_expensive_effective"] = np.where(
-        out["Es_ETF"],
-        rank_neutral + (out["s_pe_expensive"] - rank_neutral) * etf_pe_discount,
-        out["s_pe_expensive"],
-    )
-    out["s_low_quality_effective"] = np.where(
-        out["Es_ETF"],
-        rank_neutral + (out["s_low_quality_effective"] - rank_neutral) * etf_low_quality_discount,
-        out["s_low_quality_effective"],
-    )
-    out["s_concentration_pressure_effective"] = np.where(
-        out["Es_ETF"],
-        out["s_concentration_pressure"] * etf_concentration_discount,
-        out["s_concentration_pressure"],
-    )
-    out["s_concentration_pressure_effective"] = np.where(
-        out["Es_Core_ETF"],
-        out["s_concentration_pressure_effective"] * core_concentration_discount,
-        out["s_concentration_pressure_effective"],
-    )
-    out["Momentum_Reduccion_Effective"] = np.where(
-        out["Es_Core_ETF"],
-        out["Momentum_Reduccion"] * core_momentum_discount,
-        out["Momentum_Reduccion"],
+    out = _apply_etf_effective_scores(
+        out,
+        rank_neutral=rank_neutral,
+        etf_adjustments=etf_adjustments,
     )
 
     out = _apply_refuerzo_score(

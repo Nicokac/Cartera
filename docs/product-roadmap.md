@@ -78,6 +78,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: completado item P2 de DevOps CI: matriz `ubuntu-latest` + `macos-latest` vuelve a modo bloqueante (sin `continue-on-error` por SO).
 - 2026-04-30: hotfix CI: `pyproject.toml` normalizado a UTF-8 sin BOM para compatibilidad con parser de `coverage` en GitHub Actions.
 - 2026-04-30: avance P2 de DevOps/CI: se reactiva ejecucion de tests en `ubuntu-latest` y se incorpora `macos-latest` en modo best-effort (`continue-on-error`) para recuperar visibilidad sin bloquear entregas.
+- 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental en `apply_base_scores` extrayendo ajustes efectivos de ETF/calidad a helper dedicado (`_apply_etf_effective_scores`) sin cambios funcionales.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -146,6 +147,8 @@ Prueba de cierre (si aplica):
 - validar en `Predicción`:
   - KPI `Coincidencia clasificador B`
   - valores persistidos de `classifier_b_direction`, `classifier_b_confidence`, `classifier_b_agrees` en historial de predicción
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- ejecutar una corrida y validar que el ranking/acciones sugeridas de `score_refuerzo` y `score_reduccion` se mantiene estable para el mismo input (control de no regresión del refactor)
 
 ## Contexto
 

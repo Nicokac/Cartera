@@ -221,6 +221,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     `HttpGetProtocol` y `HttpRequestProtocol`
   - `src/clients/iol.py` y `src/clients/bcra.py` adoptan estos contratos
     en helpers de retry sin cambios funcionales
+- refactor incremental adicional en `src/decision/scoring.py`:
+  - `apply_base_scores` extrae ajustes efectivos de ETF/calidad a helper
+    `_apply_etf_effective_scores`
+  - sin cambios funcionales en reglas de scoring
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
