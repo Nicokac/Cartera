@@ -11,6 +11,7 @@ Indice de la documentacion activa del proyecto.
 - [prediction-engine-history.md](prediction-engine-history.md)
 - [report-ux-architecture.md](report-ux-architecture.md)
 - [asset-taxonomy.md](asset-taxonomy.md)
+- [browser-support.md](browser-support.md)
 - [instrument-onboarding-checklist.md](instrument-onboarding-checklist.md)
 - [repo-cleanup-map.md](repo-cleanup-map.md)
 - [decisions/README.md](decisions/README.md)
@@ -32,6 +33,7 @@ Indice de la documentacion activa del proyecto.
 - `prediction-engine-history.md`: bitacora de implementacion y cambios por fase del motor de prediccion
 - `report-ux-architecture.md`: arquitectura vigente del reporte ya modularizado y criterio de evolucion visual
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
+- `browser-support.md`: matriz oficial de navegadores/OS soportados para app local y reporte
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos
 - `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
 - `repo-cleanup-map.md`: inventario de candidatos a borrado y condiciones
