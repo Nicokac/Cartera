@@ -150,6 +150,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nueva funcion `apply_decision_history_retention()` en `src/decision/history.py`
   - default de 365 dias (`DECISION_HISTORY_RETENTION_DAYS`)
   - aplicada en `scripts/generate_real_report.py`
+- accesibilidad de tablas del reporte:
+  - encabezados `th` ahora incluyen `scope=\"col\"` en tablas renderizadas
+  - aplicado en decision table, prediction signal table y primitivas de tablas
 
 ### Testing
 
@@ -194,6 +197,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   (apertura por fallas consecutivas y retry despues de cooldown)
 - `tests/test_decision_history.py`: nuevos tests de retencion de decision history
 - `tests/test_generate_real_report.py`: nuevo test de aplicacion de retencion en flujo real
+- `tests/test_report_primitives.py` y `tests/test_report_sections_prediction.py`:
+  cobertura de headers con `scope=\"col\"`
 
 ### Security
 

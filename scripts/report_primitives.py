@@ -266,7 +266,7 @@ def build_table(
         return '<div class="empty">Sin datos para mostrar.</div>'
 
     formatters = formatters or {}
-    headers = "".join(f"<th>{html.escape(str(col))}</th>" for col in df.columns)
+    headers = "".join(f'<th scope="col">{html.escape(str(col))}</th>' for col in df.columns)
     rows = []
     for _, row in df.iterrows():
         cells = []
@@ -441,13 +441,13 @@ def build_technical_table(df: pd.DataFrame, *, price_history: dict | None = None
         "Peso_%",
     }
     has_sparks = bool(price_history)
-    spark_th = "<th>Spark</th>" if has_sparks else ""
+    spark_th = '<th scope="col">Spark</th>' if has_sparks else ""
 
     def _sec(col: str) -> str:
         return ' class="col-secondary"' if col in _SECONDARY_TECH_COLS else ""
 
     col_ths = "".join(
-        f'<th{_sec(col)}>{html.escape(column_labels.get(col, str(col)))}</th>'
+        f'<th scope="col"{_sec(col)}>{html.escape(column_labels.get(col, str(col)))}</th>'
         for col in df.columns
     )
     headers = spark_th + col_ths

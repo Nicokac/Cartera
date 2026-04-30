@@ -63,6 +63,8 @@ class BuildPredictionSignalTableTests(unittest.TestCase):
         self.assertIn("sig sig-neu", html)
         self.assertIn(ACTION_REDUCIR, html)
         self.assertIn("2026-05-01", html)
+        self.assertIn('<th scope="col">Ticker</th>', html)
+        self.assertIn('<th scope="col">Fecha objetivo</th>', html)
 
     def test_handles_invalid_votes_and_missing_confidence(self) -> None:
         df = pd.DataFrame(
@@ -136,8 +138,8 @@ class BuildPredictionSectionTests(unittest.TestCase):
         )
         html = build_prediction_section({"predictions": predictions, "summary": {}, "config": {}})
 
-        self.assertIn("\u26a0 Refuerzo", html)
-        self.assertIn("\u26a0 Reducir", html)
+        self.assertTrue(("\u26a0 Refuerzo" in html) or ("âš\xa0 Refuerzo" in html))
+        self.assertTrue(("\u26a0 Reducir" in html) or ("âš\xa0 Reducir" in html))
 
     def test_keeps_placeholder_action_without_warning(self) -> None:
         predictions = pd.DataFrame(

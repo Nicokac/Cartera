@@ -42,8 +42,8 @@ class ReportPrimitivesTests(unittest.TestCase):
     def test_build_table_returns_html_with_headers(self) -> None:
         html = build_table(pd.DataFrame([{"Ticker": "GOOGL", "Monto": "$1,000"}]))
 
-        self.assertIn("<th>Ticker</th>", html)
-        self.assertIn("<th>Monto</th>", html)
+        self.assertIn('<th scope="col">Ticker</th>', html)
+        self.assertIn('<th scope="col">Monto</th>', html)
         self.assertIn("<td>GOOGL</td>", html)
         self.assertIn("<td>$1,000</td>", html)
 

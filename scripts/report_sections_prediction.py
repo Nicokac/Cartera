@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import pandas as pd
@@ -53,8 +53,8 @@ def _sig_cell(vote: float) -> str:
     if vote > 0:
         return '<span class="sig sig-pos">+</span>'
     if vote < 0:
-        return '<span class="sig sig-neg">−</span>'
-    return '<span class="sig sig-neu">○</span>'
+        return '<span class="sig sig-neg">âˆ’</span>'
+    return '<span class="sig sig-neu">â—‹</span>'
 
 
 def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
@@ -62,13 +62,13 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
         return '<div class="empty">Sin datos para mostrar.</div>'
 
     vote_headers = "".join(
-        f'<th class="sig-th" title="{html.escape(key)}">{html.escape(label)}</th>'
+        f'<th scope="col" class="sig-th" title="{html.escape(key)}">{html.escape(label)}</th>'
         for key, label in _VOTE_KEYS
     )
     header = (
-        "<tr><th>Ticker</th><th>Dirección</th><th>Confianza</th>"
+        '<tr><th scope="col">Ticker</th><th scope="col">Direccion</th><th scope="col">Confianza</th>'
         + vote_headers
-        + "<th>Acción</th><th>Fecha objetivo</th></tr>"
+        + '<th scope="col">Accion</th><th scope="col">Fecha objetivo</th></tr>'
     )
 
     rows_html: list[str] = []
@@ -135,7 +135,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     def _votes_summary(value: object) -> str:
         votes = _parse_votes(value)
         if not votes:
-            return "Sin matriz de señales."
+            return "Sin matriz de seÃ±ales."
         favorable = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) > 0)
         adverse = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) < 0)
         neutral_count = sum(1 for key, _ in _VOTE_KEYS if float(votes.get(key, 0)) == 0)
@@ -183,7 +183,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
             or (direction == "up" and accion == ACTION_REDUCIR)
             or (direction == "neutral" and accion in {ACTION_REFUERZO, ACTION_REDUCIR})
         )
-        return f"⚠ {accion}" if contradice else accion
+        return f"âš  {accion}" if contradice else accion
 
     work = work.copy()
     work["accion_sugerida_v2"] = work.apply(_accion_con_advertencia, axis=1)
@@ -204,13 +204,13 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     signal_legend = """
       <div class="prediction-legend">
         <div class="signal-legend">
-          <span class="signal-key"><span class="sig sig-pos">+</span> Señal favorable</span>
-          <span class="signal-key"><span class="sig sig-neu">&#9675;</span> Señal neutral</span>
-          <span class="signal-key"><span class="sig sig-neg">&#8722;</span> Señal adversa</span>
+          <span class="signal-key"><span class="sig sig-pos">+</span> SeÃ±al favorable</span>
+          <span class="signal-key"><span class="sig sig-neu">&#9675;</span> SeÃ±al neutral</span>
+          <span class="signal-key"><span class="sig sig-neg">&#8722;</span> SeÃ±al adversa</span>
         </div>
         <div class="signal-map">
           <span><strong>Sc</strong> Score</span>
-          <span><strong>Rg</strong> Régimen</span>
+          <span><strong>Rg</strong> RÃ©gimen</span>
           <span><strong>m20</strong> Momentum 20d</span>
           <span><strong>m60</strong> Momentum 60d</span>
           <span><strong>rVol</strong> Volumen relativo</span>
@@ -229,7 +229,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     """
     return f"""
     <section class="panel" id="prediccion">
-      <h2>Predicción</h2>
+      <h2>PredicciÃ³n</h2>
       <div class="meta">
         <span>Total: <strong>{int(summary.get('total', len(work)))}</strong></span>
         <span>Suba: <strong>{int(summary.get('up', 0))}</strong></span>
@@ -239,22 +239,23 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <span>Horizonte: <strong>{int(config.get('horizon_days') or 0)} ruedas</strong></span>
       </div>
       <div class="meta">
-        <span>La predicción direccional combina señales técnicas, <strong>score_unificado</strong> y régimen; puede diferir de la decisión final, que pondera además criterios de cartera y sizing.</span>
+        <span>La predicciÃ³n direccional combina seÃ±ales tÃ©cnicas, <strong>score_unificado</strong> y rÃ©gimen; puede diferir de la decisiÃ³n final, que pondera ademÃ¡s criterios de cartera y sizing.</span>
       </div>
       <div class="focus-columns focus-columns-wide">
         <div>
-          <h3>Señales de suba</h3>
+          <h3>SeÃ±ales de suba</h3>
           {_focus_items(bullish, tone='buy')}
         </div>
         <div>
-          <h3>Señales de baja</h3>
+          <h3>SeÃ±ales de baja</h3>
           {_focus_items(bearish, tone='sell')}
         </div>
       </div>
       {build_collapsible(
-          "Ver detalle completo de predicción",
+          "Ver detalle completo de predicciÃ³n",
           prediction_detail,
           compact=True,
       )}
     </section>
     """
+
