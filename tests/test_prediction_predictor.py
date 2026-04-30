@@ -57,6 +57,9 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertGreater(result["net_strength"], 0.15)
         self.assertGreater(result["votes"]["rsi"], 0)
         self.assertEqual(result["votes"]["market_regime"], 1)
+        self.assertIn("classifier_b_direction", result)
+        self.assertIn("classifier_b_confidence", result)
+        self.assertIn("classifier_b_agrees", result)
 
     def test_predict_returns_down_with_bearish_consensus(self) -> None:
         row = {
@@ -287,6 +290,7 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(result["votes"]["market_regime"], 0)
         self.assertEqual(result["votes"]["adx"], 0)
         self.assertEqual(result["votes"]["relative_volume"], 0)
+        self.assertEqual(result["classifier_b_direction"], "neutral")
 
     def test_vote_signal_uses_centered_thresholds_for_score_unificado_scale(self) -> None:
         signal_cfg = self.weights["signals"]["score_unificado"]

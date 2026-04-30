@@ -74,6 +74,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de Dimension 19: tablero de preparacion para calibracion por `asset_family` (conteos `up/down/neutral` y estado `Lista/Pendiente` con umbral 30 por senal).
 - 2026-04-30: avance P3 de Dimension 19: calibracion por `asset_family` implementada en modo opt-in (`calibration.family_enabled`) con `family_overrides` por señal y gating por umbral de muestra.
 - 2026-04-30: avance P3 de Dimension 19: soporte multi-horizonte en metricas historicas de Prediccion (`Acierto por horizonte` usando `horizon_days`).
+- 2026-04-30: avance P3 de Dimension 19: opcion B de clasificador sobre `signal_votes` integrada en modo experimental (sin reemplazar direccion principal).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -139,6 +140,9 @@ Prueba de cierre (si aplica):
 - validar en `Predicción` el bloque `Acierto por horizonte`:
   - muestra precisión por `horizon_days` (ej. `5 ruedas`, `10 ruedas`)
   - conserva consistencia con el horizonte configurado de corrida
+- validar en `Predicción`:
+  - KPI `Coincidencia clasificador B`
+  - valores persistidos de `classifier_b_direction`, `classifier_b_confidence`, `classifier_b_agrees` en historial de predicción
 
 ## Contexto
 

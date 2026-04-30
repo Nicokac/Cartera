@@ -327,6 +327,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <span>Baja: <strong>{int(summary.get('down', 0))}</strong></span>
         <span>Neutral: <strong>{int(summary.get('neutral', 0))}</strong></span>
         <span>Confianza media: <strong>{fmt_pct(float(summary.get('mean_confidence', 0.0)) * 100.0)}</strong></span>
+        <span>Coincidencia clasificador B: <strong>{fmt_pct(summary.get('classifier_b_agreement_pct'))}</strong></span>
         <span>Horizonte: <strong>{int(config.get('horizon_days') or 0)} ruedas</strong></span>
       </div>
       <div class="meta">

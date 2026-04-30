@@ -246,6 +246,9 @@ def build_prediction_bundle(
                 "agreement_ratio",
                 "net_strength",
                 "signal_votes",
+                "classifier_b_direction",
+                "classifier_b_confidence",
+                "classifier_b_agrees",
                 "horizon_days",
                 "outcome_date",
                 "asset_family",
@@ -304,6 +307,9 @@ def build_prediction_bundle(
                 "agreement_ratio": prediction.get("agreement_ratio"),
                 "net_strength": prediction.get("net_strength"),
                 "signal_votes": prediction["votes"],
+                "classifier_b_direction": prediction.get("classifier_b_direction", "neutral"),
+                "classifier_b_confidence": prediction.get("classifier_b_confidence", 0.0),
+                "classifier_b_agrees": prediction.get("classifier_b_agrees", True),
                 "horizon_days": horizon_days,
                 "outcome_date": resolve_prediction_outcome_date(run_date, horizon_days=horizon_days),
                 "asset_family": row.get("asset_family"),
@@ -336,6 +342,11 @@ def build_prediction_bundle(
         if not predictions.empty
         else 0.0
     )
+    classifier_b_agreement_pct = (
+        float(pd.to_numeric(predictions.get("classifier_b_agrees"), errors="coerce").fillna(0.0).mean() * 100.0)
+        if not predictions.empty
+        else 0.0
+    )
     return {
         "predictions": predictions,
         "history_observation": history_observation,
@@ -346,6 +357,7 @@ def build_prediction_bundle(
             "neutral": int(direction_counts.get("neutral", 0)),
             "mean_confidence": round(mean_confidence, 6),
             "mean_agreement_ratio": round(mean_agreement_ratio, 6),
+            "classifier_b_agreement_pct": round(classifier_b_agreement_pct, 2),
         },
         "config": {
             "horizon_days": horizon_days,

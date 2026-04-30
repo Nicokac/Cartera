@@ -113,6 +113,7 @@ class BuildPredictionSectionTests(unittest.TestCase):
                     "down": 1,
                     "neutral": 1,
                     "mean_confidence": 0.30,
+                    "classifier_b_agreement_pct": 66.67,
                 },
                 "config": {"horizon_days": 10},
                 "accuracy": {
@@ -142,6 +143,7 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("Baja: <strong>1</strong>", html)
         self.assertIn("Neutral: <strong>1</strong>", html)
         self.assertIn("30.00%", html)
+        self.assertIn("66.67%", html)
         self.assertIn("10 ruedas", html)
         self.assertIn("Se", html)
         self.assertIn("signal-table", html)

@@ -81,6 +81,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `generate_real_report.py` agrega `by_horizon` en métricas de accuracy
   - `report_sections_prediction.py` muestra bloque `Acierto por horizonte`
   - permite comparar precisión histórica por `horizon_days`
+- clasificador B experimental sobre `signal_votes`:
+  - `prediction.predictor` agrega salida alternativa (`classifier_b_direction`, `classifier_b_confidence`, `classifier_b_agrees`)
+  - `pipeline` y `prediction_store` persisten métricas del clasificador B
+  - `report_sections_prediction.py` expone KPI `Coincidencia clasificador B`
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 

@@ -371,6 +371,24 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
     else:
         direction = "neutral"
 
+    classifier_b_cfg = weights.get("classifier_b", {}) or {}
+    classifier_b_enabled = bool(classifier_b_cfg.get("enabled", True))
+    classifier_b_threshold = float(classifier_b_cfg.get("direction_threshold", direction_threshold))
+    classifier_b_score = 0.0
+    classifier_b_direction = "neutral"
+    classifier_b_confidence = 0.0
+    classifier_b_agrees = True
+    if classifier_b_enabled and votes:
+        classifier_b_score = sum(float(v) for v in votes.values()) / float(len(votes))
+        classifier_b_confidence = abs(classifier_b_score)
+        if classifier_b_score > classifier_b_threshold:
+            classifier_b_direction = "up"
+        elif classifier_b_score < (-1 * classifier_b_threshold):
+            classifier_b_direction = "down"
+        else:
+            classifier_b_direction = "neutral"
+        classifier_b_agrees = classifier_b_direction == direction
+
     return {
         "direction": direction,
         "confidence": round(confidence, 6),
@@ -379,4 +397,8 @@ def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
         "agreement_ratio": round(agreement_ratio, 6),
         "net_strength": round(net_strength, 6),
         "votes": votes,
+        "classifier_b_direction": classifier_b_direction,
+        "classifier_b_score": round(classifier_b_score, 6),
+        "classifier_b_confidence": round(classifier_b_confidence, 6),
+        "classifier_b_agrees": bool(classifier_b_agrees),
     }

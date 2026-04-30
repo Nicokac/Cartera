@@ -56,6 +56,9 @@ class PredictionStoreTests(unittest.TestCase):
         self.assertEqual(observation.loc[1, "direction"], "neutral")
         self.assertEqual(observation.loc[1, "signal_votes"], "{}")
         self.assertEqual(json.loads(observation.loc[0, "signal_votes"]), {"momentum_20d": 1, "rsi": 1, "sma_trend": -1})
+        self.assertIn("classifier_b_direction", observation.columns)
+        self.assertIn("classifier_b_confidence", observation.columns)
+        self.assertIn("classifier_b_agrees", observation.columns)
 
     def test_upsert_prediction_history_replaces_same_run_ticker_and_horizon(self) -> None:
         history = pd.DataFrame(

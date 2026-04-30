@@ -184,6 +184,8 @@ Como leer "Acierto historico" en Prediccion
   alterar el comportamiento base hasta que la muestra sea robusta.
   "Acierto por horizonte" resume precision historica por plazo de prediccion
   (`horizon_days`), por ejemplo 5 ruedas vs 10 ruedas.
+  "Coincidencia clasificador B" muestra cuanto coincide un clasificador
+  alternativo (basado solo en `signal_votes`) con la direccion principal.
 
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,
