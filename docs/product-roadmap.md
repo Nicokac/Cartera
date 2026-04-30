@@ -101,6 +101,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de testing cross-platform: nuevo smoke estructural para scripts Bash (`tests/test_bash_scripts.py`) e incorporacion en CI (`.github/workflows/ci.yml`).
 - 2026-04-30: avance P2 de testing/mantenibilidad de scoring: nuevos tests unitarios para `_parse_base_score_config` (defaults + overrides) en `tests/test_decision_scoring.py` para bloquear contrato de configuracion.
 - 2026-04-30: avance P2 de testing/seguridad en servidor: nueva cobertura unitaria directa para `_require_session_token(...)` (token valido, invalido y sesion no inicializada) en `tests/test_server.py`.
+- 2026-04-30: avance P3 de compatibilidad: checklist formal de validacion mobile/responsive del reporte en `docs/report-mobile-responsive-checklist.md` (viewports objetivo, navegadores y criterios de aceptacion).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -241,6 +242,10 @@ Prueba de cierre (si aplica):
   - acepta token valido
   - rechaza token invalido
   - rechaza cuando no hay sesion inicializada
+- ejecutar `docs/report-mobile-responsive-checklist.md` sobre `reports/real-report.html` en al menos:
+  - `375x667` (mobile estandar) y `390x844` (mobile moderno)
+  - iOS Safari o Chrome Android (si disponible) y Chrome desktop emulado
+- validar que no haya overflow horizontal global y que tablas criticas (`Ticker`, `Accion`, `Score`) queden legibles con scroll local
 
 ## Contexto
 

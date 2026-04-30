@@ -12,6 +12,7 @@ Indice de la documentacion activa del proyecto.
 - [report-ux-architecture.md](report-ux-architecture.md)
 - [asset-taxonomy.md](asset-taxonomy.md)
 - [browser-support.md](browser-support.md)
+- [report-mobile-responsive-checklist.md](report-mobile-responsive-checklist.md)
 - [instrument-onboarding-checklist.md](instrument-onboarding-checklist.md)
 - [repo-cleanup-map.md](repo-cleanup-map.md)
 - [decisions/README.md](decisions/README.md)
@@ -34,6 +35,7 @@ Indice de la documentacion activa del proyecto.
 - `report-ux-architecture.md`: arquitectura vigente del reporte ya modularizado y criterio de evolucion visual
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `browser-support.md`: matriz oficial de navegadores/OS soportados para app local y reporte
+- `report-mobile-responsive-checklist.md`: procedimiento de prueba mobile/responsive del reporte HTML
 - `data/snapshots/README.md`: directorio canonico de snapshots operativos
 - `tests/snapshots/README.md`: legacy snapshots y contrato de fallback
 - `repo-cleanup-map.md`: inventario de candidatos a borrado y condiciones

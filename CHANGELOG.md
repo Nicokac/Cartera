@@ -47,6 +47,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `ADR-0003` migracion gradual de `float` a `Decimal` para montos
 - `docs/instrument-onboarding-checklist.md`: checklist formal para alta de
   instrumentos (taxonomia, mappings, validacion funcional, tests y cierre documental)
+- `docs/report-mobile-responsive-checklist.md`: checklist formal para validar
+  legibilidad y usabilidad del reporte HTML en mobile/tablet
 - `README.md`: referencia explicita a docs de API local de FastAPI:
   - `/docs`
   - `/openapi.json`
@@ -263,6 +265,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - documentacion de compatibilidad de navegadores:
   - nuevo `docs/browser-support.md` con matriz oficial desktop/mobile
   - `README.md` y `docs/README.md` referencian el documento de soporte
+- `README.md` y `docs/README.md` ahora referencian tambien
+  `docs/report-mobile-responsive-checklist.md` para ejecucion operativa de
+  pruebas responsive del reporte
 - `src/decision/scoring.py`: ajuste de tipado en `apply_base_scores`
   - usa directamente `BaseScoreConfig` parseado (sin casts redundantes)
   - sin cambios funcionales en reglas de scoring
