@@ -153,6 +153,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - accesibilidad de tablas del reporte:
   - encabezados `th` ahora incluyen `scope=\"col\"` en tablas renderizadas
   - aplicado en decision table, prediction signal table y primitivas de tablas
+- refactor incremental en `src/decision/scoring.py`:
+  - `apply_base_scores` extrae inicializacion de defaults/sub-scores a
+    helper `_initialize_base_scores`
+  - sin cambios funcionales en reglas de scoring
 
 ### Testing
 

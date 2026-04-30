@@ -57,6 +57,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de integraciones: circuit breaker simple en `/api-health` (apertura tras fallas consecutivas y reintento post-cooldown).
 - 2026-04-29: completado item P2 de escalabilidad/datos: retencion configurable tambien para `decision_history.csv` (default 365 dias).
 - 2026-04-29: completado item P3 de accesibilidad en reporte: headers de tablas con `scope=\"col\"` en tablas generadas por renderer.
+- 2026-04-29: avance P2 de arquitectura/mantenibilidad: refactor incremental de `apply_base_scores` extrayendo inicializacion de sub-scores a helper dedicado (`_initialize_base_scores`).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -82,6 +83,7 @@ Prueba de cierre (si aplica):
 - setear `DECISION_HISTORY_RETENTION_DAYS` y verificar poda de filas antiguas en `data/runtime/decision_history.csv`
 - correr `python -m unittest tests.test_report_primitives tests.test_report_sections_prediction -v`
 - abrir `reports/real-report.html` y validar que los `th` incluyan `scope=\"col\"`
+- correr `python -m unittest tests.test_decision_scoring tests.strategy_rules_technical_scoring -v`
 
 ## Contexto
 

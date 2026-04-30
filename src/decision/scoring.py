@@ -247,38 +247,13 @@ def build_decision_base(
     return decision
 
 
-def apply_base_scores(
-    decision: pd.DataFrame,
+def _initialize_base_scores(
+    out: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object] | None = None,
-    market_context: dict[str, object] | None = None,
+    rank_neutral: float,
+    gain_clip_min: float,
+    gain_clip_max: float,
 ) -> pd.DataFrame:
-    scoring_rules = scoring_rules or {}
-    rank_neutral = float(scoring_rules.get("rank_neutral", 0.5))
-    gain_clip = scoring_rules.get("gain_clip", {}) or {}
-    momentum_weights = scoring_rules.get("momentum_weights", {}) or {}
-    score_refuerzo_weights = scoring_rules.get("score_refuerzo_weights", {}) or {}
-    score_reduccion_weights = scoring_rules.get("score_reduccion_weights", {}) or {}
-    score_despliegue_liquidez_weights = scoring_rules.get("score_despliegue_liquidez_weights", {}) or {}
-    concentration_rules = scoring_rules.get("concentration", {}) or {}
-    etf_adjustments = scoring_rules.get("etf_adjustments", {}) or {}
-    asset_subfamily_adjustments = scoring_rules.get("asset_subfamily_adjustments", {}) or {}
-    penalties = scoring_rules.get("penalties", {}) or {}
-    refuerzo_penalties = penalties.get("refuerzo", {}) or {}
-    reduccion_penalties = penalties.get("reduccion", {}) or {}
-    absolute_rules = scoring_rules.get("absolute_scoring", {}) or {}
-
-    gain_clip_min = float(gain_clip.get("min", -100))
-    gain_clip_max = float(gain_clip.get("max", 150))
-    mom_week = float(momentum_weights.get("week", 0.2))
-    mom_month = float(momentum_weights.get("month", 0.4))
-    mom_ytd = float(momentum_weights.get("ytd", 0.4))
-    ref_soft_pct = float(concentration_rules.get("refuerzo_soft_pct", 3.0))
-    ref_hard_pct = float(concentration_rules.get("refuerzo_hard_pct", 5.0))
-    red_soft_pct = float(concentration_rules.get("reduccion_soft_pct", 3.5))
-    red_hard_pct = float(concentration_rules.get("reduccion_hard_pct", 6.0))
-
-    out = decision.copy()
     numeric_defaults = {
         "Peso_%": np.nan,
         "Perf Week": np.nan,
@@ -334,6 +309,46 @@ def apply_base_scores(
     quality_parts = pd.concat([out["s_quality_roe"], out["s_quality_margin"]], axis=1)
     out["s_quality"] = quality_parts.mean(axis=1).fillna(rank_neutral)
     out["s_low_quality"] = 1 - out["s_quality"]
+    return out
+
+
+def apply_base_scores(
+    decision: pd.DataFrame,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+    market_context: dict[str, object] | None = None,
+) -> pd.DataFrame:
+    scoring_rules = scoring_rules or {}
+    rank_neutral = float(scoring_rules.get("rank_neutral", 0.5))
+    gain_clip = scoring_rules.get("gain_clip", {}) or {}
+    momentum_weights = scoring_rules.get("momentum_weights", {}) or {}
+    score_refuerzo_weights = scoring_rules.get("score_refuerzo_weights", {}) or {}
+    score_reduccion_weights = scoring_rules.get("score_reduccion_weights", {}) or {}
+    score_despliegue_liquidez_weights = scoring_rules.get("score_despliegue_liquidez_weights", {}) or {}
+    concentration_rules = scoring_rules.get("concentration", {}) or {}
+    etf_adjustments = scoring_rules.get("etf_adjustments", {}) or {}
+    asset_subfamily_adjustments = scoring_rules.get("asset_subfamily_adjustments", {}) or {}
+    penalties = scoring_rules.get("penalties", {}) or {}
+    refuerzo_penalties = penalties.get("refuerzo", {}) or {}
+    reduccion_penalties = penalties.get("reduccion", {}) or {}
+    absolute_rules = scoring_rules.get("absolute_scoring", {}) or {}
+
+    gain_clip_min = float(gain_clip.get("min", -100))
+    gain_clip_max = float(gain_clip.get("max", 150))
+    mom_week = float(momentum_weights.get("week", 0.2))
+    mom_month = float(momentum_weights.get("month", 0.4))
+    mom_ytd = float(momentum_weights.get("ytd", 0.4))
+    ref_soft_pct = float(concentration_rules.get("refuerzo_soft_pct", 3.0))
+    ref_hard_pct = float(concentration_rules.get("refuerzo_hard_pct", 5.0))
+    red_soft_pct = float(concentration_rules.get("reduccion_soft_pct", 3.5))
+    red_hard_pct = float(concentration_rules.get("reduccion_hard_pct", 6.0))
+
+    out = _initialize_base_scores(
+        decision.copy(),
+        rank_neutral=rank_neutral,
+        gain_clip_min=gain_clip_min,
+        gain_clip_max=gain_clip_max,
+    )
 
     if bool(absolute_rules.get("enabled", False)):
         relative_weight = float(absolute_rules.get("relative_weight", 0.7))
