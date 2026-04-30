@@ -82,11 +82,21 @@ class TestGetStatus(unittest.TestCase):
 
 
 class TestGetHealth(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
     def test_health_endpoint(self):
         r = _client.get("/health")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["status"], "ok")
         self.assertEqual(r.json()["service"], "cartera-local-app")
+
+    def test_api_health_401_without_valid_session_token(self):
+        r = _client.get("/api-health")
+        self.assertEqual(r.status_code, 401)
 
     def test_api_health_all_ok(self):
         ok_response = MagicMock()
@@ -105,7 +115,7 @@ class TestGetHealth(unittest.TestCase):
             return resp
 
         with patch("server.requests.get", side_effect=fake_get):
-            r = _client.get("/api-health")
+            r = _client.get("/api-health", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertTrue(data["ok"])
@@ -133,7 +143,7 @@ class TestGetHealth(unittest.TestCase):
             return resp
 
         with patch("server.requests.get", side_effect=fake_get):
-            r = _client.get("/api-health")
+            r = _client.get("/api-health", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertFalse(data["ok"])
@@ -147,10 +157,10 @@ class TestGetHealth(unittest.TestCase):
 
         with patch("server.requests.get", side_effect=always_fail), patch("server.time.time", return_value=1000.0):
             for _ in range(3):
-                _client.get("/api-health")
+                _client.get("/api-health", headers={"X-Session-Token": "test-session-token"})
 
         with patch("server.requests.get") as get_mock, patch("server.time.time", return_value=1001.0):
-            r = _client.get("/api-health")
+            r = _client.get("/api-health", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertFalse(data["ok"])
@@ -163,14 +173,14 @@ class TestGetHealth(unittest.TestCase):
 
         with patch("server.requests.get", side_effect=always_fail), patch("server.time.time", return_value=1000.0):
             for _ in range(3):
-                _client.get("/api-health")
+                _client.get("/api-health", headers={"X-Session-Token": "test-session-token"})
 
         ok_response = MagicMock()
         ok_response.status_code = 200
         with patch("server.requests.get", return_value=ok_response) as get_mock, patch(
             "server.time.time", return_value=2000.0
         ):
-            _client.get("/api-health")
+            _client.get("/api-health", headers={"X-Session-Token": "test-session-token"})
         self.assertTrue(get_mock.called)
 
 

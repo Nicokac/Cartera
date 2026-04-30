@@ -93,6 +93,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: hardening de seguridad en observabilidad: `GET /status/detail` ahora requiere token de sesion (header `X-Session-Token` o query `token`), y UI actualiza `Ver log completo` con token para mantener trazabilidad sin exponer logs anonimamente.
 - 2026-04-30: hardening adicional de endpoints operativos: `GET /reports/list` y `GET /runs/recent` ahora requieren `X-Session-Token`; UI actualiza fetch autenticado para ambas secciones.
 - 2026-04-30: hardening adicional de endpoint de estado: `GET /status` ahora requiere `X-Session-Token`; UI actualiza polling y carga inicial de estado con token de sesion.
+- 2026-04-30: hardening adicional de endpoint de diagnostico externo: `GET /api-health` ahora requiere `X-Session-Token`; tests adaptados para validar `401` sin token.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -206,6 +207,10 @@ Prueba de cierre (si aplica):
 - validar manualmente:
   - `GET /status` sin token responde `401`
   - la app local sigue mostrando estado y progreso en tiempo real (polling autenticado)
+- correr `python -m unittest tests.test_server -v`
+- validar manualmente:
+  - `GET /api-health` sin token responde `401`
+  - `GET /api-health` con `X-Session-Token` responde `200` y mantiene payload esperado
 
 ## Contexto
 

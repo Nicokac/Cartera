@@ -559,7 +559,9 @@ def _check_url_health(
 
 
 @app.get("/api-health")
-def get_api_health() -> JSONResponse:
+def get_api_health(x_session_token: str = Header(default="")) -> JSONResponse:
+    if not _session_token or x_session_token != _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     checks = [
         ("iol", "https://api.invertironline.com/token", {400, 401, 403, 405}),
         ("argentinadatos", "https://api.argentinadatos.com/v1/cotizaciones/dolares/bolsa", {200}),
