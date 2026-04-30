@@ -295,6 +295,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `apply_base_scores` delega su secuencia principal en
     `_compute_base_scores_from_config`
   - sin cambios funcionales en scoring; mejora legibilidad y desacople interno
+- `static/index.html`: refactor de mantenibilidad en llamadas autenticadas
+  - nuevo helper `fetchWithSession(...)` para inyectar `X-Session-Token`
+  - elimina duplicacion de headers en `run/cancel/status/reports/runs`
+  - sin cambios funcionales en flujo de UI
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

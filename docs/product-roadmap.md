@@ -97,6 +97,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de mantenibilidad/seguridad en servidor: centralizacion de validacion de sesion en helper unico `_require_session_token(...)`, aplicado a todos los endpoints protegidos para evitar duplicacion y desalineaciones.
 - 2026-04-30: completado item P3 de accesibilidad (avance UI local): mini-auditoria de contraste WCAG en `static/index.html` con ajustes de colores secundarios/disabled y reporte en `docs/accessibility-contrast-audit.md`.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: `apply_base_scores` reduce complejidad estructural al extraer su orquestacion principal a helper `_compute_base_scores_from_config`, manteniendo reglas y resultados.
+- 2026-04-30: avance P2 de mantenibilidad frontend: centralizacion de llamadas autenticadas en UI con helper `fetchWithSession(...)` para evitar duplicacion de headers/token en `/run`, `/cancel`, `/status`, `/reports/list` y `/runs/recent`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -223,6 +224,11 @@ Prueba de cierre (si aplica):
   - (opcional) verificar combinaciones con una herramienta WCAG AA de contraste
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor de orquestacion
+- correr `python -m unittest tests.test_server -v`
+- validar en UI local que:
+  - iniciar corrida funciona
+  - cancelar corrida funciona
+  - estado/polling y listados (`Reportes anteriores`, `Corridas recientes`) cargan normalmente
 
 ## Contexto
 

@@ -307,11 +307,7 @@
       }
       _pollInterval = setInterval(async () => {
         try {
-          const res = await fetch("/status", {
-            headers: {
-              "X-Session-Token": _sessionToken,
-            },
-          });
+          const res = await fetchWithSession("/status");
           const data = await res.json();
           renderStatus(data);
           if (data.status !== "running") {
@@ -329,15 +325,22 @@
       return value;
     }
 
+    function fetchWithSession(url, options = {}) {
+      const originalHeaders = options.headers || {};
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...originalHeaders,
+          "X-Session-Token": _sessionToken,
+        },
+      });
+    }
+
     async function loadReportsList() {
       const listEl = document.getElementById("reports-list");
       const emptyEl = document.getElementById("reports-empty");
       try {
-        const res = await fetch("/reports/list", {
-          headers: {
-            "X-Session-Token": _sessionToken,
-          },
-        });
+        const res = await fetchWithSession("/reports/list");
         if (!res.ok) {
           throw new Error("fetch failed");
         }
@@ -376,11 +379,7 @@
       const listEl = document.getElementById("runs-list");
       const emptyEl = document.getElementById("runs-empty");
       try {
-        const res = await fetch("/runs/recent", {
-          headers: {
-            "X-Session-Token": _sessionToken,
-          },
-        });
+        const res = await fetchWithSession("/runs/recent");
         if (!res.ok) {
           throw new Error("fetch failed");
         }
@@ -474,11 +473,10 @@
       persistUsernamePreference();
       btnRun.disabled = true;
 
-      const res = await fetch("/run", {
+      const res = await fetchWithSession("/run", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Session-Token": _sessionToken,
         },
         body: JSON.stringify({
           username,
@@ -506,11 +504,8 @@
       const btnCancel = document.getElementById("btn-cancel");
       btnCancel.disabled = true;
       try {
-        const res = await fetch("/cancel", {
+        const res = await fetchWithSession("/cancel", {
           method: "POST",
-          headers: {
-            "X-Session-Token": _sessionToken,
-          },
         });
         if (!res.ok && res.status !== 409) {
           showFormAlert("No se pudo cancelar la corrida.");
@@ -539,11 +534,7 @@
       } catch (_) {}
 
       try {
-        const res = await fetch("/status", {
-          headers: {
-            "X-Session-Token": _sessionToken,
-          },
-        });
+        const res = await fetchWithSession("/status");
         const data = await res.json();
         renderStatus(data);
         if (data.status === "running") {
