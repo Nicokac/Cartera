@@ -245,6 +245,19 @@ Modo manual equivalente (primer plano):
 python server.py
 ```
 
+Docker para desarrollo/testing (no distribución final):
+
+```powershell
+docker build -t cartera-dev .
+docker run --rm cartera-dev
+```
+
+Para correr otra suite dentro del contenedor:
+
+```powershell
+docker run --rm cartera-dev python -m unittest tests.test_report_render_core -v
+```
+
 Smoke report:
 
 ```powershell

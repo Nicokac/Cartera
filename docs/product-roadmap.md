@@ -67,6 +67,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de Dimension 19: seccion de metricas de acierto del predictor en HTML (`%` global y `%` por `asset_family`) basada en outcomes verificados del `prediction_history`.
 - 2026-04-29: completado item P2 de Dimension 19: tablero `Evolucion de racha` en prioridades de decision para destacar persistencia temporal por ticker (racha >=2, excluye Liquidez).
 - 2026-04-30: hardening de robustez en runtime real: normalizacion defensiva de payload de operaciones IOL (lista directa o wrapper `operaciones`) para evitar fallas por respuestas no homogéneas.
+- 2026-04-30: completado item P3 de DevOps: `Dockerfile` y `.dockerignore` para entorno de desarrollo/testing en contenedor.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`

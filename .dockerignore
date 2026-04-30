@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+dist
+reports
+data/runtime
+data/backups
+data/snapshots
+tests/snapshots
