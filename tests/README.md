@@ -37,6 +37,7 @@ python -m unittest tests.test_generate_real_report_split_runtime -v
 python -m unittest tests.test_generate_real_report_split_snapshots -v
 python -m unittest tests.test_generate_real_report_split_bonistas -v
 python -m unittest tests.test_report_sections_prediction -v
+python -m unittest tests.test_bash_scripts -v
 ```
 
 Nota sobre `strategy_rules`:
@@ -58,6 +59,7 @@ Nota sobre `strategy_rules`:
   - principalmente `data/strategy/*.json` y contratos opcionales de soporte
 - suites incluidas:
   - `tests.test_bond_analytics`
+  - `tests.test_bash_scripts`
   - `tests.test_bonistas_client`
   - `tests.test_classify`
   - `tests.test_config`

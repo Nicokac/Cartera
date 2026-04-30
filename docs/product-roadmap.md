@@ -98,6 +98,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: completado item P3 de accesibilidad (avance UI local): mini-auditoria de contraste WCAG en `static/index.html` con ajustes de colores secundarios/disabled y reporte en `docs/accessibility-contrast-audit.md`.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: `apply_base_scores` reduce complejidad estructural al extraer su orquestacion principal a helper `_compute_base_scores_from_config`, manteniendo reglas y resultados.
 - 2026-04-30: avance P2 de mantenibilidad frontend: centralizacion de llamadas autenticadas en UI con helper `fetchWithSession(...)` para evitar duplicacion de headers/token en `/run`, `/cancel`, `/status`, `/reports/list` y `/runs/recent`.
+- 2026-04-30: avance P2 de testing cross-platform: nuevo smoke estructural para scripts Bash (`tests/test_bash_scripts.py`) e incorporacion en CI (`.github/workflows/ci.yml`).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -229,6 +230,8 @@ Prueba de cierre (si aplica):
   - iniciar corrida funciona
   - cancelar corrida funciona
   - estado/polling y listados (`Reportes anteriores`, `Corridas recientes`) cargan normalmente
+- correr `python -m unittest tests.test_bash_scripts -v`
+- validar en CI que la suite `tests.test_bash_scripts` corre en `ubuntu-latest`/`macos-latest`
 
 ## Contexto
 

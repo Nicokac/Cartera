@@ -42,6 +42,7 @@ jobs:
         run: |
           python -m coverage run --branch -m unittest \
             tests.test_bond_analytics \
+            tests.test_bash_scripts \
             tests.test_bonistas_client \
             tests.test_classify \
             tests.test_config \

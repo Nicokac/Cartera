@@ -299,6 +299,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo helper `fetchWithSession(...)` para inyectar `X-Session-Token`
   - elimina duplicacion de headers en `run/cancel/status/reports/runs`
   - sin cambios funcionales en flujo de UI
+- testing cross-platform (scripts Bash):
+  - nuevo `tests/test_bash_scripts.py` con smoke estructural de scripts `*.sh`
+    (existencia, shebang bash, `set -euo pipefail`)
+  - control de permisos POSIX marcado como `skip` en Windows por portabilidad
+  - `.github/workflows/ci.yml` incluye `tests.test_bash_scripts` en suite estable
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
