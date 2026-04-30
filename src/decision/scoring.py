@@ -718,14 +718,13 @@ def _parse_base_score_config(scoring_rules: dict[str, object]) -> BaseScoreConfi
     }
 
 
-def apply_base_scores(
+def _compute_base_scores_from_config(
     decision: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object] | None = None,
-    market_context: dict[str, object] | None = None,
+    scoring_rules: dict[str, object],
+    market_context: dict[str, object] | None,
+    config: BaseScoreConfig,
 ) -> pd.DataFrame:
-    scoring_rules = scoring_rules or {}
-    config = _parse_base_score_config(scoring_rules)
     rank_neutral = config["rank_neutral"]
     absolute_rules = config["absolute_rules"]
     etf_adjustments = config["etf_adjustments"]
@@ -768,7 +767,6 @@ def apply_base_scores(
         rank_neutral=rank_neutral,
         etf_adjustments=etf_adjustments,
     )
-
     out = _apply_refuerzo_score(
         out,
         score_refuerzo_weights=score_refuerzo_weights,
@@ -790,8 +788,23 @@ def apply_base_scores(
         score_despliegue_liquidez_weights=score_despliegue_liquidez_weights,
         rank_neutral=rank_neutral,
     )
-
     return out
+
+
+def apply_base_scores(
+    decision: pd.DataFrame,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+    market_context: dict[str, object] | None = None,
+) -> pd.DataFrame:
+    scoring_rules = scoring_rules or {}
+    config = _parse_base_score_config(scoring_rules)
+    return _compute_base_scores_from_config(
+        decision,
+        scoring_rules=scoring_rules,
+        market_context=market_context,
+        config=config,
+    )
 
 
 def clamp01(value: pd.Series | float) -> pd.Series | float:

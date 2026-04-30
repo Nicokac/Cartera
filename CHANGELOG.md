@@ -291,6 +291,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/index.html` mejora contraste en textos secundarios y estados disabled
     (`#status-time`, `footer`, `button:disabled`, `#btn-cancel:disabled`)
   - nuevo reporte `docs/accessibility-contrast-audit.md` con alcance y verificacion recomendada
+- refactor incremental de mantenibilidad en `src/decision/scoring.py`:
+  - `apply_base_scores` delega su secuencia principal en
+    `_compute_base_scores_from_config`
+  - sin cambios funcionales en scoring; mejora legibilidad y desacople interno
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

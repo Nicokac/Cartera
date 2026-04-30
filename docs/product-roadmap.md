@@ -96,6 +96,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: hardening adicional de endpoint de diagnostico externo: `GET /api-health` ahora requiere `X-Session-Token`; tests adaptados para validar `401` sin token.
 - 2026-04-30: avance P2 de mantenibilidad/seguridad en servidor: centralizacion de validacion de sesion en helper unico `_require_session_token(...)`, aplicado a todos los endpoints protegidos para evitar duplicacion y desalineaciones.
 - 2026-04-30: completado item P3 de accesibilidad (avance UI local): mini-auditoria de contraste WCAG en `static/index.html` con ajustes de colores secundarios/disabled y reporte en `docs/accessibility-contrast-audit.md`.
+- 2026-04-30: avance P2 de arquitectura/mantenibilidad: `apply_base_scores` reduce complejidad estructural al extraer su orquestacion principal a helper `_compute_base_scores_from_config`, manteniendo reglas y resultados.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -220,6 +221,8 @@ Prueba de cierre (si aplica):
   - `#status-time` y `footer` con mayor contraste
   - botones deshabilitados legibles (`btn-run`, `btn-cancel`)
   - (opcional) verificar combinaciones con una herramienta WCAG AA de contraste
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor de orquestacion
 
 ## Contexto
 
