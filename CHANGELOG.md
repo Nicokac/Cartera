@@ -146,6 +146,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - apertura tras fallas consecutivas
   - cooldown antes de reintentar
   - nuevos campos en respuesta: `circuit_open`, `failure_count`
+- retencion configurable de `decision_history.csv`:
+  - nueva funcion `apply_decision_history_retention()` en `src/decision/history.py`
+  - default de 365 dias (`DECISION_HISTORY_RETENTION_DAYS`)
+  - aplicada en `scripts/generate_real_report.py`
 
 ### Testing
 
@@ -188,6 +192,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   (`schedule-every-minutes`, requerimiento de `--non-interactive`, loop/sleep)
 - `tests/test_server.py`: nuevos tests de circuit breaker en `/api-health`
   (apertura por fallas consecutivas y retry despues de cooldown)
+- `tests/test_decision_history.py`: nuevos tests de retencion de decision history
+- `tests/test_generate_real_report.py`: nuevo test de aplicacion de retencion en flujo real
 
 ### Security
 

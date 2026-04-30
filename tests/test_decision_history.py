@@ -11,6 +11,7 @@ if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
 from decision.history import (
+    apply_decision_history_retention,
     build_decision_history_observation,
     build_temporal_memory_summary,
     enrich_with_temporal_memory,
@@ -297,6 +298,50 @@ class DecisionHistoryTests(unittest.TestCase):
         self.assertIsNone(row["accion_previa"])
         self.assertEqual(row["dias_consecutivos_mantener"], 1)
         self.assertFalse(bool(row["es_nueva_senal"]))
+
+    def test_apply_decision_history_retention_keeps_recent_rows(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-01-01",
+                    "Ticker_IOL": "AAPL",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": 0.1,
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 4.7,
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": 1.0,
+                    "Momentum_60d_%": 2.0,
+                    "market_regime_any_active": False,
+                    "market_regime_active_flags": "",
+                },
+                {
+                    "run_date": "2026-04-20",
+                    "Ticker_IOL": "MSFT",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": -0.1,
+                    "accion_sugerida_v2": "Reducir",
+                    "Peso_%": 3.7,
+                    "Tech_Trend": "Mixta",
+                    "Momentum_20d_%": -1.0,
+                    "Momentum_60d_%": -2.0,
+                    "market_regime_any_active": True,
+                    "market_regime_active_flags": "tasas_ust_altas",
+                },
+            ]
+        )
+
+        retained = apply_decision_history_retention(
+            history,
+            retention_days=90,
+            today="2026-04-29",
+        )
+        self.assertEqual(len(retained), 1)
+        self.assertEqual(retained.loc[0, "Ticker_IOL"], "MSFT")
+
+    def test_apply_decision_history_retention_rejects_invalid_days(self) -> None:
+        with self.assertRaises(ValueError):
+            apply_decision_history_retention(pd.DataFrame(), retention_days=0)
 
 
 if __name__ == "__main__":

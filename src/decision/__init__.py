@@ -2,6 +2,8 @@
 
 from .actions import assign_action_v2, assign_base_action, enrich_decision_explanations
 from .history import (
+    DEFAULT_DECISION_HISTORY_RETENTION_DAYS,
+    apply_decision_history_retention,
     build_decision_history_observation,
     build_temporal_memory_summary,
     enrich_with_temporal_memory,
@@ -24,6 +26,8 @@ __all__ = [
     "apply_technical_overlay_scores",
     "assign_action_v2",
     "assign_base_action",
+    "DEFAULT_DECISION_HISTORY_RETENTION_DAYS",
+    "apply_decision_history_retention",
     "build_decision_history_observation",
     "build_temporal_memory_summary",
     "build_decision_base",

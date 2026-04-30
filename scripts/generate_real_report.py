@@ -46,6 +46,8 @@ from clients.iol import (
 )
 from clients.pyobd_client import get_bond_volume_context
 from decision.history import (
+    DEFAULT_DECISION_HISTORY_RETENTION_DAYS,
+    apply_decision_history_retention,
     build_decision_history_observation,
     build_temporal_memory_summary,
     enrich_with_temporal_memory,
@@ -429,6 +431,12 @@ def _enrich_decision_with_temporal_memory(decision_bundle: dict[str, object], *,
         market_regime=decision_bundle.get("market_regime"),
     )
     history = upsert_daily_decision_history(history, current_observation)
+    decision_retention_days = int(os.environ.get("DECISION_HISTORY_RETENTION_DAYS", DEFAULT_DECISION_HISTORY_RETENTION_DAYS))
+    history = apply_decision_history_retention(
+        history,
+        retention_days=decision_retention_days,
+        today=run_date,
+    )
     decision_bundle["final_decision"] = enrich_with_temporal_memory(
         decision_bundle["final_decision"],
         history,

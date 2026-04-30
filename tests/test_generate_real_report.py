@@ -17,6 +17,7 @@ from generate_real_report import (
     _build_report_payload,
     configure_logging,
     _merge_bond_context_into_decision,
+    _enrich_decision_with_temporal_memory,
     _render_and_persist_report,
     _resolve_funding_policy,
     build_real_bonistas_bundle,
@@ -133,6 +134,34 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertIn("bonistas_tir_pct", out["final_decision"].columns)
         self.assertIn("bonistas_paridad_pct", out["final_decision"].columns)
         self.assertNotIn("extra", out["final_decision"].columns)
+
+    def test_enrich_decision_with_temporal_memory_applies_history_retention(self) -> None:
+        decision_bundle = {
+            "final_decision": pd.DataFrame([{"Ticker_IOL": "AAPL", "accion_sugerida_v2": "Refuerzo"}]),
+            "market_regime": {"any_active": False, "active_flags": []},
+        }
+        history = pd.DataFrame([{"run_date": "2026-01-01", "Ticker_IOL": "AAPL"}])
+        observation = pd.DataFrame([{"run_date": "2026-04-29", "Ticker_IOL": "AAPL"}])
+        retained_history = pd.DataFrame([{"run_date": "2026-04-29", "Ticker_IOL": "AAPL"}])
+        enriched_final = pd.DataFrame([{"Ticker_IOL": "AAPL", "accion_previa": "Refuerzo"}])
+
+        with patch("generate_real_report.load_decision_history", return_value=history), patch(
+            "generate_real_report.build_decision_history_observation", return_value=observation
+        ), patch(
+            "generate_real_report.upsert_daily_decision_history", return_value=observation
+        ), patch(
+            "generate_real_report.apply_decision_history_retention", return_value=retained_history
+        ) as retention_mock, patch(
+            "generate_real_report.enrich_with_temporal_memory", return_value=enriched_final
+        ), patch(
+            "generate_real_report.build_temporal_memory_summary", return_value={"sin_historial": 0}
+        ), patch(
+            "generate_real_report.save_decision_history"
+        ):
+            out = _enrich_decision_with_temporal_memory(decision_bundle, run_date="2026-04-29")
+
+        retention_mock.assert_called_once()
+        self.assertTrue(out["final_decision"].equals(enriched_final))
 
     def test_build_report_payload_contains_expected_keys(self) -> None:
         payload = _build_report_payload(
