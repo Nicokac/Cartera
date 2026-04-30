@@ -248,6 +248,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `apply_base_scores` extrae el post-procesado final a helper
     `_apply_post_regime_adjustments` (regimen, clamp de reduccion y liquidez)
   - sin cambios funcionales en reglas de scoring
+- refactor incremental adicional en `src/decision/scoring.py`:
+  - `apply_base_scores` extrae parseo de configuracion/umbrales a helper
+    `_parse_base_score_config`
+  - sin cambios funcionales en reglas de scoring
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

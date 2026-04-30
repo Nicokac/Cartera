@@ -649,13 +649,7 @@ def _apply_post_regime_adjustments(
     return out
 
 
-def apply_base_scores(
-    decision: pd.DataFrame,
-    *,
-    scoring_rules: dict[str, object] | None = None,
-    market_context: dict[str, object] | None = None,
-) -> pd.DataFrame:
-    scoring_rules = scoring_rules or {}
+def _parse_base_score_config(scoring_rules: dict[str, object]) -> dict[str, object]:
     rank_neutral = float(scoring_rules.get("rank_neutral", 0.5))
     gain_clip = scoring_rules.get("gain_clip", {}) or {}
     momentum_weights = scoring_rules.get("momentum_weights", {}) or {}
@@ -679,6 +673,55 @@ def apply_base_scores(
     ref_hard_pct = float(concentration_rules.get("refuerzo_hard_pct", 5.0))
     red_soft_pct = float(concentration_rules.get("reduccion_soft_pct", 3.5))
     red_hard_pct = float(concentration_rules.get("reduccion_hard_pct", 6.0))
+
+    return {
+        "rank_neutral": rank_neutral,
+        "absolute_rules": absolute_rules,
+        "etf_adjustments": etf_adjustments,
+        "asset_subfamily_adjustments": asset_subfamily_adjustments,
+        "score_refuerzo_weights": score_refuerzo_weights,
+        "score_reduccion_weights": score_reduccion_weights,
+        "score_despliegue_liquidez_weights": score_despliegue_liquidez_weights,
+        "refuerzo_penalties": refuerzo_penalties,
+        "reduccion_penalties": reduccion_penalties,
+        "gain_clip_min": gain_clip_min,
+        "gain_clip_max": gain_clip_max,
+        "mom_week": mom_week,
+        "mom_month": mom_month,
+        "mom_ytd": mom_ytd,
+        "ref_soft_pct": ref_soft_pct,
+        "ref_hard_pct": ref_hard_pct,
+        "red_soft_pct": red_soft_pct,
+        "red_hard_pct": red_hard_pct,
+    }
+
+
+def apply_base_scores(
+    decision: pd.DataFrame,
+    *,
+    scoring_rules: dict[str, object] | None = None,
+    market_context: dict[str, object] | None = None,
+) -> pd.DataFrame:
+    scoring_rules = scoring_rules or {}
+    config = _parse_base_score_config(scoring_rules)
+    rank_neutral = float(config["rank_neutral"])
+    absolute_rules = dict(config["absolute_rules"])
+    etf_adjustments = dict(config["etf_adjustments"])
+    asset_subfamily_adjustments = dict(config["asset_subfamily_adjustments"])
+    score_refuerzo_weights = dict(config["score_refuerzo_weights"])
+    score_reduccion_weights = dict(config["score_reduccion_weights"])
+    score_despliegue_liquidez_weights = dict(config["score_despliegue_liquidez_weights"])
+    refuerzo_penalties = dict(config["refuerzo_penalties"])
+    reduccion_penalties = dict(config["reduccion_penalties"])
+    gain_clip_min = float(config["gain_clip_min"])
+    gain_clip_max = float(config["gain_clip_max"])
+    mom_week = float(config["mom_week"])
+    mom_month = float(config["mom_month"])
+    mom_ytd = float(config["mom_ytd"])
+    ref_soft_pct = float(config["ref_soft_pct"])
+    ref_hard_pct = float(config["ref_hard_pct"])
+    red_soft_pct = float(config["red_soft_pct"])
+    red_hard_pct = float(config["red_hard_pct"])
 
     out = _initialize_base_scores(
         decision.copy(),
