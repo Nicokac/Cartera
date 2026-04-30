@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 import requests
 from common.numeric import safe_float
 from common.text import normalize_text_folded
+from clients.protocols import HttpGetProtocol, HttpResponseProtocol
 
 
 DEFAULT_TIMEOUT = 10
@@ -24,11 +25,13 @@ def _get_with_retry(
     url: str,
     *,
     timeout: int = DEFAULT_TIMEOUT,
-) -> requests.Response:
+    get_fn: HttpGetProtocol | None = None,
+) -> HttpResponseProtocol:
+    get_impl = get_fn or requests.get
     last_exc: Exception | None = None
     for attempt in range(1, BCRA_MAX_ATTEMPTS + 1):
         try:
-            resp = requests.get(url, timeout=timeout)
+            resp = get_impl(url, timeout=timeout)
             resp.raise_for_status()
             return resp
         except (requests.Timeout, requests.ConnectionError) as exc:
@@ -49,8 +52,9 @@ def _fetch_text(
     url: str,
     *,
     timeout: int = DEFAULT_TIMEOUT,
+    get_fn: HttpGetProtocol | None = None,
 ) -> str:
-    resp = _get_with_retry(url, timeout=timeout)
+    resp = _get_with_retry(url, timeout=timeout, get_fn=get_fn)
     return resp.text
 
 
@@ -58,8 +62,9 @@ def _fetch_bytes(
     url: str,
     *,
     timeout: int = DEFAULT_TIMEOUT,
+    get_fn: HttpGetProtocol | None = None,
 ) -> bytes:
-    resp = _get_with_retry(url, timeout=timeout)
+    resp = _get_with_retry(url, timeout=timeout, get_fn=get_fn)
     return resp.content
 
 
@@ -67,8 +72,9 @@ def _fetch_json(
     url: str,
     *,
     timeout: int = DEFAULT_TIMEOUT,
+    get_fn: HttpGetProtocol | None = None,
 ) -> Any:
-    resp = _get_with_retry(url, timeout=timeout)
+    resp = _get_with_retry(url, timeout=timeout, get_fn=get_fn)
     return resp.json()
 
 

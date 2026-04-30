@@ -169,6 +169,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - mantiene compatibilidad con imports existentes mediante wrapper
     `_comentario_operativo` en `sizing.py`
   - mantiene helper `_join_with_y` en `sizing.py` como compatibilidad para tests/consumidores internos
+- contratos tipados para clientes externos:
+  - nuevo modulo `src/clients/protocols.py` con `HttpResponseProtocol`,
+    `HttpGetProtocol` y `HttpRequestProtocol`
+  - `src/clients/iol.py` y `src/clients/bcra.py` adoptan estos contratos
+    en helpers de retry sin cambios funcionales
 
 ### Testing
 
@@ -221,6 +226,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validacion del refactor de comentarios operativos:
   - `python -m unittest tests.test_sizing -v`
   - `python -m unittest tests.test_pipeline -v`
+- validacion de contratos tipados en clientes:
+  - `python -m unittest tests.test_iol_client -v`
+  - `python -m unittest tests.test_bcra_client -v`
 
 ### Security
 

@@ -5,6 +5,7 @@ import time
 from typing import Any
 
 import requests
+from clients.protocols import HttpRequestProtocol, HttpResponseProtocol
 
 
 DEFAULT_TIMEOUT = 30
@@ -19,13 +20,15 @@ def _request_with_retry(
     url: str,
     *,
     timeout: int,
+    requester: HttpRequestProtocol | None = None,
     raise_for_status: bool = True,
     **kwargs: Any,
-) -> requests.Response:
+) -> HttpResponseProtocol:
+    request_impl = requester or requests.request
     last_exc: Exception | None = None
     for attempt in range(1, IOL_MAX_ATTEMPTS + 1):
         try:
-            response = requests.request(method, url, timeout=timeout, **kwargs)
+            response = request_impl(method, url, timeout=timeout, **kwargs)
             if raise_for_status:
                 response.raise_for_status()
             elif response.status_code in _RETRY_STATUS_CODES:
