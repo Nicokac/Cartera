@@ -59,6 +59,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P3 de accesibilidad en reporte: headers de tablas con `scope=\"col\"` en tablas generadas por renderer.
 - 2026-04-29: avance P2 de arquitectura/mantenibilidad: refactor incremental de `apply_base_scores` extrayendo inicializacion de sub-scores a helper dedicado (`_initialize_base_scores`).
 - 2026-04-29: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional de `apply_base_scores` separando blend absoluto, concentracion/momentum y composicion de scores en helpers privados (`_apply_absolute_metric_blends`, `_apply_concentration_and_momentum_scores`, `_apply_refuerzo_score`, `_apply_reduccion_score`) sin cambios funcionales.
+- 2026-04-29: completado item P2 de arquitectura/mantenibilidad en `sizing`: extraccion de `_comentario_operativo` a modulo dedicado `src/decision/operational_comments.py` con wrapper de compatibilidad en `sizing.py`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -86,6 +87,8 @@ Prueba de cierre (si aplica):
 - abrir `reports/real-report.html` y validar que los `th` incluyan `scope=\"col\"`
 - correr `python -m unittest tests.test_decision_scoring tests.strategy_rules_technical_scoring -v`
 - validar sobre una corrida real existente que ranking/acciones sugeridas no cambian respecto a baseline previo para mismo input (control de no regresion funcional del refactor)
+- correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
+- ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 
 ## Contexto
 

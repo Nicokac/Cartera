@@ -164,6 +164,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     - composicion de score de refuerzo (`_apply_refuerzo_score`)
     - composicion de score de reduccion (`_apply_reduccion_score`)
   - sin cambios funcionales en reglas de scoring
+- `src/decision/sizing.py`: extraccion de comentarios operativos a modulo dedicado
+  `src/decision/operational_comments.py`
+  - mantiene compatibilidad con imports existentes mediante wrapper
+    `_comentario_operativo` en `sizing.py`
+  - mantiene helper `_join_with_y` en `sizing.py` como compatibilidad para tests/consumidores internos
 
 ### Testing
 
@@ -213,6 +218,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validacion de no-regresion del refactor de scoring:
   - `python -m unittest tests.test_decision_scoring -v`
   - `python -m unittest tests.strategy_rules_technical_scoring -v`
+- validacion del refactor de comentarios operativos:
+  - `python -m unittest tests.test_sizing -v`
+  - `python -m unittest tests.test_pipeline -v`
 
 ### Security
 
