@@ -51,8 +51,15 @@ class TestGetStatus(unittest.TestCase):
     def setUp(self):
         _reset()
 
-    def test_idle_state(self):
+    def _get_status(self):
+        return _client.get("/status", headers={"X-Session-Token": "test-session-token"})
+
+    def test_status_401_without_valid_session_token(self):
         r = _client.get("/status")
+        self.assertEqual(r.status_code, 401)
+
+    def test_idle_state(self):
+        r = self._get_status()
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertEqual(data["status"], "idle")
@@ -62,14 +69,14 @@ class TestGetStatus(unittest.TestCase):
     def test_reflects_running_state(self):
         server._state["status"] = "running"
         server._state["started_at"] = "2026-04-26 10:00:00"
-        data = _client.get("/status").json()
+        data = self._get_status().json()
         self.assertEqual(data["status"], "running")
         self.assertEqual(data["started_at"], "2026-04-26 10:00:00")
 
     def test_reflects_done_state(self):
         server._state["status"] = "done"
         server._state["finished_at"] = "2026-04-26 10:05:00"
-        data = _client.get("/status").json()
+        data = self._get_status().json()
         self.assertEqual(data["status"], "done")
         self.assertIsNotNone(data["finished_at"])
 

@@ -307,7 +307,11 @@
       }
       _pollInterval = setInterval(async () => {
         try {
-          const res = await fetch("/status");
+          const res = await fetch("/status", {
+            headers: {
+              "X-Session-Token": _sessionToken,
+            },
+          });
           const data = await res.json();
           renderStatus(data);
           if (data.status !== "running") {
@@ -535,7 +539,11 @@
       } catch (_) {}
 
       try {
-        const res = await fetch("/status");
+        const res = await fetch("/status", {
+          headers: {
+            "X-Session-Token": _sessionToken,
+          },
+        });
         const data = await res.json();
         renderStatus(data);
         if (data.status === "running") {

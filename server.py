@@ -448,7 +448,9 @@ def post_cancel(x_session_token: str = Header(default="")) -> JSONResponse:
 
 
 @app.get("/status")
-def get_status() -> JSONResponse:
+def get_status(x_session_token: str = Header(default="")) -> JSONResponse:
+    if not _session_token or x_session_token != _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     return JSONResponse(_state)
 
 
