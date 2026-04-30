@@ -225,6 +225,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `apply_base_scores` extrae ajustes efectivos de ETF/calidad a helper
     `_apply_etf_effective_scores`
   - sin cambios funcionales en reglas de scoring
+- `server.py` migra la inicializacion de app a `lifespan` de FastAPI
+  (reemplaza uso de `@app.on_event("startup")` deprecado)
+  - se conserva `on_startup()` como helper interno para compatibilidad
+    con pruebas unitarias
+- `server.py`: mejora de mensaje de error operativo en corridas fallidas
+  - cuando IOL responde `401 Unauthorized` en `/token`, `status/error`
+    ahora devuelve mensaje amigable de credenciales invalidas
+  - el traceback tecnico completo se conserva en `log_tail` de `/status/detail`
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

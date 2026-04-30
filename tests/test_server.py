@@ -532,6 +532,22 @@ class TestWatchProcess(unittest.TestCase):
         self.assertIsNone(server._process)
         clear_pid.assert_called_once()
 
+    def test_error_on_iol_401_is_summarized_for_user(self):
+        server._process = self._make_proc(1)
+        server._state["status"] = "running"
+        mock_log = MagicMock()
+        mock_log.read_text.return_value = (
+            "requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: "
+            "https://api.invertironline.com/token"
+        )
+        with patch.object(server, "LOG_PATH", mock_log), patch("server._clear_run_pid"):
+            server._watch_process()
+        self.assertEqual(server._state["status"], "error")
+        self.assertEqual(
+            server._state["error"],
+            "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente.",
+        )
+
     def test_error_fallback_on_unreadable_log(self):
         server._process = self._make_proc(2)
         server._state["status"] = "running"

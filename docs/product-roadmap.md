@@ -79,6 +79,8 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: hotfix CI: `pyproject.toml` normalizado a UTF-8 sin BOM para compatibilidad con parser de `coverage` en GitHub Actions.
 - 2026-04-30: avance P2 de DevOps/CI: se reactiva ejecucion de tests en `ubuntu-latest` y se incorpora `macos-latest` en modo best-effort (`continue-on-error`) para recuperar visibilidad sin bloquear entregas.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental en `apply_base_scores` extrayendo ajustes efectivos de ETF/calidad a helper dedicado (`_apply_etf_effective_scores`) sin cambios funcionales.
+- 2026-04-30: mejora de compatibilidad FastAPI: migracion de startup a `lifespan` en `server.py` (se elimina uso de `@app.on_event("startup")` deprecado, manteniendo `on_startup()` como helper de compatibilidad para tests).
+- 2026-04-30: hardening UX/operabilidad en errores de corrida: `server.py` resume fallas de autenticacion IOL (`401 /token`) con mensaje amigable en `status/error` y deja traceback completo en `log_tail` para diagnostico.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -149,6 +151,11 @@ Prueba de cierre (si aplica):
   - valores persistidos de `classifier_b_direction`, `classifier_b_confidence`, `classifier_b_agrees` en historial de predicción
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - ejecutar una corrida y validar que el ranking/acciones sugeridas de `score_refuerzo` y `score_reduccion` se mantiene estable para el mismo input (control de no regresión del refactor)
+- correr `python -m unittest tests.test_server -v`
+- levantar `python server.py` y confirmar que ya no aparece `DeprecationWarning` por `on_event` en startup
+- correr una corrida con password IOL invalida y validar en `/status/detail`:
+  - `error = "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente."`
+  - `log_tail` conserva el traceback tecnico completo para soporte
 
 ## Contexto
 

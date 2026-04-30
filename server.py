@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 import time
 import requests
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -32,7 +33,19 @@ DECISION_HISTORY_FILE = ROOT / "data" / "runtime" / "decision_history.csv"
 PREDICTION_HISTORY_FILE = ROOT / "data" / "runtime" / "prediction_history.csv"
 RUNTIME_CORRUPT_DIR = ROOT / "data" / "runtime" / "corrupt"
 
-app = FastAPI(title="Cartera")
+def on_startup() -> None:
+    _validate_runtime_csvs_on_startup()
+    _recover_orphan_run()
+    _ensure_session_token()
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    on_startup()
+    yield
+
+
+app = FastAPI(title="Cartera", lifespan=_lifespan)
 
 _state: dict = {
     "status": "idle",
@@ -125,6 +138,18 @@ def _sanitize_secrets(text: str) -> str:
     for pattern in _SECRET_PATTERNS:
         sanitized = pattern.sub(lambda m: f"{m.group(1)}=<redacted>", sanitized)
     return sanitized
+
+
+def _summarize_process_error(log_text: str, returncode: int) -> str:
+    text = str(log_text or "")
+    if "401 Client Error: Unauthorized" in text and "invertironline.com/token" in text:
+        return "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente."
+    if "429" in text and "invertironline.com" in text:
+        return "IOL rechazo temporalmente la solicitud (429). Reintenta en unos minutos."
+    stripped = text.strip()
+    if stripped:
+        return stripped[-800:]
+    return f"Codigo de salida: {returncode}"
 
 
 def _read_log_mtime() -> str | None:
@@ -309,12 +334,12 @@ def _watch_process() -> None:
             _state["finished_at"] = ts
         else:
             try:
-                text = LOG_PATH.read_text(encoding="utf-8")[-800:]
+                text = LOG_PATH.read_text(encoding="utf-8")
             except Exception:
                 text = f"Código de salida: {_process.returncode}"
             _state["status"] = "error"
             _state["finished_at"] = ts
-            _state["error"] = text
+            _state["error"] = _summarize_process_error(text, int(_process.returncode))
         _process = None
         _cancel_requested = False
         _clear_run_pid()
@@ -587,13 +612,6 @@ def get_reports_list() -> JSONResponse:
 @app.get("/runs/recent")
 def get_runs_recent() -> JSONResponse:
     return JSONResponse({"runs": _read_recent_runs(limit=5)})
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    _validate_runtime_csvs_on_startup()
-    _recover_orphan_run()
-    _ensure_session_token()
 
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
