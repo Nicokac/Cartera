@@ -202,6 +202,9 @@ Esquema OpenAPI: `http://127.0.0.1:8000/openapi.json`.
 Estado detallado: `http://127.0.0.1:8000/status/detail`.
 `/status/detail` filtra credenciales sensibles en `error` y `log_tail` (`IOL_USERNAME`, `IOL_PASSWORD`, `username`, `password`).
 `/status/detail` expone `log_tail` ampliado, `log_lines` y `elapsed_seconds` para diagnostico rapido.
+Al startup del servidor se valida schema basico de `data/runtime/decision_history.csv` y
+`data/runtime/prediction_history.csv`; si un CSV esta corrupto/invalido se mueve a
+`data/runtime/corrupt/*.corrupt` para evitar caidas de corrida.
 `POST /run` requiere token de sesion en header `X-Session-Token` (la UI lo obtiene automaticamente via `GET /session`).
 `POST /run` valida `aporte_externo_ars >= 0` y limita `username/password` a 200 caracteres.
 `POST /run` rechaza credenciales vacias (`username/password`) con `422` para evitar corridas invalidas.

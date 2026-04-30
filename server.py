@@ -6,6 +6,8 @@ import sys
 import threading
 import uuid
 import json
+import csv
+import shutil
 from datetime import datetime
 from pathlib import Path
 import time
@@ -26,6 +28,9 @@ RUN_PID_PATH = ROOT / "data" / "runtime" / "server_run.pid"
 SESSION_FILE = ROOT / "data" / "runtime" / "session.txt"
 RUN_HISTORY_FILE = ROOT / "data" / "runtime" / "run_history.jsonl"
 VERSION_FILE = ROOT / "version.txt"
+DECISION_HISTORY_FILE = ROOT / "data" / "runtime" / "decision_history.csv"
+PREDICTION_HISTORY_FILE = ROOT / "data" / "runtime" / "prediction_history.csv"
+RUNTIME_CORRUPT_DIR = ROOT / "data" / "runtime" / "corrupt"
 
 app = FastAPI(title="Cartera")
 
@@ -44,6 +49,22 @@ _run_request_timestamps: list[float] = []
 _RUN_RATE_LIMIT_WINDOW_SECONDS = 60.0
 _RUN_RATE_LIMIT_MAX_REQUESTS = 3
 _RUN_COMPLETION_WEBHOOK_TIMEOUT_SECONDS = 2.0
+
+_DECISION_HISTORY_REQUIRED_COLUMNS = {
+    "run_date",
+    "Ticker_IOL",
+    "asset_subfamily",
+    "score_unificado",
+    "accion_sugerida_v2",
+}
+_PREDICTION_HISTORY_REQUIRED_COLUMNS = {
+    "run_date",
+    "ticker",
+    "direction",
+    "confidence",
+    "horizon_days",
+    "outcome_date",
+}
 
 
 class RunParams(BaseModel):
@@ -233,6 +254,38 @@ def _notify_run_completion(payload: dict[str, object]) -> None:
         )
     except Exception:
         return
+
+
+def _quarantine_runtime_csv(path: Path) -> None:
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    RUNTIME_CORRUPT_DIR.mkdir(parents=True, exist_ok=True)
+    target = RUNTIME_CORRUPT_DIR / f"{path.name}.{ts}.corrupt"
+    shutil.move(str(path), str(target))
+
+
+def _validate_runtime_csv_schema(path: Path, required_columns: set[str]) -> bool:
+    if not path.exists():
+        return True
+    try:
+        with path.open("r", encoding="utf-8", newline="") as f:
+            reader = csv.reader(f)
+            header = next(reader, [])
+        if not header:
+            _quarantine_runtime_csv(path)
+            return False
+        header_set = {str(col).strip() for col in header if str(col).strip()}
+        if not required_columns.issubset(header_set):
+            _quarantine_runtime_csv(path)
+            return False
+        return True
+    except Exception:
+        _quarantine_runtime_csv(path)
+        return False
+
+
+def _validate_runtime_csvs_on_startup() -> None:
+    _validate_runtime_csv_schema(DECISION_HISTORY_FILE, _DECISION_HISTORY_REQUIRED_COLUMNS)
+    _validate_runtime_csv_schema(PREDICTION_HISTORY_FILE, _PREDICTION_HISTORY_REQUIRED_COLUMNS)
 
 
 def _watch_process() -> None:
@@ -501,6 +554,7 @@ def get_runs_recent() -> JSONResponse:
 
 @app.on_event("startup")
 def on_startup() -> None:
+    _validate_runtime_csvs_on_startup()
     _recover_orphan_run()
     _ensure_session_token()
 

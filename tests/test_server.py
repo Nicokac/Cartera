@@ -623,5 +623,35 @@ class TestRecoverOrphanRun(unittest.TestCase):
         clear_pid.assert_called_once()
 
 
+class TestRuntimeCsvValidation(unittest.TestCase):
+    def test_validate_runtime_csv_schema_accepts_valid_header(self):
+        with TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "ok.csv"
+            csv_path.write_text("run_date,Ticker_IOL,asset_subfamily,score_unificado,accion_sugerida_v2\n", encoding="utf-8")
+            valid = server._validate_runtime_csv_schema(csv_path, server._DECISION_HISTORY_REQUIRED_COLUMNS)
+            self.assertTrue(valid)
+            self.assertTrue(csv_path.exists())
+
+    def test_validate_runtime_csv_schema_quarantines_invalid_header(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            csv_path = root / "bad.csv"
+            csv_path.write_text("foo,bar\n1,2\n", encoding="utf-8")
+            corrupt_dir = root / "corrupt"
+            with patch.object(server, "RUNTIME_CORRUPT_DIR", corrupt_dir):
+                valid = server._validate_runtime_csv_schema(csv_path, server._DECISION_HISTORY_REQUIRED_COLUMNS)
+            self.assertFalse(valid)
+            self.assertFalse(csv_path.exists())
+            quarantined = list(corrupt_dir.glob("bad.csv.*.corrupt"))
+            self.assertEqual(len(quarantined), 1)
+
+    def test_on_startup_calls_runtime_csv_validation(self):
+        with patch("server._validate_runtime_csvs_on_startup") as validate_mock, patch(
+            "server._recover_orphan_run"
+        ), patch("server._ensure_session_token"):
+            server.on_startup()
+        validate_mock.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()

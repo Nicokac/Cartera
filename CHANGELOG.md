@@ -136,6 +136,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - webhook opcional al finalizar corrida en `server.py`:
   - variable `RUN_COMPLETION_WEBHOOK_URL`
   - emite `POST` con resumen de estado final (`done/error/interrupted`)
+- validacion de integridad de CSV runtime al startup en `server.py`:
+  - chequeo de schema/header para `decision_history.csv` y `prediction_history.csv`
+  - cuarentena automatica de archivos invalidos en `data/runtime/corrupt/*.corrupt`
 
 ### Testing
 
@@ -172,6 +175,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_server.py`: nuevos tests de webhook de finalizacion
   (`test_watch_process_sends_completion_webhook_when_configured` y
   `test_watch_process_ignores_webhook_errors`)
+- `tests/test_server.py`: nuevos tests de validacion de CSV runtime
+  (`TestRuntimeCsvValidation`)
 
 ### Security
 
