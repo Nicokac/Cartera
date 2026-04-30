@@ -618,14 +618,24 @@ class TestPostCancel(unittest.TestCase):
         server._process = proc
         server._state["status"] = "running"
 
-        r = _client.post("/cancel")
+        r = _client.post("/cancel", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json(), {"status": "cancelling"})
         proc.terminate.assert_called_once()
         self.assertTrue(server._cancel_requested)
 
-    def test_cancel_409_when_not_running(self):
+    def test_cancel_401_without_valid_session_token(self):
+        proc = MagicMock()
+        proc.poll.return_value = None
+        server._process = proc
+        server._state["status"] = "running"
+
         r = _client.post("/cancel")
+        self.assertEqual(r.status_code, 401)
+        proc.terminate.assert_not_called()
+
+    def test_cancel_409_when_not_running(self):
+        r = _client.post("/cancel", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 409)
 
     def test_cancel_409_when_process_already_finished(self):
@@ -634,7 +644,7 @@ class TestPostCancel(unittest.TestCase):
         server._process = proc
         server._state["status"] = "running"
 
-        r = _client.post("/cancel")
+        r = _client.post("/cancel", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 409)
         proc.terminate.assert_not_called()
 

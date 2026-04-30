@@ -86,6 +86,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo el calculo de `score_despliegue_liquidez` a helper dedicado (`_apply_liquidity_deployment_score`) sin cambios funcionales.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo post-procesado final (ajustes de regimen + clamp de `score_reduccion` + despliegue de liquidez) a helper `_apply_post_regime_adjustments`, sin cambios funcionales.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo parseo de configuracion/umbrales a helper `_parse_base_score_config`, manteniendo defaults y comportamiento.
+- 2026-04-30: hardening de seguridad operativa: `POST /cancel` ahora requiere `X-Session-Token` (alineado con `/run`), con ajuste en UI para enviar token de sesion y test de rechazo `401` sin token.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -174,6 +175,10 @@ Prueba de cierre (si aplica):
 - validar en corrida baseline que `score_reduccion` y el ranking final se mantienen iguales frente al baseline previo (control no regresion del post-procesado)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar en corrida baseline que thresholds y pesos (`momentum`, `concentration`, `gain_clip`) se comportan igual que antes del refactor
+- correr `python -m unittest tests.test_server -v`
+- en UI, iniciar una corrida y cancelar:
+  - cancelar desde app funciona normalmente
+  - llamada manual `POST /cancel` sin `X-Session-Token` devuelve `401`
 
 ## Contexto
 

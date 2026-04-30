@@ -433,8 +433,10 @@ def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JS
 
 
 @app.post("/cancel")
-def post_cancel() -> JSONResponse:
+def post_cancel(x_session_token: str = Header(default="")) -> JSONResponse:
     global _cancel_requested
+    if not _session_token or x_session_token != _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     with _lock:
         if _state["status"] != "running" or _process is None:
             raise HTTPException(status_code=409, detail="No hay una corrida en progreso para cancelar.")

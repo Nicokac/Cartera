@@ -493,7 +493,12 @@
       const btnCancel = document.getElementById("btn-cancel");
       btnCancel.disabled = true;
       try {
-        const res = await fetch("/cancel", { method: "POST" });
+        const res = await fetch("/cancel", {
+          method: "POST",
+          headers: {
+            "X-Session-Token": _sessionToken,
+          },
+        });
         if (!res.ok && res.status !== 409) {
           showFormAlert("No se pudo cancelar la corrida.");
         }
