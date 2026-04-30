@@ -128,6 +128,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/generate_real_report.py` integra cache en `fetch_prices`
   - path de cache: `data/runtime/iol_price_cache.json`
 - `docs/README.md`: nuevo diagrama de arquitectura en Mermaid
+- `scripts/release.ps1`: automatiza release local
+  - bump de version en `pyproject.toml`
+  - creacion/actualizacion de `version.txt`
+  - creacion de tag `vX.Y.Z`
+  - ejecucion de `scripts/build_dist.ps1`
 
 ### Testing
 

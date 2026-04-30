@@ -50,6 +50,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P3 de performance: cache intradia de precios IOL con TTL de 15 minutos para reducir re-fetch en corridas sucesivas.
 - 2026-04-29: completado item P3 de documentacion: diagrama de arquitectura (Mermaid) en `docs/README.md`.
 - 2026-04-29: completado item P3 de testing: prueba de concurrencia en `/run` (2 requests simultaneos, segundo responde `409`).
+- 2026-04-29: completado item P1 de DevOps: script de release automatizado (`scripts/release.ps1`) para bump de version, tag y build de distribucion.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -58,6 +59,10 @@ Prueba de cierre (si aplica):
 - ejecutar dos corridas seguidas en menos de 15 minutos y verificar que se crea/actualiza `data/runtime/iol_price_cache.json`
 - abrir `docs/README.md` en GitHub/visor Markdown y validar que el bloque Mermaid renderiza correctamente
 - correr `python -m unittest tests.test_server.TestPostRun.test_concurrent_run_requests_second_returns_409 -v`
+- ejecutar `.\scripts\release.ps1 -Version X.Y.Z -DryRun` y validar que:
+  - detecta version actual/nueva
+  - no modifica archivos en modo dry run
+  - informa correctamente tag y pasos de build
 
 ## Contexto
 

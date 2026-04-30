@@ -315,6 +315,19 @@ CI actual:
   2. mergear a `main`
   3. crear tag `vX.Y.Z`
 
+Automatizacion local de release:
+
+```powershell
+.\scripts\release.ps1 -Version 0.2.3 -DryRun
+.\scripts\release.ps1 -Version 0.2.3
+```
+
+El script:
+- actualiza `pyproject.toml` y `version.txt`
+- crea commit `chore(release): bump version to X.Y.Z`
+- crea tag `vX.Y.Z`
+- ejecuta `scripts/build_dist.ps1`
+
 ## Estado de deuda tecnica
 
 Pendientes reales abiertos:
