@@ -85,6 +85,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `prediction.predictor` agrega salida alternativa (`classifier_b_direction`, `classifier_b_confidence`, `classifier_b_agrees`)
   - `pipeline` y `prediction_store` persisten métricas del clasificador B
   - `report_sections_prediction.py` expone KPI `Coincidencia clasificador B`
+- CI DevOps:
+  - `.github/workflows/ci.yml` vuelve a exigir unittest en `ubuntu-latest` y `macos-latest` como checks bloqueantes
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 

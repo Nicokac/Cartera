@@ -7,8 +7,17 @@ on:
 
 jobs:
   unittest:
-    if: ${{ false }}
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            required: true
+          - os: macos-latest
+            required: true
+    continue-on-error: ${{ !matrix.required }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -80,9 +89,3 @@ jobs:
 
       - name: Enforce coverage floor
         run: python -m coverage report --fail-under=82
-
-  ci-temporary-disabled:
-    runs-on: ubuntu-latest
-    steps:
-      - name: CI status
-        run: echo "Unittest CI deshabilitado temporalmente; deuda tecnica pendiente."

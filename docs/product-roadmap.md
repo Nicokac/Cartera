@@ -75,6 +75,8 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de Dimension 19: calibracion por `asset_family` implementada en modo opt-in (`calibration.family_enabled`) con `family_overrides` por señal y gating por umbral de muestra.
 - 2026-04-30: avance P3 de Dimension 19: soporte multi-horizonte en metricas historicas de Prediccion (`Acierto por horizonte` usando `horizon_days`).
 - 2026-04-30: avance P3 de Dimension 19: opcion B de clasificador sobre `signal_votes` integrada en modo experimental (sin reemplazar direccion principal).
+- 2026-04-30: completado item P2 de DevOps CI: matriz `ubuntu-latest` + `macos-latest` vuelve a modo bloqueante (sin `continue-on-error` por SO).
+- 2026-04-30: avance P2 de DevOps/CI: se reactiva ejecucion de tests en `ubuntu-latest` y se incorpora `macos-latest` en modo best-effort (`continue-on-error`) para recuperar visibilidad sin bloquear entregas.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
