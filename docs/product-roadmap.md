@@ -90,6 +90,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de calidad/tipado: `scoring.py` incorpora `TypedDict` (`BaseScoreConfig`) para tipar el resultado de `_parse_base_score_config` y reducir ambiguedad de `dict[str, object]` en `apply_base_scores`.
 - 2026-04-30: completado item P2 de compatibilidad documental: matriz oficial de navegadores soportados en `docs/browser-support.md` + referencias en `README.md` y `docs/README.md`.
 - 2026-04-30: avance P3 de calidad/tipado: simplificacion de `apply_base_scores` para usar `BaseScoreConfig` tipado sin casts redundantes, manteniendo comportamiento.
+- 2026-04-30: hardening de seguridad en observabilidad: `GET /status/detail` ahora requiere token de sesion (header `X-Session-Token` o query `token`), y UI actualiza `Ver log completo` con token para mantener trazabilidad sin exponer logs anonimamente.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -190,6 +191,11 @@ Prueba de cierre (si aplica):
 - abrir app local y un `reports/*.html` en al menos 2 navegadores soportados y confirmar render correcto basico
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar en baseline que no cambia el resultado de `apply_base_scores` tras simplificacion de tipado
+- correr `python -m unittest tests.test_server -v`
+- validar manualmente:
+  - `GET /status/detail` sin token responde `401`
+  - `GET /status/detail?token=<token_sesion>` responde `200`
+  - link `Ver log completo ->` desde UI abre correctamente el detalle autenticado
 
 ## Contexto
 

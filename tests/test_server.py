@@ -222,8 +222,21 @@ class TestGetStatusDetail(unittest.TestCase):
     def tearDown(self):
         _reset()
 
-    def test_idle_without_process(self):
+    def _get_status_detail(self, *, query_token: str | None = None):
+        if query_token is not None:
+            return _client.get(f"/status/detail?token={query_token}")
+        return _client.get("/status/detail", headers={"X-Session-Token": "test-session-token"})
+
+    def test_status_detail_401_without_token(self):
         r = _client.get("/status/detail")
+        self.assertEqual(r.status_code, 401)
+
+    def test_status_detail_accepts_query_token(self):
+        r = self._get_status_detail(query_token="test-session-token")
+        self.assertEqual(r.status_code, 200)
+
+    def test_idle_without_process(self):
+        r = self._get_status_detail()
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertEqual(data["status"], "idle")
@@ -240,7 +253,7 @@ class TestGetStatusDetail(unittest.TestCase):
         proc.pid = 12345
         server._process = proc
 
-        data = _client.get("/status/detail").json()
+        data = self._get_status_detail().json()
         self.assertEqual(data["status"], "running")
         self.assertEqual(data["pid"], 12345)
         self.assertIsInstance(data["uptime_seconds"], int)
@@ -255,7 +268,7 @@ class TestGetStatusDetail(unittest.TestCase):
             log_path = Path(tmp) / "server_run.log"
             log_path.write_text("line1\nline2\npipeline failed", encoding="utf-8")
             with patch.object(server, "LOG_PATH", log_path):
-                data = _client.get("/status/detail").json()
+                data = self._get_status_detail().json()
         self.assertEqual(data["status"], "error")
         self.assertIn("pipeline failed", data["log_tail"])
         self.assertEqual(data["log_lines"], 3)
@@ -266,7 +279,7 @@ class TestGetStatusDetail(unittest.TestCase):
         server._state["status"] = "done"
         server._state["started_at"] = "2026-04-26 10:00:00"
         server._state["finished_at"] = "2026-04-26 10:05:30"
-        data = _client.get("/status/detail").json()
+        data = self._get_status_detail().json()
         self.assertEqual(data["elapsed_seconds"], 330)
 
     def test_missing_log_does_not_fail(self):
@@ -274,7 +287,7 @@ class TestGetStatusDetail(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             missing_log = Path(tmp) / "missing.log"
             with patch.object(server, "LOG_PATH", missing_log):
-                r = _client.get("/status/detail")
+                r = self._get_status_detail()
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertEqual(data["log_tail"], "")
@@ -290,7 +303,7 @@ class TestGetStatusDetail(unittest.TestCase):
                 encoding="utf-8",
             )
             with patch.object(server, "LOG_PATH", log_path):
-                data = _client.get("/status/detail").json()
+                data = self._get_status_detail().json()
         self.assertIn("IOL_USERNAME=<redacted>", data["log_tail"])
         self.assertIn("password=<redacted>", data["log_tail"])
         self.assertIn("username=<redacted>", data["log_tail"])

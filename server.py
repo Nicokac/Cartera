@@ -453,7 +453,9 @@ def get_status() -> JSONResponse:
 
 
 @app.get("/status/detail")
-def get_status_detail() -> JSONResponse:
+def get_status_detail(x_session_token: str = Header(default=""), token: str = "") -> JSONResponse:
+    if not _session_token or (x_session_token != _session_token and token != _session_token):
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     started_dt = _parse_ts(_state.get("started_at"))
     finished_dt = _parse_ts(_state.get("finished_at"))
     uptime_seconds = None

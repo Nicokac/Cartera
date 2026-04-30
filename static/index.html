@@ -204,6 +204,7 @@
       label.innerHTML = `Estado: <span id="status-chip" class="status-chip ${s.c}">${s.l}</span>`;
       time.textContent = s.ts;
       link.style.display = data.status === "done" ? "block" : "none";
+      linkStatusDetail.href = _sessionToken ? `/status/detail?token=${encodeURIComponent(_sessionToken)}` : "/status/detail";
       linkStatusDetail.style.display = data.status === "error" ? "block" : "none";
       btn.disabled = data.status === "running";
       btnCancel.style.display = data.status === "running" ? "inline-block" : "none";
