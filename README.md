@@ -273,6 +273,18 @@ python scripts\generate_real_report.py `
   --non-interactive
 ```
 
+Scheduler opcional (corrida periodica cada N minutos):
+
+```powershell
+python scripts\generate_real_report.py `
+  --username tu_usuario_iol@example.com `
+  --password tu_password_iol `
+  --no-use-iol-liquidity `
+  --aporte-externo-ars 600000 `
+  --non-interactive `
+  --schedule-every-minutes 60
+```
+
 ## Tests
 
 Suite completa:

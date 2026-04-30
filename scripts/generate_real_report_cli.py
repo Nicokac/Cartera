@@ -140,4 +140,10 @@ def parse_args_impl(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Monto nuevo a ingresar en ARS. Si falta, usa prompt salvo en modo no interactivo.",
     )
+    parser.add_argument(
+        "--schedule-every-minutes",
+        type=int,
+        default=0,
+        help="Si es > 0, ejecuta corridas periodicas cada N minutos (requiere --non-interactive).",
+    )
     return parser.parse_args(argv)

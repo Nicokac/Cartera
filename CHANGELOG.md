@@ -139,6 +139,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validacion de integridad de CSV runtime al startup en `server.py`:
   - chequeo de schema/header para `decision_history.csv` y `prediction_history.csv`
   - cuarentena automatica de archivos invalidos en `data/runtime/corrupt/*.corrupt`
+- scheduler opcional de corridas reales en `scripts/generate_real_report.py`:
+  - nuevo flag `--schedule-every-minutes N` (requiere `--non-interactive`)
+  - ejecuta corridas periodicas y espera `N` minutos entre ejecuciones
 
 ### Testing
 
@@ -177,6 +180,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   `test_watch_process_ignores_webhook_errors`)
 - `tests/test_server.py`: nuevos tests de validacion de CSV runtime
   (`TestRuntimeCsvValidation`)
+- `tests/test_generate_real_report.py`: nuevos tests de scheduler
+  (`schedule-every-minutes`, requerimiento de `--non-interactive`, loop/sleep)
 
 ### Security
 

@@ -760,9 +760,25 @@ def run_real_report(args: object) -> None:
         )
 
 
+def run_scheduled_real_report(args: object, *, sleep_fn=time.sleep) -> None:
+    interval_minutes = int(getattr(args, "schedule_every_minutes", 0) or 0)
+    if interval_minutes <= 0:
+        run_real_report(args)
+        return
+    if not bool(getattr(args, "non_interactive", False)):
+        raise ValueError("--schedule-every-minutes requiere --non-interactive.")
+    logger.info("Scheduler activo: corrida cada %s minutos.", interval_minutes)
+    while True:
+        try:
+            run_real_report(args)
+        except Exception:
+            logger.exception("La corrida programada finalizo con error.")
+        sleep_fn(interval_minutes * 60)
+
+
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
-    run_real_report(args)
+    run_scheduled_real_report(args)
 
 
 if __name__ == "__main__":

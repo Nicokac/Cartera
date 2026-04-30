@@ -32,6 +32,7 @@ from generate_real_report import (
     prompt_yes_no,
     resolve_iol_credentials,
     backup_runtime_csvs,
+    run_scheduled_real_report,
 )
 
 
@@ -382,6 +383,38 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertTrue(args.non_interactive)
         self.assertFalse(args.use_iol_liquidity)
         self.assertEqual(args.aporte_externo_ars, 600000.0)
+
+    def test_parse_args_accepts_scheduler_interval(self) -> None:
+        args = parse_args(["--non-interactive", "--schedule-every-minutes", "15"])
+        self.assertTrue(args.non_interactive)
+        self.assertEqual(args.schedule_every_minutes, 15)
+
+    def test_run_scheduled_real_report_requires_non_interactive(self) -> None:
+        args = type("Args", (), {"schedule_every_minutes": 5, "non_interactive": False})()
+        with self.assertRaisesRegex(ValueError, "--schedule-every-minutes requiere --non-interactive"):
+            run_scheduled_real_report(args)
+
+    def test_run_scheduled_real_report_runs_once_when_interval_is_zero(self) -> None:
+        args = type("Args", (), {"schedule_every_minutes": 0, "non_interactive": True})()
+        with patch("generate_real_report.run_real_report") as run_mock:
+            run_scheduled_real_report(args)
+        run_mock.assert_called_once_with(args)
+
+    def test_run_scheduled_real_report_loops_and_sleeps(self) -> None:
+        args = type("Args", (), {"schedule_every_minutes": 1, "non_interactive": True})()
+        state = {"calls": 0}
+
+        def fake_run(_args):
+            state["calls"] += 1
+            if state["calls"] >= 2:
+                raise KeyboardInterrupt()
+
+        sleep_mock = Mock()
+        with patch("generate_real_report.run_real_report", side_effect=fake_run):
+            with self.assertRaises(KeyboardInterrupt):
+                run_scheduled_real_report(args, sleep_fn=sleep_mock)
+        self.assertEqual(state["calls"], 2)
+        sleep_mock.assert_called_once_with(60)
 
     def test_prompt_yes_no_retries_until_valid_answer(self) -> None:
         with patch("builtins.input", side_effect=["quizas", "s"]), patch("builtins.print") as print_mock:
