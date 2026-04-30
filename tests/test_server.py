@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 import unittest
 from datetime import datetime
 from tempfile import TemporaryDirectory
@@ -317,6 +318,34 @@ class TestPostRun(unittest.TestCase):
         server._state["status"] = "running"
         r = _client.post("/run", json={}, headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 409)
+
+    def test_concurrent_run_requests_second_returns_409(self):
+        responses: list[int] = []
+        barrier = threading.Barrier(2)
+        real_thread_cls = threading.Thread
+
+        def send_run():
+            try:
+                barrier.wait(timeout=1.0)
+                response = server.post_run(
+                    server.RunParams(username="demo_user", password="secret"),
+                    x_session_token="test-session-token",
+                )
+                responses.append(response.status_code)
+            except Exception as exc:
+                status_code = getattr(exc, "status_code", None)
+                responses.append(int(status_code) if status_code is not None else 500)
+
+        with patch("server.subprocess.Popen", return_value=MagicMock(pid=9999)), \
+             patch("server.threading.Thread", return_value=MagicMock()):
+            t1 = real_thread_cls(target=send_run)
+            t2 = real_thread_cls(target=send_run)
+            t1.start()
+            t2.start()
+            t1.join(timeout=1.0)
+            t2.join(timeout=1.0)
+
+        self.assertEqual(sorted(responses), [200, 409])
 
     def test_422_when_aporte_externo_is_negative(self):
         r = _client.post(

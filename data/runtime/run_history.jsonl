@@ -21,3 +21,18 @@
 {"status": "error", "started_at": null, "finished_at": "2026-04-29 20:43:47", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
 {"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 20:43:47", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}
 {"status": "done", "started_at": "2026-04-29 21:02:56", "finished_at": "2026-04-29 21:11:22", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": ""}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:26:27", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:26:27", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 21:26:27", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Código de salida: 2"}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 21:26:27", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:26:27", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:27:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:27:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 21:27:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Código de salida: 2"}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 21:27:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:27:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:30:09", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:30:09", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 21:30:09", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Código de salida: 2"}
+{"status": "error", "started_at": null, "finished_at": "2026-04-29 21:30:09", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-04-29 21:30:09", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}

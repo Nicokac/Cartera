@@ -158,6 +158,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_prediction_cycle.py`: cobertura de aplicacion de retencion dentro del ciclo
 - `tests/test_generate_real_report_split_runtime.py`: nuevos tests de cache intradia
   (hit con cache fresca y refetch con cache vencida)
+- `tests/test_server.py`: nuevo test concurrente de `/run`
+  (`test_concurrent_run_requests_second_returns_409`) para validar que requests
+  simultaneos no disparan dos corridas y el segundo recibe `409`
 
 ### Security
 
