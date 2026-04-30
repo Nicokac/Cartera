@@ -726,24 +726,24 @@ def apply_base_scores(
 ) -> pd.DataFrame:
     scoring_rules = scoring_rules or {}
     config = _parse_base_score_config(scoring_rules)
-    rank_neutral = float(config["rank_neutral"])
-    absolute_rules = dict(config["absolute_rules"])
-    etf_adjustments = dict(config["etf_adjustments"])
-    asset_subfamily_adjustments = dict(config["asset_subfamily_adjustments"])
-    score_refuerzo_weights = dict(config["score_refuerzo_weights"])
-    score_reduccion_weights = dict(config["score_reduccion_weights"])
-    score_despliegue_liquidez_weights = dict(config["score_despliegue_liquidez_weights"])
-    refuerzo_penalties = dict(config["refuerzo_penalties"])
-    reduccion_penalties = dict(config["reduccion_penalties"])
-    gain_clip_min = float(config["gain_clip_min"])
-    gain_clip_max = float(config["gain_clip_max"])
-    mom_week = float(config["mom_week"])
-    mom_month = float(config["mom_month"])
-    mom_ytd = float(config["mom_ytd"])
-    ref_soft_pct = float(config["ref_soft_pct"])
-    ref_hard_pct = float(config["ref_hard_pct"])
-    red_soft_pct = float(config["red_soft_pct"])
-    red_hard_pct = float(config["red_hard_pct"])
+    rank_neutral = config["rank_neutral"]
+    absolute_rules = config["absolute_rules"]
+    etf_adjustments = config["etf_adjustments"]
+    asset_subfamily_adjustments = config["asset_subfamily_adjustments"]
+    score_refuerzo_weights = config["score_refuerzo_weights"]
+    score_reduccion_weights = config["score_reduccion_weights"]
+    score_despliegue_liquidez_weights = config["score_despliegue_liquidez_weights"]
+    refuerzo_penalties = config["refuerzo_penalties"]
+    reduccion_penalties = config["reduccion_penalties"]
+    gain_clip_min = config["gain_clip_min"]
+    gain_clip_max = config["gain_clip_max"]
+    mom_week = config["mom_week"]
+    mom_month = config["mom_month"]
+    mom_ytd = config["mom_ytd"]
+    ref_soft_pct = config["ref_soft_pct"]
+    ref_hard_pct = config["ref_hard_pct"]
+    red_soft_pct = config["red_soft_pct"]
+    red_hard_pct = config["red_hard_pct"]
 
     out = _initialize_base_scores(
         decision.copy(),

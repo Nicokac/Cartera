@@ -263,6 +263,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - documentacion de compatibilidad de navegadores:
   - nuevo `docs/browser-support.md` con matriz oficial desktop/mobile
   - `README.md` y `docs/README.md` referencian el documento de soporte
+- `src/decision/scoring.py`: ajuste de tipado en `apply_base_scores`
+  - usa directamente `BaseScoreConfig` parseado (sin casts redundantes)
+  - sin cambios funcionales en reglas de scoring
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
