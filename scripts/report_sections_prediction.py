@@ -131,6 +131,9 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     work = predictions.copy()
     summary = prediction_bundle.get("summary", {}) or {}
     config = prediction_bundle.get("config", {}) or {}
+    accuracy = prediction_bundle.get("accuracy", {}) or {}
+    accuracy_global = (accuracy.get("global", {}) or {}) if isinstance(accuracy, dict) else {}
+    accuracy_by_family = accuracy.get("by_family", []) if isinstance(accuracy, dict) else []
 
     def _votes_summary(value: object) -> str:
         votes = _parse_votes(value)
@@ -227,6 +230,39 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
       </div>
       {build_prediction_signal_table(predictions_view)}
     """
+    global_completed = int(accuracy_global.get("completed", 0) or 0)
+    global_accuracy_pct = accuracy_global.get("accuracy_pct")
+    global_accuracy_label = fmt_pct(global_accuracy_pct) if global_accuracy_pct is not None else "-"
+    by_family_items = []
+    for item in accuracy_by_family[:6]:
+        fam = str(item.get("asset_family") or "sin_familia")
+        completed = int(item.get("completed", 0) or 0)
+        acc = item.get("accuracy_pct")
+        by_family_items.append(
+            {
+                "kicker": fam,
+                "title": f"{fmt_pct(acc) if acc is not None else '-'}",
+                "detail": f"{completed} outcomes verificados",
+            }
+        )
+    accuracy_block = f"""
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Acierto histórico (global)</h3>
+          <div class="focus-list tone-neutral">
+            <article class="focus-item">
+              <div class="focus-top"><strong>Global</strong></div>
+              <div class="focus-title">{global_accuracy_label}</div>
+              <div class="focus-detail">{global_completed} outcomes verificados</div>
+            </article>
+          </div>
+        </div>
+        <div>
+          <h3>Acierto por familia</h3>
+          {build_focus_list(by_family_items, empty_message='Sin outcomes verificados por familia.', tone='neutral')}
+        </div>
+      </div>
+    """
     return f"""
     <section class="panel" id="prediccion">
       <h2>PredicciÃ³n</h2>
@@ -251,6 +287,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
           {_focus_items(bearish, tone='sell')}
         </div>
       </div>
+      {accuracy_block}
       {build_collapsible(
           "Ver detalle completo de predicciÃ³n",
           prediction_detail,

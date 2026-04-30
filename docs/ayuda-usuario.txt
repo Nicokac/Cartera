@@ -156,6 +156,12 @@ Una operacion aparece en "Operaciones" pero no en "Cartera"
   La operacion fue ejecutada en IOL pero todavia no se reflejo en el saldo de
   tenencias. Suele resolverse solo en la proxima corrida.
 
+Como leer "Acierto historico" en Prediccion
+  "Acierto historico (global)" muestra el porcentaje de predicciones ya
+  verificadas contra outcome real (suba/baja/neutral) sobre todo el historial.
+  "Acierto por familia" desagrega ese porcentaje por tipo de activo
+  (`asset_family`, por ejemplo `stock` o `bond`).
+
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,
   volver a intentar en la app.

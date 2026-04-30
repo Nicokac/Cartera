@@ -193,6 +193,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     `Robusta`, `Parcial`, `Corta`, `Sin historia`
 - `tests/test_report_render_core.py`: asserts de texto robustecidos para tolerar
   variantes UTF-8/mojibake heredadas en algunos labels del HTML
+- metricas historicas de acierto del predictor en reporte:
+  - `src/prediction/store.py` persiste tambien `asset_family` y `asset_subfamily`
+    en `prediction_history.csv`
+  - `scripts/generate_real_report.py` calcula `accuracy` global y por familia
+    desde outcomes verificados del historial
+  - `scripts/report_sections_prediction.py` renderiza bloques:
+    - `Acierto histórico (global)`
+    - `Acierto por familia`
 
 ### Testing
 
@@ -254,6 +262,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validacion de quality label en decision table:
   - `python -m unittest tests.test_decision_history -v`
   - `python -m unittest tests.test_report_render_core -v`
+- validacion de metricas de acierto en prediccion:
+  - `python -m unittest tests.test_prediction_store -v`
+  - `python -m unittest tests.test_generate_real_report -v`
+  - `python -m unittest tests.test_report_sections_prediction -v`
 
 ### Security
 

@@ -15,6 +15,8 @@ PREDICTION_HISTORY_PATH = RUNTIME_DIR / "prediction_history.csv"
 PREDICTION_HISTORY_COLUMNS = [
     "run_date",
     "ticker",
+    "asset_family",
+    "asset_subfamily",
     "direction",
     "confidence",
     "conviction_label",
@@ -92,6 +94,10 @@ def build_prediction_observation(
     observation["horizon_days"] = int(horizon_days)
     observation["outcome_date"] = resolve_prediction_outcome_date(run_date, horizon_days=int(horizon_days))
     observation["signal_votes"] = observation["signal_votes"].map(_normalize_signal_votes)
+    if "asset_family" in observation.columns:
+        observation["asset_family"] = observation["asset_family"].fillna("").astype(str).str.strip().str.lower()
+    if "asset_subfamily" in observation.columns:
+        observation["asset_subfamily"] = observation["asset_subfamily"].fillna("").astype(str).str.strip().str.lower()
     observation["direction"] = observation["direction"].fillna("neutral").astype(str).str.strip().replace("", "neutral")
     observation["outcome"] = observation["outcome"].fillna("").astype(str).str.strip()
     observation["ticker"] = observation["ticker"].astype(str).str.strip().str.upper()
@@ -124,6 +130,10 @@ def upsert_prediction_history(
     merged["run_date"] = merged["run_date"].map(_normalize_date)
     merged["outcome_date"] = merged["outcome_date"].where(merged["outcome_date"].isna(), merged["outcome_date"].map(_normalize_date))
     merged["signal_votes"] = merged["signal_votes"].map(_normalize_signal_votes)
+    if "asset_family" in merged.columns:
+        merged["asset_family"] = merged["asset_family"].fillna("").astype(str).str.strip().str.lower()
+    if "asset_subfamily" in merged.columns:
+        merged["asset_subfamily"] = merged["asset_subfamily"].fillna("").astype(str).str.strip().str.lower()
     merged["ticker"] = merged["ticker"].astype(str).str.strip().str.upper()
     merged["direction"] = merged["direction"].fillna("neutral").astype(str).str.strip().replace("", "neutral")
     merged["outcome"] = merged["outcome"].fillna("").astype(str).str.strip()

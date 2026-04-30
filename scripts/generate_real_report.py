@@ -485,7 +485,50 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
     )
     save_prediction_history(prediction_history)
     prediction_bundle["history_size"] = int(len(prediction_history))
+    prediction_bundle["accuracy"] = _build_prediction_accuracy_metrics(prediction_history)
     return prediction_bundle
+
+
+def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, object]:
+    if not isinstance(history, pd.DataFrame) or history.empty:
+        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": []}
+
+    work = history.copy()
+    if "outcome" not in work.columns or "correct" not in work.columns:
+        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": []}
+
+    work["outcome"] = work["outcome"].fillna("").astype(str).str.strip()
+    completed = work.loc[work["outcome"] != ""].copy()
+    if completed.empty:
+        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": []}
+
+    correct_numeric = pd.to_numeric(completed["correct"], errors="coerce")
+    global_accuracy = float(correct_numeric.mean() * 100.0) if correct_numeric.notna().any() else None
+
+    by_family_rows: list[dict[str, object]] = []
+    if "asset_family" in completed.columns:
+        grouped = completed.copy()
+        grouped["asset_family"] = grouped["asset_family"].fillna("").astype(str).str.strip().str.lower()
+        grouped["asset_family"] = grouped["asset_family"].where(grouped["asset_family"] != "", "sin_familia")
+        for family, frame in grouped.groupby("asset_family", dropna=False):
+            fam_correct = pd.to_numeric(frame["correct"], errors="coerce")
+            fam_accuracy = float(fam_correct.mean() * 100.0) if fam_correct.notna().any() else None
+            by_family_rows.append(
+                {
+                    "asset_family": str(family),
+                    "completed": int(len(frame)),
+                    "accuracy_pct": fam_accuracy,
+                }
+            )
+        by_family_rows.sort(key=lambda item: (-(item["completed"]), str(item["asset_family"])))
+
+    return {
+        "global": {
+            "completed": int(len(completed)),
+            "accuracy_pct": global_accuracy,
+        },
+        "by_family": by_family_rows,
+    }
 
 
 def _build_risk_bundle(df_total: pd.DataFrame, *, run_date: object, dashboard_bundle: dict[str, object]) -> dict[str, object]:

@@ -16,6 +16,7 @@ from generate_real_report import (
     _collect_market_runtime_inputs,
     _log_phase_duration,
     _build_report_payload,
+    _build_prediction_accuracy_metrics,
     configure_logging,
     _merge_bond_context_into_decision,
     _enrich_decision_with_temporal_memory,
@@ -40,6 +41,26 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_build_prediction_accuracy_metrics_computes_global_and_by_family(self) -> None:
+        history = pd.DataFrame(
+            [
+                {"ticker": "AAPL", "asset_family": "stock", "outcome": "up", "correct": True},
+                {"ticker": "MSFT", "asset_family": "stock", "outcome": "down", "correct": False},
+                {"ticker": "GD30", "asset_family": "bond", "outcome": "neutral", "correct": True},
+                {"ticker": "KO", "asset_family": "stock", "outcome": "", "correct": pd.NA},
+            ]
+        )
+
+        metrics = _build_prediction_accuracy_metrics(history)
+
+        self.assertEqual(metrics["global"]["completed"], 3)
+        self.assertAlmostEqual(float(metrics["global"]["accuracy_pct"]), 66.6666, places=3)
+        by_family = {row["asset_family"]: row for row in metrics["by_family"]}
+        self.assertEqual(by_family["stock"]["completed"], 2)
+        self.assertAlmostEqual(float(by_family["stock"]["accuracy_pct"]), 50.0, places=3)
+        self.assertEqual(by_family["bond"]["completed"], 1)
+        self.assertAlmostEqual(float(by_family["bond"]["accuracy_pct"]), 100.0, places=3)
+
     def test_configure_logging_default_text_format(self) -> None:
         root_logger = Mock()
         root_logger.handlers = []

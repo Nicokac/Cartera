@@ -63,6 +63,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: avance P3 de arquitectura/escalabilidad: contratos tipados con `typing.Protocol` para clientes HTTP externos (`src/clients/protocols.py`) e integracion no disruptiva en clientes IOL/BCRA.
 - 2026-04-29: avance P1 de Dimension 19: umbrales minimos formalizados en codigo (`MIN_RUNS_FOR_STREAK=10`, `MIN_RUNS_FOR_RELIABLE_SERIES=20`, `MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION=30`) y apagado automatico del fallback legacy de snapshots cuando la carpeta canonica ya alcanza ventana suficiente.
 - 2026-04-29: completado item P2 de Dimension 19: `quality label` en decision table del HTML (`Robusta/Parcial/Corta/Sin historia`) derivado del historial temporal por ticker/subfamilia.
+- 2026-04-29: completado item P2 de Dimension 19: seccion de metricas de acierto del predictor en HTML (`%` global y `%` por `asset_family`) basada en outcomes verificados del `prediction_history`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -98,6 +99,10 @@ Prueba de cierre (si aplica):
 - validar que con >=20 snapshots en `data/snapshots/` ya no se tome `tests/snapshots/` como fallback legacy aunque `ENABLE_LEGACY_SNAPSHOTS=1`
 - correr `python -m unittest tests.test_decision_history tests.test_report_render_core -v`
 - abrir `reports/real-report.html` y validar que la tabla de decision muestra la columna `Calidad historia` con labels esperados
+- correr `python -m unittest tests.test_prediction_store tests.test_generate_real_report tests.test_report_sections_prediction -v`
+- abrir `reports/real-report.html` y validar en `Predicción`:
+  - bloque `Acierto histórico (global)` con `%` y cantidad de outcomes
+  - bloque `Acierto por familia` con `%` por `asset_family`
 
 ## Contexto
 
