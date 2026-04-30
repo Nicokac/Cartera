@@ -312,6 +312,257 @@ def _initialize_base_scores(
     return out
 
 
+def _apply_absolute_metric_blends(
+    out: pd.DataFrame,
+    *,
+    absolute_rules: dict[str, object],
+    rank_neutral: float,
+) -> pd.DataFrame:
+    if not bool(absolute_rules.get("enabled", False)):
+        return out
+
+    relative_weight = float(absolute_rules.get("relative_weight", 0.7))
+    absolute_weight = float(absolute_rules.get("absolute_weight", 0.3))
+    metrics = absolute_rules.get("metrics", {}) or {}
+
+    beta_rules = metrics.get("beta", {}) or {}
+    pe_rules = metrics.get("pe", {}) or {}
+    roe_rules = metrics.get("roe", {}) or {}
+    margin_rules = metrics.get("profit_margin", {}) or {}
+    mep_rules = metrics.get("mep_premium_pct", {}) or {}
+    gain_rules = metrics.get("ganancia_pct_cap", {}) or {}
+
+    abs_beta_ok = threshold_score(
+        out["Beta"],
+        good=float(beta_rules.get("good_max", 0.8)),
+        bad=float(beta_rules.get("bad_min", 1.5)),
+        higher_is_better=False,
+        neutral=rank_neutral,
+    )
+    abs_beta_risk = threshold_score(
+        out["Beta"],
+        good=float(beta_rules.get("bad_min", 1.5)),
+        bad=float(beta_rules.get("good_max", 0.8)),
+        higher_is_better=True,
+        neutral=rank_neutral,
+    )
+    abs_pe_ok = threshold_score(
+        out["P/E"],
+        good=float(pe_rules.get("good_max", 18.0)),
+        bad=float(pe_rules.get("bad_min", 30.0)),
+        higher_is_better=False,
+        neutral=rank_neutral,
+    )
+    abs_pe_expensive = threshold_score(
+        out["P/E"],
+        good=float(pe_rules.get("bad_min", 30.0)),
+        bad=float(pe_rules.get("good_max", 18.0)),
+        higher_is_better=True,
+        neutral=rank_neutral,
+    )
+    abs_quality_roe = threshold_score(
+        out["ROE"],
+        good=float(roe_rules.get("good_min", 20.0)),
+        bad=float(roe_rules.get("bad_max", 5.0)),
+        higher_is_better=True,
+        neutral=rank_neutral,
+    )
+    abs_quality_margin = threshold_score(
+        out["Profit Margin"],
+        good=float(margin_rules.get("good_min", 20.0)),
+        bad=float(margin_rules.get("bad_max", 5.0)),
+        higher_is_better=True,
+        neutral=rank_neutral,
+    )
+    abs_mep_ok = threshold_score(
+        out["MEP_Premium_%"],
+        good=float(mep_rules.get("good_max", -90.0)),
+        bad=float(mep_rules.get("bad_min", 10.0)),
+        higher_is_better=False,
+        neutral=rank_neutral,
+    )
+    abs_mep_premium = threshold_score(
+        out["MEP_Premium_%"],
+        good=float(mep_rules.get("bad_min", 10.0)),
+        bad=float(mep_rules.get("good_max", -90.0)),
+        higher_is_better=True,
+        neutral=rank_neutral,
+    )
+    abs_big_gain = threshold_score(
+        out["Ganancia_%_Cap"],
+        good=float(gain_rules.get("bad_min", 80.0)),
+        bad=float(gain_rules.get("good_max", 10.0)),
+        higher_is_better=True,
+        neutral=rank_neutral,
+    )
+    abs_big_loss = threshold_score(
+        out["Ganancia_%_Cap"],
+        good=float(gain_rules.get("bad_loss_max", -20.0)),
+        bad=float(gain_rules.get("good_max", 10.0)),
+        higher_is_better=False,
+        neutral=rank_neutral,
+    )
+
+    out["s_beta_ok"] = blend_scores(
+        out["s_beta_ok"], abs_beta_ok, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_beta_risk"] = blend_scores(
+        out["s_beta_risk"], abs_beta_risk, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_pe_ok"] = blend_scores(out["s_pe_ok"], abs_pe_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
+    out["s_pe_expensive"] = blend_scores(
+        out["s_pe_expensive"], abs_pe_expensive, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_quality_roe"] = blend_scores(
+        out["s_quality_roe"], abs_quality_roe, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_quality_margin"] = blend_scores(
+        out["s_quality_margin"], abs_quality_margin, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_mep_ok"] = blend_scores(
+        out["s_mep_ok"], abs_mep_ok, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_mep_premium"] = blend_scores(
+        out["s_mep_premium"], abs_mep_premium, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_big_gain"] = blend_scores(
+        out["s_big_gain"], abs_big_gain, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    out["s_big_loss"] = blend_scores(
+        out["s_big_loss"], abs_big_loss, relative_weight=relative_weight, absolute_weight=absolute_weight
+    )
+    quality_parts = pd.concat([out["s_quality_roe"], out["s_quality_margin"]], axis=1)
+    out["s_quality"] = quality_parts.mean(axis=1).fillna(rank_neutral)
+    out["s_low_quality"] = 1 - out["s_quality"]
+    return out
+
+
+def _apply_concentration_and_momentum_scores(
+    out: pd.DataFrame,
+    *,
+    rank_neutral: float,
+    ref_soft_pct: float,
+    ref_hard_pct: float,
+    red_soft_pct: float,
+    red_hard_pct: float,
+    mom_week: float,
+    mom_month: float,
+    mom_ytd: float,
+) -> pd.DataFrame:
+    out["s_concentration_room"] = np.where(
+        out["Peso_%"].isna(),
+        rank_neutral,
+        np.where(
+            out["Peso_%"] <= ref_soft_pct,
+            1.0,
+            np.where(
+                out["Peso_%"] >= ref_hard_pct,
+                0.0,
+                1 - ((out["Peso_%"] - ref_soft_pct) / max(ref_hard_pct - ref_soft_pct, 1e-9)),
+            ),
+        ),
+    )
+    out["s_concentration_pressure"] = np.where(
+        out["Peso_%"].isna(),
+        rank_neutral,
+        np.where(
+            out["Peso_%"] <= red_soft_pct,
+            0.0,
+            np.where(
+                out["Peso_%"] >= red_hard_pct,
+                1.0,
+                (out["Peso_%"] - red_soft_pct) / max(red_hard_pct - red_soft_pct, 1e-9),
+            ),
+        ),
+    )
+    out["Momentum_Refuerzo"] = mom_week * out["s_mom_week"] + mom_month * out["s_mom_month"] + mom_ytd * out["s_mom_ytd"]
+    out["Momentum_Reduccion"] = (
+        mom_week * out["s_weak_mom_week"] + mom_month * out["s_weak_mom_month"] + mom_ytd * out["s_weak_mom_ytd"]
+    )
+    return out
+
+
+def _apply_refuerzo_score(
+    out: pd.DataFrame,
+    *,
+    score_refuerzo_weights: dict[str, object],
+    refuerzo_penalties: dict[str, object],
+    asset_subfamily_adjustments: dict[str, object],
+) -> pd.DataFrame:
+    out["score_refuerzo"] = (
+        float(score_refuerzo_weights.get("low_weight", 0.20)) * out["s_low_weight"]
+        + float(score_refuerzo_weights.get("momentum", 0.25)) * out["Momentum_Refuerzo"]
+        + float(score_refuerzo_weights.get("consensus_good", 0.15)) * out["s_consensus_good"]
+        + float(score_refuerzo_weights.get("beta_ok", 0.10)) * out["s_beta_ok"]
+        + float(score_refuerzo_weights.get("mep_ok", 0.10)) * out["s_mep_ok"]
+        + float(score_refuerzo_weights.get("pe_ok", 0.10)) * out["s_pe_ok"]
+        + float(score_refuerzo_weights.get("big_gain_inverse", 0.10)) * (1 - out["s_big_gain"])
+        + float(score_refuerzo_weights.get("concentration_room", 0.0)) * out["s_concentration_room"]
+        + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality_effective"]
+    )
+    out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
+    out["score_refuerzo"] -= np.where(out["Es_FCI"], 1.0, 0.00)
+    out["score_refuerzo"] -= np.where(out["Es_Bono"], float(refuerzo_penalties.get("bono", 0.08)), 0.00)
+    out["score_refuerzo"] -= np.where(
+        out["Beta"].fillna(0) > float(refuerzo_penalties.get("beta_high_threshold", 1.8)),
+        float(refuerzo_penalties.get("beta_high", 0.08)),
+        0.00,
+    )
+    for subfamily, rules in asset_subfamily_adjustments.items():
+        mask = out["asset_subfamily"].eq(subfamily)
+        refuerzo_penalty = float((rules or {}).get("refuerzo_penalty", 0.0))
+        refuerzo_boost = float((rules or {}).get("refuerzo_boost", 0.0))
+        sparse_data_penalty = float((rules or {}).get("sparse_data_penalty", 0.0))
+        if refuerzo_penalty:
+            out["score_refuerzo"] -= np.where(mask, refuerzo_penalty, 0.0)
+        if refuerzo_boost:
+            out["score_refuerzo"] += np.where(mask, refuerzo_boost, 0.0)
+        if sparse_data_penalty:
+            out["score_refuerzo"] -= np.where(mask & ~out["has_fundamental_support"], sparse_data_penalty, 0.0)
+    out["score_refuerzo"] = out["score_refuerzo"].clip(0, 1)
+    return out
+
+
+def _apply_reduccion_score(
+    out: pd.DataFrame,
+    *,
+    score_reduccion_weights: dict[str, object],
+    reduccion_penalties: dict[str, object],
+    asset_subfamily_adjustments: dict[str, object],
+    gain_clip_min: float,
+    gain_clip_max: float,
+) -> pd.DataFrame:
+    out["score_reduccion"] = (
+        float(score_reduccion_weights.get("high_weight", 0.25)) * out["s_high_weight"]
+        + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion_Effective"]
+        + float(score_reduccion_weights.get("beta_risk", 0.15)) * out["s_beta_risk"]
+        + float(score_reduccion_weights.get("mep_premium", 0.10)) * out["s_mep_premium"]
+        + float(score_reduccion_weights.get("consensus_bad", 0.10)) * out["s_consensus_bad"]
+        + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive_effective"]
+        + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
+        + float(score_reduccion_weights.get("concentration_pressure", 0.0)) * out["s_concentration_pressure_effective"]
+        + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality_effective"]
+    )
+    out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
+    out["score_reduccion"] -= np.where(out["Es_FCI"], 1.0, 0.00)
+    out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
+    for subfamily, rules in asset_subfamily_adjustments.items():
+        mask = out["asset_subfamily"].eq(subfamily)
+        reduccion_boost = float((rules or {}).get("reduccion_boost", 0.0))
+        high_gain_reduccion_boost = float((rules or {}).get("high_gain_reduccion_boost", 0.0))
+        high_gain_threshold_pct = float((rules or {}).get("high_gain_threshold_pct", gain_clip_max))
+        if reduccion_boost:
+            out["score_reduccion"] += np.where(mask, reduccion_boost, 0.0)
+        if high_gain_reduccion_boost:
+            out["score_reduccion"] += np.where(
+                mask & (out["Ganancia_%_Cap"].fillna(gain_clip_min) >= high_gain_threshold_pct),
+                high_gain_reduccion_boost,
+                0.0,
+            )
+    out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
+    return out
+
+
 def apply_base_scores(
     decision: pd.DataFrame,
     *,
@@ -349,148 +600,17 @@ def apply_base_scores(
         gain_clip_min=gain_clip_min,
         gain_clip_max=gain_clip_max,
     )
-
-    if bool(absolute_rules.get("enabled", False)):
-        relative_weight = float(absolute_rules.get("relative_weight", 0.7))
-        absolute_weight = float(absolute_rules.get("absolute_weight", 0.3))
-        metrics = absolute_rules.get("metrics", {}) or {}
-
-        beta_rules = metrics.get("beta", {}) or {}
-        pe_rules = metrics.get("pe", {}) or {}
-        roe_rules = metrics.get("roe", {}) or {}
-        margin_rules = metrics.get("profit_margin", {}) or {}
-        mep_rules = metrics.get("mep_premium_pct", {}) or {}
-        gain_rules = metrics.get("ganancia_pct_cap", {}) or {}
-
-        abs_beta_ok = threshold_score(
-            out["Beta"],
-            good=float(beta_rules.get("good_max", 0.8)),
-            bad=float(beta_rules.get("bad_min", 1.5)),
-            higher_is_better=False,
-            neutral=rank_neutral,
-        )
-        abs_beta_risk = threshold_score(
-            out["Beta"],
-            good=float(beta_rules.get("bad_min", 1.5)),
-            bad=float(beta_rules.get("good_max", 0.8)),
-            higher_is_better=True,
-            neutral=rank_neutral,
-        )
-        abs_pe_ok = threshold_score(
-            out["P/E"],
-            good=float(pe_rules.get("good_max", 18.0)),
-            bad=float(pe_rules.get("bad_min", 30.0)),
-            higher_is_better=False,
-            neutral=rank_neutral,
-        )
-        abs_pe_expensive = threshold_score(
-            out["P/E"],
-            good=float(pe_rules.get("bad_min", 30.0)),
-            bad=float(pe_rules.get("good_max", 18.0)),
-            higher_is_better=True,
-            neutral=rank_neutral,
-        )
-        abs_quality_roe = threshold_score(
-            out["ROE"],
-            good=float(roe_rules.get("good_min", 20.0)),
-            bad=float(roe_rules.get("bad_max", 5.0)),
-            higher_is_better=True,
-            neutral=rank_neutral,
-        )
-        abs_quality_margin = threshold_score(
-            out["Profit Margin"],
-            good=float(margin_rules.get("good_min", 20.0)),
-            bad=float(margin_rules.get("bad_max", 5.0)),
-            higher_is_better=True,
-            neutral=rank_neutral,
-        )
-        abs_mep_ok = threshold_score(
-            out["MEP_Premium_%"],
-            good=float(mep_rules.get("good_max", -90.0)),
-            bad=float(mep_rules.get("bad_min", 10.0)),
-            higher_is_better=False,
-            neutral=rank_neutral,
-        )
-        abs_mep_premium = threshold_score(
-            out["MEP_Premium_%"],
-            good=float(mep_rules.get("bad_min", 10.0)),
-            bad=float(mep_rules.get("good_max", -90.0)),
-            higher_is_better=True,
-            neutral=rank_neutral,
-        )
-        abs_big_gain = threshold_score(
-            out["Ganancia_%_Cap"],
-            good=float(gain_rules.get("bad_min", 80.0)),
-            bad=float(gain_rules.get("good_max", 10.0)),
-            higher_is_better=True,
-            neutral=rank_neutral,
-        )
-        abs_big_loss = threshold_score(
-            out["Ganancia_%_Cap"],
-            good=float(gain_rules.get("bad_loss_max", -20.0)),
-            bad=float(gain_rules.get("good_max", 10.0)),
-            higher_is_better=False,
-            neutral=rank_neutral,
-        )
-
-        out["s_beta_ok"] = blend_scores(out["s_beta_ok"], abs_beta_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
-        out["s_beta_risk"] = blend_scores(
-            out["s_beta_risk"], abs_beta_risk, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        out["s_pe_ok"] = blend_scores(out["s_pe_ok"], abs_pe_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
-        out["s_pe_expensive"] = blend_scores(
-            out["s_pe_expensive"], abs_pe_expensive, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        out["s_quality_roe"] = blend_scores(
-            out["s_quality_roe"], abs_quality_roe, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        out["s_quality_margin"] = blend_scores(
-            out["s_quality_margin"], abs_quality_margin, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        out["s_mep_ok"] = blend_scores(out["s_mep_ok"], abs_mep_ok, relative_weight=relative_weight, absolute_weight=absolute_weight)
-        out["s_mep_premium"] = blend_scores(
-            out["s_mep_premium"], abs_mep_premium, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        out["s_big_gain"] = blend_scores(
-            out["s_big_gain"], abs_big_gain, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        out["s_big_loss"] = blend_scores(
-            out["s_big_loss"], abs_big_loss, relative_weight=relative_weight, absolute_weight=absolute_weight
-        )
-        quality_parts = pd.concat([out["s_quality_roe"], out["s_quality_margin"]], axis=1)
-        out["s_quality"] = quality_parts.mean(axis=1).fillna(rank_neutral)
-        out["s_low_quality"] = 1 - out["s_quality"]
-
-    out["s_concentration_room"] = np.where(
-        out["Peso_%"].isna(),
-        rank_neutral,
-        np.where(
-            out["Peso_%"] <= ref_soft_pct,
-            1.0,
-            np.where(
-                out["Peso_%"] >= ref_hard_pct,
-                0.0,
-                1 - ((out["Peso_%"] - ref_soft_pct) / max(ref_hard_pct - ref_soft_pct, 1e-9)),
-            ),
-        ),
-    )
-    out["s_concentration_pressure"] = np.where(
-        out["Peso_%"].isna(),
-        rank_neutral,
-        np.where(
-            out["Peso_%"] <= red_soft_pct,
-            0.0,
-            np.where(
-                out["Peso_%"] >= red_hard_pct,
-                1.0,
-                (out["Peso_%"] - red_soft_pct) / max(red_hard_pct - red_soft_pct, 1e-9),
-            ),
-        ),
-    )
-
-    out["Momentum_Refuerzo"] = mom_week * out["s_mom_week"] + mom_month * out["s_mom_month"] + mom_ytd * out["s_mom_ytd"]
-    out["Momentum_Reduccion"] = (
-        mom_week * out["s_weak_mom_week"] + mom_month * out["s_weak_mom_month"] + mom_ytd * out["s_weak_mom_ytd"]
+    out = _apply_absolute_metric_blends(out, absolute_rules=absolute_rules, rank_neutral=rank_neutral)
+    out = _apply_concentration_and_momentum_scores(
+        out,
+        rank_neutral=rank_neutral,
+        ref_soft_pct=ref_soft_pct,
+        ref_hard_pct=ref_hard_pct,
+        red_soft_pct=red_soft_pct,
+        red_hard_pct=red_hard_pct,
+        mom_week=mom_week,
+        mom_month=mom_month,
+        mom_ytd=mom_ytd,
     )
     etf_quality_floor = float(etf_adjustments.get("quality_floor", rank_neutral))
     etf_pe_discount = float(etf_adjustments.get("pe_expensive_discount", 1.0))
@@ -534,65 +654,20 @@ def apply_base_scores(
         out["Momentum_Reduccion"],
     )
 
-    out["score_refuerzo"] = (
-        float(score_refuerzo_weights.get("low_weight", 0.20)) * out["s_low_weight"]
-        + float(score_refuerzo_weights.get("momentum", 0.25)) * out["Momentum_Refuerzo"]
-        + float(score_refuerzo_weights.get("consensus_good", 0.15)) * out["s_consensus_good"]
-        + float(score_refuerzo_weights.get("beta_ok", 0.10)) * out["s_beta_ok"]
-        + float(score_refuerzo_weights.get("mep_ok", 0.10)) * out["s_mep_ok"]
-        + float(score_refuerzo_weights.get("pe_ok", 0.10)) * out["s_pe_ok"]
-        + float(score_refuerzo_weights.get("big_gain_inverse", 0.10)) * (1 - out["s_big_gain"])
-        + float(score_refuerzo_weights.get("concentration_room", 0.0)) * out["s_concentration_room"]
-        + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality_effective"]
+    out = _apply_refuerzo_score(
+        out,
+        score_refuerzo_weights=score_refuerzo_weights,
+        refuerzo_penalties=refuerzo_penalties,
+        asset_subfamily_adjustments=asset_subfamily_adjustments,
     )
-    out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
-    out["score_refuerzo"] -= np.where(out["Es_FCI"], 1.0, 0.00)
-    out["score_refuerzo"] -= np.where(out["Es_Bono"], float(refuerzo_penalties.get("bono", 0.08)), 0.00)
-    out["score_refuerzo"] -= np.where(
-        out["Beta"].fillna(0) > float(refuerzo_penalties.get("beta_high_threshold", 1.8)),
-        float(refuerzo_penalties.get("beta_high", 0.08)),
-        0.00,
+    out = _apply_reduccion_score(
+        out,
+        score_reduccion_weights=score_reduccion_weights,
+        reduccion_penalties=reduccion_penalties,
+        asset_subfamily_adjustments=asset_subfamily_adjustments,
+        gain_clip_min=gain_clip_min,
+        gain_clip_max=gain_clip_max,
     )
-    for subfamily, rules in asset_subfamily_adjustments.items():
-        mask = out["asset_subfamily"].eq(subfamily)
-        refuerzo_penalty = float((rules or {}).get("refuerzo_penalty", 0.0))
-        refuerzo_boost = float((rules or {}).get("refuerzo_boost", 0.0))
-        sparse_data_penalty = float((rules or {}).get("sparse_data_penalty", 0.0))
-        if refuerzo_penalty:
-            out["score_refuerzo"] -= np.where(mask, refuerzo_penalty, 0.0)
-        if refuerzo_boost:
-            out["score_refuerzo"] += np.where(mask, refuerzo_boost, 0.0)
-        if sparse_data_penalty:
-            out["score_refuerzo"] -= np.where(mask & ~out["has_fundamental_support"], sparse_data_penalty, 0.0)
-    out["score_refuerzo"] = out["score_refuerzo"].clip(0, 1)
-
-    out["score_reduccion"] = (
-        float(score_reduccion_weights.get("high_weight", 0.25)) * out["s_high_weight"]
-        + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion_Effective"]
-        + float(score_reduccion_weights.get("beta_risk", 0.15)) * out["s_beta_risk"]
-        + float(score_reduccion_weights.get("mep_premium", 0.10)) * out["s_mep_premium"]
-        + float(score_reduccion_weights.get("consensus_bad", 0.10)) * out["s_consensus_bad"]
-        + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive_effective"]
-        + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
-        + float(score_reduccion_weights.get("concentration_pressure", 0.0)) * out["s_concentration_pressure_effective"]
-        + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality_effective"]
-    )
-    out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
-    out["score_reduccion"] -= np.where(out["Es_FCI"], 1.0, 0.00)
-    out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
-    for subfamily, rules in asset_subfamily_adjustments.items():
-        mask = out["asset_subfamily"].eq(subfamily)
-        reduccion_boost = float((rules or {}).get("reduccion_boost", 0.0))
-        high_gain_reduccion_boost = float((rules or {}).get("high_gain_reduccion_boost", 0.0))
-        high_gain_threshold_pct = float((rules or {}).get("high_gain_threshold_pct", gain_clip_max))
-        if reduccion_boost:
-            out["score_reduccion"] += np.where(mask, reduccion_boost, 0.0)
-        if high_gain_reduccion_boost:
-            out["score_reduccion"] += np.where(
-                mask & (out["Ganancia_%_Cap"].fillna(gain_clip_min) >= high_gain_threshold_pct),
-                high_gain_reduccion_boost,
-                0.0,
-            )
     out = apply_market_regime_adjustments(out, market_context=market_context, scoring_rules=scoring_rules)
     out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
 

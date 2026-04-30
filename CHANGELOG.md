@@ -157,6 +157,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `apply_base_scores` extrae inicializacion de defaults/sub-scores a
     helper `_initialize_base_scores`
   - sin cambios funcionales en reglas de scoring
+- refactor incremental adicional en `src/decision/scoring.py`:
+  - `apply_base_scores` extrae en helpers privados la logica de:
+    - blend absoluto por metricas (`_apply_absolute_metric_blends`)
+    - concentracion y momentum (`_apply_concentration_and_momentum_scores`)
+    - composicion de score de refuerzo (`_apply_refuerzo_score`)
+    - composicion de score de reduccion (`_apply_reduccion_score`)
+  - sin cambios funcionales en reglas de scoring
 
 ### Testing
 
@@ -203,6 +210,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_generate_real_report.py`: nuevo test de aplicacion de retencion en flujo real
 - `tests/test_report_primitives.py` y `tests/test_report_sections_prediction.py`:
   cobertura de headers con `scope=\"col\"`
+- validacion de no-regresion del refactor de scoring:
+  - `python -m unittest tests.test_decision_scoring -v`
+  - `python -m unittest tests.strategy_rules_technical_scoring -v`
 
 ### Security
 
