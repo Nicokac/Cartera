@@ -83,6 +83,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: hardening UX/operabilidad en errores de corrida: `server.py` resume fallas de autenticacion IOL (`401 /token`) con mensaje amigable en `status/error` y deja traceback completo en `log_tail` para diagnostico.
 - 2026-04-30: hardening de CI en GitHub Actions: workflow `unittest` fuerza runtime Node 24 para acciones JavaScript (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`) y evita dependencia en Node 20 deprecado.
 - 2026-04-30: mejora UX/accesibilidad en estado UI: badge visual por estado (Inactivo/En ejecucion/Completado/Interrumpido/Error) con colores y texto explicito, manteniendo `aria-label` y mensajes funcionales existentes.
+- 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo el calculo de `score_despliegue_liquidez` a helper dedicado (`_apply_liquidity_deployment_score`) sin cambios funcionales.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -165,6 +166,8 @@ Prueba de cierre (si aplica):
   - el badge textual cambia correctamente
   - el color del badge cambia segun estado
   - en `error`, se mantiene el mensaje funcional y el link `Ver log completo ->`
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar en una corrida baseline que la priorizacion de liquidez y `score_despliegue_liquidez` no cambia respecto al comportamiento previo
 
 ## Contexto
 

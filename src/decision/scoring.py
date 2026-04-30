@@ -614,6 +614,23 @@ def _apply_etf_effective_scores(
     return out
 
 
+def _apply_liquidity_deployment_score(
+    out: pd.DataFrame,
+    *,
+    score_despliegue_liquidez_weights: dict[str, object],
+    rank_neutral: float,
+) -> pd.DataFrame:
+    out["score_despliegue_liquidez"] = 0.0
+    mask_liq = out["Es_Liquidez"]
+    out.loc[mask_liq, "score_despliegue_liquidez"] = (
+        float(score_despliegue_liquidez_weights.get("peso", 0.60))
+        * rank_score(out.loc[mask_liq, "Peso_%"], higher_is_better=True, neutral=rank_neutral)
+        + float(score_despliegue_liquidez_weights.get("ganancia_inversa", 0.40))
+        * rank_score(out.loc[mask_liq, "Ganancia_ARS"], higher_is_better=False, neutral=rank_neutral)
+    ).clip(0, 1)
+    return out
+
+
 def apply_base_scores(
     decision: pd.DataFrame,
     *,
@@ -685,15 +702,11 @@ def apply_base_scores(
     )
     out = apply_market_regime_adjustments(out, market_context=market_context, scoring_rules=scoring_rules)
     out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
-
-    out["score_despliegue_liquidez"] = 0.0
-    mask_liq = out["Es_Liquidez"]
-    out.loc[mask_liq, "score_despliegue_liquidez"] = (
-        float(score_despliegue_liquidez_weights.get("peso", 0.60))
-        * rank_score(out.loc[mask_liq, "Peso_%"], higher_is_better=True, neutral=rank_neutral)
-        + float(score_despliegue_liquidez_weights.get("ganancia_inversa", 0.40))
-        * rank_score(out.loc[mask_liq, "Ganancia_ARS"], higher_is_better=False, neutral=rank_neutral)
-    ).clip(0, 1)
+    out = _apply_liquidity_deployment_score(
+        out,
+        score_despliegue_liquidez_weights=score_despliegue_liquidez_weights,
+        rank_neutral=rank_neutral,
+    )
 
     return out
 

@@ -240,6 +240,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - agrega badge textual con color por estado (`Inactivo`, `En ejecucion`,
     `Completado`, `Interrumpido`, `Error`)
   - mantiene iconografia, `aria-label` y semantica existente de estados
+- refactor incremental adicional en `src/decision/scoring.py`:
+  - `apply_base_scores` extrae el calculo de `score_despliegue_liquidez`
+    a helper `_apply_liquidity_deployment_score`
+  - sin cambios funcionales en reglas de scoring
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
