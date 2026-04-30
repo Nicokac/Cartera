@@ -1,10 +1,10 @@
-[build-system]
+﻿[build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "cartera-de-activos"
-version = "0.2.2"
+version = "0.2.3"
 description = "Motor de analisis de cartera para IOL con scoring, sizing y reporte HTML."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -35,3 +35,4 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
