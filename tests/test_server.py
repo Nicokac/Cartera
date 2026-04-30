@@ -192,6 +192,31 @@ class TestSession(unittest.TestCase):
         self.assertEqual(r.json()["token"], "abc-token")
 
 
+class TestRequireSessionToken(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
+    def test_accepts_valid_token(self):
+        server._require_session_token("test-session-token")
+
+    def test_accepts_valid_token_from_multiple_candidates(self):
+        server._require_session_token("bad-token", "test-session-token", "")
+
+    def test_rejects_when_session_not_initialized(self):
+        server._session_token = ""
+        with self.assertRaises(server.HTTPException) as ctx:
+            server._require_session_token("test-session-token")
+        self.assertEqual(ctx.exception.status_code, 401)
+
+    def test_rejects_invalid_token(self):
+        with self.assertRaises(server.HTTPException) as ctx:
+            server._require_session_token("bad-token")
+        self.assertEqual(ctx.exception.status_code, 401)
+
+
 class TestGetReportsList(unittest.TestCase):
     def setUp(self):
         _reset()

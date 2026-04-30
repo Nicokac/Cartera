@@ -307,6 +307,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_decision_scoring.py`: nueva cobertura de contrato de configuracion
   - tests para `_parse_base_score_config` (defaults y overrides)
   - reduce riesgo de regresiones silenciosas en parseo de `scoring_rules`
+- `tests/test_server.py`: nueva cobertura unitaria para auth helper
+  `_require_session_token(...)`
+  - casos: token valido, token invalido y sesion no inicializada
+  - refuerza contrato de seguridad del refactor de endpoints protegidos
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
