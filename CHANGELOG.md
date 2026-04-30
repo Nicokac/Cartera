@@ -87,6 +87,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `report_sections_prediction.py` expone KPI `Coincidencia clasificador B`
 - CI DevOps:
   - `.github/workflows/ci.yml` vuelve a exigir unittest en `ubuntu-latest` y `macos-latest` como checks bloqueantes
+- hotfix CI:
+  - `pyproject.toml` reescrito en UTF-8 sin BOM para evitar error de parseo en `coverage` (`Invalid statement at line 1`)
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 
