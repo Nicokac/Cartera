@@ -267,6 +267,8 @@ def build_portfolio_risk_bundle(
     run_date: object,
     snapshots_dirs: list[Path] | None = None,
     total_ars: float | None = None,
+    benchmark_daily_returns: pd.Series | None = None,
+    benchmark_name: str = "MEP",
 ) -> dict[str, object]:
     current_df = current_portfolio.copy() if isinstance(current_portfolio, pd.DataFrame) else pd.DataFrame()
     if current_df.empty or "Ticker_IOL" not in current_df.columns:
@@ -356,6 +358,16 @@ def build_portfolio_risk_bundle(
     portfolio_summary["estabilidad_pct"] = estabilidad_pct
     portfolio_summary["observaciones_agregadas"] = int(portfolio_summary.get("observaciones", 0))
     portfolio_summary["serie_agregada_confiable"] = serie_confiable
+    portfolio_summary["benchmark_validation"] = {
+        "benchmark": benchmark_name,
+        "status": "not_available",
+        "observaciones": 0,
+        "correlacion": np.nan,
+        "tracking_error_pct": np.nan,
+        "retorno_portafolio_pct": np.nan,
+        "retorno_benchmark_pct": np.nan,
+        "nota": "Benchmark externo no disponible para validacion.",
+    }
     portfolio_summary["nota_estabilidad"] = None
     if not serie_confiable:
         portfolio_summary["retorno_acum_pct"] = np.nan
@@ -369,6 +381,47 @@ def build_portfolio_risk_bundle(
         portfolio_summary["nota_estabilidad"] = (
             "Metricas agregadas calculadas solo sobre pasos estables comparables."
         )
+
+    stable_steps_view = steps.loc[steps["stable_step"].fillna(False)].copy() if not steps.empty else pd.DataFrame()
+    if not stable_steps_view.empty:
+        stable_steps_view["snapshot_date"] = pd.to_datetime(stable_steps_view["snapshot_date"], errors="coerce").dt.normalize()
+    benchmark_validation = portfolio_summary["benchmark_validation"]
+    if not serie_confiable:
+        benchmark_validation["status"] = "serie_no_confiable"
+        benchmark_validation["nota"] = "Serie agregada no confiable; se omite validacion contra benchmark."
+    elif isinstance(benchmark_daily_returns, pd.Series) and not benchmark_daily_returns.empty and not stable_steps_view.empty:
+        benchmark_series = pd.to_numeric(benchmark_daily_returns, errors="coerce").dropna()
+        benchmark_series.index = pd.to_datetime(benchmark_series.index, errors="coerce")
+        benchmark_series = benchmark_series[benchmark_series.index.notna()]
+        if not benchmark_series.empty:
+            benchmark_series.index = benchmark_series.index.normalize()
+            portfolio_returns = pd.to_numeric(stable_steps_view["daily_return_pct"], errors="coerce")
+            portfolio_returns.index = stable_steps_view["snapshot_date"]
+            aligned = pd.concat(
+                [
+                    portfolio_returns.rename("portfolio"),
+                    benchmark_series.rename("benchmark"),
+                ],
+                axis=1,
+                join="inner",
+            ).dropna()
+            if not aligned.empty:
+                diff = aligned["portfolio"] - aligned["benchmark"]
+                benchmark_validation["observaciones"] = int(len(aligned))
+                benchmark_validation["correlacion"] = float(aligned["portfolio"].corr(aligned["benchmark"]))
+                benchmark_validation["tracking_error_pct"] = float(diff.std(ddof=0))
+                benchmark_validation["retorno_portafolio_pct"] = float(((1.0 + aligned["portfolio"] / 100.0).prod() - 1.0) * 100.0)
+                benchmark_validation["retorno_benchmark_pct"] = float(((1.0 + aligned["benchmark"] / 100.0).prod() - 1.0) * 100.0)
+                benchmark_validation["status"] = (
+                    "validated"
+                    if int(len(aligned)) >= int(portfolio_summary.get("min_pasos_estables_requeridos", MIN_RUNS_FOR_RELIABLE_SERIES))
+                    else "insufficient_data"
+                )
+                benchmark_validation["nota"] = (
+                    "Validacion comparativa disponible."
+                    if benchmark_validation["status"] == "validated"
+                    else "Benchmark disponible pero con ventana insuficiente."
+                )
 
     current_symbols = risk_current_view["Ticker_IOL"].dropna().astype(str).tolist()
     total_snapshots = int(len(portfolio_timeseries))

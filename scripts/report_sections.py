@@ -320,6 +320,8 @@ def build_summary_section(
         market_risk = position_risk.loc[position_risk["Tipo"].astype(str) != "Bono"].copy()
         bond_risk = position_risk.loc[position_risk["Tipo"].astype(str) == "Bono"].copy()
         stability_note = portfolio_summary.get("nota_estabilidad")
+        benchmark_validation = portfolio_summary.get("benchmark_validation", {}) or {}
+        benchmark_note = benchmark_validation.get("nota")
 
         risk_details = f"""
       {_build_risk_focus_block(market_risk, title='Riesgo de mercado', empty_message='Sin posiciones de mercado para analizar.')}
@@ -369,7 +371,17 @@ def build_summary_section(
         <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
         <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
       </div>
+      {f'''
+      <div class="meta">
+        <span>Benchmark: <strong>{esc_text(benchmark_validation.get("benchmark"))}</strong></span>
+        <span>Estado validacion: <strong>{esc_text(benchmark_validation.get("status"))}</strong></span>
+        <span>Obs benchmark: <strong>{safe_int(benchmark_validation.get("observaciones"))}</strong></span>
+        <span>Correlacion: <strong>{fmt_score(benchmark_validation.get("correlacion"))}</strong></span>
+        <span>Tracking error diario: <strong>{fmt_pct(benchmark_validation.get("tracking_error_pct"))}</strong></span>
+      </div>
+      ''' if benchmark_validation else ''}
       {f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''}
+      {f'<div class="meta"><span>{esc_text(benchmark_note)}</span></div>' if benchmark_note else ''}
       {build_collapsible(
           "Ver diagnóstico completo de riesgo",
           risk_details,

@@ -97,6 +97,9 @@ RESUMEN
 Distribucion de la cartera por tipo de instrumento: CEDEAR, Bono, FCI,
 Accion Local y Liquidez. Incluye totales en ARS y USD, ganancia acumulada
 y peso porcentual de cada bloque.
+En "Riesgo historico", cuando la serie agregada es confiable, se muestra
+comparacion contra benchmark MEP (estado, observaciones, correlacion y
+tracking error diario).
 
 SIZING
 ------

@@ -253,6 +253,9 @@ class GenerateRealReportTests(unittest.TestCase):
             "generate_real_report.get_mep_real",
             return_value={"promedio": 1400.5},
         ), patch(
+            "generate_real_report.get_dollar_series",
+            return_value=[{"fecha": "2026-04-24", "compra": 1000.0, "venta": 1010.0}, {"fecha": "2026-04-25", "compra": 1010.0, "venta": 1020.0}],
+        ), patch(
             "generate_real_report.extract_quote_tickers",
             return_value=["AAPL"],
         ), patch(
@@ -268,6 +271,7 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertEqual(out["estado_payload"], estado_payload)
         self.assertEqual(out["operaciones_payload"], operaciones_payload)
         self.assertEqual(out["mep_real"], 1400.5)
+        self.assertFalse(out["mep_daily_returns"].empty)
         self.assertEqual(out["precios_iol"], {"AAPL": 101.0})
         payloads_mock.assert_called_once_with(token="token0", username="u", password="p")
         prices_mock.assert_called_once()
@@ -330,6 +334,7 @@ class GenerateRealReportTests(unittest.TestCase):
                 operaciones_payload=[{"tipo": "Compra"}],
                 mep_real=1400.0,
                 precios_iol={"AAPL": 101.0},
+                benchmark_daily_returns=pd.Series([1.0], index=[pd.Timestamp("2026-04-25")]),
                 run_date=pd.Timestamp("2026-04-26"),
                 usar_liquidez_iol=True,
                 aporte_externo_ars=100000.0,
@@ -346,7 +351,13 @@ class GenerateRealReportTests(unittest.TestCase):
         prediction_mock.assert_called_once_with(decision_bundle_temporal, run_date=pd.Timestamp("2026-04-26"))
         sizing_mock.assert_called_once()
         dashboard_mock.assert_called_once_with(df_total, mep_real=1400.0, liquidity_contract={"cash_ars": 10.0})
-        risk_mock.assert_called_once_with(df_total, run_date=pd.Timestamp("2026-04-26"), dashboard_bundle=dashboard_bundle)
+        risk_mock.assert_called_once()
+        self.assertIs(risk_mock.call_args.args[0], df_total)
+        self.assertEqual(risk_mock.call_args.kwargs["run_date"], pd.Timestamp("2026-04-26"))
+        self.assertIs(risk_mock.call_args.kwargs["dashboard_bundle"], dashboard_bundle)
+        benchmark_arg = risk_mock.call_args.kwargs["benchmark_daily_returns"]
+        self.assertIsInstance(benchmark_arg, pd.Series)
+        self.assertEqual(float(benchmark_arg.iloc[0]), 1.0)
         operations_mock.assert_called_once_with(
             [{"tipo": "Compra"}],
             portfolio_bundle=portfolio_bundle,

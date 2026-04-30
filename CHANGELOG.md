@@ -61,6 +61,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `Dockerfile` base Python 3.12 slim con dependencias del proyecto
   - `.dockerignore` para excluir artefactos locales/runtime en build
   - instrucciones de uso en `README.md`
+- validacion de riesgo historico contra benchmark externo (MEP):
+  - `generate_real_report.py` construye serie diaria de benchmark desde ArgentinaDatos
+  - `analytics/portfolio_risk.py` agrega `benchmark_validation` cuando la serie agregada es confiable
+  - `report_sections.py` expone estado, observaciones, correlacion y tracking error en el bloque de riesgo
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 
@@ -134,6 +138,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   `operaciones`) y evitar `AttributeError` en extracción de tickers
 - `tests/test_generate_real_report_split_runtime.py`: cobertura adicional para
   filas no-dict y normalización de wrapper `operaciones`
+- fix de regresion en render de riesgo historico:
+  - `scripts/report_sections.py` corrige firma de `fmt_score` en fila de benchmark
+  - evita `TypeError: fmt_score() got an unexpected keyword argument 'digits'`
   para evitar fallo de import en CI cuando el directorio no existe
 - retencion automatica de `prediction_history.csv`:
   - nueva funcion `apply_prediction_history_retention()` en `src/prediction/store.py`

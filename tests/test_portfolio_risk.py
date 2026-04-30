@@ -371,6 +371,50 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertEqual(risk.loc["AAPL", "Calidad_Historia"], "Robusta")
         self.assertEqual(risk.loc["MELI", "Calidad_Historia"], "Parcial")
 
+    def test_build_portfolio_risk_bundle_validates_against_benchmark_when_series_is_reliable(self) -> None:
+        snapshots_dir = ROOT / "tmp_portfolio_risk_benchmark"
+        snapshots_dir.mkdir(exist_ok=True)
+        created_files: list[Path] = []
+        start = pd.Timestamp("2026-01-01")
+        prices: list[float] = []
+        for offset in range(21):
+            day = start + pd.Timedelta(days=offset)
+            price = 100.0 + float(offset)
+            prices.append(price)
+            file_path = snapshots_dir / f"{day.strftime('%Y-%m-%d')}_real_portfolio_master.csv"
+            file_path.write_text(
+                f"Ticker_IOL,Tipo,Bloque,Peso_%,Precio_ARS,Valorizado_ARS\nAAPL,CEDEAR,Growth,100,{price},{price*10}\n",
+                encoding="utf-8",
+            )
+            created_files.append(file_path)
+        self.addCleanup(lambda: [path.unlink(missing_ok=True) for path in created_files])
+        self.addCleanup(lambda: shutil.rmtree(snapshots_dir, ignore_errors=True))
+
+        current_price = 121.0
+        current = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "Tipo": "CEDEAR", "Bloque": "Growth", "Peso_%": 100.0, "Precio_ARS": current_price, "Valorizado_ARS": current_price * 10},
+            ]
+        )
+
+        benchmark_index = pd.date_range(start + pd.Timedelta(days=1), periods=21, freq="D")
+        benchmark_returns = pd.Series([0.6 + (i * 0.02) for i in range(21)], index=benchmark_index)
+        bundle = build_portfolio_risk_bundle(
+            current,
+            run_date="2026-01-22",
+            snapshots_dirs=[snapshots_dir],
+            total_ars=current_price * 10,
+            benchmark_daily_returns=benchmark_returns,
+            benchmark_name="MEP",
+        )
+
+        summary = bundle["portfolio_summary"]
+        self.assertTrue(summary["serie_agregada_confiable"])
+        validation = summary["benchmark_validation"]
+        self.assertEqual(validation["benchmark"], "MEP")
+        self.assertEqual(validation["status"], "validated")
+        self.assertGreaterEqual(int(validation["observaciones"]), 20)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,7 +32,7 @@ from analytics.bond_analytics import (
 )
 from analytics.portfolio_risk import build_portfolio_risk_bundle
 from analytics.technical import build_technical_overlay
-from clients.argentinadatos import get_mep_real, get_riesgo_pais_latest
+from clients.argentinadatos import get_dollar_series, get_mep_real, get_riesgo_pais_latest
 from clients.bcra import get_bcra_monetary_context, get_rem_latest
 from clients.bonistas_client import get_bonds_for_portfolio, get_macro_variables
 from clients.finviz_client import fetch_finviz_bundle
@@ -138,6 +138,7 @@ class MarketRuntimeInputs(TypedDict):
     estado_payload: dict[str, object]
     operaciones_payload: list[dict[str, object]]
     mep_real: float | None
+    mep_daily_returns: pd.Series
     precios_iol: dict[str, float]
 
 
@@ -531,7 +532,13 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
     }
 
 
-def _build_risk_bundle(df_total: pd.DataFrame, *, run_date: object, dashboard_bundle: dict[str, object]) -> dict[str, object]:
+def _build_risk_bundle(
+    df_total: pd.DataFrame,
+    *,
+    run_date: object,
+    dashboard_bundle: dict[str, object],
+    benchmark_daily_returns: pd.Series | None = None,
+) -> dict[str, object]:
     risk_snapshot_dirs = [SNAPSHOTS_DIR]
     if should_use_legacy_snapshots():
         risk_snapshot_dirs.append(LEGACY_SNAPSHOTS_DIR)
@@ -540,6 +547,8 @@ def _build_risk_bundle(df_total: pd.DataFrame, *, run_date: object, dashboard_bu
         run_date=run_date,
         snapshots_dirs=risk_snapshot_dirs,
         total_ars=float(dashboard_bundle.get("kpis", {}).get("total_ars", 0) or 0),
+        benchmark_daily_returns=benchmark_daily_returns,
+        benchmark_name="MEP",
     )
 
 
@@ -664,6 +673,21 @@ def _collect_market_runtime_inputs(*, username: str, password: str) -> MarketRun
 
     mep_data = get_mep_real(casa=project_config.MEP_CASA, base_url=project_config.ARGENTINADATOS_URL)
     mep_real = float(mep_data["promedio"]) if mep_data else None
+    mep_daily_returns = pd.Series(dtype=float)
+    try:
+        mep_series = get_dollar_series(casa=project_config.MEP_CASA, base_url=project_config.ARGENTINADATOS_URL)
+        mep_df = pd.DataFrame(mep_series)
+        if not mep_df.empty and "fecha" in mep_df.columns and {"compra", "venta"}.issubset(set(mep_df.columns)):
+            mep_df["fecha"] = pd.to_datetime(mep_df["fecha"], errors="coerce").dt.normalize()
+            mep_df["compra"] = pd.to_numeric(mep_df["compra"], errors="coerce")
+            mep_df["venta"] = pd.to_numeric(mep_df["venta"], errors="coerce")
+            mep_df["promedio"] = (mep_df["compra"] + mep_df["venta"]) / 2.0
+            mep_df = mep_df.dropna(subset=["fecha", "promedio"]).sort_values("fecha")
+            if not mep_df.empty:
+                mep_daily = mep_df.groupby("fecha", as_index=True)["promedio"].last()
+                mep_daily_returns = mep_daily.pct_change().dropna() * 100.0
+    except Exception as exc:
+        logger.warning("No se pudo construir benchmark diario MEP: %s", exc)
 
     tickers = sorted(set(extract_quote_tickers(activos)) | set(extract_operation_quote_tickers(operaciones_payload)))
     print(f"Descargando precios IOL para {len(tickers)} tickers...")
@@ -674,6 +698,7 @@ def _collect_market_runtime_inputs(*, username: str, password: str) -> MarketRun
         "estado_payload": estado_payload,
         "operaciones_payload": operaciones_payload,
         "mep_real": mep_real,
+        "mep_daily_returns": mep_daily_returns,
         "precios_iol": precios_iol,
     }
 
@@ -685,6 +710,7 @@ def _build_analysis_context(
     operaciones_payload: list[dict[str, object]],
     mep_real: float | None,
     precios_iol: dict[str, float],
+    benchmark_daily_returns: pd.Series | None,
     run_date: object,
     usar_liquidez_iol: bool,
     aporte_externo_ars: float,
@@ -737,7 +763,12 @@ def _build_analysis_context(
         mep_real=mep_real,
         liquidity_contract=portfolio_bundle.get("liquidity_contract"),
     )
-    risk_bundle = _build_risk_bundle(df_total, run_date=run_date, dashboard_bundle=dashboard_bundle)
+    risk_bundle = _build_risk_bundle(
+        df_total,
+        run_date=run_date,
+        dashboard_bundle=dashboard_bundle,
+        benchmark_daily_returns=benchmark_daily_returns,
+    )
     operations_bundle = _build_operations_context(
         operaciones_payload,
         portfolio_bundle=portfolio_bundle,
@@ -786,6 +817,7 @@ def run_real_report(args: object) -> None:
     estado_payload = market_inputs["estado_payload"]
     operaciones_payload = market_inputs["operaciones_payload"]
     mep_real = market_inputs["mep_real"]
+    mep_daily_returns = market_inputs["mep_daily_returns"]
     precios_iol = market_inputs["precios_iol"]
 
     print("Definiendo politica de fondeo...")
@@ -797,6 +829,7 @@ def run_real_report(args: object) -> None:
             operaciones_payload=operaciones_payload,
             mep_real=mep_real,
             precios_iol=precios_iol,
+            benchmark_daily_returns=mep_daily_returns,
             run_date=run_date,
             usar_liquidez_iol=usar_liquidez_iol,
             aporte_externo_ars=aporte_externo_ars,
