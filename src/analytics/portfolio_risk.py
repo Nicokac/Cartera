@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from prediction.maturity import MIN_RUNS_FOR_RELIABLE_SERIES
 
 
 REQUIRED_COLUMNS = {"Ticker_IOL"}
@@ -338,15 +339,13 @@ def build_portfolio_risk_bundle(
     stable_steps = int(pd.to_numeric(steps.get("stable_step"), errors="coerce").fillna(0).astype(int).sum()) if not steps.empty else 0
     total_steps = int(len(steps))
     estabilidad_pct = float(stable_steps / total_steps * 100.0) if total_steps > 0 else 100.0
-    min_stable_steps = min(8, total_steps) if total_steps > 0 else 0
+    min_stable_steps = MIN_RUNS_FOR_RELIABLE_SERIES if total_steps > 0 else 0
     serie_confiable = bool(
-        total_steps == 0
-        or (
-            stable_steps >= min_stable_steps
-            and estabilidad_pct >= 60.0
-            and coverage_prev_avg >= 85.0
-            and coverage_curr_avg >= 85.0
-        )
+        total_steps >= min_stable_steps
+        and stable_steps >= min_stable_steps
+        and estabilidad_pct >= 60.0
+        and coverage_prev_avg >= 85.0
+        and coverage_curr_avg >= 85.0
     )
     portfolio_summary["metodologia"] = "serie_comparable"
     portfolio_summary["coverage_prev_promedio_pct"] = coverage_prev_avg

@@ -79,11 +79,12 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertEqual(bundle["portfolio_summary"]["snapshots"], 4)
         self.assertEqual(bundle["portfolio_summary"]["desde"], "2026-04-20")
         self.assertEqual(bundle["portfolio_summary"]["hasta"], "2026-04-23")
-        self.assertTrue(bundle["portfolio_summary"]["serie_agregada_confiable"])
+        self.assertFalse(bundle["portfolio_summary"]["serie_agregada_confiable"])
         self.assertEqual(bundle["portfolio_summary"]["pasos_estables"], 3)
         self.assertEqual(bundle["portfolio_summary"]["pasos_totales"], 3)
-        self.assertAlmostEqual(bundle["portfolio_summary"]["retorno_acum_pct"], 10.6667, places=3)
-        self.assertAlmostEqual(bundle["portfolio_summary"]["drawdown_max_pct"], -11.6129, places=3)
+        self.assertEqual(bundle["portfolio_summary"]["min_pasos_estables_requeridos"], 20)
+        self.assertTrue(pd.isna(bundle["portfolio_summary"]["retorno_acum_pct"]))
+        self.assertTrue(pd.isna(bundle["portfolio_summary"]["drawdown_max_pct"]))
 
         aapl = bundle["position_risk"].set_index("Ticker_IOL").loc["AAPL"]
         self.assertEqual(aapl["Base_Riesgo"], "Precio_ARS")
@@ -158,8 +159,8 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertEqual(bundle["position_risk"]["Ticker_IOL"].tolist(), ["AAPL"])
         self.assertEqual(bundle["portfolio_summary"]["snapshots"], 3)
         self.assertAlmostEqual(bundle["portfolio_summary"]["total_actual_ars"], 1200.0, places=3)
-        self.assertTrue(bundle["portfolio_summary"]["serie_agregada_confiable"])
-        self.assertAlmostEqual(bundle["portfolio_summary"]["retorno_acum_pct"], 20.0, places=3)
+        self.assertFalse(bundle["portfolio_summary"]["serie_agregada_confiable"])
+        self.assertTrue(pd.isna(bundle["portfolio_summary"]["retorno_acum_pct"]))
 
     def test_build_portfolio_risk_bundle_excludes_operational_liquidity_from_analysis(self) -> None:
         snapshots_dir = ROOT / "tmp_portfolio_risk_exclude_operational_liquidity"
@@ -201,8 +202,8 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertEqual(bundle["position_risk"]["Ticker_IOL"].tolist(), ["AAPL"])
         self.assertEqual(bundle["portfolio_summary"]["snapshots"], 3)
         self.assertAlmostEqual(bundle["portfolio_summary"]["total_actual_ars"], 1200.0, places=3)
-        self.assertTrue(bundle["portfolio_summary"]["serie_agregada_confiable"])
-        self.assertAlmostEqual(bundle["portfolio_summary"]["retorno_acum_pct"], 20.0, places=3)
+        self.assertFalse(bundle["portfolio_summary"]["serie_agregada_confiable"])
+        self.assertTrue(pd.isna(bundle["portfolio_summary"]["retorno_acum_pct"]))
 
     def test_build_portfolio_risk_bundle_excludes_fci_and_liquidity_with_normalized_labels(self) -> None:
         snapshots_dir = ROOT / "tmp_portfolio_risk_exclude_normalized_labels"
@@ -245,8 +246,8 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertEqual(bundle["position_risk"]["Ticker_IOL"].tolist(), ["AAPL"])
         self.assertEqual(bundle["portfolio_summary"]["snapshots"], 3)
         self.assertAlmostEqual(bundle["portfolio_summary"]["total_actual_ars"], 1200.0, places=3)
-        self.assertTrue(bundle["portfolio_summary"]["serie_agregada_confiable"])
-        self.assertAlmostEqual(bundle["portfolio_summary"]["retorno_acum_pct"], 20.0, places=3)
+        self.assertFalse(bundle["portfolio_summary"]["serie_agregada_confiable"])
+        self.assertTrue(pd.isna(bundle["portfolio_summary"]["retorno_acum_pct"]))
 
     def test_build_portfolio_risk_bundle_hides_aggregate_metrics_when_overlap_is_unstable(self) -> None:
         snapshots_dir = ROOT / "tmp_portfolio_risk_unstable_overlap"
@@ -323,7 +324,7 @@ class PortfolioRiskTests(unittest.TestCase):
         self.assertFalse(summary["serie_agregada_confiable"])
         self.assertEqual(summary["pasos_estables"], 0)
         self.assertEqual(summary["pasos_totales"], 1)
-        self.assertEqual(summary["min_pasos_estables_requeridos"], 1)
+        self.assertEqual(summary["min_pasos_estables_requeridos"], 20)
         self.assertTrue(pd.isna(summary["retorno_acum_pct"]))
         self.assertTrue(pd.isna(summary["volatilidad_diaria_pct"]))
         self.assertTrue(pd.isna(summary["drawdown_max_pct"]))

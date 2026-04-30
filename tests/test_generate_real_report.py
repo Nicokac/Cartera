@@ -1,4 +1,5 @@
 import sys
+import shutil
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -24,6 +25,7 @@ from generate_real_report import (
     enrich_real_cedears,
     extract_quote_tickers,
     legacy_snapshots_enabled,
+    should_use_legacy_snapshots,
     load_previous_portfolio_snapshot,
     load_local_env,
     parse_finviz_number,
@@ -605,6 +607,36 @@ class GenerateRealReportTests(unittest.TestCase):
 
         self.assertTrue(previous_df.empty)
         self.assertIsNone(previous_date)
+
+    def test_should_use_legacy_snapshots_disables_fallback_after_min_window(self) -> None:
+        snapshots_dir = ROOT / "tmp_primary_snapshot_window"
+        snapshots_dir.mkdir(exist_ok=True)
+        for day in range(1, 21):
+            (snapshots_dir / f"2026-04-{day:02d}_real_portfolio_master.csv").write_text(
+                "Ticker_IOL,Tipo\nAAPL,CEDEAR\n",
+                encoding="utf-8",
+            )
+        self.addCleanup(lambda: shutil.rmtree(snapshots_dir, ignore_errors=True))
+
+        with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "1"}, clear=False), patch(
+            "generate_real_report.SNAPSHOTS_DIR", snapshots_dir
+        ):
+            self.assertFalse(should_use_legacy_snapshots())
+
+    def test_should_use_legacy_snapshots_keeps_fallback_before_min_window(self) -> None:
+        snapshots_dir = ROOT / "tmp_primary_snapshot_short"
+        snapshots_dir.mkdir(exist_ok=True)
+        for day in range(1, 6):
+            (snapshots_dir / f"2026-04-{day:02d}_real_portfolio_master.csv").write_text(
+                "Ticker_IOL,Tipo\nAAPL,CEDEAR\n",
+                encoding="utf-8",
+            )
+        self.addCleanup(lambda: shutil.rmtree(snapshots_dir, ignore_errors=True))
+
+        with patch.dict("os.environ", {"ENABLE_LEGACY_SNAPSHOTS": "1"}, clear=False), patch(
+            "generate_real_report.SNAPSHOTS_DIR", snapshots_dir
+        ):
+            self.assertTrue(should_use_legacy_snapshots())
 
     def test_load_previous_portfolio_snapshot_skips_invalid_schema(self) -> None:
         snapshots_dir = ROOT / "tmp_snapshots_schema"

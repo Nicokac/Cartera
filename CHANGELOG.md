@@ -176,6 +176,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     en helpers de retry sin cambios funcionales
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
+- `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
+  - `MIN_RUNS_FOR_STREAK=10`
+  - `MIN_RUNS_FOR_RELIABLE_SERIES=20`
+  - `MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION=30`
+- fallback legacy de snapshots endurecido:
+  - `scripts/generate_real_report.py` agrega `should_use_legacy_snapshots()`
+  - si `data/snapshots/` alcanza >=20 snapshots de portfolio master, se
+    desactiva automaticamente el fallback a `tests/snapshots/`
+- `src/analytics/portfolio_risk.py` alinea `serie_agregada_confiable` con
+  umbral minimo de 20 pasos estables para habilitar metricas agregadas
 
 ### Testing
 
@@ -231,6 +241,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validacion de contratos tipados en clientes:
   - `python -m unittest tests.test_iol_client -v`
   - `python -m unittest tests.test_bcra_client -v`
+- validacion de umbrales de madurez y fallback legacy:
+  - `python -m unittest tests.test_portfolio_risk -v`
+  - `python -m unittest tests.test_generate_real_report -v`
 
 ### Security
 

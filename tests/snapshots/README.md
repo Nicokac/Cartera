@@ -15,6 +15,8 @@
 El fallback legacy puede desactivarse con:
 
 - `ENABLE_LEGACY_SNAPSHOTS=0`
+- tambien se desactiva automaticamente cuando `data/snapshots/` ya tiene ventana
+  operativa suficiente (>=20 snapshots de portfolio master).
 
 Cuando el fallback esta habilitado y se usa un snapshot desde esta carpeta, el script emite un warning en logs para que no pase desapercibido.
 

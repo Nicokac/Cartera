@@ -93,6 +93,7 @@ from prediction.store import (
     save_prediction_history,
     upsert_prediction_history,
 )
+from prediction.maturity import MIN_RUNS_FOR_RELIABLE_SERIES
 from report_renderer import REPORTS_DIR, render_report
 
 
@@ -165,6 +166,24 @@ class AnalysisContext(TypedDict):
 def legacy_snapshots_enabled() -> bool:
     raw = str(os.environ.get("ENABLE_LEGACY_SNAPSHOTS", "1")).strip().lower()
     return raw not in {"0", "false", "no", "off"}
+
+
+def _count_snapshot_days(*, snapshots_dir: Path) -> int:
+    if not snapshots_dir.exists():
+        return 0
+    days: set[str] = set()
+    for path in snapshots_dir.glob("*_real_portfolio_master.csv"):
+        stamp = path.name.split("_real_portfolio_master.csv", 1)[0].strip()
+        if stamp:
+            days.add(stamp)
+    return len(days)
+
+
+def should_use_legacy_snapshots() -> bool:
+    if not legacy_snapshots_enabled():
+        return False
+    # Cuando la carpeta canonica ya tiene ventana suficiente, se apaga fallback legacy.
+    return _count_snapshot_days(snapshots_dir=SNAPSHOTS_DIR) < MIN_RUNS_FOR_RELIABLE_SERIES
 
 
 class _JsonLogFormatter(logging.Formatter):
@@ -355,7 +374,7 @@ def load_previous_portfolio_snapshot(
         snapshots_dir=snapshots_dir,
         primary_snapshots_dir=SNAPSHOTS_DIR,
         legacy_snapshots_dir=LEGACY_SNAPSHOTS_DIR,
-        use_legacy_snapshots=legacy_snapshots_enabled(),
+        use_legacy_snapshots=should_use_legacy_snapshots(),
         required_snapshot_columns=REQUIRED_SNAPSHOT_COLUMNS,
         optional_numeric_columns=SNAPSHOT_OPTIONAL_NUMERIC_COLUMNS,
         logger=logger,
@@ -471,7 +490,7 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
 
 def _build_risk_bundle(df_total: pd.DataFrame, *, run_date: object, dashboard_bundle: dict[str, object]) -> dict[str, object]:
     risk_snapshot_dirs = [SNAPSHOTS_DIR]
-    if legacy_snapshots_enabled():
+    if should_use_legacy_snapshots():
         risk_snapshot_dirs.append(LEGACY_SNAPSHOTS_DIR)
     return build_portfolio_risk_bundle(
         df_total,

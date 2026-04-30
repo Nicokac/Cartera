@@ -61,6 +61,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional de `apply_base_scores` separando blend absoluto, concentracion/momentum y composicion de scores en helpers privados (`_apply_absolute_metric_blends`, `_apply_concentration_and_momentum_scores`, `_apply_refuerzo_score`, `_apply_reduccion_score`) sin cambios funcionales.
 - 2026-04-29: completado item P2 de arquitectura/mantenibilidad en `sizing`: extraccion de `_comentario_operativo` a modulo dedicado `src/decision/operational_comments.py` con wrapper de compatibilidad en `sizing.py`.
 - 2026-04-29: avance P3 de arquitectura/escalabilidad: contratos tipados con `typing.Protocol` para clientes HTTP externos (`src/clients/protocols.py`) e integracion no disruptiva en clientes IOL/BCRA.
+- 2026-04-29: avance P1 de Dimension 19: umbrales minimos formalizados en codigo (`MIN_RUNS_FOR_STREAK=10`, `MIN_RUNS_FOR_RELIABLE_SERIES=20`, `MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION=30`) y apagado automatico del fallback legacy de snapshots cuando la carpeta canonica ya alcanza ventana suficiente.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -92,6 +93,8 @@ Prueba de cierre (si aplica):
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
 - validar smoke de corrida normal para confirmar que login IOL y fetch BCRA mantienen comportamiento operativo esperado
+- correr `python -m unittest tests.test_portfolio_risk tests.test_generate_real_report -v`
+- validar que con >=20 snapshots en `data/snapshots/` ya no se tome `tests/snapshots/` como fallback legacy aunque `ENABLE_LEGACY_SNAPSHOTS=1`
 
 ## Contexto
 

@@ -20,6 +20,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 
 - snapshots operativos canonicos en `data/snapshots/`
 - fallback legacy controlado por `ENABLE_LEGACY_SNAPSHOTS`
+- fallback legacy con auto-apagado cuando `data/snapshots/` alcanza ventana suficiente (>=20 snapshots)
 - README de snapshots con criterio de migracion explicito
 - `rank_score` con damping progresivo para cohorts chicos
 - tests de borde explicitos para `rank_score` en cohorts `N=3` y `N=4`
@@ -70,7 +71,7 @@ El proyecto ya salio de la fase de hardening basico. El backlog vigente se conce
 
 ### P2. Cerrar migracion de snapshots
 
-- retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente
+- retirar el fallback legacy cuando `data/snapshots/` tenga ventana suficiente (auto-apagado implementado para lectura operativa)
 - mantener documentado el criterio de retiro
 - evitar que vuelvan a aparecer snapshots operativos nuevos en `tests/snapshots/`
 
