@@ -47,24 +47,30 @@ class GenerateRealReportTests(unittest.TestCase):
                 {"ticker": "AAPL", "asset_family": "stock", "score_unificado": 0.25, "outcome": "up", "correct": True},
                 {"ticker": "MSFT", "asset_family": "stock", "score_unificado": -0.22, "outcome": "down", "correct": False},
                 {"ticker": "GD30", "asset_family": "bond", "score_unificado": 0.02, "outcome": "neutral", "correct": True},
+                {"ticker": "AL30", "asset_family": "bond", "score_unificado": 0.20, "direction": "up", "outcome": "up", "correct": True},
+                {"ticker": "AL35", "asset_family": "bond", "score_unificado": -0.20, "direction": "down", "outcome": "down", "correct": True},
                 {"ticker": "KO", "asset_family": "stock", "score_unificado": 0.10, "outcome": "", "correct": pd.NA},
             ]
         )
 
         metrics = _build_prediction_accuracy_metrics(history)
 
-        self.assertEqual(metrics["global"]["completed"], 3)
-        self.assertAlmostEqual(float(metrics["global"]["accuracy_pct"]), 66.6666, places=3)
+        self.assertEqual(metrics["global"]["completed"], 5)
+        self.assertAlmostEqual(float(metrics["global"]["accuracy_pct"]), 80.0, places=3)
         by_family = {row["asset_family"]: row for row in metrics["by_family"]}
         self.assertEqual(by_family["stock"]["completed"], 2)
         self.assertAlmostEqual(float(by_family["stock"]["accuracy_pct"]), 50.0, places=3)
-        self.assertEqual(by_family["bond"]["completed"], 1)
+        self.assertEqual(by_family["bond"]["completed"], 3)
         self.assertAlmostEqual(float(by_family["bond"]["accuracy_pct"]), 100.0, places=3)
         by_band = {row["score_band"]: row for row in metrics["by_score_band"]}
-        self.assertEqual(by_band["Alto (>= 0.15)"]["completed"], 1)
+        self.assertEqual(by_band["Alto (>= 0.15)"]["completed"], 2)
         self.assertAlmostEqual(float(by_band["Alto (>= 0.15)"]["accuracy_pct"]), 100.0, places=3)
-        self.assertEqual(by_band["Bajo (<= -0.15)"]["completed"], 1)
-        self.assertAlmostEqual(float(by_band["Bajo (<= -0.15)"]["accuracy_pct"]), 0.0, places=3)
+        self.assertEqual(by_band["Bajo (<= -0.15)"]["completed"], 2)
+        self.assertAlmostEqual(float(by_band["Bajo (<= -0.15)"]["accuracy_pct"]), 50.0, places=3)
+        readiness = {row["asset_family"]: row for row in metrics["calibration_readiness"]}
+        self.assertIn("bond", readiness)
+        self.assertIn("stock", readiness)
+        self.assertFalse(bool(readiness["bond"]["ready"]))
 
     def test_configure_logging_default_text_format(self) -> None:
         root_logger = Mock()

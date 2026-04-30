@@ -135,6 +135,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     accuracy_global = (accuracy.get("global", {}) or {}) if isinstance(accuracy, dict) else {}
     accuracy_by_family = accuracy.get("by_family", []) if isinstance(accuracy, dict) else []
     accuracy_by_score_band = accuracy.get("by_score_band", []) if isinstance(accuracy, dict) else []
+    calibration_readiness = accuracy.get("calibration_readiness", []) if isinstance(accuracy, dict) else []
 
     def _votes_summary(value: object) -> str:
         votes = _parse_votes(value)
@@ -279,6 +280,28 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         </div>
       </div>
     """
+    readiness_items = []
+    for item in calibration_readiness[:6]:
+        status = "Lista" if bool(item.get("ready")) else "Pendiente"
+        readiness_items.append(
+            {
+                "kicker": str(item.get("asset_family") or "-"),
+                "title": status,
+                "detail": (
+                    f"up={int(item.get('up', 0) or 0)} | down={int(item.get('down', 0) or 0)} | "
+                    f"neutral={int(item.get('neutral', 0) or 0)} | min={int(item.get('min_count', 0) or 0)}/"
+                    f"{int(item.get('required', 30) or 30)}"
+                ),
+            }
+        )
+    readiness_block = f"""
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Preparación calibración por familia</h3>
+          {build_focus_list(readiness_items, empty_message='Sin outcomes verificados para medir preparación.', tone='neutral')}
+        </div>
+      </div>
+    """
     return f"""
     <section class="panel" id="prediccion">
       <h2>PredicciÃ³n</h2>
@@ -304,6 +327,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         </div>
       </div>
       {accuracy_block}
+      {readiness_block}
       {build_collapsible(
           "Ver detalle completo de predicciÃ³n",
           prediction_detail,

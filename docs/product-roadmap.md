@@ -71,6 +71,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: completado item P2 de Dimension 19: validacion de riesgo historico contra benchmark externo (MEP) cuando `serie_agregada_confiable` esta activa.
 - 2026-04-30: hotfix de render para Dimension 19: correccion de llamada a `fmt_score` en bloque benchmark de riesgo (evita `TypeError` en `generate_real_report.py`).
 - 2026-04-30: completado item P2 de Dimension 19: revision de thresholds de scoring contra outcomes reales acumulados via bloque `Acierto por banda de score` en Prediccion.
+- 2026-04-30: avance P3 de Dimension 19: tablero de preparacion para calibracion por `asset_family` (conteos `up/down/neutral` y estado `Lista/Pendiente` con umbral 30 por senal).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -125,6 +126,9 @@ Prueba de cierre (si aplica):
 - ejecutar una corrida real y validar en `Predicción`:
   - bloque `Acierto por banda de score`
   - bandas visibles: `Bajo (<= -0.15)`, `Neutro (-0.15 a 0.15)`, `Alto (>= 0.15)` cuando exista muestra
+- validar en `Predicción` el bloque `Preparación calibración por familia`:
+  - muestra conteos por familia para `up/down/neutral`
+  - estado `Lista` solo cuando `min(up,down,neutral) >= 30`
 
 ## Contexto
 

@@ -69,6 +69,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `prediction_history.csv` ahora persiste `score_unificado`
   - `generate_real_report.py` agrega metrica `by_score_band` en accuracy de prediccion
   - `report_sections_prediction.py` muestra `Acierto por banda de score` en el HTML
+- avance de calibracion por familia (Dimension 19 P3):
+  - `generate_real_report.py` agrega `calibration_readiness` por `asset_family`
+    con conteos `up/down/neutral` y umbral `30` por señal
+  - `report_sections_prediction.py` muestra bloque `Preparación calibración por familia`
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 

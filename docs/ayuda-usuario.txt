@@ -176,6 +176,10 @@ Como leer "Acierto historico" en Prediccion
   - Bajo (<= -0.15)
   - Neutro (-0.15 a 0.15)
   - Alto (>= 0.15)
+  "Preparacion calibracion por familia" muestra si cada `asset_family`
+  ya tiene muestra suficiente para calibracion avanzada:
+  - Lista: minimo 30 outcomes por cada senal (`up`, `down`, `neutral`)
+  - Pendiente: aun falta volumen en alguna senal
 
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,

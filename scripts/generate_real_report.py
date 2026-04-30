@@ -93,7 +93,7 @@ from prediction.store import (
     save_prediction_history,
     upsert_prediction_history,
 )
-from prediction.maturity import MIN_RUNS_FOR_RELIABLE_SERIES
+from prediction.maturity import MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION, MIN_RUNS_FOR_RELIABLE_SERIES
 from report_renderer import REPORTS_DIR, render_report
 
 
@@ -492,16 +492,31 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
 
 def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, object]:
     if not isinstance(history, pd.DataFrame) or history.empty:
-        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": [], "by_score_band": []}
+        return {
+            "global": {"completed": 0, "accuracy_pct": None},
+            "by_family": [],
+            "by_score_band": [],
+            "calibration_readiness": [],
+        }
 
     work = history.copy()
     if "outcome" not in work.columns or "correct" not in work.columns:
-        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": [], "by_score_band": []}
+        return {
+            "global": {"completed": 0, "accuracy_pct": None},
+            "by_family": [],
+            "by_score_band": [],
+            "calibration_readiness": [],
+        }
 
     work["outcome"] = work["outcome"].fillna("").astype(str).str.strip()
     completed = work.loc[work["outcome"] != ""].copy()
     if completed.empty:
-        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": [], "by_score_band": []}
+        return {
+            "global": {"completed": 0, "accuracy_pct": None},
+            "by_family": [],
+            "by_score_band": [],
+            "calibration_readiness": [],
+        }
 
     correct_numeric = pd.to_numeric(completed["correct"], errors="coerce")
     global_accuracy = float(correct_numeric.mean() * 100.0) if correct_numeric.notna().any() else None
@@ -553,6 +568,37 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
                 )
             by_score_band_rows.sort(key=lambda item: (-(item["completed"]), str(item["score_band"])))
 
+    calibration_readiness_rows: list[dict[str, object]] = []
+    if {"asset_family", "direction"}.issubset(set(completed.columns)):
+        readiness = completed.copy()
+        readiness["asset_family"] = readiness["asset_family"].fillna("").astype(str).str.strip().str.lower()
+        readiness["asset_family"] = readiness["asset_family"].where(readiness["asset_family"] != "", "sin_familia")
+        readiness["direction"] = readiness["direction"].fillna("neutral").astype(str).str.strip().str.lower()
+        readiness["direction"] = readiness["direction"].where(readiness["direction"] != "", "neutral")
+        pivot = (
+            readiness.groupby(["asset_family", "direction"], dropna=False)
+            .size()
+            .unstack(fill_value=0)
+        )
+        for family, row in pivot.iterrows():
+            up_n = int(row.get("up", 0))
+            down_n = int(row.get("down", 0))
+            neutral_n = int(row.get("neutral", 0))
+            min_count = min(up_n, down_n, neutral_n)
+            ready = min_count >= MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION
+            calibration_readiness_rows.append(
+                {
+                    "asset_family": str(family),
+                    "up": up_n,
+                    "down": down_n,
+                    "neutral": neutral_n,
+                    "min_count": min_count,
+                    "required": MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION,
+                    "ready": ready,
+                }
+            )
+        calibration_readiness_rows.sort(key=lambda item: (item["ready"] is False, -item["min_count"], item["asset_family"]))
+
     return {
         "global": {
             "completed": int(len(completed)),
@@ -560,6 +606,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
         },
         "by_family": by_family_rows,
         "by_score_band": by_score_band_rows,
+        "calibration_readiness": calibration_readiness_rows,
     }
 
 

@@ -125,6 +125,9 @@ class BuildPredictionSectionTests(unittest.TestCase):
                         {"score_band": "Alto (>= 0.15)", "completed": 6, "accuracy_pct": 66.67},
                         {"score_band": "Neutro (-0.15 a 0.15)", "completed": 4, "accuracy_pct": 50.0},
                     ],
+                    "calibration_readiness": [
+                        {"asset_family": "stock", "up": 12, "down": 8, "neutral": 10, "min_count": 8, "required": 30, "ready": False},
+                    ],
                 },
             }
         )
@@ -144,6 +147,8 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("stock", html)
         self.assertIn("Acierto por banda de score", html)
         self.assertIn("Alto (&gt;= 0.15)", html)
+        self.assertIn("Preparación calibración por familia", html)
+        self.assertIn("Pendiente", html)
 
     def test_warns_when_action_contradicts_direction(self) -> None:
         predictions = pd.DataFrame(
