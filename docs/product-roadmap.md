@@ -70,6 +70,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: completado item P3 de DevOps: `Dockerfile` y `.dockerignore` para entorno de desarrollo/testing en contenedor.
 - 2026-04-30: completado item P2 de Dimension 19: validacion de riesgo historico contra benchmark externo (MEP) cuando `serie_agregada_confiable` esta activa.
 - 2026-04-30: hotfix de render para Dimension 19: correccion de llamada a `fmt_score` en bloque benchmark de riesgo (evita `TypeError` en `generate_real_report.py`).
+- 2026-04-30: completado item P2 de Dimension 19: revision de thresholds de scoring contra outcomes reales acumulados via bloque `Acierto por banda de score` en Prediccion.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -120,6 +121,10 @@ Prueba de cierre (si aplica):
 - ejecutar una corrida real y validar en `Resumen -> Riesgo histórico`:
   - nueva fila de benchmark con `MEP`, estado de validacion, observaciones, correlacion y tracking error diario
   - si `serie_agregada_confiable=false`, el estado debe reflejar que la validacion se omite por baja confiabilidad
+- correr `python -m unittest tests.test_generate_real_report tests.test_report_sections_prediction tests.test_prediction_store -v`
+- ejecutar una corrida real y validar en `Predicción`:
+  - bloque `Acierto por banda de score`
+  - bandas visibles: `Bajo (<= -0.15)`, `Neutro (-0.15 a 0.15)`, `Alto (>= 0.15)` cuando exista muestra
 
 ## Contexto
 

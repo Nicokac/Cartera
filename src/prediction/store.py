@@ -21,6 +21,7 @@ PREDICTION_HISTORY_COLUMNS = [
     "confidence",
     "conviction_label",
     "consensus_raw",
+    "score_unificado",
     "signal_votes",
     "horizon_days",
     "outcome_date",

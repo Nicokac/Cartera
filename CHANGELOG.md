@@ -65,6 +65,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `generate_real_report.py` construye serie diaria de benchmark desde ArgentinaDatos
   - `analytics/portfolio_risk.py` agrega `benchmark_validation` cuando la serie agregada es confiable
   - `report_sections.py` expone estado, observaciones, correlacion y tracking error en el bloque de riesgo
+- revision de thresholds de scoring con evidencia historica:
+  - `prediction_history.csv` ahora persiste `score_unificado`
+  - `generate_real_report.py` agrega metrica `by_score_band` en accuracy de prediccion
+  - `report_sections_prediction.py` muestra `Acierto por banda de score` en el HTML
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 

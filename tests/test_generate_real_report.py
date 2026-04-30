@@ -44,10 +44,10 @@ class GenerateRealReportTests(unittest.TestCase):
     def test_build_prediction_accuracy_metrics_computes_global_and_by_family(self) -> None:
         history = pd.DataFrame(
             [
-                {"ticker": "AAPL", "asset_family": "stock", "outcome": "up", "correct": True},
-                {"ticker": "MSFT", "asset_family": "stock", "outcome": "down", "correct": False},
-                {"ticker": "GD30", "asset_family": "bond", "outcome": "neutral", "correct": True},
-                {"ticker": "KO", "asset_family": "stock", "outcome": "", "correct": pd.NA},
+                {"ticker": "AAPL", "asset_family": "stock", "score_unificado": 0.25, "outcome": "up", "correct": True},
+                {"ticker": "MSFT", "asset_family": "stock", "score_unificado": -0.22, "outcome": "down", "correct": False},
+                {"ticker": "GD30", "asset_family": "bond", "score_unificado": 0.02, "outcome": "neutral", "correct": True},
+                {"ticker": "KO", "asset_family": "stock", "score_unificado": 0.10, "outcome": "", "correct": pd.NA},
             ]
         )
 
@@ -60,6 +60,11 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertAlmostEqual(float(by_family["stock"]["accuracy_pct"]), 50.0, places=3)
         self.assertEqual(by_family["bond"]["completed"], 1)
         self.assertAlmostEqual(float(by_family["bond"]["accuracy_pct"]), 100.0, places=3)
+        by_band = {row["score_band"]: row for row in metrics["by_score_band"]}
+        self.assertEqual(by_band["Alto (>= 0.15)"]["completed"], 1)
+        self.assertAlmostEqual(float(by_band["Alto (>= 0.15)"]["accuracy_pct"]), 100.0, places=3)
+        self.assertEqual(by_band["Bajo (<= -0.15)"]["completed"], 1)
+        self.assertAlmostEqual(float(by_band["Bajo (<= -0.15)"]["accuracy_pct"]), 0.0, places=3)
 
     def test_configure_logging_default_text_format(self) -> None:
         root_logger = Mock()

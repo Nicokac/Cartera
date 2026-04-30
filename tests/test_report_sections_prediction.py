@@ -121,6 +121,10 @@ class BuildPredictionSectionTests(unittest.TestCase):
                         {"asset_family": "stock", "completed": 8, "accuracy_pct": 62.5},
                         {"asset_family": "bond", "completed": 4, "accuracy_pct": 50.0},
                     ],
+                    "by_score_band": [
+                        {"score_band": "Alto (>= 0.15)", "completed": 6, "accuracy_pct": 66.67},
+                        {"score_band": "Neutro (-0.15 a 0.15)", "completed": 4, "accuracy_pct": 50.0},
+                    ],
                 },
             }
         )
@@ -138,6 +142,8 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("Acierto por familia", html)
         self.assertIn("58.33%", html)
         self.assertIn("stock", html)
+        self.assertIn("Acierto por banda de score", html)
+        self.assertIn("Alto (&gt;= 0.15)", html)
 
     def test_warns_when_action_contradicts_direction(self) -> None:
         predictions = pd.DataFrame(

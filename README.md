@@ -29,6 +29,7 @@ El repo esta en una etapa operativa estable:
   - `generate_real_report_bonistas`
 - metricas historicas de riesgo por posicion y portfolio (`analytics/portfolio_risk.py`) con metodologia de universo comparable y circuit breaker `serie_confiable`
 - validacion comparativa opcional de riesgo historico contra benchmark externo (MEP) cuando la serie agregada es confiable
+- revision de thresholds de `score_unificado` contra outcomes reales con bloque de acierto por banda en Prediccion
 - flujo de operaciones reales integrado al reporte
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
 - capa experimental de prediccion direccional integrada al smoke y al real run

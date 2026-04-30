@@ -171,6 +171,11 @@ Como leer "Acierto historico" en Prediccion
   verificadas contra outcome real (suba/baja/neutral) sobre todo el historial.
   "Acierto por familia" desagrega ese porcentaje por tipo de activo
   (`asset_family`, por ejemplo `stock` o `bond`).
+  "Acierto por banda de score" agrega una revision por tramos de
+  `score_unificado`:
+  - Bajo (<= -0.15)
+  - Neutro (-0.15 a 0.15)
+  - Alto (>= 0.15)
 
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,

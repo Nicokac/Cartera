@@ -492,16 +492,16 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
 
 def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, object]:
     if not isinstance(history, pd.DataFrame) or history.empty:
-        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": []}
+        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": [], "by_score_band": []}
 
     work = history.copy()
     if "outcome" not in work.columns or "correct" not in work.columns:
-        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": []}
+        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": [], "by_score_band": []}
 
     work["outcome"] = work["outcome"].fillna("").astype(str).str.strip()
     completed = work.loc[work["outcome"] != ""].copy()
     if completed.empty:
-        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": []}
+        return {"global": {"completed": 0, "accuracy_pct": None}, "by_family": [], "by_score_band": []}
 
     correct_numeric = pd.to_numeric(completed["correct"], errors="coerce")
     global_accuracy = float(correct_numeric.mean() * 100.0) if correct_numeric.notna().any() else None
@@ -523,12 +523,43 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
             )
         by_family_rows.sort(key=lambda item: (-(item["completed"]), str(item["asset_family"])))
 
+    by_score_band_rows: list[dict[str, object]] = []
+    if "score_unificado" in completed.columns:
+        scored = completed.copy()
+        scored["score_unificado"] = pd.to_numeric(scored["score_unificado"], errors="coerce")
+        scored = scored.dropna(subset=["score_unificado"]).copy()
+        if not scored.empty:
+            bins = [-float("inf"), -0.15, 0.15, float("inf")]
+            labels = ["Bajo (<= -0.15)", "Neutro (-0.15 a 0.15)", "Alto (>= 0.15)"]
+            scored["score_band"] = pd.cut(
+                scored["score_unificado"],
+                bins=bins,
+                labels=labels,
+                include_lowest=True,
+                right=True,
+            )
+            for band in labels:
+                frame = scored.loc[scored["score_band"].astype(str) == band].copy()
+                if frame.empty:
+                    continue
+                band_correct = pd.to_numeric(frame["correct"], errors="coerce")
+                band_accuracy = float(band_correct.mean() * 100.0) if band_correct.notna().any() else None
+                by_score_band_rows.append(
+                    {
+                        "score_band": band,
+                        "completed": int(len(frame)),
+                        "accuracy_pct": band_accuracy,
+                    }
+                )
+            by_score_band_rows.sort(key=lambda item: (-(item["completed"]), str(item["score_band"])))
+
     return {
         "global": {
             "completed": int(len(completed)),
             "accuracy_pct": global_accuracy,
         },
         "by_family": by_family_rows,
+        "by_score_band": by_score_band_rows,
     }
 
 

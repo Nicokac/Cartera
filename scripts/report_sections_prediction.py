@@ -134,6 +134,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     accuracy = prediction_bundle.get("accuracy", {}) or {}
     accuracy_global = (accuracy.get("global", {}) or {}) if isinstance(accuracy, dict) else {}
     accuracy_by_family = accuracy.get("by_family", []) if isinstance(accuracy, dict) else []
+    accuracy_by_score_band = accuracy.get("by_score_band", []) if isinstance(accuracy, dict) else []
 
     def _votes_summary(value: object) -> str:
         votes = _parse_votes(value)
@@ -260,6 +261,21 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <div>
           <h3>Acierto por familia</h3>
           {build_focus_list(by_family_items, empty_message='Sin outcomes verificados por familia.', tone='neutral')}
+        </div>
+        <div>
+          <h3>Acierto por banda de score</h3>
+          {build_focus_list(
+              [
+                  {
+                      "kicker": str(item.get("score_band") or "-"),
+                      "title": f"{fmt_pct(item.get('accuracy_pct')) if item.get('accuracy_pct') is not None else '-'}",
+                      "detail": f"{int(item.get('completed', 0) or 0)} outcomes verificados",
+                  }
+                  for item in accuracy_by_score_band[:6]
+              ],
+              empty_message='Sin outcomes verificados por banda de score.',
+              tone='neutral',
+          )}
         </div>
       </div>
     """
