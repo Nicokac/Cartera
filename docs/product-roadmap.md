@@ -84,6 +84,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: hardening de CI en GitHub Actions: workflow `unittest` fuerza runtime Node 24 para acciones JavaScript (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`) y evita dependencia en Node 20 deprecado.
 - 2026-04-30: mejora UX/accesibilidad en estado UI: badge visual por estado (Inactivo/En ejecucion/Completado/Interrumpido/Error) con colores y texto explicito, manteniendo `aria-label` y mensajes funcionales existentes.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo el calculo de `score_despliegue_liquidez` a helper dedicado (`_apply_liquidity_deployment_score`) sin cambios funcionales.
+- 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo post-procesado final (ajustes de regimen + clamp de `score_reduccion` + despliegue de liquidez) a helper `_apply_post_regime_adjustments`, sin cambios funcionales.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -168,6 +169,8 @@ Prueba de cierre (si aplica):
   - en `error`, se mantiene el mensaje funcional y el link `Ver log completo ->`
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar en una corrida baseline que la priorizacion de liquidez y `score_despliegue_liquidez` no cambia respecto al comportamiento previo
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar en corrida baseline que `score_reduccion` y el ranking final se mantienen iguales frente al baseline previo (control no regresion del post-procesado)
 
 ## Contexto
 

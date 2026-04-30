@@ -631,6 +631,24 @@ def _apply_liquidity_deployment_score(
     return out
 
 
+def _apply_post_regime_adjustments(
+    out: pd.DataFrame,
+    *,
+    market_context: dict[str, object] | None,
+    scoring_rules: dict[str, object],
+    score_despliegue_liquidez_weights: dict[str, object],
+    rank_neutral: float,
+) -> pd.DataFrame:
+    out = apply_market_regime_adjustments(out, market_context=market_context, scoring_rules=scoring_rules)
+    out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
+    out = _apply_liquidity_deployment_score(
+        out,
+        score_despliegue_liquidez_weights=score_despliegue_liquidez_weights,
+        rank_neutral=rank_neutral,
+    )
+    return out
+
+
 def apply_base_scores(
     decision: pd.DataFrame,
     *,
@@ -700,10 +718,10 @@ def apply_base_scores(
         gain_clip_min=gain_clip_min,
         gain_clip_max=gain_clip_max,
     )
-    out = apply_market_regime_adjustments(out, market_context=market_context, scoring_rules=scoring_rules)
-    out["score_reduccion"] = out["score_reduccion"].clip(0, 1)
-    out = _apply_liquidity_deployment_score(
+    out = _apply_post_regime_adjustments(
         out,
+        market_context=market_context,
+        scoring_rules=scoring_rules,
         score_despliegue_liquidez_weights=score_despliegue_liquidez_weights,
         rank_neutral=rank_neutral,
     )
