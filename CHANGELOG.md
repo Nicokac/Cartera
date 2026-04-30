@@ -73,6 +73,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `generate_real_report.py` agrega `calibration_readiness` por `asset_family`
     con conteos `up/down/neutral` y umbral `30` por señal
   - `report_sections_prediction.py` muestra bloque `Preparación calibración por familia`
+- calibracion por `asset_family` en motor de calibracion:
+  - `prediction.calibration` soporta modo opt-in `calibration.family_enabled`
+  - genera `family_overrides` por familia/señal con gating por muestra y por señal
+  - conserva calibracion global existente como comportamiento por defecto
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 

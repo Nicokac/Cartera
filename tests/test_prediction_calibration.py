@@ -218,6 +218,59 @@ class PredictionCalibrationTests(unittest.TestCase):
         self.assertIn("signals", payload)
         self.assertIn("calibration", payload)
 
+    def test_calibrate_prediction_weights_adds_family_overrides_when_enabled_and_ready(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = True
+        custom_weights["calibration"]["family_min_samples"] = 4
+        custom_weights["calibration"]["family_min_per_direction"] = 1
+        custom_weights["calibration"]["min_weight"] = 0.1
+        custom_weights["calibration"]["max_weight"] = 1.0
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "A1", "asset_family": "stock", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "A2", "asset_family": "stock", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "A3", "asset_family": "stock", "run_date": "2026-04-22", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "A4", "asset_family": "stock", "run_date": "2026-04-23", "outcome": "neutral", "signal_votes": "{\"rsi\": 0}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        self.assertIn("family_overrides", updated)
+        self.assertIn("stock", updated["family_overrides"])
+        self.assertIn("signals", updated["family_overrides"]["stock"])
+        self.assertIn("rsi", updated["family_overrides"]["stock"]["signals"])
+        family_rows = summary.loc[(summary["scope"] == "family") & (summary["asset_family"] == "stock")]
+        self.assertFalse(family_rows.empty)
+
+    def test_calibrate_prediction_weights_family_not_ready_keeps_global_weight(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = True
+        custom_weights["calibration"]["family_min_samples"] = 3
+        custom_weights["calibration"]["family_min_per_direction"] = 2
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "B1", "asset_family": "bond", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "B2", "asset_family": "bond", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "B3", "asset_family": "bond", "run_date": "2026-04-22", "outcome": "down", "signal_votes": "{\"rsi\": -1}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        bond_rsi = summary.loc[
+            (summary["scope"] == "family")
+            & (summary["asset_family"] == "bond")
+            & (summary["signal"] == "rsi")
+        ].iloc[0]
+        self.assertEqual(bond_rsi["status"], "family_insufficient_samples")
+        self.assertFalse(bool(bond_rsi["family_ready"]))
+        self.assertAlmostEqual(
+            float(updated["family_overrides"]["bond"]["signals"]["rsi"]["weight"]),
+            float(custom_weights["signals"]["rsi"]["weight"]),
+            places=6,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

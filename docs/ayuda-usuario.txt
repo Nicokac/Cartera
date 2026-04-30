@@ -180,6 +180,8 @@ Como leer "Acierto historico" en Prediccion
   ya tiene muestra suficiente para calibracion avanzada:
   - Lista: minimo 30 outcomes por cada senal (`up`, `down`, `neutral`)
   - Pendiente: aun falta volumen en alguna senal
+  A nivel tecnico existe calibracion por familia en modo opt-in, para no
+  alterar el comportamiento base hasta que la muestra sea robusta.
 
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,

@@ -9,8 +9,10 @@ import pandas as pd
 
 try:
     from ..config import MAPPINGS_DIR
+    from .maturity import MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION
 except ImportError:
     from config import MAPPINGS_DIR
+    from prediction.maturity import MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION
 
 
 OUTCOME_TO_NUMERIC = {
@@ -59,6 +61,7 @@ def extract_signal_vote_frame(history: pd.DataFrame) -> pd.DataFrame:
         rows.append(
             {
                 "ticker": str(row.get("ticker") or "").strip().upper(),
+                "asset_family": str(row.get("asset_family") or "").strip().lower(),
                 "run_date": str(row.get("run_date") or "").strip(),
                 "outcome": str(row.get("outcome") or "").strip().lower(),
                 "outcome_numeric": float(outcome_numeric),
@@ -110,6 +113,11 @@ def calibrate_prediction_weights(
 
     lookback_samples = int(calibration_cfg.get("lookback_samples", 0) or 0)
     min_recent_samples = int(calibration_cfg.get("min_recent_samples", min_samples) or min_samples)
+    family_enabled = bool(calibration_cfg.get("family_enabled", False))
+    family_min_samples = int(calibration_cfg.get("family_min_samples", min_samples) or min_samples)
+    family_min_per_direction = int(
+        calibration_cfg.get("family_min_per_direction", MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION) or MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION
+    )
 
     vote_frame = extract_signal_vote_frame(history)
     if lookback_samples > 0 and not vote_frame.empty:
@@ -151,6 +159,67 @@ def calibrate_prediction_weights(
         )
 
     summary_df = pd.DataFrame(summaries).sort_values("signal").reset_index(drop=True)
+
+    if family_enabled and not effective_frame.empty and "asset_family" in effective_frame.columns:
+        family_overrides: dict[str, Any] = {}
+        family_rows: list[dict[str, Any]] = []
+        frame = effective_frame.copy()
+        frame["asset_family"] = frame["asset_family"].fillna("").astype(str).str.strip().str.lower()
+        frame["asset_family"] = frame["asset_family"].where(frame["asset_family"] != "", "sin_familia")
+
+        for family, family_frame in frame.groupby("asset_family", dropna=False):
+            outcomes = family_frame["outcome"].fillna("").astype(str).str.strip().str.lower()
+            up_n = int((outcomes == "up").sum())
+            down_n = int((outcomes == "down").sum())
+            neutral_n = int((outcomes == "neutral").sum())
+            min_dir = min(up_n, down_n, neutral_n)
+            family_ready = min_dir >= family_min_per_direction
+            family_signal_overrides: dict[str, Any] = {}
+
+            for signal_name, signal_cfg in (updated.get("signals", {}) or {}).items():
+                previous_weight = float(signal_cfg.get("weight", 0.0) or 0.0)
+                stats = compute_signal_ic(family_frame, signal_name)
+                samples = int(stats["samples"])
+                ic = stats["ic"]
+
+                if (not family_ready) or samples < family_min_samples or ic is None:
+                    new_weight = previous_weight
+                    status = "family_insufficient_samples"
+                else:
+                    if float(ic) <= 0:
+                        new_weight = 0.0
+                    else:
+                        bounded_ic = max(min_weight, float(ic))
+                        new_weight = max(min_weight, min(max_weight, bounded_ic))
+                    status = "family_recalibrated"
+
+                family_signal_overrides[signal_name] = {"weight": round(float(new_weight), 6)}
+                family_rows.append(
+                    {
+                        "scope": "family",
+                        "asset_family": str(family),
+                        "signal": signal_name,
+                        "samples": samples,
+                        "ic": None if ic is None else round(float(ic), 6),
+                        "previous_weight": previous_weight,
+                        "new_weight": float(family_signal_overrides[signal_name]["weight"]),
+                        "status": status,
+                        "family_ready": family_ready,
+                        "up": up_n,
+                        "down": down_n,
+                        "neutral": neutral_n,
+                        "family_min_per_direction": family_min_per_direction,
+                    }
+                )
+            family_overrides[str(family)] = {"signals": family_signal_overrides}
+        updated["family_overrides"] = family_overrides
+        if family_rows:
+            family_df = pd.DataFrame(family_rows)
+            summary_df["scope"] = "global"
+            summary_df["asset_family"] = "global"
+            summary_df = pd.concat([summary_df, family_df], ignore_index=True, sort=False)
+            summary_df = summary_df.sort_values(["scope", "asset_family", "signal"], na_position="last").reset_index(drop=True)
+
     return updated, summary_df
 
 
