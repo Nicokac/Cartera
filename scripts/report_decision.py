@@ -184,6 +184,31 @@ def build_decision_priority_board(
         & (~work["_accion_actual"].str.lower().str.contains("liquidez", na=False))
     ].sort_values("score_unificado", ascending=True)
     neutrales = work[work["_accion_actual"].isin(NEUTRAL_ACTIONS)]
+    streak_view = work.copy()
+    streak_view["_racha"] = streak_view.apply(
+        lambda row: max(
+            int(row.get("dias_consecutivos_refuerzo", 0) or 0),
+            int(row.get("dias_consecutivos_reduccion", 0) or 0),
+            int(row.get("dias_consecutivos_mantener", 0) or 0),
+            1,
+        ),
+        axis=1,
+    )
+    if "Tipo" in streak_view.columns:
+        streak_view = streak_view.loc[streak_view["Tipo"].astype(str) != "Liquidez"].copy()
+    streak_view = streak_view.loc[streak_view["_racha"] >= 2].sort_values(["_racha", "score_unificado"], ascending=[False, False])
+    streak_items: list[dict[str, str]] = []
+    for _, row in streak_view.head(5).iterrows():
+        accion = str(row.get(action_col, "")).strip()
+        calidad = str(row.get("quality_label", "-")).strip() or "-"
+        streak_items.append(
+            {
+                "kicker": str(row.get("Ticker_IOL", "-")),
+                "title": f"Racha {int(row.get('_racha', 0) or 0)}",
+                "detail": f"Accion {accion} | Calidad {calidad}",
+                "badge": accion if accion else None,
+            }
+        )
 
     return f"""
     <section class="decision-priority">
@@ -199,6 +224,10 @@ def build_decision_priority_board(
         <div>
           <h3>Monitoreo destacado</h3>
           {build_focus_list(_build_items(neutrales, ascending=False, badge_from_action=True), empty_message='Sin monitoreo destacado.', tone='neutral')}
+        </div>
+        <div>
+          <h3>Evolución de racha</h3>
+          {build_focus_list(streak_items, empty_message='Sin rachas suficientes para destacar.', tone='neutral')}
         </div>
       </div>
     </section>

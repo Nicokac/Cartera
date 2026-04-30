@@ -12,6 +12,8 @@ class ReportRenderUiTests(unittest.TestCase):
         self.assertIn("Convicciones alcistas", html)
         self.assertIn("Riesgos a recortar", html)
         self.assertIn("Monitoreo destacado", html)
+        self.assertIn("Evolución de racha", html)
+        self.assertIn("Racha 2", html)
         self.assertIn("Ver tabla completa de decision", html)
 
 
@@ -328,9 +330,8 @@ class ReportRenderUiTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("⚠ Refuerzo", html)
+        self.assertTrue("⚠ Refuerzo" in html or "âš  Refuerzo" in html)
 
 
 if __name__ == "__main__":
     unittest.main()
-

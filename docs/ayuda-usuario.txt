@@ -122,6 +122,8 @@ La recomendacion final para cada instrumento: Refuerzo, Reduccion, Despliegue
 o Neutral / Monitoreo. Incluye el score, la racha de senales consecutivas y
 los factores que mas pesaron en la decision (valuacion, momentum, beta, peso
 en cartera, etc.).
+En el bloque de prioridades se muestra "Evolucion de racha" para destacar
+tickers con persistencia temporal (racha >= 2), excluyendo Liquidez.
 
 CARTERA
 -------

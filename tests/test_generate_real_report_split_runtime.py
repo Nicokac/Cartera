@@ -78,6 +78,13 @@ class GenerateRealReportSplitRuntimeTests(unittest.TestCase):
         operations = [{"tipo": "Transferencia", "estado": "pendiente", "simbolo": "AAPL"}]
         self.assertEqual(extract_operation_quote_tickers_impl(operations), [])
 
+    def test_extract_operation_quote_tickers_impl_skips_non_dict_rows(self) -> None:
+        operations = [
+            "unexpected",
+            {"tipo": "Compra", "estado": "terminada", "simbolo": "AAPL"},
+        ]
+        self.assertEqual(extract_operation_quote_tickers_impl(operations), ["AAPL"])
+
     def test_parse_finviz_helpers_return_nan_for_invalid_tokens(self) -> None:
         logger = logging.getLogger("test.parse")
         self.assertTrue(pd.isna(parse_finviz_number_impl("abc", logger=logger)))
@@ -249,6 +256,24 @@ class GenerateRealReportSplitRuntimeTests(unittest.TestCase):
         self.assertIn("activos", portfolio)
         self.assertTrue(estado["ok"])
         self.assertEqual(ops, [])
+        login_mock.assert_not_called()
+
+    def test_fetch_iol_payloads_impl_normalizes_dict_wrapper_operations(self) -> None:
+        login_mock = Mock(return_value="should-not-be-used")
+        _portfolio, _estado, ops, _token = fetch_iol_payloads_impl(
+            token="valid-token",
+            username="user",
+            password="pass",
+            iol_get_portafolio_fn=lambda _t, **_kwargs: {"activos": []},
+            iol_get_estado_cuenta_fn=lambda _t, **_kwargs: {"ok": True},
+            iol_get_operaciones_fn=lambda _t, **_kwargs: {
+                "operaciones": [{"tipo": "Compra"}, "noise", None]
+            },
+            iol_login_fn=login_mock,
+            base_url="https://example.test",
+            logger=logging.getLogger("test.fetch_iol_payloads.wrap"),
+        )
+        self.assertEqual(ops, [{"tipo": "Compra"}])
         login_mock.assert_not_called()
 
     def test_fetch_iol_payloads_impl_raises_non_401_http_error(self) -> None:

@@ -99,6 +99,8 @@ def extract_operation_quote_tickers_impl(
 
     tickers: list[str] = []
     for operation in operations:
+        if not isinstance(operation, dict):
+            continue
         tipo = str(operation.get("tipo") or "").strip()
         estado = str(operation.get("estado") or "").strip().lower()
         simbolo = str(operation.get("simbolo") or "").strip().upper()
@@ -201,16 +203,26 @@ def fetch_iol_payloads_impl(
     base_url: str,
     logger: logging.Logger,
 ) -> tuple[dict[str, object], dict[str, object], list[dict[str, object]], str]:
+    def _normalize_operations_payload(payload: object) -> list[dict[str, object]]:
+        if isinstance(payload, list):
+            return [item for item in payload if isinstance(item, dict)]
+        if isinstance(payload, dict):
+            nested = payload.get("operaciones")
+            if isinstance(nested, list):
+                return [item for item in nested if isinstance(item, dict)]
+        return []
+
     current_token = token
     try:
         portfolio_payload = iol_get_portafolio_fn(current_token, base_url=base_url, pais="argentina")
         estado_payload = iol_get_estado_cuenta_fn(current_token, base_url=base_url)
-        operaciones_payload = iol_get_operaciones_fn(
+        operaciones_payload_raw = iol_get_operaciones_fn(
             current_token,
             base_url=base_url,
             pais="argentina",
             estado="todas",
         )
+        operaciones_payload = _normalize_operations_payload(operaciones_payload_raw)
         return portfolio_payload, estado_payload, operaciones_payload, current_token
     except requests.HTTPError as exc:
         status = exc.response.status_code if exc.response is not None else None
@@ -220,12 +232,13 @@ def fetch_iol_payloads_impl(
         current_token = iol_login_fn(username, password, base_url=base_url)
         portfolio_payload = iol_get_portafolio_fn(current_token, base_url=base_url, pais="argentina")
         estado_payload = iol_get_estado_cuenta_fn(current_token, base_url=base_url)
-        operaciones_payload = iol_get_operaciones_fn(
+        operaciones_payload_raw = iol_get_operaciones_fn(
             current_token,
             base_url=base_url,
             pais="argentina",
             estado="todas",
         )
+        operaciones_payload = _normalize_operations_payload(operaciones_payload_raw)
         return portfolio_payload, estado_payload, operaciones_payload, current_token
 
 

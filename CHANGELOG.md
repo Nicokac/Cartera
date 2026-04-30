@@ -54,6 +54,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `static/index.html`: nueva seccion `Corridas recientes` consumiendo `/runs/recent`
 - `static/index.html`: indicador de progreso estimado durante corrida
   (barra + etapa textual en estado `running`)
+- reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
+  para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 
 ### Changed
 
@@ -118,6 +120,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   para unittest en Actions; se agrega job de aviso no bloqueante mientras se
   resuelve la deuda tecnica de CI
 - `server.py`: asegura creacion de `reports/` antes de `app.mount("/reports", ...)`
+- `tests/test_report_render_ui.py`: assertion robusta para variante UTF-8/mojibake
+  en marcador visual de `Refuerzo` (`⚠`/`âš `) sin alterar comportamiento funcional
+- `scripts/generate_real_report_runtime.py`: hardening del flujo de operaciones IOL
+  para tolerar payloads no homogéneos (lista con ruido, o wrapper dict con
+  `operaciones`) y evitar `AttributeError` en extracción de tickers
+- `tests/test_generate_real_report_split_runtime.py`: cobertura adicional para
+  filas no-dict y normalización de wrapper `operaciones`
   para evitar fallo de import en CI cuando el directorio no existe
 - retencion automatica de `prediction_history.csv`:
   - nueva funcion `apply_prediction_history_retention()` en `src/prediction/store.py`
