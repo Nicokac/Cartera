@@ -146,6 +146,11 @@ El reporte dice "Sin fondeo disponible" en Sizing
 Hay instrumentos sin historial (racha = 1, sin accion previa)
   Es normal al principio. El sistema acumula historial con cada corrida.
   Despues de algunas corridas, la columna "Accion previa" y "Racha" se completan.
+  La columna "Calidad historia" resume esa madurez:
+  - Sin historia: 0 corridas previas para ese ticker/subfamilia
+  - Corta: 1 a 9 corridas
+  - Parcial: 10 a 19 corridas
+  - Robusta: 20 o mas corridas
 
 Una operacion aparece en "Operaciones" pero no en "Cartera"
   La operacion fue ejecutada en IOL pero todavia no se reflejo en el saldo de

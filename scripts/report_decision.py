@@ -81,6 +81,7 @@ def build_decision_table(
             f"<td>{esc_text(accion_previa)}</td>"
             f"<td>{render_metric('score_delta_vs_dia_anterior', delta_score, fmt_delta_score)}</td>"
             f"<td>{_racha_badge(racha)}</td>"
+            f"<td>{esc_text(row.get('quality_label', '-'))}</td>"
             f"<td><div class=\"driver-stack\">{driver_html}</div></td>"
             f"<td><div>{motivo}</div></td>"
             "</tr>"
@@ -103,6 +104,7 @@ def build_decision_table(
         '<th scope="col" class="sortable" data-sort="score">Score</th>'
         '<th scope="col">Acción</th><th scope="col">Acción previa</th><th scope="col">\u0394 Score</th>'
         '<th scope="col" class="sortable" data-sort="racha">Racha</th>'
+        '<th scope="col">Calidad historia</th>'
         '<th scope="col">Drivers</th><th scope="col">Motivo</th></tr></thead>'
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )

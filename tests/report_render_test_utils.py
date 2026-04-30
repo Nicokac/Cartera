@@ -48,6 +48,7 @@ def build_minimal_result(
                 "dias_consecutivos_refuerzo": 0,
                 "dias_consecutivos_reduccion": 0,
                 "dias_consecutivos_mantener": 2,
+                "quality_label": "Parcial",
             }
         ]
     )

@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import BDay
+from prediction.maturity import MIN_RUNS_FOR_RELIABLE_SERIES, MIN_RUNS_FOR_STREAK
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_DIR = ROOT / "data" / "runtime"
@@ -36,6 +37,8 @@ TEMPORAL_COLUMNS = [
     "es_nueva_senal",
     "senal_persistente_refuerzo",
     "senal_persistente_reduccion",
+    "historial_observaciones",
+    "quality_label",
 ]
 
 LIQUIDITY_TEMPORAL_GROUPS = {
@@ -236,17 +239,27 @@ def _build_temporal_row(
             score_delta = float(current_score) - float(prev_score)
 
     streak = 1 if current_bucket in {"refuerzo", "reduccion", "mantener"} else 0
+    comparable_history = ticker_history
+    if current_subfamily:
+        comparable_history = comparable_history.loc[
+            comparable_history["asset_subfamily"].fillna("").astype(str).str.strip().str.lower() == current_subfamily
+        ].copy()
+    history_observaciones = int(len(comparable_history))
     if streak:
-        comparable_history = ticker_history
-        if current_subfamily:
-            comparable_history = comparable_history.loc[
-                comparable_history["asset_subfamily"].fillna("").astype(str).str.strip().str.lower() == current_subfamily
-            ].copy()
         history_buckets = comparable_history["accion_sugerida_v2"].map(_normalize_action_bucket).tolist()
         for bucket in reversed(history_buckets):
             if bucket != current_bucket:
                 break
             streak += 1
+
+    if history_observaciones <= 0:
+        quality_label = "Sin historia"
+    elif history_observaciones < MIN_RUNS_FOR_STREAK:
+        quality_label = "Corta"
+    elif history_observaciones < MIN_RUNS_FOR_RELIABLE_SERIES:
+        quality_label = "Parcial"
+    else:
+        quality_label = "Robusta"
 
     return {
         "accion_previa": previous_action,
@@ -258,6 +271,8 @@ def _build_temporal_row(
         "es_nueva_senal": previous_action is not None and str(previous_action) != str(current_action),
         "senal_persistente_refuerzo": current_bucket == "refuerzo" and streak >= 2,
         "senal_persistente_reduccion": current_bucket == "reduccion" and streak >= 2,
+        "historial_observaciones": history_observaciones,
+        "quality_label": quality_label,
     }
 
 

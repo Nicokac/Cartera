@@ -186,6 +186,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     desactiva automaticamente el fallback a `tests/snapshots/`
 - `src/analytics/portfolio_risk.py` alinea `serie_agregada_confiable` con
   umbral minimo de 20 pasos estables para habilitar metricas agregadas
+- calidad de historia en decision table:
+  - `src/decision/history.py` agrega `quality_label` y `historial_observaciones`
+    en enriquecimiento temporal por ticker/subfamilia
+  - `scripts/report_decision.py` muestra columna `Calidad historia` con labels:
+    `Robusta`, `Parcial`, `Corta`, `Sin historia`
+- `tests/test_report_render_core.py`: asserts de texto robustecidos para tolerar
+  variantes UTF-8/mojibake heredadas en algunos labels del HTML
 
 ### Testing
 
@@ -244,6 +251,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - validacion de umbrales de madurez y fallback legacy:
   - `python -m unittest tests.test_portfolio_risk -v`
   - `python -m unittest tests.test_generate_real_report -v`
+- validacion de quality label en decision table:
+  - `python -m unittest tests.test_decision_history -v`
+  - `python -m unittest tests.test_report_render_core -v`
 
 ### Security
 

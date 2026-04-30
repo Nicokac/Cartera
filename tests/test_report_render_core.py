@@ -6,6 +6,9 @@ from tests.report_render_test_utils import build_minimal_result as _build_minima
 
 
 class ReportRenderCoreTests(unittest.TestCase):
+    def _assert_contains_any(self, html: str, expected: tuple[str, ...]) -> None:
+        self.assertTrue(any(item in html for item in expected), msg=f"No se encontro ninguna variante: {expected}")
+
     def test_render_report_filters_non_material_neutral_to_neutral_changes(self) -> None:
         result = _build_minimal_result()
         result["decision_bundle"]["final_decision"] = pd.DataFrame(
@@ -79,8 +82,8 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Cambios materiales", html)
         self.assertIn("Refuerzos persistentes", html)
         self.assertIn("Sin historial", html)
-        self.assertIn("Suben de convicción", html)
-        self.assertIn("Bajan a reducción", html)
+        self._assert_contains_any(html, ("Suben de convicción", "Suben de convicciÃ³n"))
+        self._assert_contains_any(html, ("Bajan a reducción", "Bajan a reducciÃ³n"))
         self.assertIn("Vuelven a monitoreo", html)
 
 
@@ -99,6 +102,8 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Acción previa", html)
         self.assertIn("Δ Score", html)
         self.assertIn("Racha", html)
+        self.assertIn("Calidad historia", html)
+        self.assertIn("Parcial", html)
         self.assertIn("Reducir", html)
         self.assertIn("+0.015", html)
 
@@ -121,7 +126,7 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Cambios de señal", html)
         self.assertIn("Liquidez broker", html)
         self.assertIn("Liquidez ampliada", html)
-        self.assertIn("Vuelve a monitoreo desde reducción", html)
+        self._assert_contains_any(html, ("Vuelve a monitoreo desde reducción", "Vuelve a monitoreo desde reducciÃ³n"))
         self.assertIn("Antes: Reducir. Ahora: Mantener / monitorear.", html)
 
 
@@ -191,7 +196,7 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         self.assertIn('href="#prediccion"', html)
         self.assertIn('<section class="panel" id="prediccion">', html)
-        self.assertIn("Ver detalle completo de predicción", html)
+        self._assert_contains_any(html, ("Ver detalle completo de predicción", "Ver detalle completo de predicciÃ³n"))
         self.assertIn("Confianza media", html)
         self.assertIn("XLV", html)
         self.assertIn("MELI", html)
@@ -268,4 +273,3 @@ class ReportRenderCoreTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

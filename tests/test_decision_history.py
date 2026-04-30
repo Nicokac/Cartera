@@ -339,6 +339,74 @@ class DecisionHistoryTests(unittest.TestCase):
         self.assertEqual(len(retained), 1)
         self.assertEqual(retained.loc[0, "Ticker_IOL"], "MSFT")
 
+    def test_temporal_quality_label_uses_history_thresholds(self) -> None:
+        history_rows: list[dict[str, object]] = []
+        for i in range(1, 21):
+            history_rows.append(
+                {
+                    "run_date": f"2026-04-{i:02d}",
+                    "Ticker_IOL": "AAPL",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": 0.1,
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 4.7,
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": 1.0,
+                    "Momentum_60d_%": 2.0,
+                    "market_regime_any_active": False,
+                    "market_regime_active_flags": "",
+                }
+            )
+        for i in range(1, 11):
+            history_rows.append(
+                {
+                    "run_date": f"2026-03-{i:02d}",
+                    "Ticker_IOL": "MSFT",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": 0.1,
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 4.7,
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": 1.0,
+                    "Momentum_60d_%": 2.0,
+                    "market_regime_any_active": False,
+                    "market_regime_active_flags": "",
+                }
+            )
+        for i in range(1, 6):
+            history_rows.append(
+                {
+                    "run_date": f"2026-02-{i:02d}",
+                    "Ticker_IOL": "MELI",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": 0.1,
+                    "accion_sugerida_v2": "Refuerzo",
+                    "Peso_%": 4.7,
+                    "Tech_Trend": "Alcista",
+                    "Momentum_20d_%": 1.0,
+                    "Momentum_60d_%": 2.0,
+                    "market_regime_any_active": False,
+                    "market_regime_active_flags": "",
+                }
+            )
+        history = pd.DataFrame(history_rows)
+        final_decision = pd.DataFrame(
+            [
+                {"Ticker_IOL": "AAPL", "asset_subfamily": "stock_growth", "score_unificado": 0.2, "accion_sugerida_v2": "Refuerzo"},
+                {"Ticker_IOL": "MSFT", "asset_subfamily": "stock_growth", "score_unificado": 0.2, "accion_sugerida_v2": "Refuerzo"},
+                {"Ticker_IOL": "MELI", "asset_subfamily": "stock_growth", "score_unificado": 0.2, "accion_sugerida_v2": "Refuerzo"},
+                {"Ticker_IOL": "KO", "asset_subfamily": "stock_growth", "score_unificado": 0.2, "accion_sugerida_v2": "Refuerzo"},
+            ]
+        )
+
+        enriched = enrich_with_temporal_memory(final_decision, history, run_date="2026-04-21")
+        labels = dict(zip(enriched["Ticker_IOL"], enriched["quality_label"]))
+
+        self.assertEqual(labels["AAPL"], "Robusta")
+        self.assertEqual(labels["MSFT"], "Parcial")
+        self.assertEqual(labels["MELI"], "Corta")
+        self.assertEqual(labels["KO"], "Sin historia")
+
     def test_apply_decision_history_retention_rejects_invalid_days(self) -> None:
         with self.assertRaises(ValueError):
             apply_decision_history_retention(pd.DataFrame(), retention_days=0)
