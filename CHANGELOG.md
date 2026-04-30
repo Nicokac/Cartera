@@ -123,6 +123,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nueva funcion `apply_prediction_history_retention()` en `src/prediction/store.py`
   - retencion default de 90 dias (configurable)
   - aplicada en `scripts/generate_real_report.py` y `scripts/run_prediction_cycle.py`
+- cache intradia de precios IOL (TTL 15 minutos):
+  - `scripts/generate_real_report_runtime.py` agrega cache en archivo JSON
+  - `scripts/generate_real_report.py` integra cache en `fetch_prices`
+  - path de cache: `data/runtime/iol_price_cache.json`
 
 ### Testing
 
@@ -151,6 +155,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_server.py`: nuevos tests para `/api-health` (caso OK y fallo parcial)
 - `tests/test_prediction_store.py`: cobertura de retencion por antiguedad y validacion de `retention_days`
 - `tests/test_prediction_cycle.py`: cobertura de aplicacion de retencion dentro del ciclo
+- `tests/test_generate_real_report_split_runtime.py`: nuevos tests de cache intradia
+  (hit con cache fresca y refetch con cache vencida)
 
 ### Security
 

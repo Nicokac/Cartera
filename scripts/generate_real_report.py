@@ -99,6 +99,7 @@ SNAPSHOTS_DIR = ROOT / "data" / "snapshots"
 LEGACY_SNAPSHOTS_DIR = ROOT / "tests" / "snapshots"
 RUNTIME_DIR = ROOT / "data" / "runtime"
 BACKUPS_DIR = ROOT / "data" / "backups"
+IOL_PRICE_CACHE_PATH = RUNTIME_DIR / "iol_price_cache.json"
 ENV_PATH = ROOT / ".env"
 logger = logging.getLogger(__name__)
 
@@ -284,6 +285,7 @@ def fetch_prices(
         market=project_config.MARKET,
         logger=logger,
         print_fn=print,
+        cache_path=IOL_PRICE_CACHE_PATH,
     )
 
 

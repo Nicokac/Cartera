@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import json
 from datetime import date
 from pathlib import Path
 import shutil
@@ -11,6 +12,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import requests
+
+IOL_PRICE_CACHE_TTL_MINUTES = 15
 
 
 def backup_runtime_csvs_impl(
@@ -119,11 +122,39 @@ def fetch_prices_impl(
     market: str,
     logger: logging.Logger,
     print_fn: Callable[[str], None],
+    cache_path: Path | None = None,
+    cache_ttl_minutes: int = IOL_PRICE_CACHE_TTL_MINUTES,
+    now_ts: pd.Timestamp | None = None,
 ) -> tuple[dict[str, float], str]:
     prices: dict[str, float] = {}
     current_token = token
+    now_value = now_ts or pd.Timestamp.now(tz="UTC")
+    ttl_minutes = int(cache_ttl_minutes)
+    cache_payload: dict[str, Any] = {"updated_at": now_value.isoformat(), "prices": {}}
+    if cache_path is not None and cache_path.exists():
+        try:
+            cache_payload = json.loads(cache_path.read_text(encoding="utf-8"))
+        except Exception:
+            cache_payload = {"updated_at": now_value.isoformat(), "prices": {}}
+    cached_prices = cache_payload.get("prices", {}) if isinstance(cache_payload, dict) else {}
+    if not isinstance(cached_prices, dict):
+        cached_prices = {}
+
+    updated_at_raw = cache_payload.get("updated_at") if isinstance(cache_payload, dict) else None
+    cache_fresh = False
+    if isinstance(updated_at_raw, str):
+        updated_at = pd.to_datetime(updated_at_raw, errors="coerce", utc=True)
+        if pd.notna(updated_at):
+            age_minutes = (now_value - updated_at).total_seconds() / 60.0
+            cache_fresh = age_minutes <= ttl_minutes
 
     for ticker in tickers:
+        if cache_fresh and ticker in cached_prices:
+            try:
+                prices[ticker] = float(cached_prices[ticker])
+                continue
+            except Exception:
+                pass
         try:
             data, current_token = iol_get_quote_with_reauth_fn(
                 ticker,
@@ -147,6 +178,13 @@ def fetch_prices_impl(
         else:
             print_fn(f"  [skip] ultimoPrecio ausente para {ticker}")
             logger.info("ultimoPrecio ausente para %s", ticker)
+
+    if cache_path is not None:
+        merged_prices = dict(cached_prices)
+        merged_prices.update(prices)
+        cache_out = {"updated_at": now_value.isoformat(), "prices": merged_prices}
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(json.dumps(cache_out, ensure_ascii=True, sort_keys=True), encoding="utf-8")
 
     return prices, current_token
 

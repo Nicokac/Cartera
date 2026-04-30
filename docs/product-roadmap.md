@@ -47,10 +47,13 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P3 de seguridad: rate limiting basico en `POST /run` (maximo 3 requests/minuto).
 - 2026-04-29: completado item P3 de integraciones: nuevo endpoint `GET /api-health` para chequeo resumido de conectividad externa.
 - 2026-04-29: completado item P2 de datos/escalabilidad: purga automatica de `prediction_history.csv` con retencion configurable (default 90 dias).
+- 2026-04-29: completado item P3 de performance: cache intradia de precios IOL con TTL de 15 minutos para reducir re-fetch en corridas sucesivas.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
 - ejecutar una corrida real/no interactiva y verificar que `data/runtime/prediction_history.csv` no conserve filas con `run_date` fuera de ventana de retencion
+- correr `python -m unittest tests.test_generate_real_report_split_runtime tests.test_generate_real_report -v`
+- ejecutar dos corridas seguidas en menos de 15 minutos y verificar que se crea/actualiza `data/runtime/iol_price_cache.json`
 
 ## Contexto
 

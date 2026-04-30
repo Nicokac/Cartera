@@ -1,4 +1,5 @@
 import logging
+import json
 import sys
 import unittest
 from tempfile import TemporaryDirectory
@@ -130,6 +131,72 @@ class GenerateRealReportSplitRuntimeTests(unittest.TestCase):
                 logger=logging.getLogger("test.fetch_prices.non404"),
                 print_fn=lambda _msg: None,
             )
+
+    def test_fetch_prices_impl_uses_fresh_cache_without_calling_iol(self) -> None:
+        with TemporaryDirectory() as tmp:
+            cache_path = Path(tmp) / "iol_price_cache.json"
+            cache_path.write_text(
+                json.dumps(
+                    {
+                        "updated_at": "2026-04-29T12:00:00+00:00",
+                        "prices": {"AAPL": 111.11},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            quote_mock = Mock(side_effect=AssertionError("No deberia consultar IOL con cache fresca"))
+            prices, new_token = fetch_prices_impl(
+                ["AAPL"],
+                token="tok",
+                username="u",
+                password="p",
+                iol_get_quote_with_reauth_fn=quote_mock,
+                base_url="https://example.test",
+                market="bCBA",
+                logger=logging.getLogger("test.fetch_prices.cache_hit"),
+                print_fn=lambda _msg: None,
+                cache_path=cache_path,
+                now_ts=pd.Timestamp("2026-04-29T12:05:00+00:00"),
+            )
+
+            self.assertEqual(prices, {"AAPL": 111.11})
+            self.assertEqual(new_token, "tok")
+            quote_mock.assert_not_called()
+
+    def test_fetch_prices_impl_refetches_when_cache_is_stale(self) -> None:
+        with TemporaryDirectory() as tmp:
+            cache_path = Path(tmp) / "iol_price_cache.json"
+            cache_path.write_text(
+                json.dumps(
+                    {
+                        "updated_at": "2026-04-29T11:00:00+00:00",
+                        "prices": {"AAPL": 100.0},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            quote_mock = Mock(return_value=({"ultimoPrecio": 123.45}, "tok2"))
+            prices, new_token = fetch_prices_impl(
+                ["AAPL"],
+                token="tok1",
+                username="u",
+                password="p",
+                iol_get_quote_with_reauth_fn=quote_mock,
+                base_url="https://example.test",
+                market="bCBA",
+                logger=logging.getLogger("test.fetch_prices.cache_stale"),
+                print_fn=lambda _msg: None,
+                cache_path=cache_path,
+                now_ts=pd.Timestamp("2026-04-29T12:00:00+00:00"),
+            )
+
+            self.assertEqual(prices, {"AAPL": 123.45})
+            self.assertEqual(new_token, "tok2")
+            quote_mock.assert_called_once()
+            updated = json.loads(cache_path.read_text(encoding="utf-8"))
+            self.assertEqual(float(updated["prices"]["AAPL"]), 123.45)
 
     def test_fetch_iol_payloads_impl_reauthenticates_on_401(self) -> None:
         state = {"first": True}
