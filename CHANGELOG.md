@@ -256,6 +256,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `POST /cancel` ahora exige header `X-Session-Token`
   - `static/index.html` envia token de sesion tambien al cancelar corrida
   - `tests/test_server.py` agrega cobertura de rechazo `401` en `/cancel`
+- `src/decision/scoring.py`: mejora de tipado interno de configuracion base
+  - nuevo `TypedDict` `BaseScoreConfig` para el retorno de `_parse_base_score_config`
+  - reduce uso ambiguo de `dict[str, object]` en `apply_base_scores`
+  - sin cambios funcionales en reglas de scoring
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

@@ -87,6 +87,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo post-procesado final (ajustes de regimen + clamp de `score_reduccion` + despliegue de liquidez) a helper `_apply_post_regime_adjustments`, sin cambios funcionales.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `apply_base_scores` extrayendo parseo de configuracion/umbrales a helper `_parse_base_score_config`, manteniendo defaults y comportamiento.
 - 2026-04-30: hardening de seguridad operativa: `POST /cancel` ahora requiere `X-Session-Token` (alineado con `/run`), con ajuste en UI para enviar token de sesion y test de rechazo `401` sin token.
+- 2026-04-30: avance P3 de calidad/tipado: `scoring.py` incorpora `TypedDict` (`BaseScoreConfig`) para tipar el resultado de `_parse_base_score_config` y reducir ambiguedad de `dict[str, object]` en `apply_base_scores`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -179,6 +180,8 @@ Prueba de cierre (si aplica):
 - en UI, iniciar una corrida y cancelar:
   - cancelar desde app funciona normalmente
   - llamada manual `POST /cancel` sin `X-Session-Token` devuelve `401`
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar que no hay cambios funcionales en scoring tras el endurecimiento de tipado de config
 
 ## Contexto
 

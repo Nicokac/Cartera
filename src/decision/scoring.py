@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from typing import TypedDict
 
 from common.numeric import positive_float_or_none
 from decision.market_regime_scoring import (
@@ -649,7 +650,28 @@ def _apply_post_regime_adjustments(
     return out
 
 
-def _parse_base_score_config(scoring_rules: dict[str, object]) -> dict[str, object]:
+class BaseScoreConfig(TypedDict):
+    rank_neutral: float
+    absolute_rules: dict[str, object]
+    etf_adjustments: dict[str, object]
+    asset_subfamily_adjustments: dict[str, object]
+    score_refuerzo_weights: dict[str, object]
+    score_reduccion_weights: dict[str, object]
+    score_despliegue_liquidez_weights: dict[str, object]
+    refuerzo_penalties: dict[str, object]
+    reduccion_penalties: dict[str, object]
+    gain_clip_min: float
+    gain_clip_max: float
+    mom_week: float
+    mom_month: float
+    mom_ytd: float
+    ref_soft_pct: float
+    ref_hard_pct: float
+    red_soft_pct: float
+    red_hard_pct: float
+
+
+def _parse_base_score_config(scoring_rules: dict[str, object]) -> BaseScoreConfig:
     rank_neutral = float(scoring_rules.get("rank_neutral", 0.5))
     gain_clip = scoring_rules.get("gain_clip", {}) or {}
     momentum_weights = scoring_rules.get("momentum_weights", {}) or {}
