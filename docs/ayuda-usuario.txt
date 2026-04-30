@@ -182,6 +182,8 @@ Como leer "Acierto historico" en Prediccion
   - Pendiente: aun falta volumen en alguna senal
   A nivel tecnico existe calibracion por familia en modo opt-in, para no
   alterar el comportamiento base hasta que la muestra sea robusta.
+  "Acierto por horizonte" resume precision historica por plazo de prediccion
+  (`horizon_days`), por ejemplo 5 ruedas vs 10 ruedas.
 
 Aparece un error de credenciales
   Verificar usuario y password directamente en la web de IOL. Si funcionan ahi,

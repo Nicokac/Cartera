@@ -73,6 +73,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: completado item P2 de Dimension 19: revision de thresholds de scoring contra outcomes reales acumulados via bloque `Acierto por banda de score` en Prediccion.
 - 2026-04-30: avance P3 de Dimension 19: tablero de preparacion para calibracion por `asset_family` (conteos `up/down/neutral` y estado `Lista/Pendiente` con umbral 30 por senal).
 - 2026-04-30: avance P3 de Dimension 19: calibracion por `asset_family` implementada en modo opt-in (`calibration.family_enabled`) con `family_overrides` por señal y gating por umbral de muestra.
+- 2026-04-30: avance P3 de Dimension 19: soporte multi-horizonte en metricas historicas de Prediccion (`Acierto por horizonte` usando `horizon_days`).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -135,6 +136,9 @@ Prueba de cierre (si aplica):
   - `calibration.family_enabled=true`
   - `calibration.family_min_per_direction=30`
   y verificar que `calibrate_prediction_weights` produce `family_overrides` en salida
+- validar en `Predicción` el bloque `Acierto por horizonte`:
+  - muestra precisión por `horizon_days` (ej. `5 ruedas`, `10 ruedas`)
+  - conserva consistencia con el horizonte configurado de corrida
 
 ## Contexto
 

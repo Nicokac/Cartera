@@ -77,6 +77,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `prediction.calibration` soporta modo opt-in `calibration.family_enabled`
   - genera `family_overrides` por familia/señal con gating por muestra y por señal
   - conserva calibracion global existente como comportamiento por defecto
+- avance multi-horizonte en prediccion:
+  - `generate_real_report.py` agrega `by_horizon` en métricas de accuracy
+  - `report_sections_prediction.py` muestra bloque `Acierto por horizonte`
+  - permite comparar precisión histórica por `horizon_days`
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 

@@ -44,12 +44,12 @@ class GenerateRealReportTests(unittest.TestCase):
     def test_build_prediction_accuracy_metrics_computes_global_and_by_family(self) -> None:
         history = pd.DataFrame(
             [
-                {"ticker": "AAPL", "asset_family": "stock", "score_unificado": 0.25, "outcome": "up", "correct": True},
-                {"ticker": "MSFT", "asset_family": "stock", "score_unificado": -0.22, "outcome": "down", "correct": False},
-                {"ticker": "GD30", "asset_family": "bond", "score_unificado": 0.02, "outcome": "neutral", "correct": True},
-                {"ticker": "AL30", "asset_family": "bond", "score_unificado": 0.20, "direction": "up", "outcome": "up", "correct": True},
-                {"ticker": "AL35", "asset_family": "bond", "score_unificado": -0.20, "direction": "down", "outcome": "down", "correct": True},
-                {"ticker": "KO", "asset_family": "stock", "score_unificado": 0.10, "outcome": "", "correct": pd.NA},
+                {"ticker": "AAPL", "asset_family": "stock", "score_unificado": 0.25, "horizon_days": 5, "outcome": "up", "correct": True},
+                {"ticker": "MSFT", "asset_family": "stock", "score_unificado": -0.22, "horizon_days": 5, "outcome": "down", "correct": False},
+                {"ticker": "GD30", "asset_family": "bond", "score_unificado": 0.02, "horizon_days": 10, "outcome": "neutral", "correct": True},
+                {"ticker": "AL30", "asset_family": "bond", "score_unificado": 0.20, "horizon_days": 10, "direction": "up", "outcome": "up", "correct": True},
+                {"ticker": "AL35", "asset_family": "bond", "score_unificado": -0.20, "horizon_days": 10, "direction": "down", "outcome": "down", "correct": True},
+                {"ticker": "KO", "asset_family": "stock", "score_unificado": 0.10, "horizon_days": 5, "outcome": "", "correct": pd.NA},
             ]
         )
 
@@ -71,6 +71,11 @@ class GenerateRealReportTests(unittest.TestCase):
         self.assertIn("bond", readiness)
         self.assertIn("stock", readiness)
         self.assertFalse(bool(readiness["bond"]["ready"]))
+        by_horizon = {row["horizon_days"]: row for row in metrics["by_horizon"]}
+        self.assertEqual(by_horizon[5]["completed"], 2)
+        self.assertAlmostEqual(float(by_horizon[5]["accuracy_pct"]), 50.0, places=3)
+        self.assertEqual(by_horizon[10]["completed"], 3)
+        self.assertAlmostEqual(float(by_horizon[10]["accuracy_pct"]), 100.0, places=3)
 
     def test_configure_logging_default_text_format(self) -> None:
         root_logger = Mock()

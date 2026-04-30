@@ -32,6 +32,7 @@ El repo esta en una etapa operativa estable:
 - revision de thresholds de `score_unificado` contra outcomes reales con bloque de acierto por banda en Prediccion
 - tablero de preparacion para calibracion por `asset_family` (umbral 30 outcomes por senal `up/down/neutral`)
 - calibracion por `asset_family` disponible en modo opt-in (`calibration.family_enabled`) con `family_overrides`
+- metricas de prediccion multi-horizonte en reporte (`Acierto por horizonte` segun `horizon_days`)
 - flujo de operaciones reales integrado al reporte
 - snapshots operativos movidos a `data/snapshots/` con fallback legacy controlado
 - capa experimental de prediccion direccional integrada al smoke y al real run

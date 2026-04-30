@@ -125,6 +125,10 @@ class BuildPredictionSectionTests(unittest.TestCase):
                         {"score_band": "Alto (>= 0.15)", "completed": 6, "accuracy_pct": 66.67},
                         {"score_band": "Neutro (-0.15 a 0.15)", "completed": 4, "accuracy_pct": 50.0},
                     ],
+                    "by_horizon": [
+                        {"horizon_days": 5, "completed": 9, "accuracy_pct": 55.56},
+                        {"horizon_days": 10, "completed": 3, "accuracy_pct": 66.67},
+                    ],
                     "calibration_readiness": [
                         {"asset_family": "stock", "up": 12, "down": 8, "neutral": 10, "min_count": 8, "required": 30, "ready": False},
                     ],
@@ -147,6 +151,8 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("stock", html)
         self.assertIn("Acierto por banda de score", html)
         self.assertIn("Alto (&gt;= 0.15)", html)
+        self.assertIn("Acierto por horizonte", html)
+        self.assertIn("5 ruedas", html)
         self.assertIn("Preparación calibración por familia", html)
         self.assertIn("Pendiente", html)
 

@@ -496,6 +496,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
             "global": {"completed": 0, "accuracy_pct": None},
             "by_family": [],
             "by_score_band": [],
+            "by_horizon": [],
             "calibration_readiness": [],
         }
 
@@ -505,6 +506,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
             "global": {"completed": 0, "accuracy_pct": None},
             "by_family": [],
             "by_score_band": [],
+            "by_horizon": [],
             "calibration_readiness": [],
         }
 
@@ -515,6 +517,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
             "global": {"completed": 0, "accuracy_pct": None},
             "by_family": [],
             "by_score_band": [],
+            "by_horizon": [],
             "calibration_readiness": [],
         }
 
@@ -568,6 +571,25 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
                 )
             by_score_band_rows.sort(key=lambda item: (-(item["completed"]), str(item["score_band"])))
 
+    by_horizon_rows: list[dict[str, object]] = []
+    if "horizon_days" in completed.columns:
+        horizon = completed.copy()
+        horizon["horizon_days"] = pd.to_numeric(horizon["horizon_days"], errors="coerce")
+        horizon = horizon.dropna(subset=["horizon_days"]).copy()
+        if not horizon.empty:
+            horizon["horizon_days"] = horizon["horizon_days"].astype(int)
+            for h_days, frame in horizon.groupby("horizon_days", dropna=False):
+                h_correct = pd.to_numeric(frame["correct"], errors="coerce")
+                h_accuracy = float(h_correct.mean() * 100.0) if h_correct.notna().any() else None
+                by_horizon_rows.append(
+                    {
+                        "horizon_days": int(h_days),
+                        "completed": int(len(frame)),
+                        "accuracy_pct": h_accuracy,
+                    }
+                )
+            by_horizon_rows.sort(key=lambda item: item["horizon_days"])
+
     calibration_readiness_rows: list[dict[str, object]] = []
     if {"asset_family", "direction"}.issubset(set(completed.columns)):
         readiness = completed.copy()
@@ -606,6 +628,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
         },
         "by_family": by_family_rows,
         "by_score_band": by_score_band_rows,
+        "by_horizon": by_horizon_rows,
         "calibration_readiness": calibration_readiness_rows,
     }
 
