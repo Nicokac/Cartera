@@ -268,6 +268,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `README.md` y `docs/README.md` ahora referencian tambien
   `docs/report-mobile-responsive-checklist.md` para ejecucion operativa de
   pruebas responsive del reporte
+- limpieza documental de estado CI:
+  - `README.md` ya no marca unittest en GitHub Actions como deshabilitado
+  - se alinea el texto con el workflow activo (`ubuntu-latest` + `macos-latest`)
 - `src/decision/scoring.py`: ajuste de tipado en `apply_base_scores`
   - usa directamente `BaseScoreConfig` parseado (sin casts redundantes)
   - sin cambios funcionales en reglas de scoring

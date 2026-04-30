@@ -102,6 +102,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de testing/mantenibilidad de scoring: nuevos tests unitarios para `_parse_base_score_config` (defaults + overrides) en `tests/test_decision_scoring.py` para bloquear contrato de configuracion.
 - 2026-04-30: avance P2 de testing/seguridad en servidor: nueva cobertura unitaria directa para `_require_session_token(...)` (token valido, invalido y sesion no inicializada) en `tests/test_server.py`.
 - 2026-04-30: avance P3 de compatibilidad: checklist formal de validacion mobile/responsive del reporte en `docs/report-mobile-responsive-checklist.md` (viewports objetivo, navegadores y criterios de aceptacion).
+- 2026-04-30: completado cierre de deuda documental remanente: se normaliza estado de CI activo (`ubuntu-latest` + `macos-latest`) en `README.md` para alinear documentacion con el workflow vigente.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -421,7 +422,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Script de release (version + tag + build).
-- P2: Agregar `macos-latest` a matriz CI. (pendiente, bloqueado por inestabilidad CI)
+- P2: Agregar `macos-latest` a matriz CI. (completado)
 - P3: Dockerfile para dev/testing.
 
 ### 11) Mantenibilidad
