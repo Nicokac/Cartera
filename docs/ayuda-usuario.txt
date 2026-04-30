@@ -148,6 +148,11 @@ El reporte dice "Sin fondeo disponible" en Sizing
 Hay instrumentos sin historial (racha = 1, sin accion previa)
   Es normal al principio. El sistema acumula historial con cada corrida.
   Despues de algunas corridas, la columna "Accion previa" y "Racha" se completan.
+  Umbrales de madurez usados por el sistema:
+  - Racha estable: desde 10 corridas
+  - Serie confiable de riesgo historico: desde 20 observaciones
+  - Calibracion por familia de activos: desde 30 outcomes verificados por
+    familia y tipo de senal
   La columna "Calidad historia" resume esa madurez:
   - Sin historia: 0 corridas previas para ese ticker/subfamilia
   - Corta: 1 a 9 corridas

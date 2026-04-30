@@ -62,6 +62,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de arquitectura/mantenibilidad en `sizing`: extraccion de `_comentario_operativo` a modulo dedicado `src/decision/operational_comments.py` con wrapper de compatibilidad en `sizing.py`.
 - 2026-04-29: avance P3 de arquitectura/escalabilidad: contratos tipados con `typing.Protocol` para clientes HTTP externos (`src/clients/protocols.py`) e integracion no disruptiva en clientes IOL/BCRA.
 - 2026-04-29: avance P1 de Dimension 19: umbrales minimos formalizados en codigo (`MIN_RUNS_FOR_STREAK=10`, `MIN_RUNS_FOR_RELIABLE_SERIES=20`, `MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION=30`) y apagado automatico del fallback legacy de snapshots cuando la carpeta canonica ya alcanza ventana suficiente.
+- 2026-04-30: completado P1 documental de Dimension 19: umbrales minimos (10/20/30) explicitados en `README.md` y `docs/ayuda-usuario.txt`.
 - 2026-04-29: completado item P2 de Dimension 19: `quality label` en decision table del HTML (`Robusta/Parcial/Corta/Sin historia`) derivado del historial temporal por ticker/subfamilia.
 - 2026-04-29: completado item P2 de Dimension 19: seccion de metricas de acierto del predictor en HTML (`%` global y `%` por `asset_family`) basada en outcomes verificados del `prediction_history`.
 - 2026-04-29: completado item P2 de Dimension 19: tablero `Evolucion de racha` en prioridades de decision para destacar persistencia temporal por ticker (racha >=2, excluye Liquidez).

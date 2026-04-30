@@ -34,6 +34,12 @@ El repo esta en una etapa operativa estable:
 - CI basada en `unittest` con suites estables declaradas en `.github/workflows/ci.yml`
   - el server local crea `reports/` al importar para que la suite de servidor corra en entornos limpios de CI
 
+Umbrales minimos de madurez historica (Dimension 19):
+
+- `racha`: requiere al menos 10 corridas para considerarse señal temporal estable
+- `serie_confiable` (riesgo historico): se activa con al menos 20 observaciones
+- calibracion por `asset_family`: requiere al menos 30 outcomes verificados por familia y señal
+
 Resumen funcional vigente:
 
 - [baseline-actual.md](docs/baseline-actual.md)

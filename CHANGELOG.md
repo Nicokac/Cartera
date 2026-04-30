@@ -54,6 +54,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `static/index.html`: nueva seccion `Corridas recientes` consumiendo `/runs/recent`
 - `static/index.html`: indicador de progreso estimado durante corrida
   (barra + etapa textual en estado `running`)
+- documentacion explicita de umbrales de madurez historica (Dimension 19):
+  - `README.md`: 10 corridas (`racha`), 20 observaciones (`serie_confiable`), 30 outcomes por familia (calibracion)
+  - `docs/ayuda-usuario.txt`: mismos umbrales en FAQ operativa
 - reporte HTML: nuevo bloque `Evolución de racha` en prioridades de decisión
   para destacar tickers con persistencia temporal (`racha >= 2`, excluye Liquidez)
 
