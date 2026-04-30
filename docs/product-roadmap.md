@@ -94,6 +94,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: hardening adicional de endpoints operativos: `GET /reports/list` y `GET /runs/recent` ahora requieren `X-Session-Token`; UI actualiza fetch autenticado para ambas secciones.
 - 2026-04-30: hardening adicional de endpoint de estado: `GET /status` ahora requiere `X-Session-Token`; UI actualiza polling y carga inicial de estado con token de sesion.
 - 2026-04-30: hardening adicional de endpoint de diagnostico externo: `GET /api-health` ahora requiere `X-Session-Token`; tests adaptados para validar `401` sin token.
+- 2026-04-30: avance P2 de mantenibilidad/seguridad en servidor: centralizacion de validacion de sesion en helper unico `_require_session_token(...)`, aplicado a todos los endpoints protegidos para evitar duplicacion y desalineaciones.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -211,6 +212,8 @@ Prueba de cierre (si aplica):
 - validar manualmente:
   - `GET /api-health` sin token responde `401`
   - `GET /api-health` con `X-Session-Token` responde `200` y mantiene payload esperado
+- correr `python -m unittest tests.test_server -v`
+- validar smoke de endpoints protegidos (`/run`, `/cancel`, `/status`, `/status/detail`, `/reports/list`, `/runs/recent`, `/api-health`) para confirmar mismo comportamiento funcional post-refactor
 
 ## Contexto
 

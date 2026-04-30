@@ -283,6 +283,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `GET /api-health` ahora requiere `X-Session-Token`
   - `tests/test_server.py` agrega cobertura de `401` sin token en `/api-health`
   - `README.md` aclara requerimiento de token para este endpoint
+- `server.py`: refactor de mantenibilidad en autenticacion de sesion
+  - nuevo helper `_require_session_token(...)` para validacion centralizada
+  - reemplaza chequeos duplicados en todos los endpoints protegidos
+  - sin cambios funcionales en contratos de API
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:

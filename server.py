@@ -242,6 +242,14 @@ def _ensure_session_token() -> str:
         return _session_token
 
 
+def _require_session_token(*tokens: str) -> None:
+    if not _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    provided = [str(token or "").strip() for token in tokens]
+    if not any(token == _session_token for token in provided):
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+
+
 def _append_run_history(entry: dict[str, object]) -> None:
     try:
         RUN_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -368,8 +376,7 @@ def get_index() -> HTMLResponse:
 @app.post("/run")
 def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JSONResponse:
     global _process, _cancel_requested, _run_request_timestamps
-    if not _session_token or x_session_token != _session_token:
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token)
     with _lock:
         now_ts = time.time()
         cutoff = now_ts - _RUN_RATE_LIMIT_WINDOW_SECONDS
@@ -435,8 +442,7 @@ def post_run(params: RunParams, x_session_token: str = Header(default="")) -> JS
 @app.post("/cancel")
 def post_cancel(x_session_token: str = Header(default="")) -> JSONResponse:
     global _cancel_requested
-    if not _session_token or x_session_token != _session_token:
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token)
     with _lock:
         if _state["status"] != "running" or _process is None:
             raise HTTPException(status_code=409, detail="No hay una corrida en progreso para cancelar.")
@@ -449,15 +455,13 @@ def post_cancel(x_session_token: str = Header(default="")) -> JSONResponse:
 
 @app.get("/status")
 def get_status(x_session_token: str = Header(default="")) -> JSONResponse:
-    if not _session_token or x_session_token != _session_token:
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token)
     return JSONResponse(_state)
 
 
 @app.get("/status/detail")
 def get_status_detail(x_session_token: str = Header(default=""), token: str = "") -> JSONResponse:
-    if not _session_token or (x_session_token != _session_token and token != _session_token):
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token, token)
     started_dt = _parse_ts(_state.get("started_at"))
     finished_dt = _parse_ts(_state.get("finished_at"))
     uptime_seconds = None
@@ -560,8 +564,7 @@ def _check_url_health(
 
 @app.get("/api-health")
 def get_api_health(x_session_token: str = Header(default="")) -> JSONResponse:
-    if not _session_token or x_session_token != _session_token:
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token)
     checks = [
         ("iol", "https://api.invertironline.com/token", {400, 401, 403, 405}),
         ("argentinadatos", "https://api.argentinadatos.com/v1/cotizaciones/dolares/bolsa", {200}),
@@ -600,8 +603,7 @@ def get_session() -> JSONResponse:
 
 @app.get("/reports/list")
 def get_reports_list(x_session_token: str = Header(default="")) -> JSONResponse:
-    if not _session_token or x_session_token != _session_token:
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token)
     try:
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         rows = []
@@ -621,8 +623,7 @@ def get_reports_list(x_session_token: str = Header(default="")) -> JSONResponse:
 
 @app.get("/runs/recent")
 def get_runs_recent(x_session_token: str = Header(default="")) -> JSONResponse:
-    if not _session_token or x_session_token != _session_token:
-        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
+    _require_session_token(x_session_token)
     return JSONResponse({"runs": _read_recent_runs(limit=5)})
 
 
