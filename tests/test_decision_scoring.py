@@ -11,6 +11,8 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.append(str(SRC))
 
+import decision.scoring as scoring_module
+
 from decision.scoring import (
     apply_base_scores,
     apply_technical_overlay_scores,
@@ -369,6 +371,46 @@ class ApplyBaseScoresTests(unittest.TestCase):
         self.assertIn("stress_soberano_local", str(stressed.loc[0, "market_regime_flags"]))
         self.assertLess(float(stressed.loc[0, "score_refuerzo"]), float(base.loc[0, "score_refuerzo"]))
         self.assertGreater(float(stressed.loc[0, "score_reduccion"]), float(base.loc[0, "score_reduccion"]))
+
+
+class ParseBaseScoreConfigTests(unittest.TestCase):
+    def test_parse_base_score_config_defaults(self) -> None:
+        cfg = scoring_module._parse_base_score_config({})
+        self.assertAlmostEqual(float(cfg["rank_neutral"]), 0.5, places=6)
+        self.assertAlmostEqual(float(cfg["gain_clip_min"]), -100.0, places=6)
+        self.assertAlmostEqual(float(cfg["gain_clip_max"]), 150.0, places=6)
+        self.assertAlmostEqual(float(cfg["mom_week"]), 0.2, places=6)
+        self.assertAlmostEqual(float(cfg["mom_month"]), 0.4, places=6)
+        self.assertAlmostEqual(float(cfg["mom_ytd"]), 0.4, places=6)
+        self.assertAlmostEqual(float(cfg["ref_soft_pct"]), 3.0, places=6)
+        self.assertAlmostEqual(float(cfg["ref_hard_pct"]), 5.0, places=6)
+        self.assertAlmostEqual(float(cfg["red_soft_pct"]), 3.5, places=6)
+        self.assertAlmostEqual(float(cfg["red_hard_pct"]), 6.0, places=6)
+
+    def test_parse_base_score_config_overrides(self) -> None:
+        cfg = scoring_module._parse_base_score_config(
+            {
+                "rank_neutral": 0.55,
+                "gain_clip": {"min": -50, "max": 80},
+                "momentum_weights": {"week": 0.1, "month": 0.3, "ytd": 0.6},
+                "concentration": {
+                    "refuerzo_soft_pct": 2.2,
+                    "refuerzo_hard_pct": 4.2,
+                    "reduccion_soft_pct": 3.2,
+                    "reduccion_hard_pct": 5.8,
+                },
+            }
+        )
+        self.assertAlmostEqual(float(cfg["rank_neutral"]), 0.55, places=6)
+        self.assertAlmostEqual(float(cfg["gain_clip_min"]), -50.0, places=6)
+        self.assertAlmostEqual(float(cfg["gain_clip_max"]), 80.0, places=6)
+        self.assertAlmostEqual(float(cfg["mom_week"]), 0.1, places=6)
+        self.assertAlmostEqual(float(cfg["mom_month"]), 0.3, places=6)
+        self.assertAlmostEqual(float(cfg["mom_ytd"]), 0.6, places=6)
+        self.assertAlmostEqual(float(cfg["ref_soft_pct"]), 2.2, places=6)
+        self.assertAlmostEqual(float(cfg["ref_hard_pct"]), 4.2, places=6)
+        self.assertAlmostEqual(float(cfg["red_soft_pct"]), 3.2, places=6)
+        self.assertAlmostEqual(float(cfg["red_hard_pct"]), 5.8, places=6)
 
 
 class TechnicalOverlayAdvancedTests(unittest.TestCase):

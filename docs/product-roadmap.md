@@ -99,6 +99,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: `apply_base_scores` reduce complejidad estructural al extraer su orquestacion principal a helper `_compute_base_scores_from_config`, manteniendo reglas y resultados.
 - 2026-04-30: avance P2 de mantenibilidad frontend: centralizacion de llamadas autenticadas en UI con helper `fetchWithSession(...)` para evitar duplicacion de headers/token en `/run`, `/cancel`, `/status`, `/reports/list` y `/runs/recent`.
 - 2026-04-30: avance P2 de testing cross-platform: nuevo smoke estructural para scripts Bash (`tests/test_bash_scripts.py`) e incorporacion en CI (`.github/workflows/ci.yml`).
+- 2026-04-30: avance P2 de testing/mantenibilidad de scoring: nuevos tests unitarios para `_parse_base_score_config` (defaults + overrides) en `tests/test_decision_scoring.py` para bloquear contrato de configuracion.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -232,6 +233,8 @@ Prueba de cierre (si aplica):
   - estado/polling y listados (`Reportes anteriores`, `Corridas recientes`) cargan normalmente
 - correr `python -m unittest tests.test_bash_scripts -v`
 - validar en CI que la suite `tests.test_bash_scripts` corre en `ubuntu-latest`/`macos-latest`
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar que cambios en `scoring_rules` impactan en `gain_clip`, `momentum` y `concentration` como se espera (covered por tests de parse config)
 
 ## Contexto
 

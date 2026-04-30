@@ -304,6 +304,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     (existencia, shebang bash, `set -euo pipefail`)
   - control de permisos POSIX marcado como `skip` en Windows por portabilidad
   - `.github/workflows/ci.yml` incluye `tests.test_bash_scripts` en suite estable
+- `tests/test_decision_scoring.py`: nueva cobertura de contrato de configuracion
+  - tests para `_parse_base_score_config` (defaults y overrides)
+  - reduce riesgo de regresiones silenciosas en parseo de `scoring_rules`
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
