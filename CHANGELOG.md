@@ -287,6 +287,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo helper `_require_session_token(...)` para validacion centralizada
   - reemplaza chequeos duplicados en todos los endpoints protegidos
   - sin cambios funcionales en contratos de API
+- accesibilidad UI (contraste):
+  - `static/index.html` mejora contraste en textos secundarios y estados disabled
+    (`#status-time`, `footer`, `button:disabled`, `#btn-cancel:disabled`)
+  - nuevo reporte `docs/accessibility-contrast-audit.md` con alcance y verificacion recomendada
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
