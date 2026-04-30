@@ -49,6 +49,10 @@ _run_request_timestamps: list[float] = []
 _RUN_RATE_LIMIT_WINDOW_SECONDS = 60.0
 _RUN_RATE_LIMIT_MAX_REQUESTS = 3
 _RUN_COMPLETION_WEBHOOK_TIMEOUT_SECONDS = 2.0
+_API_HEALTH_CIRCUIT_THRESHOLD = 3
+_API_HEALTH_CIRCUIT_COOLDOWN_SECONDS = 300.0
+_api_health_failures: dict[str, int] = {}
+_api_health_opened_at: dict[str, float] = {}
 
 _DECISION_HISTORY_REQUIRED_COLUMNS = {
     "run_date",
@@ -464,21 +468,52 @@ def _check_url_health(
     expected_status_codes: set[int],
     timeout_seconds: float = 3.0,
 ) -> dict[str, object]:
+    now_ts = time.time()
+    fail_count = int(_api_health_failures.get(name, 0))
+    opened_at = _api_health_opened_at.get(name)
+    if fail_count >= _API_HEALTH_CIRCUIT_THRESHOLD and opened_at is not None:
+        age_seconds = now_ts - float(opened_at)
+        if age_seconds < _API_HEALTH_CIRCUIT_COOLDOWN_SECONDS:
+            return {
+                "name": name,
+                "url": url,
+                "ok": False,
+                "status_code": None,
+                "expected_status_codes": sorted(expected_status_codes),
+                "latency_ms": 0,
+                "circuit_open": True,
+                "failure_count": fail_count,
+                "cooldown_remaining_seconds": max(0, int(_API_HEALTH_CIRCUIT_COOLDOWN_SECONDS - age_seconds)),
+            }
+
     started = time.perf_counter()
     try:
         response = requests.get(url, timeout=timeout_seconds)
         latency_ms = int((time.perf_counter() - started) * 1000)
         status_code = int(response.status_code)
+        is_ok = status_code in expected_status_codes
+        if is_ok:
+            _api_health_failures[name] = 0
+            _api_health_opened_at.pop(name, None)
+        else:
+            _api_health_failures[name] = fail_count + 1
+            if _api_health_failures[name] >= _API_HEALTH_CIRCUIT_THRESHOLD:
+                _api_health_opened_at[name] = now_ts
         return {
             "name": name,
             "url": url,
-            "ok": status_code in expected_status_codes,
+            "ok": is_ok,
             "status_code": status_code,
             "expected_status_codes": sorted(expected_status_codes),
             "latency_ms": latency_ms,
+            "circuit_open": bool(_api_health_opened_at.get(name)),
+            "failure_count": int(_api_health_failures.get(name, 0)),
         }
     except Exception as exc:
         latency_ms = int((time.perf_counter() - started) * 1000)
+        _api_health_failures[name] = fail_count + 1
+        if _api_health_failures[name] >= _API_HEALTH_CIRCUIT_THRESHOLD:
+            _api_health_opened_at[name] = now_ts
         return {
             "name": name,
             "url": url,
@@ -487,6 +522,8 @@ def _check_url_health(
             "expected_status_codes": sorted(expected_status_codes),
             "latency_ms": latency_ms,
             "error": str(exc),
+            "circuit_open": bool(_api_health_opened_at.get(name)),
+            "failure_count": int(_api_health_failures.get(name, 0)),
         }
 
 

@@ -54,6 +54,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P3 de observabilidad: webhook opcional por fin de corrida (`RUN_COMPLETION_WEBHOOK_URL`).
 - 2026-04-29: completado item P3 de datos: validacion basica de integridad/schema de CSV runtime al startup con cuarentena automatica de archivos invalidos.
 - 2026-04-29: completado item P3 de usabilidad operativa: scheduler opcional por intervalo (`--schedule-every-minutes N`) en `generate_real_report.py`.
+- 2026-04-29: completado item P2 de integraciones: circuit breaker simple en `/api-health` (apertura tras fallas consecutivas y reintento post-cooldown).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -73,6 +74,8 @@ Prueba de cierre (si aplica):
   - el server arranque normal
 - correr `python -m unittest tests.test_generate_real_report -v` y validar casos de scheduler
 - ejecutar una corrida programada con `--schedule-every-minutes` en modo `--non-interactive`
+- correr `python -m unittest tests.test_server.TestGetHealth -v`
+- disparar varias consultas a `/api-health` con una API simulada caída y verificar `circuit_open=true`
 
 ## Contexto
 

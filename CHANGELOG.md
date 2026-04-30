@@ -142,6 +142,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - scheduler opcional de corridas reales en `scripts/generate_real_report.py`:
   - nuevo flag `--schedule-every-minutes N` (requiere `--non-interactive`)
   - ejecuta corridas periodicas y espera `N` minutos entre ejecuciones
+- `/api-health` incorpora circuit breaker simple por proveedor:
+  - apertura tras fallas consecutivas
+  - cooldown antes de reintentar
+  - nuevos campos en respuesta: `circuit_open`, `failure_count`
 
 ### Testing
 
@@ -182,6 +186,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   (`TestRuntimeCsvValidation`)
 - `tests/test_generate_real_report.py`: nuevos tests de scheduler
   (`schedule-every-minutes`, requerimiento de `--non-interactive`, loop/sleep)
+- `tests/test_server.py`: nuevos tests de circuit breaker en `/api-health`
+  (apertura por fallas consecutivas y retry despues de cooldown)
 
 ### Security
 

@@ -31,6 +31,8 @@ def _reset():
     server._cancel_requested = False
     server._session_token = "test-session-token"
     server._run_request_timestamps = []
+    server._api_health_failures.clear()
+    server._api_health_opened_at.clear()
 
 
 class TestGetIndex(unittest.TestCase):
@@ -131,6 +133,38 @@ class TestGetHealth(unittest.TestCase):
         bonistas = next(item for item in data["apis"] if item["name"] == "bonistas")
         self.assertFalse(bonistas["ok"])
         self.assertIn("error", bonistas)
+
+    def test_api_health_circuit_opens_after_consecutive_failures(self):
+        def always_fail(_url, timeout):
+            raise RuntimeError("down")
+
+        with patch("server.requests.get", side_effect=always_fail), patch("server.time.time", return_value=1000.0):
+            for _ in range(3):
+                _client.get("/api-health")
+
+        with patch("server.requests.get") as get_mock, patch("server.time.time", return_value=1001.0):
+            r = _client.get("/api-health")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertFalse(data["ok"])
+        self.assertTrue(all(item.get("circuit_open") for item in data["apis"]))
+        get_mock.assert_not_called()
+
+    def test_api_health_circuit_allows_retry_after_cooldown(self):
+        def always_fail(_url, timeout):
+            raise RuntimeError("down")
+
+        with patch("server.requests.get", side_effect=always_fail), patch("server.time.time", return_value=1000.0):
+            for _ in range(3):
+                _client.get("/api-health")
+
+        ok_response = MagicMock()
+        ok_response.status_code = 200
+        with patch("server.requests.get", return_value=ok_response) as get_mock, patch(
+            "server.time.time", return_value=2000.0
+        ):
+            _client.get("/api-health")
+        self.assertTrue(get_mock.called)
 
 
 class TestSession(unittest.TestCase):
