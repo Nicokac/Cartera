@@ -103,7 +103,7 @@ Este documento complementa `docs/improvement-roadmap.md` (foco dominio financier
 
 ---
 
-## Roadmap por 18 dimensiones
+## Roadmap por 19 dimensiones
 
 ### 1) Funcionalidad
 
@@ -401,6 +401,34 @@ Roadmap:
 - P2: Panel de reportes en UI.
 - P3: scheduler opcional.
 - P3: pagina de configuracion basica en UI.
+
+### 19) Validacion estadistica y madurez de senales
+
+Estado: dimension agregada para gobernar la evolucion del predictor segun volumen historico real.
+
+Hallazgos:
+
+- Varias capacidades avanzadas requieren umbrales minimos de historia para evitar sobreajuste o falsas conclusiones.
+- Hoy no hay una visibilidad integrada de calidad historica de senales en reporte/decision.
+
+Roadmap:
+
+- P1 (prerequisitos desbloqueantes):
+  - Documentar umbral minimo de corridas por capacidad avanzada:
+    - 10 para racha
+    - 20 para `serie_confiable`
+    - 30 por familia para calibracion
+  - Retirar fallback legacy una vez superada esa ventana.
+- P2 (cuando haya historia suficiente):
+  - Validar metricas de riesgo historicas contra benchmark externo cuando `serie_confiable` se active.
+  - Mostrar quality label (`Robusta` / `Parcial` / `Corta` / `Sin historia`) en la tabla de decision del reporte.
+  - Agregar seccion de metricas de acierto del predictor en HTML (`%` global y `%` por familia).
+  - Revisar thresholds de scoring contra outcomes reales acumulados.
+  - Incorporar tablero de evolucion de racha por ticker para distinguir convicciones solidas de senales oscilantes.
+- P3 (con volumen estadistico validado):
+  - Calibracion por `asset_family` (>=30 outcomes por familia x senal).
+  - Multi-horizonte en predictor.
+  - Clasificador sobre `signal_votes` como opcion B.
 
 ---
 

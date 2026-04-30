@@ -174,6 +174,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     `HttpGetProtocol` y `HttpRequestProtocol`
   - `src/clients/iol.py` y `src/clients/bcra.py` adoptan estos contratos
     en helpers de retry sin cambios funcionales
+- `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
+  dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 
 ### Testing
 
