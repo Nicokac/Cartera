@@ -91,6 +91,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: completado item P2 de compatibilidad documental: matriz oficial de navegadores soportados en `docs/browser-support.md` + referencias en `README.md` y `docs/README.md`.
 - 2026-04-30: avance P3 de calidad/tipado: simplificacion de `apply_base_scores` para usar `BaseScoreConfig` tipado sin casts redundantes, manteniendo comportamiento.
 - 2026-04-30: hardening de seguridad en observabilidad: `GET /status/detail` ahora requiere token de sesion (header `X-Session-Token` o query `token`), y UI actualiza `Ver log completo` con token para mantener trazabilidad sin exponer logs anonimamente.
+- 2026-04-30: hardening adicional de endpoints operativos: `GET /reports/list` y `GET /runs/recent` ahora requieren `X-Session-Token`; UI actualiza fetch autenticado para ambas secciones.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -196,6 +197,10 @@ Prueba de cierre (si aplica):
   - `GET /status/detail` sin token responde `401`
   - `GET /status/detail?token=<token_sesion>` responde `200`
   - link `Ver log completo ->` desde UI abre correctamente el detalle autenticado
+- correr `python -m unittest tests.test_server -v`
+- validar manualmente:
+  - `GET /reports/list` y `GET /runs/recent` sin token responden `401`
+  - app local sigue mostrando `Reportes anteriores` y `Corridas recientes` normalmente (UI envia token)
 
 ## Contexto
 

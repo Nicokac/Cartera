@@ -329,7 +329,11 @@
       const listEl = document.getElementById("reports-list");
       const emptyEl = document.getElementById("reports-empty");
       try {
-        const res = await fetch("/reports/list");
+        const res = await fetch("/reports/list", {
+          headers: {
+            "X-Session-Token": _sessionToken,
+          },
+        });
         if (!res.ok) {
           throw new Error("fetch failed");
         }
@@ -368,7 +372,11 @@
       const listEl = document.getElementById("runs-list");
       const emptyEl = document.getElementById("runs-empty");
       try {
-        const res = await fetch("/runs/recent");
+        const res = await fetch("/runs/recent", {
+          headers: {
+            "X-Session-Token": _sessionToken,
+          },
+        });
         if (!res.ok) {
           throw new Error("fetch failed");
         }

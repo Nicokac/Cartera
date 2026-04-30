@@ -595,7 +595,9 @@ def get_session() -> JSONResponse:
 
 
 @app.get("/reports/list")
-def get_reports_list() -> JSONResponse:
+def get_reports_list(x_session_token: str = Header(default="")) -> JSONResponse:
+    if not _session_token or x_session_token != _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     try:
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         rows = []
@@ -614,7 +616,9 @@ def get_reports_list() -> JSONResponse:
 
 
 @app.get("/runs/recent")
-def get_runs_recent() -> JSONResponse:
+def get_runs_recent(x_session_token: str = Header(default="")) -> JSONResponse:
+    if not _session_token or x_session_token != _session_token:
+        raise HTTPException(status_code=401, detail="Token de sesion invalido.")
     return JSONResponse({"runs": _read_recent_runs(limit=5)})
 
 

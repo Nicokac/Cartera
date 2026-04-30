@@ -176,6 +176,16 @@ class TestSession(unittest.TestCase):
 
 
 class TestGetReportsList(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
+    def test_401_without_valid_session_token(self):
+        r = _client.get("/reports/list")
+        self.assertEqual(r.status_code, 401)
+
     def test_returns_reports_sorted_by_mtime_desc(self):
         with TemporaryDirectory() as tmp:
             reports_dir = Path(tmp)
@@ -189,7 +199,7 @@ class TestGetReportsList(unittest.TestCase):
             os.utime(newer, (new_ts, new_ts))
 
             with patch.object(server, "REPORTS_DIR", reports_dir):
-                r = _client.get("/reports/list")
+                r = _client.get("/reports/list", headers={"X-Session-Token": "test-session-token"})
 
         self.assertEqual(r.status_code, 200)
         data = r.json()
@@ -198,6 +208,16 @@ class TestGetReportsList(unittest.TestCase):
 
 
 class TestGetRunsRecent(unittest.TestCase):
+    def setUp(self):
+        _reset()
+
+    def tearDown(self):
+        _reset()
+
+    def test_401_without_valid_session_token(self):
+        r = _client.get("/runs/recent")
+        self.assertEqual(r.status_code, 401)
+
     def test_returns_last_five_runs_desc(self):
         with TemporaryDirectory() as tmp:
             history_path = Path(tmp) / "run_history.jsonl"
@@ -207,7 +227,7 @@ class TestGetRunsRecent(unittest.TestCase):
             ]
             history_path.write_text("\n".join([__import__("json").dumps(r) for r in rows]), encoding="utf-8")
             with patch.object(server, "RUN_HISTORY_FILE", history_path):
-                r = _client.get("/runs/recent")
+                r = _client.get("/runs/recent", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertEqual(len(data["runs"]), 5)

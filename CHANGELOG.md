@@ -271,6 +271,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     (`X-Session-Token` o query `token`)
   - `static/index.html` actualiza el link `Ver log completo` con token de sesion
   - `tests/test_server.py` agrega cobertura de `401` sin token y `200` con query token
+- hardening adicional de endpoints de historial/listado:
+  - `GET /reports/list` y `GET /runs/recent` ahora requieren `X-Session-Token`
+  - `static/index.html` envia token en fetch de ambas secciones
+  - `tests/test_server.py` agrega cobertura de `401` sin token en ambos endpoints
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
