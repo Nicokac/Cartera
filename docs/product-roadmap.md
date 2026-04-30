@@ -51,6 +51,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P3 de documentacion: diagrama de arquitectura (Mermaid) en `docs/README.md`.
 - 2026-04-29: completado item P3 de testing: prueba de concurrencia en `/run` (2 requests simultaneos, segundo responde `409`).
 - 2026-04-29: completado item P1 de DevOps: script de release automatizado (`scripts/release.ps1`) para bump de version, tag y build de distribucion.
+- 2026-04-29: completado item P3 de observabilidad: webhook opcional por fin de corrida (`RUN_COMPLETION_WEBHOOK_URL`).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -63,6 +64,8 @@ Prueba de cierre (si aplica):
   - detecta version actual/nueva
   - no modifica archivos en modo dry run
   - informa correctamente tag y pasos de build
+- exportar `RUN_COMPLETION_WEBHOOK_URL` y correr una corrida:
+  - confirmar que al finalizar se emite `POST` con `status`, `started_at`, `finished_at`, `username`, `usar_liquidez_iol`, `aporte_externo_ars`, `error`
 
 ## Contexto
 

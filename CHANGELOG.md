@@ -133,6 +133,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - creacion/actualizacion de `version.txt`
   - creacion de tag `vX.Y.Z`
   - ejecucion de `scripts/build_dist.ps1`
+- webhook opcional al finalizar corrida en `server.py`:
+  - variable `RUN_COMPLETION_WEBHOOK_URL`
+  - emite `POST` con resumen de estado final (`done/error/interrupted`)
 
 ### Testing
 
@@ -166,6 +169,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `tests/test_server.py`: nuevo test concurrente de `/run`
   (`test_concurrent_run_requests_second_returns_409`) para validar que requests
   simultaneos no disparan dos corridas y el segundo recibe `409`
+- `tests/test_server.py`: nuevos tests de webhook de finalizacion
+  (`test_watch_process_sends_completion_webhook_when_configured` y
+  `test_watch_process_ignores_webhook_errors`)
 
 ### Security
 

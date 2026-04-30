@@ -528,6 +528,32 @@ class TestWatchProcess(unittest.TestCase):
         server._watch_process()
         self.assertEqual(server._state["status"], "idle")
 
+    def test_watch_process_sends_completion_webhook_when_configured(self):
+        server._process = self._make_proc(0)
+        server._state["status"] = "running"
+        server._state["params"] = {"username": "demo_user", "usar_liquidez_iol": True, "aporte_externo_ars": 0.0}
+        with patch("server._clear_run_pid"), patch("server._append_run_history"), patch.dict(
+            "server.os.environ",
+            {"RUN_COMPLETION_WEBHOOK_URL": "http://127.0.0.1:9999/webhook"},
+            clear=False,
+        ), patch("server.requests.post") as post_mock:
+            server._watch_process()
+        post_mock.assert_called_once()
+        self.assertEqual(post_mock.call_args.args[0], "http://127.0.0.1:9999/webhook")
+        self.assertEqual(post_mock.call_args.kwargs["json"]["status"], "done")
+
+    def test_watch_process_ignores_webhook_errors(self):
+        server._process = self._make_proc(0)
+        server._state["status"] = "running"
+        server._state["params"] = {"username": "demo_user", "usar_liquidez_iol": True, "aporte_externo_ars": 0.0}
+        with patch("server._clear_run_pid"), patch("server._append_run_history"), patch.dict(
+            "server.os.environ",
+            {"RUN_COMPLETION_WEBHOOK_URL": "http://127.0.0.1:9999/webhook"},
+            clear=False,
+        ), patch("server.requests.post", side_effect=RuntimeError("network down")):
+            server._watch_process()
+        self.assertEqual(server._state["status"], "done")
+
 
 class TestPostCancel(unittest.TestCase):
     def setUp(self):

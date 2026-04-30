@@ -43,6 +43,7 @@ _session_token = ""
 _run_request_timestamps: list[float] = []
 _RUN_RATE_LIMIT_WINDOW_SECONDS = 60.0
 _RUN_RATE_LIMIT_MAX_REQUESTS = 3
+_RUN_COMPLETION_WEBHOOK_TIMEOUT_SECONDS = 2.0
 
 
 class RunParams(BaseModel):
@@ -220,12 +221,27 @@ def _read_recent_runs(limit: int = 5) -> list[dict[str, object]]:
         return []
 
 
+def _notify_run_completion(payload: dict[str, object]) -> None:
+    webhook_url = str(os.environ.get("RUN_COMPLETION_WEBHOOK_URL", "")).strip()
+    if not webhook_url:
+        return
+    try:
+        requests.post(
+            webhook_url,
+            json=payload,
+            timeout=_RUN_COMPLETION_WEBHOOK_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return
+
+
 def _watch_process() -> None:
     global _process, _cancel_requested
     if _process is None:
         return
     _process.wait()
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    webhook_payload: dict[str, object] | None = None
     with _lock:
         if _cancel_requested:
             _state["status"] = "interrupted"
@@ -245,17 +261,18 @@ def _watch_process() -> None:
         _process = None
         _cancel_requested = False
         _clear_run_pid()
-        _append_run_history(
-            {
-                "status": _state.get("status"),
-                "started_at": _state.get("started_at"),
-                "finished_at": _state.get("finished_at"),
-                "username": ((_state.get("params") or {}).get("username") if isinstance(_state.get("params"), dict) else None),
-                "usar_liquidez_iol": ((_state.get("params") or {}).get("usar_liquidez_iol") if isinstance(_state.get("params"), dict) else None),
-                "aporte_externo_ars": ((_state.get("params") or {}).get("aporte_externo_ars") if isinstance(_state.get("params"), dict) else None),
-                "error": _sanitize_secrets(str(_state.get("error") or ""))[:300],
-            }
-        )
+        webhook_payload = {
+            "status": _state.get("status"),
+            "started_at": _state.get("started_at"),
+            "finished_at": _state.get("finished_at"),
+            "username": ((_state.get("params") or {}).get("username") if isinstance(_state.get("params"), dict) else None),
+            "usar_liquidez_iol": ((_state.get("params") or {}).get("usar_liquidez_iol") if isinstance(_state.get("params"), dict) else None),
+            "aporte_externo_ars": ((_state.get("params") or {}).get("aporte_externo_ars") if isinstance(_state.get("params"), dict) else None),
+            "error": _sanitize_secrets(str(_state.get("error") or ""))[:300],
+        }
+        _append_run_history(webhook_payload)
+    if webhook_payload is not None:
+        _notify_run_completion(webhook_payload)
 
 
 @app.get("/", response_class=HTMLResponse)

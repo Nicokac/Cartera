@@ -123,12 +123,14 @@ IOL_USERNAME=tu_usuario_iol@example.com
 IOL_PASSWORD=tu_password_iol
 FRED_API_KEY=tu_fred_api_key
 ENABLE_LEGACY_SNAPSHOTS=1
+RUN_COMPLETION_WEBHOOK_URL=http://127.0.0.1:9000/cartera-hook
 ```
 
 Notas:
 
 - `ENABLE_LEGACY_SNAPSHOTS=0` fuerza el uso exclusivo de `data/snapshots/`
 - `LOG_FORMAT=json` habilita logs estructurados JSON en el runner real
+- `RUN_COMPLETION_WEBHOOK_URL` habilita notificacion `POST` al finalizar corrida (`done`, `error`, `interrupted`)
 - el runner real puede pedir credenciales por terminal si no estan cargadas
 - en la app local, el password IOL no se persiste; solo puede recordarse el usuario en el navegador
 
