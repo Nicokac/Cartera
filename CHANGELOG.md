@@ -117,6 +117,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - calculo de resumen de fondeo
   - asignacion de fondeo sugerido a refuerzos
 - `docs/product-roadmap.md` actualiza el cierre formal del pendiente `P2` de refactor de funciones largas
+- `docs/accessibility-contrast-audit.md` amplía la evidencia de auditoria WCAG AA para `static/index.html` y `docs/product-roadmap.md` marca el item de contraste como completado
 - `server.py`: cuando una corrida se cancela, el estado final queda en `interrupted`
   y se limpia la referencia del proceso al finalizar el watcher
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion

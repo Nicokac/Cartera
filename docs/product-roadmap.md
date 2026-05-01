@@ -640,7 +640,7 @@ Roadmap:
 - P2: `aria-label` para estado. (completado)
 - P2: `aria-live="polite"` en panel. (completado)
 - P2: `role="alert"` en errores. (completado)
-- P3: auditoria WCAG de contraste.
+- P3: auditoria WCAG de contraste. (completado)
 
 ### 14) Compatibilidad
 
