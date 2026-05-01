@@ -317,8 +317,8 @@ Hallazgos:
 Roadmap:
 
 - P2: Modal custom para confirmacion.
-- P2: Texto/ARIA junto a indicadores de estado.
-- P2: Seccion de reportes anteriores (`/reports/`).
+- P2: Texto/ARIA junto a indicadores de estado. (completado)
+- P2: Seccion de reportes anteriores (`/reports/`). (completado)
 - P3: Indicador de progreso animado. (completado)
 
 ### 4) Arquitectura
@@ -333,8 +333,8 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Partir `apply_base_scores` en sub-funciones tematicas.
-- P2: Extraer `_comentario_operativo` de sizing.
+- P2: Partir `apply_base_scores` en sub-funciones tematicas. (avance significativo en curso)
+- P2: Extraer `_comentario_operativo` de sizing. (completado)
 - P3: Formalizar interfaces con `typing.Protocol`.
 
 ### 5) Calidad de codigo
@@ -349,7 +349,7 @@ Hallazgos:
 Roadmap:
 
 - P2: Centralizar utilidades comunes en `src/common/`.
-- P2: Refactor de funciones largas.
+- P2: Refactor de funciones largas. (avance significativo en curso)
 - P3: Completar type hints donde queden `object` genericos.
 
 ### 6) Testing
@@ -368,7 +368,7 @@ Roadmap:
 - P1: Llevar sizing y bcra a >=82%.
 - P1: Subir floor de CI de 82% a 85%.
 - P2: Smoke de scripts Bash en Unix.
-- P3: Test concurrente: segundo `/run` devuelve 409.
+- P3: Test concurrente: segundo `/run` devuelve 409. (completado)
 
 ### 7) Seguridad
 
@@ -401,7 +401,7 @@ Roadmap:
 
 - P1: Retry con backoff para IOL y BCRA.
 - P2: Exponer `elapsed_seconds`. (completado)
-- P3: Cache intradia TTL 15 min.
+- P3: Cache intradia TTL 15 min. (completado)
 
 ### 9) Datos / Persistencia
 
@@ -418,7 +418,7 @@ Roadmap:
 - P1: Backup diario de CSV runtime.
 - P2: Migrar montos criticos a `Decimal`.
 - P2: Retencion configurable (default 90 dias).
-- P3: Validacion de integridad al arranque.
+- P3: Validacion de integridad al arranque. (completado)
 
 ### 10) DevOps e Infra
 
@@ -434,7 +434,7 @@ Roadmap:
 
 - P1: Script de release (version + tag + build).
 - P2: Agregar `macos-latest` a matriz CI. (completado)
-- P3: Dockerfile para dev/testing.
+- P3: Dockerfile para dev/testing. (completado)
 
 ### 11) Mantenibilidad
 
@@ -464,7 +464,7 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Retencion configurable de historiales.
+- P2: Retencion configurable de historiales. (completado)
 - P2: Checklist formal para alta de instrumento. (completado)
 - P3: Protocol de clientes externos. (avance extendido a `argentinadatos` y `bonistas_client`)
 
@@ -514,10 +514,10 @@ Hallazgos:
 
 Roadmap:
 
-- P1: ampliar `log_tail` a 3000 + `log_lines`.
+- P1: ampliar `log_tail` a 3000 + `log_lines`. (completado)
 - P2: tiempos por fase en pipeline. (completado)
 - P2: `LOG_FORMAT=json` opcional. (completado)
-- P3: webhook on-completion.
+- P3: webhook on-completion. (completado)
 
 ### 16) Documentacion
 
@@ -564,8 +564,8 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Panel de reportes en UI.
-- P3: scheduler opcional.
+- P2: Panel de reportes en UI. (completado)
+- P3: scheduler opcional. (completado)
 - P3: pagina de configuracion basica en UI. (avance inicial completado con editor de `scoring_rules.json`)
 
 ### 19) Validacion estadistica y madurez de senales
