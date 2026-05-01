@@ -122,6 +122,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: hardening UX de editor avanzado: aviso `beforeunload` cuando hay cambios sin guardar para evitar perdida accidental de edicion.
 - 2026-05-01: mejora UX de configuracion avanzada: post-guardado refresca metadata (`modified_at`) desde `GET /config` para mostrar estado actualizado en el panel.
 - 2026-05-01: avance de usabilidad operativa/API: nuevo `GET /config/{config_name}/backups` para listar historico de backups por archivo de reglas.
+- 2026-05-01: avance UX operativo: la UI de configuracion avanzada muestra “Backups recientes” (top 5) del archivo seleccionado usando `GET /config/{config_name}/backups`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -329,6 +330,9 @@ Prueba de cierre (si aplica):
 - validar manualmente backups por API:
   - guardar al menos un cambio en `scoring/action/sizing`
   - consultar `GET /config/<name>/backups` y verificar lista con `path`, `filename`, `modified_at`, `size_bytes`
+- validar manualmente en UI local:
+  - cambiar entre `scoring/action/sizing` y verificar bloque `Backups recientes`
+  - confirmar que muestra hasta 5 entradas con fecha, nombre y tamaño
 
 ## Contexto
 

@@ -50,6 +50,9 @@
     .config-actions .secondary { background: #4b5563; }
     .config-meta { margin-top: .5rem; font-size: .84rem; color: #4b5563; }
     .config-dirty { margin-top: .35rem; font-size: .82rem; color: #9a3412; }
+    .config-backups { margin-top: .6rem; font-size: .82rem; color: #374151; }
+    .config-backups ul { margin-top: .35rem; padding-left: 1rem; }
+    .config-backups li { margin-bottom: .2rem; }
     .config-alert { margin-top: .6rem; padding: .5rem .65rem; border-radius: 6px; font-size: .86rem; display: none; }
     .config-alert.ok { background: #dcfce7; color: #166534; }
     .config-alert.error { background: #fee2e2; color: #991b1b; }
@@ -177,6 +180,7 @@
     </div>
     <div id="config-meta" class="config-meta"></div>
     <div id="config-dirty" class="config-dirty"></div>
+    <div id="config-backups" class="config-backups"></div>
     <div id="scoring-alert" class="config-alert" role="alert"></div>
   </section>
 
@@ -466,8 +470,32 @@
         document.getElementById("scoring-config").value = text;
         _lastLoadedConfigText = text;
         updateConfigEditorState();
+        await loadConfigBackups(kind);
       } catch (_) {
         showScoringAlert(`No se pudo cargar ${kind}_rules.json.`, true);
+      }
+    }
+
+    async function loadConfigBackups(kind) {
+      const el = document.getElementById("config-backups");
+      try {
+        const res = await fetchWithSession(`/config/${encodeURIComponent(kind)}/backups`);
+        if (!res.ok) {
+          throw new Error("fetch failed");
+        }
+        const payload = await res.json();
+        const rows = Array.isArray(payload.backups) ? payload.backups : [];
+        if (rows.length === 0) {
+          el.textContent = "Backups recientes: sin registros.";
+          return;
+        }
+        const top = rows.slice(0, 5);
+        const items = top
+          .map((row) => `<li>${row.modified_at || "-"} | ${row.filename || "-"} | ${row.size_bytes || 0} bytes</li>`)
+          .join("");
+        el.innerHTML = `Backups recientes:<ul>${items}</ul>`;
+      } catch (_) {
+        el.textContent = "Backups recientes: no disponibles.";
       }
     }
 
