@@ -131,6 +131,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_absolute_metric_blends` reduce repeticion de acceso a reglas por metrica mediante helper local `_metric_rules` (sin cambios funcionales).
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_refuerzo_score` reduce repeticion al leer ajustes por subfamilia mediante helper local `_rule_value` (sin cambios funcionales).
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_reduccion_score` reduce repeticion al leer ajustes por subfamilia mediante helper local `_rule_value` (sin cambios funcionales).
+- 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_etf_effective_scores` reduce repeticion de lectura de ajustes ETF mediante helper local `_adj` (sin cambios funcionales).
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 - 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
 
@@ -363,6 +364,8 @@ Prueba de cierre (si aplica):
 - validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor interno de `_apply_refuerzo_score`
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor interno de `_apply_reduccion_score`
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor interno de `_apply_etf_effective_scores`
 - validar manualmente en UI local:
   - cambiar `Ver` en backups recientes entre 1 y 20
   - confirmar que la lista se refresca con la nueva cantidad

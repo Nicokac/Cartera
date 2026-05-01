@@ -579,12 +579,15 @@ def _apply_etf_effective_scores(
     rank_neutral: float,
     etf_adjustments: dict[str, object],
 ) -> pd.DataFrame:
-    etf_quality_floor = float(etf_adjustments.get("quality_floor", rank_neutral))
-    etf_pe_discount = float(etf_adjustments.get("pe_expensive_discount", 1.0))
-    etf_low_quality_discount = float(etf_adjustments.get("low_quality_discount", 1.0))
-    etf_concentration_discount = float(etf_adjustments.get("concentration_pressure_discount", 1.0))
-    core_concentration_discount = float(etf_adjustments.get("core_concentration_pressure_discount", 1.0))
-    core_momentum_discount = float(etf_adjustments.get("core_momentum_reduccion_discount", 1.0))
+    def _adj(key: str, default: float) -> float:
+        return float(etf_adjustments.get(key, default))
+
+    etf_quality_floor = _adj("quality_floor", rank_neutral)
+    etf_pe_discount = _adj("pe_expensive_discount", 1.0)
+    etf_low_quality_discount = _adj("low_quality_discount", 1.0)
+    etf_concentration_discount = _adj("concentration_pressure_discount", 1.0)
+    core_concentration_discount = _adj("core_concentration_pressure_discount", 1.0)
+    core_momentum_discount = _adj("core_momentum_reduccion_discount", 1.0)
 
     out["s_quality_effective"] = np.where(
         out["Es_ETF"],
