@@ -346,6 +346,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     el selector de archivos editables (evita opciones hardcodeadas desactualizadas)
   - `GET /config` ahora incluye metadata por archivo (`filename`, `exists`,
     `modified_at`) para mejorar diagnostico operativo
+  - la UI de configuracion avanzada muestra la metadata del archivo seleccionado
+    (`filename`, `exists`, `modified_at`) en pantalla
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

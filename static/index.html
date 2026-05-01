@@ -48,6 +48,7 @@
     .config-area { width: 100%; min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; border: 1px solid #d1d5db; border-radius: 6px; padding: .6rem; }
     .config-actions { display: flex; gap: .5rem; margin-top: .7rem; }
     .config-actions .secondary { background: #4b5563; }
+    .config-meta { margin-top: .5rem; font-size: .84rem; color: #4b5563; }
     .config-alert { margin-top: .6rem; padding: .5rem .65rem; border-radius: 6px; font-size: .86rem; display: none; }
     .config-alert.ok { background: #dcfce7; color: #166534; }
     .config-alert.error { background: #fee2e2; color: #991b1b; }
@@ -171,6 +172,7 @@
       <button type="button" class="secondary" id="btn-load-scoring">Recargar</button>
       <button type="button" id="btn-save-scoring">Guardar</button>
     </div>
+    <div id="config-meta" class="config-meta"></div>
     <div id="scoring-alert" class="config-alert" role="alert"></div>
   </section>
 
@@ -197,6 +199,7 @@
     let _pollInterval = null;
     let _reportsLoaded = false;
     let _sessionToken = "";
+    let _configMetaByName = {};
     const USERNAME_KEY = "cartera.username";
     const REMEMBER_USERNAME_KEY = "cartera.remember_username";
 
@@ -446,6 +449,7 @@
     async function loadScoringConfig() {
       clearScoringAlert();
       const kind = document.getElementById("strategy-config-kind").value;
+      renderConfigMeta(kind);
       try {
         const res = await fetchWithSession(`/config/${encodeURIComponent(kind)}`);
         if (!res.ok) {
@@ -456,6 +460,18 @@
       } catch (_) {
         showScoringAlert("No se pudo cargar scoring_rules.json.", true);
       }
+    }
+
+    function renderConfigMeta(kind) {
+      const metaEl = document.getElementById("config-meta");
+      const row = _configMetaByName[kind];
+      if (!row) {
+        metaEl.textContent = "";
+        return;
+      }
+      const exists = row.exists ? "sí" : "no";
+      const modified = row.modified_at || "-";
+      metaEl.textContent = `Archivo: ${row.filename || `${kind}_rules.json`} | Existe: ${exists} | Modificado: ${modified}`;
     }
 
     async function saveScoringConfig() {
@@ -502,6 +518,12 @@
         if (rows.length === 0) {
           return;
         }
+        _configMetaByName = {};
+        for (const row of rows) {
+          if (row && row.name) {
+            _configMetaByName[row.name] = row;
+          }
+        }
         const current = select.value;
         select.innerHTML = "";
         for (const row of rows) {
@@ -515,6 +537,7 @@
         if ([...select.options].some((opt) => opt.value === current)) {
           select.value = current;
         }
+        renderConfigMeta(select.value);
       } catch (_) {
         // Fallback: keep static options if discovery endpoint is unavailable.
       }

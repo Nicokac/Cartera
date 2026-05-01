@@ -112,6 +112,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance UX operativo: selector de reglas en UI ahora se puebla dinamicamente desde `GET /config` (evita desalineacion entre frontend y allowlist backend).
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `_compute_base_scores_from_config` para reducir variables intermedias y mantener flujo declarativo basado en `BaseScoreConfig` (sin cambios funcionales).
 - 2026-04-30: avance de usabilidad operativa/API: `GET /config` ahora devuelve metadata por archivo (`filename`, `exists`, `modified_at`) para diagnóstico y UX de configuración avanzada.
+- 2026-05-01: avance UX operativo en configuracion avanzada: la UI ahora muestra metadata del archivo seleccionado (`filename`, `exists`, `modified_at`) usando `GET /config`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -288,6 +289,9 @@ Prueba de cierre (si aplica):
   - `filename`
   - `exists`
   - `modified_at`
+- validar manualmente en la app local:
+  - al cambiar entre `scoring/action/sizing`, el panel muestra metadatos del archivo seleccionado
+  - si el archivo no existe, `Existe: no` y `Modificado: -`
 
 ## Contexto
 
