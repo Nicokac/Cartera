@@ -21,6 +21,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - versionado normalizado a `0.5.3` en artefactos de release:
   - `pyproject.toml` (`project.version`)
   - `README.md` (version vigente, nombre de ZIP y ejemplos de `release.ps1`)
+- inicio de refactorizacion de `real-report` (Fase UI-1):
+  - nuevo `static/report-ui.js` con la logica de interaccion del reporte
+  - `scripts/report_layout.py` deja de mantener JS embebido extenso y pasa a inyectar el contenido desde el archivo dedicado
+  - comportamiento funcional preservado (quick-nav, filtros/sort, copy sizing, toggle columnas, persistencia de `details`)
 
 ## [0.5.3] - 2026-05-01
 

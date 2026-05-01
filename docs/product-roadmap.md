@@ -25,6 +25,13 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 - estrategia: auditoria estructural -> modularizacion de shell/componentes -> prioridades visuales -> implementacion incremental
 - baseline de version para esta etapa: `0.5.3`
 
+Avance UI post-cierre:
+
+- 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
+- validacion aplicada:
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - 32 tests OK
+
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
 - Cobertura total actual: 84% (no 87%).
