@@ -30,6 +30,7 @@ SESSION_FILE = ROOT / "data" / "runtime" / "session.txt"
 RUN_HISTORY_FILE = ROOT / "data" / "runtime" / "run_history.jsonl"
 VERSION_FILE = ROOT / "version.txt"
 STRATEGY_DIR = ROOT / "data" / "strategy"
+CONFIG_BACKUP_DIR = ROOT / "data" / "backups" / "config"
 CONFIG_FILE_MAP: dict[str, Path] = {
     "scoring": STRATEGY_DIR / "scoring_rules.json",
     "action": STRATEGY_DIR / "action_rules.json",
@@ -114,6 +115,18 @@ def _resolve_config_file(config_name: str) -> Path:
     if path is None:
         raise HTTPException(status_code=404, detail="Configuracion no soportada. Usa: scoring, action, sizing.")
     return path
+
+
+def _backup_config_file(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    date_dir = CONFIG_BACKUP_DIR / datetime.now().strftime("%Y-%m-%d")
+    date_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%H%M%S")
+    backup_name = f"{path.stem}.{stamp}.json"
+    backup_path = date_dir / backup_name
+    shutil.copy2(path, backup_path)
+    return str(backup_path)
 
 
 def _parse_ts(value: object) -> datetime | None:
@@ -697,8 +710,16 @@ def post_strategy_config(
     if not isinstance(parsed, dict):
         raise HTTPException(status_code=422, detail="El JSON del archivo de configuracion debe ser un objeto.")
     target_file.parent.mkdir(parents=True, exist_ok=True)
+    backup_path = _backup_config_file(target_file)
     target_file.write_text(json.dumps(parsed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return JSONResponse({"status": "saved", "name": config_name, "path": str(target_file)})
+    return JSONResponse(
+        {
+            "status": "saved",
+            "name": config_name,
+            "path": str(target_file),
+            "backup_path": backup_path,
+        }
+    )
 
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)

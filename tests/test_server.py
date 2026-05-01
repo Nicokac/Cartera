@@ -224,6 +224,7 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         _reset()
         self._tmp = TemporaryDirectory()
         self._tmp_path = Path(self._tmp.name)
+        self._backup_dir = self._tmp_path / "backups"
         self._scoring_path = self._tmp_path / "scoring_rules.json"
         self._action_path = self._tmp_path / "action_rules.json"
         self._sizing_path = self._tmp_path / "sizing_rules.json"
@@ -240,9 +241,12 @@ class TestScoringConfigEndpoints(unittest.TestCase):
             clear=True,
         )
         self._patcher.start()
+        self._backup_patcher = patch.object(server, "CONFIG_BACKUP_DIR", self._backup_dir)
+        self._backup_patcher.start()
 
     def tearDown(self):
         self._patcher.stop()
+        self._backup_patcher.stop()
         self._tmp.cleanup()
         _reset()
 
@@ -293,6 +297,9 @@ class TestScoringConfigEndpoints(unittest.TestCase):
             json={"content": '{"weights":{"momentum":2.0},"thresholds":{"high":0.2}}'},
         )
         self.assertEqual(r.status_code, 200)
+        backup_path = r.json().get("backup_path")
+        self.assertIsInstance(backup_path, str)
+        self.assertTrue(Path(str(backup_path)).exists())
         saved = self._scoring_path.read_text(encoding="utf-8")
         self.assertIn('"momentum": 2.0', saved)
         self.assertTrue(saved.endswith("\n"))

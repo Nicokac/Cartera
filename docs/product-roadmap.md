@@ -117,6 +117,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Formatear JSON` para pretty-print local previo a guardado.
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: atajo `Ctrl+S/Cmd+S` dentro del editor para guardar rapido cuando hay cambios validos.
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Revertir cambios` para volver al ultimo contenido cargado localmente.
+- 2026-05-01: hardening operativo de configuracion avanzada: `POST /config/{config_name}` ahora genera backup automatico del archivo previo en `data/backups/config/YYYY-MM-DD/`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -309,6 +310,10 @@ Prueba de cierre (si aplica):
 - validar manualmente `Revertir cambios`:
   - editar contenido sin guardar y usar `Revertir cambios` => vuelve al ultimo estado cargado
   - tras revertir, `Guardar` queda deshabilitado y estado vuelve a `Sin cambios pendientes.`
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente guardado de configuracion:
+  - guardar un cambio en `scoring/action/sizing`
+  - verificar creacion de backup en `data/backups/config/YYYY-MM-DD/`
 
 ## Contexto
 

@@ -356,6 +356,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     rapidamente cuando el contenido es valido
   - nuevo boton `Revertir cambios` en editor avanzado para descartar edicion
     local y volver al ultimo contenido cargado
+  - `POST /config/{config_name}` ahora crea backup automatico del archivo
+    previo en `data/backups/config/YYYY-MM-DD/` antes de persistir cambios
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio
