@@ -240,6 +240,7 @@ Incluye accion `Formatear JSON` para normalizar indentacion antes de guardar.
 Atajo del editor avanzado: `Ctrl+S` (Windows/Linux) o `Cmd+S` (macOS) para guardar.
 Incluye `Revertir cambios` para volver al ultimo contenido cargado sin reconsultar al backend.
 Cada guardado en `POST /config/{config_name}` crea backup del archivo previo en `data/backups/config/YYYY-MM-DD/`.
+La UI muestra la ruta del backup creado al confirmar un guardado exitoso.
 
 Comandos de operacion local:
 

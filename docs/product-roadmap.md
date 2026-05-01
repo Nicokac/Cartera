@@ -118,6 +118,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: atajo `Ctrl+S/Cmd+S` dentro del editor para guardar rapido cuando hay cambios validos.
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Revertir cambios` para volver al ultimo contenido cargado localmente.
 - 2026-05-01: hardening operativo de configuracion avanzada: `POST /config/{config_name}` ahora genera backup automatico del archivo previo en `data/backups/config/YYYY-MM-DD/`.
+- 2026-05-01: avance UX operativo adicional: la UI muestra `backup_path` al guardar configuracion para facilitar rollback manual.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -314,6 +315,7 @@ Prueba de cierre (si aplica):
 - validar manualmente guardado de configuracion:
   - guardar un cambio en `scoring/action/sizing`
   - verificar creacion de backup en `data/backups/config/YYYY-MM-DD/`
+  - confirmar que la app muestra en pantalla la ruta `Backup: ...` luego del guardado exitoso
 
 ## Contexto
 

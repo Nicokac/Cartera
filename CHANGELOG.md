@@ -358,6 +358,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     local y volver al ultimo contenido cargado
   - `POST /config/{config_name}` ahora crea backup automatico del archivo
     previo en `data/backups/config/YYYY-MM-DD/` antes de persistir cambios
+  - la UI ahora muestra la ruta del backup (`backup_path`) luego de guardar
+    configuracion exitosamente
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

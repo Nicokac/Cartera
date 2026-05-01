@@ -510,7 +510,14 @@
         showScoringAlert(detail, true);
         return;
       }
-      showScoringAlert("Configuracion guardada.");
+      let backupInfo = "";
+      try {
+        const payload = await res.json();
+        if (payload && payload.backup_path) {
+          backupInfo = ` Backup: ${payload.backup_path}`;
+        }
+      } catch (_) {}
+      showScoringAlert(`Configuracion guardada.${backupInfo}`);
       await loadScoringConfig();
     }
 
