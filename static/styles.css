@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --bg: #f3efe7;
   --panel: #fffdf8;
   --ink: #1d2a2f;
@@ -9,6 +9,10 @@
   --warn: #9f3a22;
   --shadow: 0 12px 30px rgba(29, 42, 47, 0.08);
   --radius: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 8px 20px rgba(29, 42, 47, 0.06);
+  --shadow-strong: 0 16px 34px rgba(29, 42, 47, 0.12);
   --mono: "IBM Plex Mono", "Consolas", monospace;
   --sans: "Segoe UI", "Helvetica Neue", sans-serif;
 }
@@ -75,7 +79,11 @@ body {
   position: sticky;
   top: 10px;
   z-index: 20;
-  padding: 10px 0;
+  padding: 10px 8px;
+  border: 1px solid rgba(15, 108, 92, 0.14);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 253, 248, 0.72);
+  box-shadow: var(--shadow-soft);
   backdrop-filter: blur(10px);
   overflow-x: auto;
   scrollbar-width: none;
@@ -89,12 +97,18 @@ body {
 .quick-nav a {
   padding: 9px 14px;
   border: 1px solid rgba(15, 108, 92, 0.16);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 253, 248, 0.84);
   color: var(--accent);
   text-decoration: none;
   white-space: nowrap;
   font: 600 12px/1 var(--mono);
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.quick-nav a:hover {
+  background: rgba(15, 108, 92, 0.12);
+  border-color: rgba(15, 108, 92, 0.34);
 }
 
 .quick-nav a.active {
@@ -164,7 +178,7 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-soft);
 }
 
 section.panel,
@@ -177,6 +191,10 @@ section.grid {
 
 .card {
   padding: 18px;
+}
+
+.cards-primary .card {
+  border-top: 3px solid rgba(15, 108, 92, 0.35);
 }
 
 .card .label {
@@ -275,6 +293,7 @@ section.grid {
 .panel h2 {
   margin: 0 0 14px;
   font-size: 18px;
+  letter-spacing: 0.01em;
 }
 
 .panel h3 {
@@ -290,7 +309,9 @@ section.grid {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(215, 208, 198, 0.7);
 }
 
 .filters {
@@ -304,7 +325,7 @@ section.grid {
   min-height: 40px;
   padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: #fff;
   color: var(--ink);
   font: 500 14px/1 var(--sans);
@@ -483,7 +504,7 @@ section.grid {
 .collapsible {
   margin-top: 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.62);
   overflow: hidden;
 }
@@ -494,7 +515,7 @@ section.grid {
   padding: 14px 16px;
   font: 700 13px/1.4 var(--mono);
   color: var(--ink);
-  background: rgba(15, 108, 92, 0.04);
+  background: rgba(15, 108, 92, 0.06);
 }
 
 .collapsible summary::-webkit-details-marker {
@@ -502,7 +523,7 @@ section.grid {
 }
 
 .collapsible summary::after {
-  content: "▸";
+  content: "\25B8";
   float: right;
   color: var(--accent);
   transition: transform 0.18s ease;
@@ -573,10 +594,14 @@ th {
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8f5ee;
 }
 
 tbody tr:hover {
-  background: rgba(15, 108, 92, 0.04);
+  background: rgba(15, 108, 92, 0.06);
 }
 
 .risk-history-table .cell-quality {
@@ -714,7 +739,7 @@ tbody tr:hover {
 }
 
 tbody tr:hover td:first-child {
-  background: rgba(15, 108, 92, 0.04);
+  background: rgba(15, 108, 92, 0.06);
 }
 
 .badge {
@@ -908,17 +933,18 @@ tbody tr:hover td:first-child {
 .copy-btn {
   padding: 8px 16px;
   border: 1px solid rgba(15, 108, 92, 0.28);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(15, 108, 92, 0.06);
   color: var(--accent);
   font: 600 13px/1 var(--mono);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
 }
 
 .copy-btn:hover {
   background: var(--accent);
   color: #fffdf8;
+  transform: translateY(-1px);
 }
 
 /* RSI gauge */
@@ -1074,6 +1100,15 @@ code {
   font-size: 0.95em;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid rgba(15, 108, 92, 0.55);
+  outline-offset: 2px;
+}
+
 .empty {
   padding: 16px;
   border: 1px dashed var(--line);
@@ -1202,4 +1237,15 @@ code {
     flex-basis: 18px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 

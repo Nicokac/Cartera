@@ -28,6 +28,11 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 Avance UI post-cierre:
 
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
+- 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
+  - mejor jerarquia visual de `quick-nav`, cards y paneles
+  - mejoras de foco visible y microinteracciones
+  - headers de tabla sticky para lectura de tablas largas
+  - fix de mojibake en indicador de colapsables (`\25B8`)
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

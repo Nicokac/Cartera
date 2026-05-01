@@ -25,6 +25,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `static/report-ui.js` con la logica de interaccion del reporte
   - `scripts/report_layout.py` deja de mantener JS embebido extenso y pasa a inyectar el contenido desde el archivo dedicado
   - comportamiento funcional preservado (quick-nav, filtros/sort, copy sizing, toggle columnas, persistencia de `details`)
+- embellecimiento base de `real-report` (Fase UI-1):
+  - mejora visual de `quick-nav`, cards primarias y encabezados de panel
+  - mejoras de accesibilidad visual (`:focus-visible`) y microinteracciones en controles
+  - headers de tabla sticky para lectura de tablas extensas
+  - correccion de mojibake en icono de colapsables CSS (`\25B8`)
 
 ## [0.5.3] - 2026-05-01
 
