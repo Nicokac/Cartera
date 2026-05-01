@@ -241,6 +241,7 @@ Atajo del editor avanzado: `Ctrl+S` (Windows/Linux) o `Cmd+S` (macOS) para guard
 Incluye `Revertir cambios` para volver al ultimo contenido cargado sin reconsultar al backend.
 Cada guardado en `POST /config/{config_name}` crea backup del archivo previo en `data/backups/config/YYYY-MM-DD/`.
 La UI muestra la ruta del backup creado al confirmar un guardado exitoso.
+Si hay cambios sin guardar en el editor avanzado, la pestaña avisa antes de salir/recargar.
 
 Comandos de operacion local:
 

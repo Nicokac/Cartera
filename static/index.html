@@ -205,6 +205,7 @@
     let _sessionToken = "";
     let _configMetaByName = {};
     let _lastLoadedConfigText = "";
+    let _configEditorDirty = false;
     const USERNAME_KEY = "cartera.username";
     const REMEMBER_USERNAME_KEY = "cartera.remember_username";
 
@@ -558,6 +559,7 @@
       const revertBtn = document.getElementById("btn-revert-scoring");
       const text = textarea.value || "";
       const isDirty = text !== _lastLoadedConfigText;
+      _configEditorDirty = isDirty;
       let isValidJson = false;
       try {
         JSON.parse(text);
@@ -574,6 +576,14 @@
       }
       saveBtn.disabled = !isDirty || !isValidJson;
       revertBtn.disabled = !isDirty;
+    }
+
+    function warnUnsavedConfigChanges(event) {
+      if (!_configEditorDirty) {
+        return;
+      }
+      event.preventDefault();
+      event.returnValue = "";
     }
 
     function revertScoringConfigChanges() {
@@ -745,6 +755,7 @@
       document.getElementById("strategy-config-kind").addEventListener("change", loadScoringConfig);
       document.getElementById("scoring-config").addEventListener("input", updateConfigEditorState);
       document.getElementById("scoring-config").addEventListener("keydown", handleConfigEditorSaveShortcut);
+      window.addEventListener("beforeunload", warnUnsavedConfigChanges);
 
       loadUsernamePreference();
       updateSummary();

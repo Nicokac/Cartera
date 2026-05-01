@@ -119,6 +119,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Revertir cambios` para volver al ultimo contenido cargado localmente.
 - 2026-05-01: hardening operativo de configuracion avanzada: `POST /config/{config_name}` ahora genera backup automatico del archivo previo en `data/backups/config/YYYY-MM-DD/`.
 - 2026-05-01: avance UX operativo adicional: la UI muestra `backup_path` al guardar configuracion para facilitar rollback manual.
+- 2026-05-01: hardening UX de editor avanzado: aviso `beforeunload` cuando hay cambios sin guardar para evitar perdida accidental de edicion.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -316,6 +317,9 @@ Prueba de cierre (si aplica):
   - guardar un cambio en `scoring/action/sizing`
   - verificar creacion de backup en `data/backups/config/YYYY-MM-DD/`
   - confirmar que la app muestra en pantalla la ruta `Backup: ...` luego del guardado exitoso
+- validar manualmente cambios sin guardar:
+  - editar JSON y recargar/cerrar pestaña
+  - el navegador debe advertir que hay cambios pendientes
 
 ## Contexto
 
