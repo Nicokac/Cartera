@@ -258,8 +258,13 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         r = _client.get("/config", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
         data = r.json()
-        names = {row["name"] for row in data.get("configs", [])}
+        rows = data.get("configs", [])
+        names = {row["name"] for row in rows}
         self.assertSetEqual(names, {"scoring", "action", "sizing"})
+        for row in rows:
+            self.assertIn("filename", row)
+            self.assertIn("exists", row)
+            self.assertIn("modified_at", row)
 
     def test_get_scoring_config_ok(self):
         r = _client.get("/config/scoring", headers={"X-Session-Token": "test-session-token"})

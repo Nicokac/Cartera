@@ -664,11 +664,16 @@ def list_strategy_configs(x_session_token: str = Header(default="")) -> JSONResp
     _require_session_token(x_session_token)
     rows = []
     for name, path in CONFIG_FILE_MAP.items():
+        modified_at = None
+        if path.exists():
+            modified_at = datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
         rows.append(
             {
                 "name": name,
+                "filename": path.name,
                 "path": str(path),
                 "exists": path.exists(),
+                "modified_at": modified_at,
             }
         )
     return JSONResponse({"configs": rows})

@@ -233,6 +233,7 @@ Al startup del servidor se valida schema basico de `data/runtime/decision_histor
 `GET /runs/recent` devuelve historial de las ultimas 5 corridas.
 `GET /config` lista configuraciones editables disponibles (`scoring`, `action`, `sizing`).
 La UI consume `GET /config` para poblar dinamicamente el selector de archivos editables.
+Cada item de `GET /config` incluye `filename`, `exists` y `modified_at`.
 
 Comandos de operacion local:
 

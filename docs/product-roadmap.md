@@ -111,6 +111,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance de usabilidad operativa/API: nuevo `GET /config` para descubrir configuraciones editables soportadas (`scoring`, `action`, `sizing`).
 - 2026-04-30: avance UX operativo: selector de reglas en UI ahora se puebla dinamicamente desde `GET /config` (evita desalineacion entre frontend y allowlist backend).
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `_compute_base_scores_from_config` para reducir variables intermedias y mantener flujo declarativo basado en `BaseScoreConfig` (sin cambios funcionales).
+- 2026-04-30: avance de usabilidad operativa/API: `GET /config` ahora devuelve metadata por archivo (`filename`, `exists`, `modified_at`) para diagnóstico y UX de configuración avanzada.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -282,6 +283,11 @@ Prueba de cierre (si aplica):
   - si se agrega/quita item en allowlist de `server.py`, la UI refleja el cambio sin tocar HTML
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor interno de `_compute_base_scores_from_config`
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente `GET /config` con token y confirmar metadata por item:
+  - `filename`
+  - `exists`
+  - `modified_at`
 
 ## Contexto
 
