@@ -319,6 +319,9 @@ def _apply_absolute_metric_blends(
     absolute_rules: dict[str, object],
     rank_neutral: float,
 ) -> pd.DataFrame:
+    def _metric_rules(name: str) -> dict[str, object]:
+        return (metrics.get(name, {}) or {})
+
     if not bool(absolute_rules.get("enabled", False)):
         return out
 
@@ -326,12 +329,12 @@ def _apply_absolute_metric_blends(
     absolute_weight = float(absolute_rules.get("absolute_weight", 0.3))
     metrics = absolute_rules.get("metrics", {}) or {}
 
-    beta_rules = metrics.get("beta", {}) or {}
-    pe_rules = metrics.get("pe", {}) or {}
-    roe_rules = metrics.get("roe", {}) or {}
-    margin_rules = metrics.get("profit_margin", {}) or {}
-    mep_rules = metrics.get("mep_premium_pct", {}) or {}
-    gain_rules = metrics.get("ganancia_pct_cap", {}) or {}
+    beta_rules = _metric_rules("beta")
+    pe_rules = _metric_rules("pe")
+    roe_rules = _metric_rules("roe")
+    margin_rules = _metric_rules("profit_margin")
+    mep_rules = _metric_rules("mep_premium_pct")
+    gain_rules = _metric_rules("ganancia_pct_cap")
 
     abs_beta_ok = threshold_score(
         out["Beta"],
