@@ -210,6 +210,20 @@ class ReportRenderUiTests(unittest.TestCase):
         self.assertIn("classList.toggle('active'", html)
 
 
+    def test_render_report_includes_mobile_responsive_hooks(self) -> None:
+        html = render_report(_build_minimal_result())
+
+        self.assertIn('<meta name="viewport" content="width=device-width, initial-scale=1">', html)
+        self.assertIn(".table-wrap {", html)
+        self.assertIn("overflow-x: auto;", html)
+        self.assertIn("@media (max-width: 1024px)", html)
+        self.assertIn("@media (max-width: 860px)", html)
+        self.assertIn("#decision-table td:last-child", html)
+        self.assertIn("min-width: 280px;", html)
+        self.assertIn(".technical-table .col-secondary", html)
+        self.assertIn("quick-nav.has-overflow-left", html)
+
+
     def test_render_report_escapes_untrusted_decision_and_macro_text(self) -> None:
         result = _build_minimal_result(
             bonistas_bundle={

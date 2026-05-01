@@ -51,3 +51,17 @@ Objetivo:
 - Dispositivo/Navegador:
 - Resultado general: `OK` / `Observaciones`
 - Observaciones:
+
+## Registro de cierre
+
+- Fecha: 2026-05-01
+- Commit: pendiente de commit local
+- Dispositivo/Navegador: validacion estructural automatizada del renderer HTML
+- Resultado general: `OK`
+- Observaciones:
+  - el HTML renderizado incluye `meta viewport`
+  - existen breakpoints responsivos en `1024px` y `860px`
+  - las tablas usan contenedor `.table-wrap` con `overflow-x: auto`
+  - la columna narrativa de decision conserva `min-width` local para evitar colapso ilegible
+  - la tabla tecnica mantiene estrategia de columnas secundarias expandibles
+  - este cierre cubre validacion estructural automatizada; la verificacion en dispositivo real sigue siendo recomendable cuando cambie el layout del reporte

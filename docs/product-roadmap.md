@@ -656,7 +656,7 @@ Roadmap:
 
 - P1: Fase 1 cross-platform (scripts Bash). (completado)
 - P2: Fase 2 con `pwsh` cross-platform. (completado)
-- P3: pruebas mobile/responsive del reporte.
+- P3: pruebas mobile/responsive del reporte. (completado)
 
 ### 15) Observabilidad
 

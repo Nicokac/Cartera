@@ -11,6 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - cobertura estructural para wrappers PowerShell:
   - nuevo `tests/test_powershell_scripts.py`
   - verificacion de helper comun, resolucion cross-platform de Python y uso de sesion en scripts protegidos
+- cobertura estructural de responsive del reporte:
+  - `tests/test_report_render_ui.py` valida `meta viewport`, breakpoints CSS, `table-wrap` con scroll horizontal local y hooks de navegacion/columnas adaptativas
 - endpoint `POST /cancel` en `server.py` para cancelar corridas en progreso
 - boton `Cancelar corrida` en `static/index.html` (visible solo en estado `running`)
 - cobertura de cancelacion en `tests/test_server.py` (endpoint y transicion a `interrupted`)
@@ -118,6 +120,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - asignacion de fondeo sugerido a refuerzos
 - `docs/product-roadmap.md` actualiza el cierre formal del pendiente `P2` de refactor de funciones largas
 - `docs/accessibility-contrast-audit.md` amplía la evidencia de auditoria WCAG AA para `static/index.html` y `docs/product-roadmap.md` marca el item de contraste como completado
+- `docs/report-mobile-responsive-checklist.md` registra cierre estructural automatizado del reporte y `docs/product-roadmap.md` marca el item mobile/responsive como completado
 - `server.py`: cuando una corrida se cancela, el estado final queda en `interrupted`
   y se limpia la referencia del proceso al finalizar el watcher
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion
