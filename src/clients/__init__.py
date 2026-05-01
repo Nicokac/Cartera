@@ -9,7 +9,13 @@ from .bonistas_client import (
 )
 from .bcra import get_rem_latest
 from .fred_client import get_ust_latest, get_ust_series
-from .protocols import HttpGetProtocol, HttpRequestProtocol, HttpResponseProtocol
+from .protocols import (
+    FredSeriesClientProtocol,
+    HttpGetProtocol,
+    HttpRequestProtocol,
+    HttpResponseProtocol,
+    PyOBDClientProtocol,
+)
 
 __all__ = [
     "get_rem_latest",
@@ -23,4 +29,6 @@ __all__ = [
     "HttpResponseProtocol",
     "HttpGetProtocol",
     "HttpRequestProtocol",
+    "FredSeriesClientProtocol",
+    "PyOBDClientProtocol",
 ]

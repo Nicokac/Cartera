@@ -137,6 +137,10 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_refuerzo_score` y `_apply_reduccion_score` consolidan lectura de pesos en helper local `_weight` para reducir ruido y repeticion (sin cambios funcionales).
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 - 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
+- 2026-05-01: completado item P3 de arquitectura/escalabilidad: contratos `typing.Protocol` extendidos tambien a clientes FRED y PyOBD, con inyeccion tipada testeable en clientes externos restantes.
+- 2026-05-01: completado item P1 de seguridad: auditoria operativa de credenciales reforzada con tests para asegurar que la resolucion CLI de usuario/password no imprime secretos.
+- 2026-05-01: completado item P1 de seguridad: filtrado de secretos en `/status/detail` queda cubierto tanto en `error` como en `log_tail`, respaldado por pruebas unitarias.
+- 2026-05-01: completado item P2 de arquitectura/mantenibilidad: `apply_base_scores` queda reducido a orquestacion minima sobre `_parse_base_score_config(...)` y `_compute_base_scores_from_config(...)`; el refactor incremental se considera cerrado.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -170,6 +174,10 @@ Prueba de cierre (si aplica):
 - validar que `Momentum_Refuerzo` y `Momentum_Reduccion` no cambian tras la extraccion de `_weighted_momentum` (refactor sin cambio funcional)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `score_refuerzo` y `score_reduccion` se mantienen estables para el mismo input tras la centralizacion de pesos con `_weight`
+- correr `python -m unittest tests.test_fred_client tests.test_pyobd_client -v`
+- validar que FRED y PyOBD aceptan clientes inyectados tipados sin depender de patching interno del modulo
+- correr `python -m unittest tests.test_generate_real_report_split_cli tests.test_server -v`
+- validar que la resolucion CLI de credenciales y `/status/detail` no exponen usuario/password reales en mensajes, `error` ni `log_tail`
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
@@ -405,8 +413,8 @@ Hallazgos:
 
 Roadmap:
 
-- P1: `POST /cancel` para terminar proceso y limpiar estado.
-- P1: Detectar PID file huerfano al arrancar y marcar `interrupted`.
+- P1: `POST /cancel` para terminar proceso y limpiar estado. (completado)
+- P1: Detectar PID file huerfano al arrancar y marcar `interrupted`. (completado)
 - P2: Validar `aporte_externo_ars >= 0` en Pydantic. (completado)
 - P2: Manejar excepcion de `Popen` con 500 claro. (completado)
 
@@ -423,7 +431,7 @@ Hallazgos:
 
 Roadmap:
 
-- P1: Boton "Cancelar corrida" cuando `running`.
+- P1: Boton "Cancelar corrida" cuando `running`. (completado)
 - P1: Boton "Ver log completo" en error apuntando a `/status/detail`. (completado)
 - P2: Panel de corridas recientes (ultimas 5). (completado)
 - P2: Tooltip para "Aporte externo ARS". (completado)
@@ -440,7 +448,7 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Modal custom para confirmacion.
+- P2: Modal custom para confirmacion. (completado)
 - P2: Texto/ARIA junto a indicadores de estado. (completado)
 - P2: Seccion de reportes anteriores (`/reports/`). (completado)
 - P3: Indicador de progreso animado. (completado)
@@ -457,9 +465,9 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Partir `apply_base_scores` en sub-funciones tematicas. (avance significativo en curso)
+- P2: Partir `apply_base_scores` en sub-funciones tematicas. (completado)
 - P2: Extraer `_comentario_operativo` de sizing. (completado)
-- P3: Formalizar interfaces con `typing.Protocol`.
+- P3: Formalizar interfaces con `typing.Protocol`. (completado)
 
 ### 5) Calidad de codigo
 
@@ -472,7 +480,7 @@ Hallazgos:
 
 Roadmap:
 
-- P2: Centralizar utilidades comunes en `src/common/`.
+- P2: Centralizar utilidades comunes en `src/common/`. (completado)
 - P2: Refactor de funciones largas. (avance significativo en curso)
 - P3: Completar type hints donde queden `object` genericos.
 
@@ -489,9 +497,9 @@ Hallazgos:
 
 Roadmap:
 
-- P1: Llevar sizing y bcra a >=82%.
+- P1: Llevar sizing y bcra a >=82%. (completado)
 - P1: Subir floor de CI de 82% a 85%. (completado)
-- P2: Smoke de scripts Bash en Unix.
+- P2: Smoke de scripts Bash en Unix. (completado)
 - P3: Test concurrente: segundo `/run` devuelve 409. (completado)
 
 ### 7) Seguridad
@@ -500,15 +508,15 @@ Estado: entorno local (`127.0.0.1`) y password no persistida en navegador.
 
 Hallazgos:
 
-- Sin autenticacion en endpoints operativos (quedan abiertos `/cancel`, `/status`, `/status/detail`).
+- Autenticacion por token de sesion ya aplicada en endpoints operativos; resta evolucionar hardening (scope/expiracion/rate-limit por endpoint).
 - Sin TLS (mitigado por localhost).
 - Sin rate limiting en `POST /run`.
 
 Roadmap:
 
-- P1: Auditar que nunca se impriman credenciales.
-- P1: Filtrar `log_tail` para secretos.
-- P2: Token de sesion simple para `/run`.
+- P1: Auditar que nunca se impriman credenciales. (completado)
+- P1: Filtrar `log_tail` para secretos. (completado)
+- P2: Token de sesion simple para `/run`. (completado)
 - P2: Limitar largo de `username/password`. (completado)
 - P3: Rate limiting de `/run` (3/min). (completado)
 
@@ -523,7 +531,7 @@ Hallazgos:
 
 Roadmap:
 
-- P1: Retry con backoff para IOL y BCRA.
+- P1: Retry con backoff para IOL y BCRA. (completado)
 - P2: Exponer `elapsed_seconds`. (completado)
 - P3: Cache intradia TTL 15 min. (completado)
 
@@ -539,9 +547,9 @@ Hallazgos:
 
 Roadmap:
 
-- P1: Backup diario de CSV runtime.
+- P1: Backup diario de CSV runtime. (completado)
 - P2: Migrar montos criticos a `Decimal`.
-- P2: Retencion configurable (default 90 dias).
+- P2: Retencion configurable (default 90 dias). (completado)
 - P3: Validacion de integridad al arranque. (completado)
 
 ### 10) DevOps e Infra
@@ -556,7 +564,7 @@ Hallazgos:
 
 Roadmap:
 
-- P1: Script de release (version + tag + build).
+- P1: Script de release (version + tag + build). (completado)
 - P2: Agregar `macos-latest` a matriz CI. (completado)
 - P3: Dockerfile para dev/testing. (completado)
 
@@ -574,7 +582,7 @@ Roadmap:
 
 - P2: Crear `docs/decisions/` con ADRs base. (completado)
 - P2: Crear `CONTRIBUTING.md`. (completado)
-- P2: Refactor `apply_base_scores`.
+- P2: Refactor `apply_base_scores`. (completado)
 
 ### 12) Escalabilidad
 
@@ -590,7 +598,7 @@ Roadmap:
 
 - P2: Retencion configurable de historiales. (completado)
 - P2: Checklist formal para alta de instrumento. (completado)
-- P3: Protocol de clientes externos. (avance extendido a `argentinadatos` y `bonistas_client`)
+- P3: Protocol de clientes externos. (completado)
 
 ### 13) Accesibilidad
 
@@ -617,12 +625,12 @@ Estado: Windows cubierto; macOS/Linux parcial.
 Hallazgos:
 
 - Flujo operativo principal sigue centrado en PS1.
-- Faltan scripts Bash equivalentes.
+- Scripts Bash base ya implementados; resta cerrar Fase 2 en `pwsh` cross-platform.
 - Sin matriz formal de navegadores soportados.
 
 Roadmap:
 
-- P1: Fase 1 cross-platform (scripts Bash).
+- P1: Fase 1 cross-platform (scripts Bash). (completado)
 - P2: Fase 2 con `pwsh` cross-platform.
 - P3: pruebas mobile/responsive del reporte.
 
@@ -658,7 +666,7 @@ Roadmap:
 - P1: Referenciar `/docs` y `/openapi.json` en README. (completado)
 - P2: `CONTRIBUTING.md`. (completado)
 - P2: ADRs minimos. (completado)
-- P3: diagrama Mermaid de arquitectura.
+- P3: diagrama Mermaid de arquitectura. (completado)
 
 ### 17) Integraciones
 
@@ -672,8 +680,8 @@ Hallazgos:
 
 Roadmap:
 
-- P1: `_call_with_retry()` en IOL y BCRA.
-- P2: circuit breaker simple por API.
+- P1: `_call_with_retry()` en IOL y BCRA. (completado)
+- P2: circuit breaker simple por API. (completado)
 - P3: `GET /api-health`. (completado)
 
 ### 18) Usabilidad operativa
@@ -690,7 +698,7 @@ Roadmap:
 
 - P2: Panel de reportes en UI. (completado)
 - P3: scheduler opcional. (completado)
-- P3: pagina de configuracion basica en UI. (completado: editor avanzado `scoring/action/sizing` con backups y restore)
+- P3: pagina de configuracion basica en UI. (completado)
 
 ### 19) Validacion estadistica y madurez de senales
 

@@ -129,6 +129,28 @@ class GenerateRealReportSplitCliTests(unittest.TestCase):
         loaded = load_local_env_impl(env_path, environ={})
         self.assertEqual(loaded, {})
 
+    def test_resolve_iol_credentials_impl_does_not_print_secret_values(self) -> None:
+        printed: list[str] = []
+        username, password = resolve_iol_credentials_impl(
+            username_override="",
+            password_override="",
+            non_interactive=False,
+            load_local_env_fn=lambda: {},
+            environ={"IOL_USERNAME": "demo_user@example.com", "IOL_PASSWORD": "super-secret"},
+            input_fn=lambda _x: "",
+            getpass_fn=lambda _x: "",
+            print_fn=printed.append,
+        )
+
+        self.assertEqual(username, "demo_user@example.com")
+        self.assertEqual(password, "super-secret")
+        self.assertEqual(
+            printed,
+            ["Usuario IOL: cargado desde entorno", "Password IOL: cargado desde entorno"],
+        )
+        self.assertNotIn("demo_user@example.com", " ".join(printed))
+        self.assertNotIn("super-secret", " ".join(printed))
+
 
 if __name__ == "__main__":
     unittest.main()

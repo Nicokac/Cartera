@@ -34,3 +34,15 @@ class HttpRequestProtocol(Protocol):
     ) -> HttpResponseProtocol:
         ...
 
+
+class FredSeriesClientProtocol(Protocol):
+    def get_series(self, series_id: str) -> Any:
+        ...
+
+
+class PyOBDClientProtocol(Protocol):
+    def get_current_quote(self, ticker: str) -> object:
+        ...
+
+    def get_daily_history(self, ticker: str, from_date: str, to_date: str) -> object:
+        ...

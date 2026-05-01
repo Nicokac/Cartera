@@ -6,6 +6,8 @@ from typing import Any
 
 import pandas as pd
 
+from clients.protocols import FredSeriesClientProtocol
+
 
 DEFAULT_FRED_SERIES = {
     "ust_5y_pct": "DGS5",
@@ -33,7 +35,7 @@ def _load_local_env(path: Path = DEFAULT_ENV_PATH) -> dict[str, str]:
     return loaded
 
 
-def _get_fred_client(api_key: str | None = None) -> Any:
+def _get_fred_client(api_key: str | None = None) -> FredSeriesClientProtocol:
     try:
         from fredapi import Fred
     except ImportError as exc:
@@ -55,8 +57,9 @@ def get_ust_series(
     *,
     api_key: str | None = None,
     series_map: dict[str, str] | None = None,
+    client: FredSeriesClientProtocol | None = None,
 ) -> pd.DataFrame:
-    fred = _get_fred_client(api_key=api_key)
+    fred = client or _get_fred_client(api_key=api_key)
     series_map = series_map or dict(DEFAULT_FRED_SERIES)
 
     data: dict[str, pd.Series] = {}
@@ -81,8 +84,9 @@ def get_ust_latest(
     *,
     api_key: str | None = None,
     series_map: dict[str, str] | None = None,
+    client: FredSeriesClientProtocol | None = None,
 ) -> dict[str, Any] | None:
-    df = get_ust_series(api_key=api_key, series_map=series_map)
+    df = get_ust_series(api_key=api_key, series_map=series_map, client=client)
     if df.empty:
         return None
 

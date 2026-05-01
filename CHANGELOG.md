@@ -356,6 +356,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - persistencia correcta de JSON formateado
   - `404` para config name no soportado
   - persistencia en archivo objetivo (`action_rules.json`)
+- `docs/product-roadmap.md`: normalizacion de estado de roadmap
+  - marcado explicito de items ya implementados como `(completado)`
+  - limpieza de hallazgos desactualizados en Seguridad y Compatibilidad
+  - deja visible la deuda real pendiente para cierre del roadmap
+- contratos tipados para clientes externos:
+  - `src/clients/protocols.py` agrega `FredSeriesClientProtocol` y `PyOBDClientProtocol`
+  - `src/clients/fred_client.py` y `src/clients/pyobd_client.py` aceptan clientes inyectados y tipados
+  - `tests/test_fred_client.py` y `tests/test_pyobd_client.py` cubren la nueva inyeccion directa
+- auditoria de credenciales:
+  - `tests/test_generate_real_report_split_cli.py` verifica que la resolucion CLI de credenciales no imprima valores sensibles
+  - se consolida cierre de roadmap para auditoria de secretos y filtrado de `log_tail`
+- `docs/product-roadmap.md`: cierre formal del refactor incremental de `apply_base_scores`
+  y de la adopcion de `typing.Protocol` en clientes externos
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo

@@ -66,6 +66,12 @@ class PyOBDClientTests(unittest.TestCase):
 
         self.assertTrue(df.empty)
 
+    def test_get_bond_volume_context_accepts_injected_protocol_client(self) -> None:
+        df = get_bond_volume_context(["GD30"], client=_FakePyOBD())
+
+        self.assertFalse(df.empty)
+        self.assertEqual(df.iloc[0]["Ticker_IOL"], "GD30")
+
 
 if __name__ == "__main__":
     unittest.main()

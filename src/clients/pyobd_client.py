@@ -5,11 +5,13 @@ from typing import Any
 
 import pandas as pd
 
+from clients.protocols import PyOBDClientProtocol
+
 
 DEFAULT_LOOKBACK_DAYS = 60
 
 
-def _get_pyobd_client() -> Any:
+def _get_pyobd_client() -> PyOBDClientProtocol:
     try:
         from PyOBD import openBYMAdata
         return openBYMAdata()
@@ -66,12 +68,13 @@ def get_bond_volume_context(
     *,
     lookback_days: int = DEFAULT_LOOKBACK_DAYS,
     today: date | None = None,
+    client: PyOBDClientProtocol | None = None,
 ) -> pd.DataFrame:
     clean_tickers = sorted({str(ticker).strip().upper() for ticker in tickers if str(ticker).strip()})
     if not clean_tickers:
         return pd.DataFrame()
 
-    client = _get_pyobd_client()
+    client = client or _get_pyobd_client()
     end_date = today or date.today()
     start_date = end_date - timedelta(days=lookback_days)
     rows: list[dict[str, object]] = []

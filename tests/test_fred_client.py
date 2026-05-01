@@ -74,6 +74,12 @@ class FredClientTests(unittest.TestCase):
 
         self.assertIsNone(payload)
 
+    def test_get_ust_series_accepts_injected_protocol_client(self) -> None:
+        df = get_ust_series(client=_FakeFred(api_key="ignored"))
+
+        self.assertFalse(df.empty)
+        self.assertAlmostEqual(df.iloc[-1]["ust_spread_10y_5y_pct"], 0.20, places=2)
+
 
 if __name__ == "__main__":
     unittest.main()
