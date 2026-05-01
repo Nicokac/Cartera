@@ -372,6 +372,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     configuracion desde backup_path validado (ruta segura + prefijo esperado)
   - naming de backups endurecido con microsegundos para evitar colisiones
     en guardados consecutivos dentro del mismo segundo
+  - la UI avanzada permite restore desde backups recientes (`Usar` + `Restaurar backup`)
+    con confirmacion explicita previo al rollback
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

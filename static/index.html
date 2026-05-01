@@ -53,6 +53,8 @@
     .config-backups { margin-top: .6rem; font-size: .82rem; color: #374151; }
     .config-backups ul { margin-top: .35rem; padding-left: 1rem; }
     .config-backups li { margin-bottom: .2rem; }
+    .backup-actions { margin-top: .35rem; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+    .backup-actions input { width: 100%; max-width: 560px; padding: .35rem .5rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: .8rem; }
     .config-alert { margin-top: .6rem; padding: .5rem .65rem; border-radius: 6px; font-size: .86rem; display: none; }
     .config-alert.ok { background: #dcfce7; color: #166534; }
     .config-alert.error { background: #fee2e2; color: #991b1b; }
@@ -181,6 +183,10 @@
     <div id="config-meta" class="config-meta"></div>
     <div id="config-dirty" class="config-dirty"></div>
     <div id="config-backups" class="config-backups"></div>
+    <div class="backup-actions">
+      <input type="text" id="backup-path" placeholder="Selecciona un backup desde la lista..." />
+      <button type="button" class="secondary" id="btn-restore-backup">Restaurar backup</button>
+    </div>
     <div id="scoring-alert" class="config-alert" role="alert"></div>
   </section>
 
@@ -478,6 +484,8 @@
 
     async function loadConfigBackups(kind) {
       const el = document.getElementById("config-backups");
+      const backupPathInput = document.getElementById("backup-path");
+      backupPathInput.value = "";
       try {
         const res = await fetchWithSession(`/config/${encodeURIComponent(kind)}/backups`);
         if (!res.ok) {
@@ -491,12 +499,55 @@
         }
         const top = rows.slice(0, 5);
         const items = top
-          .map((row) => `<li>${row.modified_at || "-"} | ${row.filename || "-"} | ${row.size_bytes || 0} bytes</li>`)
+          .map(
+            (row) =>
+              `<li>${row.modified_at || "-"} | ${row.filename || "-"} | ${row.size_bytes || 0} bytes <button type="button" class="secondary" data-backup-path="${String(row.path || "").replace(/"/g, "&quot;")}">Usar</button></li>`
+          )
           .join("");
         el.innerHTML = `Backups recientes:<ul>${items}</ul>`;
+        el.querySelectorAll("button[data-backup-path]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            backupPathInput.value = btn.getAttribute("data-backup-path") || "";
+          });
+        });
       } catch (_) {
         el.textContent = "Backups recientes: no disponibles.";
       }
+    }
+
+    async function restoreFromBackup() {
+      clearScoringAlert();
+      const kind = document.getElementById("strategy-config-kind").value;
+      const backupPath = (document.getElementById("backup-path").value || "").trim();
+      if (!backupPath) {
+        showScoringAlert("Selecciona un backup primero.", true);
+        return;
+      }
+      const ok = window.confirm(`Restaurar ${kind}_rules.json desde este backup?\n${backupPath}`);
+      if (!ok) {
+        return;
+      }
+      const res = await fetchWithSession(`/config/${encodeURIComponent(kind)}/restore`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ backup_path: backupPath }),
+      });
+      if (!res.ok) {
+        let detail = "No se pudo restaurar desde backup.";
+        try {
+          const payload = await res.json();
+          if (payload && payload.detail) {
+            detail = payload.detail;
+          }
+        } catch (_) {}
+        showScoringAlert(detail, true);
+        return;
+      }
+      showScoringAlert("Configuracion restaurada desde backup.");
+      await loadConfigOptions();
+      await loadScoringConfig();
     }
 
     function renderConfigMeta(kind) {
@@ -781,6 +832,7 @@
       document.getElementById("btn-format-scoring").addEventListener("click", formatScoringConfigJson);
       document.getElementById("btn-revert-scoring").addEventListener("click", revertScoringConfigChanges);
       document.getElementById("btn-save-scoring").addEventListener("click", saveScoringConfig);
+      document.getElementById("btn-restore-backup").addEventListener("click", restoreFromBackup);
       document.getElementById("strategy-config-kind").addEventListener("change", loadScoringConfig);
       document.getElementById("scoring-config").addEventListener("input", updateConfigEditorState);
       document.getElementById("scoring-config").addEventListener("keydown", handleConfigEditorSaveShortcut);
