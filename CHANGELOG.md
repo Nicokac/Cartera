@@ -127,6 +127,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `.github/workflows/ci.yml`: agrega `tests.test_text_utils` a la suite estable
 - `.github/workflows/ci.yml`: eleva el piso de cobertura de `82%` a `85%`
   en `coverage report --fail-under`
+- `docs/product-roadmap.md`: se marca como completado el ítem de Dimensión 18
+  sobre configuración básica en UI, reflejando el alcance real ya implementado
 - `static/index.html`: obtiene token via `GET /session` y lo envia en `POST /run`
 - `tests/test_server.py`: cobertura de `GET /session` y rechazo `401` de `/run` con token invalido
 - `server.py`: `/status/detail` ahora devuelve `log_tail` ampliado y campo `log_lines`

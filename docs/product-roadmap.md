@@ -126,6 +126,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance de usabilidad operativa/API: nuevo `POST /config/{config_name}/restore` para rollback controlado desde backup_path con validacion de ruta segura.
 - 2026-05-01: avance UX operativo: restore de configuracion desde backup integrado en UI avanzada (seleccion desde lista + confirmacion).
 - 2026-05-01: hardening API de backups: `GET /config/{config_name}/backups` ahora valida `limit` en rango `1..100`.
+- 2026-05-01: cierre funcional de configuración operativa en UI: editor avanzado completo para `scoring/action/sizing` con discovery, validación JSON, dirty-state, format/revert, backup/restore y trazabilidad de cambios.
 - 2026-05-01: completado item de testing CI: piso de cobertura sube de 82% a 85% en `.github/workflows/ci.yml` (cobertura local suite estable: 89%).
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 - 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
@@ -668,7 +669,7 @@ Roadmap:
 
 - P2: Panel de reportes en UI. (completado)
 - P3: scheduler opcional. (completado)
-- P3: pagina de configuracion basica en UI. (avance ampliado a `scoring/action/sizing` con endpoint generico protegido)
+- P3: pagina de configuracion basica en UI. (completado: editor avanzado `scoring/action/sizing` con backups y restore)
 
 ### 19) Validacion estadistica y madurez de senales
 
