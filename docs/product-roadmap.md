@@ -14,7 +14,16 @@ Estado final al 2026-05-01:
 - pendientes reales abiertos: `0`
 - fases `v0.3`, `v0.4` y `v0.5` cerradas
 - documento pasa de plan de ejecucion a registro de cierre de implementacion
-- release materializada para distribucion: `0.5.1`
+- release materializada para distribucion: `0.5.3`
+
+## Continuidad post-cierre (UI)
+
+Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a UX/UI del reporte:
+
+- documento de ejecucion: `docs/report-ui-embellecimiento-plan.md`
+- alcance: embellecimiento visual y mejora de jerarquia, manteniendo arquitectura single-page
+- estrategia: auditoria estructural -> modularizacion de shell/componentes -> prioridades visuales -> implementacion incremental
+- baseline de version para esta etapa: `0.5.3`
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

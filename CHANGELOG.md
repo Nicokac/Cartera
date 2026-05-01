@@ -6,7 +6,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
-Sin cambios registrados.
+### Added
+
+- `docs/report-ui-embellecimiento-plan.md`: plan post v0.5 para embellecimiento del reporte con:
+  - auditoria estructural (layout/componentes/modulos)
+  - arquitectura objetivo single-page modular
+  - prioridades visuales y fases de implementacion
+  - checklist de pruebas por tipo de cambio (solo si aplica)
+
+### Changed
+
+- `docs/product-roadmap.md`: agregado bloque de continuidad post-cierre para abrir la linea de trabajo UI/embellecimiento usando el nuevo plan.
+- `docs/product-roadmap.md` y `docs/report-ui-embellecimiento-plan.md`: alineadas a baseline de version `0.5.3`.
+- versionado normalizado a `0.5.3` en artefactos de release:
+  - `pyproject.toml` (`project.version`)
+  - `README.md` (version vigente, nombre de ZIP y ejemplos de `release.ps1`)
 
 ## [0.5.3] - 2026-05-01
 
