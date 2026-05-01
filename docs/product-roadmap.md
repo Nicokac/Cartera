@@ -148,6 +148,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance P3 de calidad/tipado: `analytics.portfolio_risk` y `analytics.technical` incorporan `TypedDict` para filas/bundles y reemplazan configuraciones `dict[str, object]` por tipos mas especificos sin cambiar comportamiento.
 - 2026-05-01: completado item P3 de calidad/tipado: barrido final de `dict[str, object]`/contratos genericos en `decision.scoring`, `clients.bcra`, `clients.pyobd_client` y `portfolio.operations`; el codigo fuente (`src/`) queda sin remanentes de esos contratos genericos en puntos relevados del roadmap.
 - 2026-05-01: completado item P2 de compatibilidad: wrappers PowerShell (`setup/start/status/smoke/run`) ya operan en `pwsh` cross-platform con resolucion de `.venv` por SO, apertura de browser portable y uso de token de sesion para endpoints protegidos.
+- 2026-05-01: completado item P2 de mantenibilidad: `build_operational_proposal` en `src/decision/sizing.py` se parte en helpers internos para acciones operativas, comentarios, rankings, fondeo y asignacion de refuerzos; el pendiente de refactor de funciones largas queda cerrado.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -199,6 +200,8 @@ Prueba de cierre (si aplica):
 - validar que el barrido final de tipado en `scoring`, `bcra`, `pyobd_client` y `operations` no altera contratos ni resultados funcionales
 - correr `python -m unittest tests.test_powershell_scripts -v`
 - revisar `pwsh ./scripts/setup_local_app.ps1`, `pwsh ./scripts/status_local_app.ps1 -Detailed` y `pwsh ./scripts/smoke_local_app.ps1` para confirmar resolucion cross-platform de `.venv`, apertura portable y acceso autenticado a `/status` y `/status/detail`
+- correr `python -m unittest tests.test_sizing tests.test_pipeline tests.test_operations -v`
+- validar que `build_operational_proposal` mantiene exactamente los mismos candidatos top/descartados, comentarios operativos y calculo de fondeo tras la extraccion de helpers internos
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
@@ -502,7 +505,7 @@ Hallazgos:
 Roadmap:
 
 - P2: Centralizar utilidades comunes en `src/common/`. (completado)
-- P2: Refactor de funciones largas. (avance significativo en curso)
+- P2: Refactor de funciones largas. (completado)
 - P3: Completar type hints donde queden `object` genericos. (completado)
 
 ### 6) Testing

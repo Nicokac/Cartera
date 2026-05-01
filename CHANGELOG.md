@@ -110,6 +110,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `status -Detailed` y `smoke` obtienen token via `GET /session` para consultar `/status` y `/status/detail`
   - `start/run` usan apertura de browser portable (`Start-Process` / `open` / `xdg-open`)
 - `README.md`, `docs/baseline-actual.md` y `docs/product-roadmap.md` actualizados para reflejar cierre de la Fase 2 `pwsh` cross-platform
+- `src/decision/sizing.py`: `build_operational_proposal` se descompone en helpers privados para:
+  - aplicacion de acciones operativas
+  - armado de comentarios
+  - seleccion de rankings/top/descartados
+  - calculo de resumen de fondeo
+  - asignacion de fondeo sugerido a refuerzos
+- `docs/product-roadmap.md` actualiza el cierre formal del pendiente `P2` de refactor de funciones largas
 - `server.py`: cuando una corrida se cancela, el estado final queda en `interrupted`
   y se limpia la referencia del proceso al finalizar el watcher
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion

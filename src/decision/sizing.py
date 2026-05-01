@@ -123,158 +123,143 @@ def _prepare_allocation_frame(
     return out
 
 
-def build_operational_proposal(
-    final_decision: pd.DataFrame,
+def _apply_operational_actions(
+    propuesta: pd.DataFrame,
     *,
-    mep_real: float | None,
-    usar_liquidez_iol: bool = True,
-    aporte_externo_ars: float = 0.0,
-    action_rules: Mapping[str, Any] | None = None,
-    sizing_rules: Mapping[str, Any] | None = None,
-) -> SizingBundle:
-    action_rules = action_rules or {}
-    sizing_rules = sizing_rules or {}
-    top_candidates = int(sizing_rules.get("top_candidates", 3))
-    funding_policy = sizing_rules.get("funding_policy", {}) or {}
-    strong_refuerzo_threshold = float(funding_policy.get("strong_refuerzo_threshold", 0.20))
-    pct_fondeo_rules = funding_policy.get("pct_fondeo", {}) or {}
-    pct_fondeo_3_plus = float(pct_fondeo_rules.get("strong_refuerzo_3_plus", 0.30))
-    pct_fondeo_1_plus = float(pct_fondeo_rules.get("strong_refuerzo_1_plus", 0.20))
-    pct_fondeo_default = float(pct_fondeo_rules.get("default", 0.10))
-    default_bond_rebalance_threshold = float(action_rules.get("bono_rebalance_threshold", -0.20))
-    bono_monitor_max = float(action_rules.get("bono_monitor_max", 0.08))
-    bond_subfamily_thresholds = action_rules.get("bond_subfamily_thresholds", {}) or {}
+    usar_liquidez_iol: bool,
+    action_rules: Mapping[str, Any],
+) -> pd.DataFrame:
+    out = propuesta.copy()
+    funding_policy = action_rules
+    default_bond_rebalance_threshold = float(funding_policy.get("bono_rebalance_threshold", -0.20))
+    bono_monitor_max = float(funding_policy.get("bono_monitor_max", 0.08))
+    bond_subfamily_thresholds = funding_policy.get("bond_subfamily_thresholds", {}) or {}
 
-    propuesta = final_decision.copy()
-    propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
-
-    if "Es_Liquidez" in propuesta.columns:
-        mask_liq = propuesta["Es_Liquidez"].fillna(propuesta["Tipo"].eq("Liquidez"))
+    if "Es_Liquidez" in out.columns:
+        mask_liq = out["Es_Liquidez"].fillna(out["Tipo"].eq("Liquidez"))
     else:
-        mask_liq = propuesta["Tipo"].eq("Liquidez")
+        mask_liq = out["Tipo"].eq("Liquidez")
     if usar_liquidez_iol:
-        propuesta.loc[mask_liq, "accion_operativa"] = np.where(
-            propuesta.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,
+        out.loc[mask_liq, "accion_operativa"] = np.where(
+            out.loc[mask_liq, "score_despliegue_liquidez"].fillna(0) >= 0.55,
             ACTION_DESPLEGAR_LIQUIDEZ,
             ACTION_MANTENER_LIQUIDEZ,
         )
     else:
-        propuesta.loc[mask_liq, "accion_operativa"] = ACTION_MANTENER_LIQUIDEZ_BLOQUEADA
+        out.loc[mask_liq, "accion_operativa"] = ACTION_MANTENER_LIQUIDEZ_BLOQUEADA
 
-    mask_bonos = propuesta["Tipo"] == "Bono"
-    bond_rebalance_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
+    mask_bonos = out["Tipo"] == "Bono"
+    asset_subfamily = out.get("asset_subfamily", pd.Series(index=out.index, dtype=object))
+    bond_rebalance_threshold = asset_subfamily.map(
         lambda subfamily: float(
             (bond_subfamily_thresholds.get(subfamily, {}) or {}).get(
                 "rebalance_threshold", default_bond_rebalance_threshold
             )
         )
     )
-    bond_refuerzo_threshold = propuesta.get("asset_subfamily", pd.Series(index=propuesta.index, dtype=object)).map(
+    bond_refuerzo_threshold = asset_subfamily.map(
         lambda subfamily: (bond_subfamily_thresholds.get(subfamily, {}) or {}).get("refuerzo_threshold")
     )
     bond_refuerzo_threshold = pd.to_numeric(bond_refuerzo_threshold, errors="coerce")
 
-    propuesta.loc[
+    out.loc[
         mask_bonos
         & bond_refuerzo_threshold.notna()
-        & (propuesta["score_unificado"] >= bond_refuerzo_threshold),
+        & (out["score_unificado"] >= bond_refuerzo_threshold),
         "accion_operativa",
     ] = ACTION_REFUERZO
-    propuesta.loc[mask_bonos & (propuesta["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
+    out.loc[mask_bonos & (out["score_unificado"] <= bond_rebalance_threshold), "accion_operativa"] = (
         ACTION_REBALANCEAR
     )
-    propuesta.loc[
+    out.loc[
         mask_bonos
         & ~(
             bond_refuerzo_threshold.notna()
-            & (propuesta["score_unificado"] >= bond_refuerzo_threshold)
+            & (out["score_unificado"] >= bond_refuerzo_threshold)
         )
-        & (propuesta["score_unificado"] > bond_rebalance_threshold)
-        & (propuesta["score_unificado"] < bono_monitor_max),
+        & (out["score_unificado"] > bond_rebalance_threshold)
+        & (out["score_unificado"] < bono_monitor_max),
         "accion_operativa",
     ] = ACTION_MANTENER_MONITOREAR
+    return out
 
-    propuesta["comentario_operativo"] = propuesta.apply(_comentario_operativo, axis=1)
+
+def _apply_operational_comments(propuesta: pd.DataFrame) -> pd.DataFrame:
+    out = propuesta.copy()
+    out["comentario_operativo"] = out.apply(_comentario_operativo, axis=1)
+
+    mask_bonos = out["Tipo"] == "Bono"
+    if "Es_Liquidez" in out.columns:
+        mask_liq = out["Es_Liquidez"].fillna(out["Tipo"].eq("Liquidez"))
+    else:
+        mask_liq = out["Tipo"].eq("Liquidez")
     mask_market_assets = ~(mask_bonos | mask_liq)
-    if "motivo_accion" in propuesta.columns:
-        propuesta.loc[
-            mask_market_assets & propuesta["motivo_accion"].notna(),
+    if "motivo_accion" in out.columns:
+        out.loc[
+            mask_market_assets & out["motivo_accion"].notna(),
             "comentario_operativo",
-        ] = propuesta.loc[
-            mask_market_assets & propuesta["motivo_accion"].notna(),
+        ] = out.loc[
+            mask_market_assets & out["motivo_accion"].notna(),
             "motivo_accion",
         ]
+    return out
 
-    top_reforzar_final = (
-        propuesta[propuesta["accion_operativa"] == ACTION_REFUERZO]
-        .sort_values("score_unificado", ascending=False)
-        .head(top_candidates)
-        .copy()
-    )
-    top_reducir_final = (
-        propuesta[propuesta["accion_operativa"] == ACTION_REDUCIR]
-        .sort_values("score_unificado", ascending=True)
-        .head(top_candidates)
-        .copy()
-    )
-    top_bonos_rebalancear = (
-        propuesta[propuesta["accion_operativa"] == ACTION_REBALANCEAR]
-        .sort_values("score_unificado", ascending=True)
-        .head(top_candidates)
-        .copy()
-    )
-    top_fondeo = (
-        propuesta[propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ]
-        .sort_values(["score_despliegue_liquidez", "Valorizado_ARS"], ascending=[False, False])
-        .head(top_candidates)
-        .copy()
-    )
 
-    descartados_reforzar = (
-        propuesta[propuesta["accion_operativa"] == ACTION_REFUERZO]
-        .sort_values("score_unificado", ascending=False)
-        .iloc[top_candidates:]
-        .copy()
-    )
-    descartados_reducir = (
-        propuesta[propuesta["accion_operativa"] == ACTION_REDUCIR]
-        .sort_values("score_unificado", ascending=True)
-        .iloc[top_candidates:]
-        .copy()
-    )
-    descartados_rebalancear = (
-        propuesta[propuesta["accion_operativa"] == ACTION_REBALANCEAR]
-        .sort_values("score_unificado", ascending=True)
-        .iloc[top_candidates:]
-        .copy()
-    )
-    descartados_fondeo = (
-        propuesta[propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ]
-        .sort_values(["score_despliegue_liquidez", "Valorizado_ARS"], ascending=[False, False])
-        .iloc[top_candidates:]
-        .copy()
-    )
+def _build_action_rankings(
+    propuesta: pd.DataFrame,
+    *,
+    top_candidates: int,
+) -> dict[str, pd.DataFrame]:
+    ranking_specs = {
+        "top_reforzar_final": (ACTION_REFUERZO, ["score_unificado"], [False], slice(0, top_candidates)),
+        "top_reducir_final": (ACTION_REDUCIR, ["score_unificado"], [True], slice(0, top_candidates)),
+        "top_bonos_rebalancear": (ACTION_REBALANCEAR, ["score_unificado"], [True], slice(0, top_candidates)),
+        "top_fondeo": (
+            ACTION_DESPLEGAR_LIQUIDEZ,
+            ["score_despliegue_liquidez", "Valorizado_ARS"],
+            [False, False],
+            slice(0, top_candidates),
+        ),
+        "descartados_reforzar": (ACTION_REFUERZO, ["score_unificado"], [False], slice(top_candidates, None)),
+        "descartados_reducir": (ACTION_REDUCIR, ["score_unificado"], [True], slice(top_candidates, None)),
+        "descartados_rebalancear": (ACTION_REBALANCEAR, ["score_unificado"], [True], slice(top_candidates, None)),
+        "descartados_fondeo": (
+            ACTION_DESPLEGAR_LIQUIDEZ,
+            ["score_despliegue_liquidez", "Valorizado_ARS"],
+            [False, False],
+            slice(top_candidates, None),
+        ),
+    }
+    rankings: dict[str, pd.DataFrame] = {}
+    for key, (action, sort_cols, ascending, row_slice) in ranking_specs.items():
+        ordered = propuesta[propuesta["accion_operativa"] == action].sort_values(sort_cols, ascending=ascending)
+        rankings[key] = ordered.iloc[row_slice].copy()
+    return rankings
 
-    logger.info(
-        "Sizing proposal: top_candidates=%s refuerzos=%s/%s reducir=%s/%s rebalancear=%s/%s fondeo=%s/%s",
-        top_candidates,
-        len(top_reforzar_final),
-        int((propuesta["accion_operativa"] == ACTION_REFUERZO).sum()),
-        len(top_reducir_final),
-        int((propuesta["accion_operativa"] == ACTION_REDUCIR).sum()),
-        len(top_bonos_rebalancear),
-        int((propuesta["accion_operativa"] == ACTION_REBALANCEAR).sum()),
-        len(top_fondeo),
-        int((propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ).sum()),
-    )
-    logger.info(
-        "Sizing discarded candidates: refuerzos=%s reducir=%s rebalancear=%s fondeo=%s",
-        ",".join(descartados_reforzar["Ticker_IOL"].astype(str).tolist()) or "-",
-        ",".join(descartados_reducir["Ticker_IOL"].astype(str).tolist()) or "-",
-        ",".join(descartados_rebalancear["Ticker_IOL"].astype(str).tolist()) or "-",
-        ",".join(descartados_fondeo["Ticker_IOL"].astype(str).tolist()) or "-",
-    )
 
+class FundingSummary(TypedDict):
+    fuente_fondeo: str
+    pct_fondeo: float
+    aporte_externo_ars: float
+    aporte_externo_usd: float
+    monto_fondeo_liquidez_ars: float
+    monto_fondeo_liquidez_usd: float
+    monto_fondeo_ars: float
+    monto_fondeo_usd: float
+
+
+def _calculate_funding_summary(
+    propuesta: pd.DataFrame,
+    *,
+    top_fondeo: pd.DataFrame,
+    usar_liquidez_iol: bool,
+    aporte_externo_ars: float,
+    mep_real: float | None,
+    strong_refuerzo_threshold: float,
+    pct_fondeo_3_plus: float,
+    pct_fondeo_1_plus: float,
+    pct_fondeo_default: float,
+) -> FundingSummary:
     monto_fondeo_liquidez_ars = 0.0
     monto_fondeo_liquidez_usd = 0.0
     fuente_liquidez = None
@@ -311,35 +296,8 @@ def build_operational_proposal(
     else:
         fuente_fondeo = "Sin fondeo disponible"
 
-    if not top_reforzar_final.empty and monto_fondeo_ars > 0:
-        peso_scores = top_reforzar_final["score_unificado"].clip(lower=0)
-        if peso_scores.sum() > 0:
-            pesos_relativos = peso_scores / peso_scores.sum()
-        else:
-            pesos_relativos = pd.Series(
-                [1 / len(top_reforzar_final)] * len(top_reforzar_final),
-                index=top_reforzar_final.index,
-            )
-        top_reforzar_final["Fondeo_Sugerido_ARS"] = (pesos_relativos * monto_fondeo_ars).round(0)
-        top_reforzar_final["Fondeo_Sugerido_USD"] = (
-            top_reforzar_final["Fondeo_Sugerido_ARS"] / mep_real
-        ).round(2) if mep_real else np.nan
-    else:
-        top_reforzar_final["Fondeo_Sugerido_ARS"] = np.nan
-        top_reforzar_final["Fondeo_Sugerido_USD"] = np.nan
-
     return {
-        "propuesta": propuesta,
-        "top_reforzar_final": top_reforzar_final,
-        "top_reducir_final": top_reducir_final,
-        "top_bonos_rebalancear": top_bonos_rebalancear,
-        "top_fondeo": top_fondeo,
-        "descartados_reforzar": descartados_reforzar,
-        "descartados_reducir": descartados_reducir,
-        "descartados_rebalancear": descartados_rebalancear,
-        "descartados_fondeo": descartados_fondeo,
         "fuente_fondeo": fuente_fondeo,
-        "usar_liquidez_iol": usar_liquidez_iol,
         "pct_fondeo": pct_fondeo,
         "aporte_externo_ars": aporte_externo_ars,
         "aporte_externo_usd": aporte_externo_usd,
@@ -347,6 +305,120 @@ def build_operational_proposal(
         "monto_fondeo_liquidez_usd": monto_fondeo_liquidez_usd,
         "monto_fondeo_ars": monto_fondeo_ars,
         "monto_fondeo_usd": monto_fondeo_usd,
+    }
+
+
+def _assign_refuerzo_funding(
+    top_reforzar_final: pd.DataFrame,
+    *,
+    monto_fondeo_ars: float,
+    mep_real: float | None,
+) -> pd.DataFrame:
+    out = top_reforzar_final.copy()
+    if not out.empty and monto_fondeo_ars > 0:
+        peso_scores = out["score_unificado"].clip(lower=0)
+        if peso_scores.sum() > 0:
+            pesos_relativos = peso_scores / peso_scores.sum()
+        else:
+            pesos_relativos = pd.Series(
+                [1 / len(out)] * len(out),
+                index=out.index,
+            )
+        out["Fondeo_Sugerido_ARS"] = (pesos_relativos * monto_fondeo_ars).round(0)
+        out["Fondeo_Sugerido_USD"] = (
+            out["Fondeo_Sugerido_ARS"] / mep_real
+        ).round(2) if mep_real else np.nan
+    else:
+        out["Fondeo_Sugerido_ARS"] = np.nan
+        out["Fondeo_Sugerido_USD"] = np.nan
+    return out
+
+
+def build_operational_proposal(
+    final_decision: pd.DataFrame,
+    *,
+    mep_real: float | None,
+    usar_liquidez_iol: bool = True,
+    aporte_externo_ars: float = 0.0,
+    action_rules: Mapping[str, Any] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
+) -> SizingBundle:
+    action_rules = action_rules or {}
+    sizing_rules = sizing_rules or {}
+    top_candidates = int(sizing_rules.get("top_candidates", 3))
+    funding_policy = sizing_rules.get("funding_policy", {}) or {}
+    strong_refuerzo_threshold = float(funding_policy.get("strong_refuerzo_threshold", 0.20))
+    pct_fondeo_rules = funding_policy.get("pct_fondeo", {}) or {}
+    pct_fondeo_3_plus = float(pct_fondeo_rules.get("strong_refuerzo_3_plus", 0.30))
+    pct_fondeo_1_plus = float(pct_fondeo_rules.get("strong_refuerzo_1_plus", 0.20))
+    pct_fondeo_default = float(pct_fondeo_rules.get("default", 0.10))
+
+    propuesta = final_decision.copy()
+    propuesta["accion_operativa"] = propuesta["accion_sugerida_v2"]
+    propuesta = _apply_operational_actions(
+        propuesta,
+        usar_liquidez_iol=usar_liquidez_iol,
+        action_rules=action_rules,
+    )
+    propuesta = _apply_operational_comments(propuesta)
+    rankings = _build_action_rankings(propuesta, top_candidates=top_candidates)
+
+    logger.info(
+        "Sizing proposal: top_candidates=%s refuerzos=%s/%s reducir=%s/%s rebalancear=%s/%s fondeo=%s/%s",
+        top_candidates,
+        len(rankings["top_reforzar_final"]),
+        int((propuesta["accion_operativa"] == ACTION_REFUERZO).sum()),
+        len(rankings["top_reducir_final"]),
+        int((propuesta["accion_operativa"] == ACTION_REDUCIR).sum()),
+        len(rankings["top_bonos_rebalancear"]),
+        int((propuesta["accion_operativa"] == ACTION_REBALANCEAR).sum()),
+        len(rankings["top_fondeo"]),
+        int((propuesta["accion_operativa"] == ACTION_DESPLEGAR_LIQUIDEZ).sum()),
+    )
+    logger.info(
+        "Sizing discarded candidates: refuerzos=%s reducir=%s rebalancear=%s fondeo=%s",
+        ",".join(rankings["descartados_reforzar"]["Ticker_IOL"].astype(str).tolist()) or "-",
+        ",".join(rankings["descartados_reducir"]["Ticker_IOL"].astype(str).tolist()) or "-",
+        ",".join(rankings["descartados_rebalancear"]["Ticker_IOL"].astype(str).tolist()) or "-",
+        ",".join(rankings["descartados_fondeo"]["Ticker_IOL"].astype(str).tolist()) or "-",
+    )
+
+    funding = _calculate_funding_summary(
+        propuesta,
+        top_fondeo=rankings["top_fondeo"],
+        usar_liquidez_iol=usar_liquidez_iol,
+        aporte_externo_ars=aporte_externo_ars,
+        mep_real=mep_real,
+        strong_refuerzo_threshold=strong_refuerzo_threshold,
+        pct_fondeo_3_plus=pct_fondeo_3_plus,
+        pct_fondeo_1_plus=pct_fondeo_1_plus,
+        pct_fondeo_default=pct_fondeo_default,
+    )
+    rankings["top_reforzar_final"] = _assign_refuerzo_funding(
+        rankings["top_reforzar_final"],
+        monto_fondeo_ars=funding["monto_fondeo_ars"],
+        mep_real=mep_real,
+    )
+
+    return {
+        "propuesta": propuesta,
+        "top_reforzar_final": rankings["top_reforzar_final"],
+        "top_reducir_final": rankings["top_reducir_final"],
+        "top_bonos_rebalancear": rankings["top_bonos_rebalancear"],
+        "top_fondeo": rankings["top_fondeo"],
+        "descartados_reforzar": rankings["descartados_reforzar"],
+        "descartados_reducir": rankings["descartados_reducir"],
+        "descartados_rebalancear": rankings["descartados_rebalancear"],
+        "descartados_fondeo": rankings["descartados_fondeo"],
+        "fuente_fondeo": funding["fuente_fondeo"],
+        "usar_liquidez_iol": usar_liquidez_iol,
+        "pct_fondeo": funding["pct_fondeo"],
+        "aporte_externo_ars": funding["aporte_externo_ars"],
+        "aporte_externo_usd": funding["aporte_externo_usd"],
+        "monto_fondeo_liquidez_ars": funding["monto_fondeo_liquidez_ars"],
+        "monto_fondeo_liquidez_usd": funding["monto_fondeo_liquidez_usd"],
+        "monto_fondeo_ars": funding["monto_fondeo_ars"],
+        "monto_fondeo_usd": funding["monto_fondeo_usd"],
     }
 
 
