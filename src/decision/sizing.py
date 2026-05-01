@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
-from typing import TypedDict
+from typing import Any, TypedDict
 
 import numpy as np
 import pandas as pd
@@ -64,7 +65,7 @@ def _comentario_operativo(row: pd.Series) -> str:
 def _bucket_prudencia(
     row: pd.Series,
     *,
-    sizing_rules: dict[str, object] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
 ) -> str:
     sizing_rules = sizing_rules or {}
     bucket_beta_thresholds = sizing_rules.get("bucket_beta_thresholds", {}) or {}
@@ -97,7 +98,7 @@ def _prepare_allocation_frame(
     df: pd.DataFrame,
     *,
     bucket_weights: dict[str, float],
-    sizing_rules: dict[str, object] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     sizing_rules = sizing_rules or {}
     allocation_mix = sizing_rules.get("allocation_mix", {}) or {}
@@ -128,8 +129,8 @@ def build_operational_proposal(
     mep_real: float | None,
     usar_liquidez_iol: bool = True,
     aporte_externo_ars: float = 0.0,
-    action_rules: dict[str, object] | None = None,
-    sizing_rules: dict[str, object] | None = None,
+    action_rules: Mapping[str, Any] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
 ) -> SizingBundle:
     action_rules = action_rules or {}
     sizing_rules = sizing_rules or {}
@@ -356,7 +357,7 @@ def build_prudent_allocation(
     monto_fondeo_usd: float,
     mep_real: float | None,
     bucket_weights: dict[str, float],
-    sizing_rules: dict[str, object] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     sizing_rules = sizing_rules or {}
     tope_posicion_pct = float(sizing_rules.get("tope_posicion_pct", 65.0))
@@ -409,7 +410,7 @@ def build_dynamic_allocation(
     mep_real: float | None,
     bucket_weights: dict[str, float],
     tope_pct: float = 65.0,
-    sizing_rules: dict[str, object] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     sizing_rules = sizing_rules or {}
     tope_pct = float(sizing_rules.get("tope_posicion_pct", tope_pct))

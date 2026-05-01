@@ -1,21 +1,30 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any, TypedDict
+
 import numpy as np
 import pandas as pd
 
 from common.numeric import to_float_or_none
 
 
-def _market_value(market_context: dict[str, object] | None, key: str) -> float | None:
+class MarketRegimeSummary(TypedDict):
+    flags: dict[str, bool]
+    active_flags: list[str]
+    any_active: bool
+
+
+def _market_value(market_context: Mapping[str, Any] | None, key: str) -> float | None:
     if not market_context:
         return None
     return to_float_or_none(market_context.get(key))
 
 
 def detect_market_regime_flags(
-    market_context: dict[str, object] | None,
+    market_context: Mapping[str, Any] | None,
     *,
-    scoring_rules: dict[str, object] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
 ) -> dict[str, bool]:
     scoring_rules = scoring_rules or {}
     regime_rules = scoring_rules.get("market_regime", {}) or {}
@@ -55,8 +64,8 @@ def detect_market_regime_flags(
 def apply_market_regime_adjustments(
     df: pd.DataFrame,
     *,
-    market_context: dict[str, object] | None = None,
-    scoring_rules: dict[str, object] | None = None,
+    market_context: Mapping[str, Any] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     out = df.copy()
     scoring_rules = scoring_rules or {}
@@ -103,10 +112,10 @@ def apply_market_regime_adjustments(
 
 
 def build_market_regime_summary(
-    market_context: dict[str, object] | None,
+    market_context: Mapping[str, Any] | None,
     *,
-    scoring_rules: dict[str, object] | None = None,
-) -> dict[str, object]:
+    scoring_rules: Mapping[str, Any] | None = None,
+) -> MarketRegimeSummary:
     flags = detect_market_regime_flags(market_context, scoring_rules=scoring_rules)
     return {
         "flags": flags,

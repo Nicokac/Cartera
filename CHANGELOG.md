@@ -384,6 +384,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     transiciones, highlights y operaciones
   - `src/decision/sizing.py` agrega `SizingBundle` para el contrato de salida
   - tests de `operations`, `sizing` y `pipeline` validan compatibilidad
+- tipado de reglas y contexto:
+  - `src/decision/actions.py`, `src/decision/market_regime_scoring.py`,
+    `src/decision/sizing.py` y `src/analytics/bond_analytics.py` reemplazan
+    varios `dict[str, object]` por `Mapping[str, Any]` y `TypedDict`
+  - tests de decision/scoring/sizing/bond analytics validan que no cambia el comportamiento
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo

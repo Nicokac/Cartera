@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 
@@ -24,7 +26,7 @@ def _infer_bond_subfamily_from_block(value: object) -> str | None:
     return "bond_other"
 
 
-def _configured_bond_local_subfamily_rules() -> list[dict[str, object]]:
+def _configured_bond_local_subfamily_rules() -> list[dict[str, Any]]:
     rules = (getattr(project_config, "BOND_LOCAL_SUBFAMILY_RULES", {}) or {}).get("rules", [])
     if not isinstance(rules, list):
         return []
@@ -81,7 +83,7 @@ def enrich_bond_analytics(
     df_bonistas: pd.DataFrame | None = None,
     *,
     reference_date: str | None = None,
-    macro_variables: dict[str, object] | None = None,
+    macro_variables: Mapping[str, Any] | None = None,
     mep_real: float | None = None,
 ) -> pd.DataFrame:
     work = df_bonds.copy()

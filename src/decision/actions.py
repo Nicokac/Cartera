@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any
+
 import pandas as pd
 
 from decision.action_constants import (
@@ -17,7 +20,7 @@ def _assign_action(
     action_column: str,
     score_refuerzo_column: str,
     score_reduccion_column: str,
-    action_rules: dict[str, object] | None = None,
+    action_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     action_rules = action_rules or {}
     refuerzo_threshold = float(action_rules.get("refuerzo_threshold", 0.60))
@@ -51,7 +54,7 @@ def _assign_action(
     return out
 
 
-def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
+def assign_base_action(decision: pd.DataFrame, *, action_rules: Mapping[str, Any] | None = None) -> pd.DataFrame:
     return _assign_action(
         decision,
         action_column="accion_sugerida",
@@ -61,7 +64,7 @@ def assign_base_action(decision: pd.DataFrame, *, action_rules: dict[str, object
     )
 
 
-def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: dict[str, object] | None = None) -> pd.DataFrame:
+def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: Mapping[str, Any] | None = None) -> pd.DataFrame:
     return _assign_action(
         decision_tech,
         action_column="accion_sugerida_v2",
@@ -74,7 +77,7 @@ def assign_action_v2(decision_tech: pd.DataFrame, *, action_rules: dict[str, obj
 def enrich_decision_explanations(
     df: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     scoring_rules = scoring_rules or {}
     out = df.copy()
