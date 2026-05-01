@@ -477,6 +477,9 @@ def _apply_concentration_and_momentum_scores(
             ),
         )
 
+    def _weighted_momentum(week: pd.Series, month: pd.Series, ytd: pd.Series) -> pd.Series:
+        return mom_week * week + mom_month * month + mom_ytd * ytd
+
     out["s_concentration_room"] = _piecewise_linear_score(
         out["Peso_%"],
         low=ref_soft_pct,
@@ -493,9 +496,9 @@ def _apply_concentration_and_momentum_scores(
         high_score=1.0,
         neutral=rank_neutral,
     )
-    out["Momentum_Refuerzo"] = mom_week * out["s_mom_week"] + mom_month * out["s_mom_month"] + mom_ytd * out["s_mom_ytd"]
-    out["Momentum_Reduccion"] = (
-        mom_week * out["s_weak_mom_week"] + mom_month * out["s_weak_mom_month"] + mom_ytd * out["s_weak_mom_ytd"]
+    out["Momentum_Refuerzo"] = _weighted_momentum(out["s_mom_week"], out["s_mom_month"], out["s_mom_ytd"])
+    out["Momentum_Reduccion"] = _weighted_momentum(
+        out["s_weak_mom_week"], out["s_weak_mom_month"], out["s_weak_mom_ytd"]
     )
     return out
 

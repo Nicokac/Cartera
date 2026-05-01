@@ -133,6 +133,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_reduccion_score` reduce repeticion al leer ajustes por subfamilia mediante helper local `_rule_value` (sin cambios funcionales).
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_etf_effective_scores` reduce repeticion de lectura de ajustes ETF mediante helper local `_adj` (sin cambios funcionales).
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_concentration_and_momentum_scores` elimina duplicacion de formulas de concentracion con helper `_piecewise_linear_score` (sin cambios funcionales).
+- 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_concentration_and_momentum_scores` extrae helper `_weighted_momentum` para evitar duplicacion en calculo de `Momentum_Refuerzo` y `Momentum_Reduccion` (sin cambios funcionales).
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 - 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
 
@@ -164,6 +165,8 @@ Prueba de cierre (si aplica):
 - validar sobre una corrida real existente que ranking/acciones sugeridas no cambian respecto a baseline previo para mismo input (control de no regresion funcional del refactor)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que el refactor de concentracion/momentum mantiene exactamente el mismo comportamiento de `apply_base_scores` (sin cambios en scores ni recomendaciones para un mismo input)
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar que `Momentum_Refuerzo` y `Momentum_Reduccion` no cambian tras la extraccion de `_weighted_momentum` (refactor sin cambio funcional)
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
