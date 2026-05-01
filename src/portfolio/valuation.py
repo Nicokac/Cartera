@@ -182,6 +182,45 @@ def build_bonos_df(bonos: list[tuple], precios_iol: dict[str, float]) -> pd.Data
     return df_bonos
 
 
+def build_us_df(acciones_us: list[tuple], *, mep_real: float | None) -> pd.DataFrame:
+    if not acciones_us:
+        return pd.DataFrame()
+    mep_value = positive_float_or_none(mep_real)
+    if mep_value is None:
+        logger.warning("build_us_df: mep_real no disponible, Valorizado_ARS sera None para acciones US")
+    registros = []
+    for ticker_iol, ticker_finviz, bloque, cantidad, precio_usd, ppc_usd, valorizado_usd, ganancia_usd in acciones_us:
+        precio_ars = _money_mul(precio_usd, mep_value) if mep_value else None
+        ppc_ars = _money_mul(ppc_usd, mep_value) if mep_value else None
+        valorizado_ars = _money_mul(valorizado_usd, mep_value) if mep_value else None
+        ganancia_ars = _money_mul(ganancia_usd, mep_value) if mep_value else None
+        registros.append(
+            {
+                "Ticker_IOL": ticker_iol,
+                "Ticker_Finviz": ticker_finviz,
+                "Bloque": bloque,
+                "Tipo": "Acción US",
+                "Moneda": "USD",
+                "Cantidad": cantidad,
+                "Precio_ARS": precio_ars,
+                "PPC_ARS": ppc_ars,
+                "Valor_USD": valorizado_usd if valorizado_usd else None,
+                "Valorizado_ARS": valorizado_ars,
+                "Ganancia_ARS": ganancia_ars,
+            }
+        )
+    df_us = pd.DataFrame(registros)
+    if df_us.empty:
+        return df_us
+    df_us["Peso_%"] = _compute_weight_pct(df_us["Valorizado_ARS"])
+    logger.info(
+        "Valuation built US equity frame: rows=%s priced=%s",
+        len(df_us),
+        int(df_us["Precio_ARS"].notna().sum()),
+    )
+    return df_us
+
+
 def attach_value_usd(
     df: pd.DataFrame,
     *,
@@ -212,10 +251,11 @@ def build_portfolio_master(
     df_liquidez: pd.DataFrame,
     *,
     mep_real: float | None,
+    df_us: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     mep_value = positive_float_or_none(mep_real)
     frames = []
-    for frame in [df_cedears, df_local, df_bonos, df_liquidez]:
+    for frame in [df_cedears, df_us, df_local, df_bonos, df_liquidez]:
         if frame is None or frame.empty:
             continue
         normalized = frame.copy().dropna(axis=1, how="all")
@@ -257,9 +297,10 @@ def build_portfolio_master(
     df_total["Peso_%"] = _compute_weight_pct(df_total["Valorizado_ARS"])
 
     logger.info(
-        "Portfolio master built: rows=%s cedears=%s local=%s bonos=%s liquidez=%s",
+        "Portfolio master built: rows=%s cedears=%s us=%s local=%s bonos=%s liquidez=%s",
         len(df_total),
         0 if df_cedears is None else len(df_cedears),
+        0 if df_us is None else len(df_us),
         0 if df_local is None else len(df_local),
         0 if df_bonos is None else len(df_bonos),
         0 if df_liquidez is None else len(df_liquidez),

@@ -14,8 +14,10 @@ Sin cambios registrados.
 
 - `src/portfolio/classify.py`: instrumentos de tipo `Letras` y `LetraNota` (ej. S31G6) ya son reconocidos y enrutados al bucket de bonos; antes caian silenciosamente fuera del clasificador y quedaban marcados como "pendiente de consolidacion" con cantidad incorrecta derivada del historial de operaciones
 - `scripts/generate_real_report_runtime.py`: el portafolio de la cuenta `estados_Unidos` ya se incorpora a la cartera consolidada via `_fetch_merged_portfolio`; antes se ignoraba completamente el endpoint `/portafolio/estados_Unidos`, dejando posiciones como TTWO invisibles en reporte, scoring y riesgo
-- `scripts/generate_real_report_runtime.py`: acciones de mercado estadounidense (tipo `ACCIONES`, pais `estados_Unidos`) se ruutan al bucket de CEDEARs con lookup Finviz cuando disponible, en lugar de al bucket de acciones locales
 - `scripts/generate_real_report_runtime.py`: `extract_quote_tickers_impl` incluye `Letras` y `LetraNota` en el conjunto de tipos cotizables para snapshot de precios
+- `src/portfolio/classify.py`: acciones de mercado estadounidense (tipo `ACCIONES`, pais `estados_Unidos`) clasificadas en bucket propio `ACCIONES_US` con precio, ppc, valorizado y ganancia en USD; ya no se confunden con CEDEARs ni acciones locales
+- `src/portfolio/valuation.py`: nueva funcion `build_us_df` que convierte valores USD a ARS via MEP, expone `Valor_USD` directo desde el API y asigna `Tipo = "Accion US"`; elimina las 3 alertas de integridad que generaba TTWO al carecer de precio ARS
+- `src/pipeline.py`: `build_portfolio_bundle` construye `df_us` y lo pasa a `build_portfolio_master`; este acepta `df_us` como parametro opcional backward-compatible
 
 ## [0.5.1] - 2026-05-01
 

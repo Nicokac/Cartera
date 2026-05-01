@@ -20,7 +20,7 @@ try:
     from .portfolio.checks import build_integrity_report
     from .portfolio.classify import classify_iol_portfolio
     from .portfolio.liquidity import rebuild_liquidity
-    from .portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+    from .portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master, build_us_df
     from .prediction.predictor import predict
     from .prediction.store import build_prediction_observation, resolve_prediction_outcome_date
     from .common.types import DateLike
@@ -39,7 +39,7 @@ except ImportError:
     from portfolio.checks import build_integrity_report
     from portfolio.classify import classify_iol_portfolio
     from portfolio.liquidity import rebuild_liquidity
-    from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
+    from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master, build_us_df
     from prediction.predictor import predict
     from prediction.store import build_prediction_observation, resolve_prediction_outcome_date
     from common.types import DateLike
@@ -86,9 +86,10 @@ def build_portfolio_bundle(
             df_cedears["asset_subfamily"] = None
         df_cedears["is_etf"] = df_cedears.get("is_etf", False).fillna(False).astype(bool)
         df_cedears["is_core_etf"] = df_cedears.get("is_core_etf", False).fillna(False).astype(bool)
+    df_us = build_us_df(clasificado.get("ACCIONES_US", []), mep_real=mep_real)
     df_local = build_local_df(clasificado["ACCIONES_LOCALES"], precios_iol)
     df_bonos = build_bonos_df(clasificado["BONOS"], precios_iol)
-    df_total = build_portfolio_master(df_cedears, df_local, df_bonos, df_liquidez, mep_real=mep_real)
+    df_total = build_portfolio_master(df_cedears, df_local, df_bonos, df_liquidez, mep_real=mep_real, df_us=df_us)
     portfolio_liquidity_count = len(clasificado["LIQUIDEZ"])
     rendered_liquidity_count = 0 if df_liquidez is None else len(df_liquidez)
     synthetic_liquidity_count = max(0, rendered_liquidity_count - portfolio_liquidity_count)
@@ -106,6 +107,7 @@ def build_portfolio_bundle(
     return {
         "clasificado": clasificado,
         "df_cedears": df_cedears,
+        "df_us": df_us,
         "df_local": df_local,
         "df_bonos": df_bonos,
         "df_liquidez": df_liquidez,

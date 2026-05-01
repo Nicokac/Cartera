@@ -17,6 +17,7 @@ def classify_iol_portfolio(
 ) -> dict[str, list[tuple]]:
     portafolio: list[tuple] = []
     acciones_locales: list[tuple] = []
+    acciones_us: list[tuple] = []
     bonos: list[tuple] = []
     liquidez: list[tuple] = []
 
@@ -47,7 +48,8 @@ def classify_iol_portfolio(
             pais_titulo = str(titulo.get("pais") or "").lower().replace(" ", "_")
             if pais_titulo == "estados_unidos":
                 ticker_finviz = finviz_map.get(simbolo)
-                portafolio.append((simbolo, ticker_finviz, bloque, cantidad, ppc))
+                precio_usd = float(activo.get("ultimoPrecio", 0) or 0)
+                acciones_us.append((simbolo, ticker_finviz, bloque, cantidad, precio_usd, ppc, valorizado, ganancia_dinero))
             else:
                 if bloque == "Sin clasificar" and argentina_equity_map and simbolo in argentina_equity_map:
                     bloque = str((argentina_equity_map.get(simbolo) or {}).get("block") or "Argentina")
@@ -87,14 +89,16 @@ def classify_iol_portfolio(
     result = {
         "PORTAFOLIO": sorted(portafolio, key=lambda x: x[0]),
         "ACCIONES_LOCALES": sorted(acciones_locales, key=lambda x: x[0]),
+        "ACCIONES_US": sorted(acciones_us, key=lambda x: x[0]),
         "BONOS": sorted(bonos, key=lambda x: x[0]),
         "LIQUIDEZ": sorted(liquidez, key=lambda x: x[0]),
     }
     logger.info(
-        "Portfolio classified: activos=%s cedears=%s acciones_locales=%s bonos=%s liquidez=%s",
+        "Portfolio classified: activos=%s cedears=%s acciones_locales=%s acciones_us=%s bonos=%s liquidez=%s",
         len(activos),
         len(result["PORTAFOLIO"]),
         len(result["ACCIONES_LOCALES"]),
+        len(result["ACCIONES_US"]),
         len(result["BONOS"]),
         len(result["LIQUIDEZ"]),
     )
