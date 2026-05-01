@@ -45,6 +45,12 @@
     .reports-list a { color: #1d4ed8; text-decoration: none; font-weight: 600; }
     .reports-list a:hover { text-decoration: underline; }
     .reports-empty { font-size: .9rem; color: #6b7280; }
+    .config-area { width: 100%; min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; border: 1px solid #d1d5db; border-radius: 6px; padding: .6rem; }
+    .config-actions { display: flex; gap: .5rem; margin-top: .7rem; }
+    .config-actions .secondary { background: #4b5563; }
+    .config-alert { margin-top: .6rem; padding: .5rem .65rem; border-radius: 6px; font-size: .86rem; display: none; }
+    .config-alert.ok { background: #dcfce7; color: #166534; }
+    .config-alert.error { background: #fee2e2; color: #991b1b; }
     .modal-backdrop { position: fixed; inset: 0; background: rgba(17, 24, 39, .45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 20; }
     .modal-backdrop.open { display: flex; }
     .modal { width: 100%; max-width: 460px; background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 1rem 1rem .9rem 1rem; }
@@ -148,6 +154,16 @@
     <h2>Corridas recientes</h2>
     <ul id="runs-list" class="reports-list"></ul>
     <p id="runs-empty" class="reports-empty" style="display:none;">No hay corridas registradas.</p>
+  </section>
+
+  <section>
+    <h2>Configuracion de scoring (avanzado)</h2>
+    <textarea id="scoring-config" class="config-area" spellcheck="false"></textarea>
+    <div class="config-actions">
+      <button type="button" class="secondary" id="btn-load-scoring">Recargar</button>
+      <button type="button" id="btn-save-scoring">Guardar</button>
+    </div>
+    <div id="scoring-alert" class="config-alert" role="alert"></div>
   </section>
 
   <div id="confirm-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
@@ -405,6 +421,65 @@
       }
     }
 
+    function showScoringAlert(message, isError = false) {
+      const el = document.getElementById("scoring-alert");
+      el.className = `config-alert ${isError ? "error" : "ok"}`;
+      el.textContent = message;
+      el.style.display = "block";
+    }
+
+    function clearScoringAlert() {
+      const el = document.getElementById("scoring-alert");
+      el.style.display = "none";
+      el.textContent = "";
+      el.className = "config-alert";
+    }
+
+    async function loadScoringConfig() {
+      clearScoringAlert();
+      try {
+        const res = await fetchWithSession("/config/scoring");
+        if (!res.ok) {
+          throw new Error("fetch failed");
+        }
+        const payload = await res.json();
+        document.getElementById("scoring-config").value = payload.content || "";
+      } catch (_) {
+        showScoringAlert("No se pudo cargar scoring_rules.json.", true);
+      }
+    }
+
+    async function saveScoringConfig() {
+      clearScoringAlert();
+      const content = document.getElementById("scoring-config").value;
+      try {
+        JSON.parse(content);
+      } catch (_) {
+        showScoringAlert("JSON invalido. Revisa formato antes de guardar.", true);
+        return;
+      }
+      const res = await fetchWithSession("/config/scoring", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) {
+        let detail = "No se pudo guardar scoring_rules.json.";
+        try {
+          const payload = await res.json();
+          if (payload && payload.detail) {
+            detail = payload.detail;
+          }
+        } catch (_) {}
+        showScoringAlert(detail, true);
+        return;
+      }
+      showScoringAlert("Configuracion guardada.");
+      await loadScoringConfig();
+    }
+
     function openConfirmModal({ username, usar_liquidez_iol, aporte_externo_ars }) {
       return new Promise((resolve) => {
         const backdrop = document.getElementById("confirm-modal-backdrop");
@@ -523,6 +598,8 @@
       document.getElementById("preset-liquidez").addEventListener("click", applyPresetSoloLiquidez);
       document.getElementById("preset-aporte").addEventListener("click", applyPresetAporteExterno);
       document.getElementById("btn-cancel").addEventListener("click", cancelRun);
+      document.getElementById("btn-load-scoring").addEventListener("click", loadScoringConfig);
+      document.getElementById("btn-save-scoring").addEventListener("click", saveScoringConfig);
 
       loadUsernamePreference();
       updateSummary();
@@ -544,6 +621,7 @@
 
       loadReportsList();
       loadRunsRecent();
+      loadScoringConfig();
 
       try {
         const vRes = await fetch("/version");

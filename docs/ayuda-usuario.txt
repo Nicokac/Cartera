@@ -203,3 +203,5 @@ Ante cualquier problema, avisar a Nicolas Kachuk con:
 
 Corridas recientes:
 - En la app se muestran las ultimas 5 corridas ejecutadas (estado y fecha).
+- La app incluye una seccion "Configuracion de scoring (avanzado)" para editar
+  `data/strategy/scoring_rules.json` desde navegador (requiere sesion local activa).

@@ -29,6 +29,7 @@ RUN_PID_PATH = ROOT / "data" / "runtime" / "server_run.pid"
 SESSION_FILE = ROOT / "data" / "runtime" / "session.txt"
 RUN_HISTORY_FILE = ROOT / "data" / "runtime" / "run_history.jsonl"
 VERSION_FILE = ROOT / "version.txt"
+SCORING_RULES_FILE = ROOT / "data" / "strategy" / "scoring_rules.json"
 DECISION_HISTORY_FILE = ROOT / "data" / "runtime" / "decision_history.csv"
 PREDICTION_HISTORY_FILE = ROOT / "data" / "runtime" / "prediction_history.csv"
 RUNTIME_CORRUPT_DIR = ROOT / "data" / "runtime" / "corrupt"
@@ -96,6 +97,10 @@ class RunParams(BaseModel):
         if value < 0:
             raise ValueError("aporte_externo_ars debe ser mayor o igual a 0")
         return value
+
+
+class ScoringConfigUpdate(BaseModel):
+    content: str = Field(default="", max_length=200_000)
 
 
 def _parse_ts(value: object) -> datetime | None:
@@ -625,6 +630,32 @@ def get_reports_list(x_session_token: str = Header(default="")) -> JSONResponse:
 def get_runs_recent(x_session_token: str = Header(default="")) -> JSONResponse:
     _require_session_token(x_session_token)
     return JSONResponse({"runs": _read_recent_runs(limit=5)})
+
+
+@app.get("/config/scoring")
+def get_scoring_config(x_session_token: str = Header(default="")) -> JSONResponse:
+    _require_session_token(x_session_token)
+    if not SCORING_RULES_FILE.exists():
+        raise HTTPException(status_code=404, detail="No existe data/strategy/scoring_rules.json")
+    content = SCORING_RULES_FILE.read_text(encoding="utf-8")
+    return JSONResponse({"path": str(SCORING_RULES_FILE), "content": content})
+
+
+@app.post("/config/scoring")
+def post_scoring_config(payload: ScoringConfigUpdate, x_session_token: str = Header(default="")) -> JSONResponse:
+    _require_session_token(x_session_token)
+    content = payload.content.strip()
+    if not content:
+        raise HTTPException(status_code=422, detail="El contenido de scoring_rules.json no puede estar vacio.")
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=422, detail=f"JSON invalido: {exc.msg} (linea {exc.lineno}, columna {exc.colno}).")
+    if not isinstance(parsed, dict):
+        raise HTTPException(status_code=422, detail="El JSON de scoring_rules.json debe ser un objeto.")
+    SCORING_RULES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    SCORING_RULES_FILE.write_text(json.dumps(parsed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return JSONResponse({"status": "saved", "path": str(SCORING_RULES_FILE)})
 
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)

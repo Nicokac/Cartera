@@ -103,6 +103,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de testing/seguridad en servidor: nueva cobertura unitaria directa para `_require_session_token(...)` (token valido, invalido y sesion no inicializada) en `tests/test_server.py`.
 - 2026-04-30: avance P3 de compatibilidad: checklist formal de validacion mobile/responsive del reporte en `docs/report-mobile-responsive-checklist.md` (viewports objetivo, navegadores y criterios de aceptacion).
 - 2026-04-30: completado cierre de deuda documental remanente: se normaliza estado de CI activo (`ubuntu-latest` + `macos-latest`) en `README.md` para alinear documentacion con el workflow vigente.
+- 2026-04-30: avance P3 de usabilidad operativa: configuracion basica de scoring desde UI local (`GET/POST /config/scoring` + seccion "Configuracion de scoring (avanzado)" en `static/index.html`).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -247,6 +248,10 @@ Prueba de cierre (si aplica):
   - `375x667` (mobile estandar) y `390x844` (mobile moderno)
   - iOS Safari o Chrome Android (si disponible) y Chrome desktop emulado
 - validar que no haya overflow horizontal global y que tablas criticas (`Ticker`, `Accion`, `Score`) queden legibles con scroll local
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente en UI local:
+  - seccion `Configuracion de scoring (avanzado)` carga JSON actual
+  - `Guardar` persiste cambios validos y rechaza JSON invalido
 
 ## Contexto
 
@@ -555,7 +560,7 @@ Roadmap:
 
 - P2: Panel de reportes en UI.
 - P3: scheduler opcional.
-- P3: pagina de configuracion basica en UI.
+- P3: pagina de configuracion basica en UI. (avance inicial completado con editor de `scoring_rules.json`)
 
 ### 19) Validacion estadistica y madurez de senales
 

@@ -217,6 +217,53 @@ class TestRequireSessionToken(unittest.TestCase):
         self.assertEqual(ctx.exception.status_code, 401)
 
 
+class TestScoringConfigEndpoints(unittest.TestCase):
+    def setUp(self):
+        _reset()
+        self._tmp = TemporaryDirectory()
+        self._tmp_path = Path(self._tmp.name)
+        self._scoring_path = self._tmp_path / "scoring_rules.json"
+        self._scoring_path.write_text('{"weights":{"momentum":1.0}}\n', encoding="utf-8")
+        self._patcher = patch.object(server, "SCORING_RULES_FILE", self._scoring_path)
+        self._patcher.start()
+
+    def tearDown(self):
+        self._patcher.stop()
+        self._tmp.cleanup()
+        _reset()
+
+    def test_get_scoring_config_401_without_token(self):
+        r = _client.get("/config/scoring")
+        self.assertEqual(r.status_code, 401)
+
+    def test_get_scoring_config_ok(self):
+        r = _client.get("/config/scoring", headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertTrue(data["content"].startswith("{"))
+        self.assertIn("scoring_rules.json", data["path"])
+
+    def test_post_scoring_config_rejects_invalid_json(self):
+        r = _client.post(
+            "/config/scoring",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"content": "{not-json"},
+        )
+        self.assertEqual(r.status_code, 422)
+        self.assertIn("JSON invalido", r.json()["detail"])
+
+    def test_post_scoring_config_saves_pretty_json(self):
+        r = _client.post(
+            "/config/scoring",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"content": '{"weights":{"momentum":2.0},"thresholds":{"high":0.2}}'},
+        )
+        self.assertEqual(r.status_code, 200)
+        saved = self._scoring_path.read_text(encoding="utf-8")
+        self.assertIn('"momentum": 2.0', saved)
+        self.assertTrue(saved.endswith("\n"))
+
+
 class TestGetReportsList(unittest.TestCase):
     def setUp(self):
         _reset()

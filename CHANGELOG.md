@@ -49,6 +49,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   instrumentos (taxonomia, mappings, validacion funcional, tests y cierre documental)
 - `docs/report-mobile-responsive-checklist.md`: checklist formal para validar
   legibilidad y usabilidad del reporte HTML en mobile/tablet
+- configuracion basica de scoring desde UI local:
+  - `GET /config/scoring` devuelve contenido actual de `data/strategy/scoring_rules.json`
+  - `POST /config/scoring` valida JSON y persiste contenido formateado
+  - nueva seccion `Configuracion de scoring (avanzado)` en `static/index.html`
 - `README.md`: referencia explicita a docs de API local de FastAPI:
   - `/docs`
   - `/openapi.json`
@@ -319,6 +323,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   `_require_session_token(...)`
   - casos: token valido, token invalido y sesion no inicializada
   - refuerza contrato de seguridad del refactor de endpoints protegidos
+- `tests/test_server.py`: nueva cobertura de `GET/POST /config/scoring`
+  - `401` sin token
+  - validacion de JSON invalido (`422`)
+  - persistencia correcta de JSON formateado
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
