@@ -659,6 +659,21 @@ def get_strategy_config(config_name: str, x_session_token: str = Header(default=
     return JSONResponse({"name": config_name, "path": str(target_file), "content": content})
 
 
+@app.get("/config")
+def list_strategy_configs(x_session_token: str = Header(default="")) -> JSONResponse:
+    _require_session_token(x_session_token)
+    rows = []
+    for name, path in CONFIG_FILE_MAP.items():
+        rows.append(
+            {
+                "name": name,
+                "path": str(path),
+                "exists": path.exists(),
+            }
+        )
+    return JSONResponse({"configs": rows})
+
+
 @app.post("/config/{config_name}")
 def post_strategy_config(
     config_name: str,

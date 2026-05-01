@@ -335,6 +335,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo
+- configuracion avanzada por API:
+  - nuevo `GET /config` para listar configuraciones editables permitidas
+  - permite discovery seguro de la allowlist (`scoring`, `action`, `sizing`)
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

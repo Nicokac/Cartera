@@ -231,6 +231,7 @@ Al startup del servidor se valida schema basico de `data/runtime/decision_histor
 `POST /run` rechaza credenciales vacias (`username/password`) con `422` para evitar corridas invalidas.
 `POST /run` aplica rate limiting: maximo 3 requests por minuto (`429` si excede).
 `GET /runs/recent` devuelve historial de las ultimas 5 corridas.
+`GET /config` lista configuraciones editables disponibles (`scoring`, `action`, `sizing`).
 
 Comandos de operacion local:
 

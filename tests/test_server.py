@@ -250,6 +250,17 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         r = _client.get("/config/scoring")
         self.assertEqual(r.status_code, 401)
 
+    def test_list_configs_401_without_token(self):
+        r = _client.get("/config")
+        self.assertEqual(r.status_code, 401)
+
+    def test_list_configs_returns_allowlist(self):
+        r = _client.get("/config", headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        names = {row["name"] for row in data.get("configs", [])}
+        self.assertSetEqual(names, {"scoring", "action", "sizing"})
+
     def test_get_scoring_config_ok(self):
         r = _client.get("/config/scoring", headers={"X-Session-Token": "test-session-token"})
         self.assertEqual(r.status_code, 200)
