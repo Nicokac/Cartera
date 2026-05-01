@@ -214,7 +214,7 @@ Flujo del formulario local:
 
 Health check: `http://127.0.0.1:8000/health`.
 Salud de integraciones externas: `http://127.0.0.1:8000/api-health`.
-Devuelve por API: `status_code`, `expected_status_codes`, `latency_ms` y `ok`.
+Devuelve por API: `status_code`, `expected_status_codes`, `latency_ms`, `checked_at` y `ok`.
 Incluye circuit breaker simple por API (`failure_count`, `circuit_open`) para
 evitar chequeos repetidos cuando un proveedor falla de forma consecutiva.
 `GET /api-health` requiere token de sesion en header `X-Session-Token`.

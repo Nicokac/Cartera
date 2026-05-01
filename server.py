@@ -522,6 +522,7 @@ def _check_url_health(
     timeout_seconds: float = 3.0,
 ) -> dict[str, object]:
     now_ts = time.time()
+    checked_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_count = int(_api_health_failures.get(name, 0))
     opened_at = _api_health_opened_at.get(name)
     if fail_count >= _API_HEALTH_CIRCUIT_THRESHOLD and opened_at is not None:
@@ -536,6 +537,7 @@ def _check_url_health(
                 "latency_ms": 0,
                 "circuit_open": True,
                 "failure_count": fail_count,
+                "checked_at": checked_at,
                 "cooldown_remaining_seconds": max(0, int(_API_HEALTH_CIRCUIT_COOLDOWN_SECONDS - age_seconds)),
             }
 
@@ -561,6 +563,7 @@ def _check_url_health(
             "latency_ms": latency_ms,
             "circuit_open": bool(_api_health_opened_at.get(name)),
             "failure_count": int(_api_health_failures.get(name, 0)),
+            "checked_at": checked_at,
         }
     except Exception as exc:
         latency_ms = int((time.perf_counter() - started) * 1000)
@@ -577,6 +580,7 @@ def _check_url_health(
             "error": str(exc),
             "circuit_open": bool(_api_health_opened_at.get(name)),
             "failure_count": int(_api_health_failures.get(name, 0)),
+            "checked_at": checked_at,
         }
 
 

@@ -122,6 +122,7 @@ class TestGetHealth(unittest.TestCase):
         self.assertEqual(len(data["apis"]), 6)
         self.assertTrue(all(item["ok"] for item in data["apis"]))
         self.assertTrue(all(isinstance(item["latency_ms"], int) for item in data["apis"]))
+        self.assertTrue(all(isinstance(item.get("checked_at"), str) and item.get("checked_at") for item in data["apis"]))
 
     def test_api_health_with_partial_failure(self):
         def fake_get(url, timeout):
@@ -150,6 +151,7 @@ class TestGetHealth(unittest.TestCase):
         bonistas = next(item for item in data["apis"] if item["name"] == "bonistas")
         self.assertFalse(bonistas["ok"])
         self.assertIn("error", bonistas)
+        self.assertTrue(isinstance(bonistas.get("checked_at"), str) and bonistas.get("checked_at"))
 
     def test_api_health_circuit_opens_after_consecutive_failures(self):
         def always_fail(_url, timeout):

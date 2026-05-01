@@ -107,6 +107,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de arquitectura/escalabilidad: adopcion de `HttpGetProtocol` tambien en clientes `argentinadatos` y `bonistas_client` (inyeccion de requester tipado sin cambios funcionales).
 - 2026-04-30: hardening de UX de reporte en Bonos Locales: el resumen compacto ya no muestra literales `nan` y usa fallback `-` para TIR/Paridad/MD cuando faltan datos.
 - 2026-04-30: avance P3 de usabilidad operativa: editor UI de configuracion ampliado de solo `scoring_rules.json` a `scoring/action/sizing` via endpoint generico protegido (`GET/POST /config/{config_name}` con allowlist).
+- 2026-04-30: avance de observabilidad en integraciones: `/api-health` ahora incluye `checked_at` por proveedor para trazabilidad temporal de cada chequeo.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -264,6 +265,10 @@ Prueba de cierre (si aplica):
   - en `Configuracion de reglas (avanzado)` cambiar selector entre `scoring/action/sizing`
   - `Recargar` trae el JSON correspondiente
   - `Guardar` persiste cambios validos y rechaza JSON invalido
+- correr `python -m unittest tests.test_server.TestGetHealth -v`
+- validar manualmente `GET /api-health` con token:
+  - cada API incluye `checked_at`
+  - el timestamp cambia entre chequeos consecutivos
 
 ## Contexto
 
