@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+from collections.abc import Mapping
 from io import BytesIO
 import logging
 import re
@@ -83,7 +84,7 @@ def _normalize_text(value: object) -> str:
 
 
 
-def _build_url_with_params(base_url: str, params: dict[str, object] | None = None) -> str:
+def _build_url_with_params(base_url: str, params: Mapping[str, Any] | None = None) -> str:
     if not params:
         return base_url
     query_parts = [f"{key}={value}" for key, value in params.items() if value not in {None, ""}]

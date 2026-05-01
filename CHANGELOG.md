@@ -394,6 +394,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     filas de riesgo y bundle de salida
   - `src/analytics/technical.py` agrega `TechnicalOverlayRow` y tipa configuracion/salida
   - tests de `portfolio_risk`, `technical` y `pipeline` validan compatibilidad
+- cierre de tipado generico:
+  - `src/decision/scoring.py` reemplaza contratos `dict[str, object]` por `Mapping[str, Any]`
+  - `src/clients/bcra.py`, `src/clients/pyobd_client.py` y `src/portfolio/operations.py`
+    eliminan remanentes puntuales de contratos genericos
+  - se completa el item del roadmap sobre type hints genericos remanentes
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo

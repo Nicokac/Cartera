@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any
+from typing import Any, TypedDict
 
 import pandas as pd
 
@@ -9,6 +9,14 @@ from clients.protocols import PyOBDClientProtocol
 
 
 DEFAULT_LOOKBACK_DAYS = 60
+
+
+class BondVolumeContextRow(TypedDict):
+    Ticker_IOL: str
+    bonistas_volume_last: float | None
+    bonistas_volume_avg_20d: float | None
+    bonistas_volume_ratio: float | None
+    bonistas_liquidity_bucket: str | None
 
 
 def _get_pyobd_client() -> PyOBDClientProtocol:
@@ -77,7 +85,7 @@ def get_bond_volume_context(
     client = client or _get_pyobd_client()
     end_date = today or date.today()
     start_date = end_date - timedelta(days=lookback_days)
-    rows: list[dict[str, object]] = []
+    rows: list[BondVolumeContextRow] = []
 
     for ticker in clean_tickers:
         latest_volume: float | None = None

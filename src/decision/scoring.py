@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from typing import TypedDict
+from collections.abc import Mapping
+from typing import Any, TypedDict
 
 from common.numeric import positive_float_or_none
 from decision.market_regime_scoring import (
@@ -67,7 +68,7 @@ DEFAULT_CONSENSUS_TAXONOMY = {
 }
 
 
-def consensus_to_score(text: object, *, scoring_rules: dict[str, object] | None = None) -> float:
+def consensus_to_score(text: object, *, scoring_rules: Mapping[str, Any] | None = None) -> float:
     if pd.isna(text):
         return 0.5
     t = str(text).strip().lower()
@@ -93,7 +94,7 @@ def build_decision_base(
     df_ratings_res: pd.DataFrame,
     *,
     mep_real: float | None,
-    scoring_rules: dict[str, object] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     mep_value = positive_float_or_none(mep_real)
     decision_cols = [
@@ -316,10 +317,10 @@ def _initialize_base_scores(
 def _apply_absolute_metric_blends(
     out: pd.DataFrame,
     *,
-    absolute_rules: dict[str, object],
+    absolute_rules: Mapping[str, Any],
     rank_neutral: float,
 ) -> pd.DataFrame:
-    def _metric_rules(name: str) -> dict[str, object]:
+    def _metric_rules(name: str) -> Mapping[str, Any]:
         return (metrics.get(name, {}) or {})
 
     if not bool(absolute_rules.get("enabled", False)):
@@ -506,11 +507,11 @@ def _apply_concentration_and_momentum_scores(
 def _apply_refuerzo_score(
     out: pd.DataFrame,
     *,
-    score_refuerzo_weights: dict[str, object],
-    refuerzo_penalties: dict[str, object],
-    asset_subfamily_adjustments: dict[str, object],
+    score_refuerzo_weights: Mapping[str, Any],
+    refuerzo_penalties: Mapping[str, Any],
+    asset_subfamily_adjustments: Mapping[str, Any],
 ) -> pd.DataFrame:
-    def _rule_value(rules: dict[str, object], key: str, default: float = 0.0) -> float:
+    def _rule_value(rules: Mapping[str, Any], key: str, default: float = 0.0) -> float:
         return float((rules or {}).get(key, default))
 
     def _weight(key: str, default: float) -> float:
@@ -553,13 +554,13 @@ def _apply_refuerzo_score(
 def _apply_reduccion_score(
     out: pd.DataFrame,
     *,
-    score_reduccion_weights: dict[str, object],
-    reduccion_penalties: dict[str, object],
-    asset_subfamily_adjustments: dict[str, object],
+    score_reduccion_weights: Mapping[str, Any],
+    reduccion_penalties: Mapping[str, Any],
+    asset_subfamily_adjustments: Mapping[str, Any],
     gain_clip_min: float,
     gain_clip_max: float,
 ) -> pd.DataFrame:
-    def _rule_value(rules: dict[str, object], key: str, default: float = 0.0) -> float:
+    def _rule_value(rules: Mapping[str, Any], key: str, default: float = 0.0) -> float:
         return float((rules or {}).get(key, default))
 
     def _weight(key: str, default: float) -> float:
@@ -600,7 +601,7 @@ def _apply_etf_effective_scores(
     out: pd.DataFrame,
     *,
     rank_neutral: float,
-    etf_adjustments: dict[str, object],
+    etf_adjustments: Mapping[str, Any],
 ) -> pd.DataFrame:
     def _adj(key: str, default: float) -> float:
         return float(etf_adjustments.get(key, default))
@@ -653,7 +654,7 @@ def _apply_etf_effective_scores(
 def _apply_liquidity_deployment_score(
     out: pd.DataFrame,
     *,
-    score_despliegue_liquidez_weights: dict[str, object],
+    score_despliegue_liquidez_weights: Mapping[str, Any],
     rank_neutral: float,
 ) -> pd.DataFrame:
     out["score_despliegue_liquidez"] = 0.0
@@ -670,9 +671,9 @@ def _apply_liquidity_deployment_score(
 def _apply_post_regime_adjustments(
     out: pd.DataFrame,
     *,
-    market_context: dict[str, object] | None,
-    scoring_rules: dict[str, object],
-    score_despliegue_liquidez_weights: dict[str, object],
+    market_context: Mapping[str, Any] | None,
+    scoring_rules: Mapping[str, Any],
+    score_despliegue_liquidez_weights: Mapping[str, Any],
     rank_neutral: float,
 ) -> pd.DataFrame:
     out = apply_market_regime_adjustments(out, market_context=market_context, scoring_rules=scoring_rules)
@@ -687,14 +688,14 @@ def _apply_post_regime_adjustments(
 
 class BaseScoreConfig(TypedDict):
     rank_neutral: float
-    absolute_rules: dict[str, object]
-    etf_adjustments: dict[str, object]
-    asset_subfamily_adjustments: dict[str, object]
-    score_refuerzo_weights: dict[str, object]
-    score_reduccion_weights: dict[str, object]
-    score_despliegue_liquidez_weights: dict[str, object]
-    refuerzo_penalties: dict[str, object]
-    reduccion_penalties: dict[str, object]
+    absolute_rules: Mapping[str, Any]
+    etf_adjustments: Mapping[str, Any]
+    asset_subfamily_adjustments: Mapping[str, Any]
+    score_refuerzo_weights: Mapping[str, Any]
+    score_reduccion_weights: Mapping[str, Any]
+    score_despliegue_liquidez_weights: Mapping[str, Any]
+    refuerzo_penalties: Mapping[str, Any]
+    reduccion_penalties: Mapping[str, Any]
     gain_clip_min: float
     gain_clip_max: float
     mom_week: float
@@ -706,7 +707,7 @@ class BaseScoreConfig(TypedDict):
     red_hard_pct: float
 
 
-def _parse_base_score_config(scoring_rules: dict[str, object]) -> BaseScoreConfig:
+def _parse_base_score_config(scoring_rules: Mapping[str, Any]) -> BaseScoreConfig:
     rank_neutral = float(scoring_rules.get("rank_neutral", 0.5))
     gain_clip = scoring_rules.get("gain_clip", {}) or {}
     momentum_weights = scoring_rules.get("momentum_weights", {}) or {}
@@ -756,8 +757,8 @@ def _parse_base_score_config(scoring_rules: dict[str, object]) -> BaseScoreConfi
 def _compute_base_scores_from_config(
     decision: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object],
-    market_context: dict[str, object] | None,
+    scoring_rules: Mapping[str, Any],
+    market_context: Mapping[str, Any] | None,
     config: BaseScoreConfig,
 ) -> pd.DataFrame:
     out = _initialize_base_scores(
@@ -814,8 +815,8 @@ def _compute_base_scores_from_config(
 def apply_base_scores(
     decision: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object] | None = None,
-    market_context: dict[str, object] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
+    market_context: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     scoring_rules = scoring_rules or {}
     config = _parse_base_score_config(scoring_rules)
@@ -842,7 +843,7 @@ def _series_or_default(df: pd.DataFrame, column: str, default: float = 0.5) -> p
     return pd.Series(default, index=df.index, dtype=float)
 
 
-def _rsi_band_score(series: pd.Series, rsi_rules: dict[str, object], *, prefix: str = "") -> pd.Series:
+def _rsi_band_score(series: pd.Series, rsi_rules: Mapping[str, Any], *, prefix: str = "") -> pd.Series:
     oversold_max = float(rsi_rules.get("oversold_max", 30.0))
     weak_max = float(rsi_rules.get("weak_max", 45.0))
     strong_max = float(rsi_rules.get("strong_max", 65.0))
@@ -887,7 +888,7 @@ def build_technical_overlay_scores(
     decision: pd.DataFrame,
     technical_overlay: pd.DataFrame | None,
     *,
-    scoring_rules: dict[str, object] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     out = decision.copy()
     if technical_overlay is None or technical_overlay.empty:
@@ -1027,7 +1028,7 @@ def build_technical_overlay_scores(
 def apply_technical_overlay_scores(
     decision_tech: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object] | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     out = decision_tech.copy()
     if "tech_refuerzo" not in out.columns:

@@ -71,6 +71,25 @@ class OperationsBundle(TypedDict):
     previous_snapshot_date: str | None
 
 
+PendingTradePortfolioRow = TypedDict(
+    "PendingTradePortfolioRow",
+    {
+        "Ticker_IOL": str,
+        "Tipo": str,
+        "Bloque": str,
+        "Cantidad": Any,
+        "Cantidad_Real": Any,
+        "VN_Factor": float,
+        "Precio_ARS": Any,
+        "Valorizado_ARS": Any,
+        "Valor_USD": Any,
+        "Ganancia_ARS": Any,
+        "Peso_%": Any,
+        "Fuente": str,
+    },
+)
+
+
 def normalize_text(value: object) -> str:
     text = str(value or "").strip()
     for broken, fixed in _MOJIBAKE_FIXES.items():
@@ -150,7 +169,7 @@ def build_pending_trade_portfolio_rows(
     prices_iol = {str(k).strip().upper(): float(v) for k, v in (prices_iol or {}).items()}
     vn_factor_map = {str(k).strip().upper(): float(v) for k, v in (vn_factor_map or {}).items()}
 
-    rows: list[dict[str, object]] = []
+    rows: list[PendingTradePortfolioRow] = []
     seen_symbols: set[str] = set()
 
     trades = recent_trades.copy()

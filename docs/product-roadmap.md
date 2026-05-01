@@ -146,6 +146,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance P3 de calidad/tipado: `portfolio.operations` y `decision.sizing` reemplazan bundles de salida `dict[str, object]` por `TypedDict` especificos (`OperationsBundle`, `PositionTransitionBundle`, `SizingBundle`), manteniendo contratos runtime intactos.
 - 2026-05-01: avance P3 de calidad/tipado: `decision.actions`, `decision.market_regime_scoring`, `decision.sizing` y `analytics.bond_analytics` reemplazan configuraciones/contextos `dict[str, object]` por `Mapping[str, Any]` o `TypedDict` donde el contrato ya era estable.
 - 2026-05-01: avance P3 de calidad/tipado: `analytics.portfolio_risk` y `analytics.technical` incorporan `TypedDict` para filas/bundles y reemplazan configuraciones `dict[str, object]` por tipos mas especificos sin cambiar comportamiento.
+- 2026-05-01: completado item P3 de calidad/tipado: barrido final de `dict[str, object]`/contratos genericos en `decision.scoring`, `clients.bcra`, `clients.pyobd_client` y `portfolio.operations`; el codigo fuente (`src/`) queda sin remanentes de esos contratos genericos en puntos relevados del roadmap.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -193,6 +194,8 @@ Prueba de cierre (si aplica):
 - validar que el reemplazo de `dict[str, object]` por `Mapping[str, Any]`/`TypedDict` no altera reglas de acciones, regimen de mercado, sizing ni analitica de bonos
 - correr `python -m unittest tests.test_portfolio_risk tests.test_technical tests.test_pipeline -v`
 - validar que `portfolio_risk` y `technical` mantienen exactamente las mismas series, metricas y tablas tras tipar filas/bundles de salida
+- correr `python -m unittest tests.test_bcra_client tests.test_pyobd_client tests.test_operations tests.test_decision_scoring -v`
+- validar que el barrido final de tipado en `scoring`, `bcra`, `pyobd_client` y `operations` no altera contratos ni resultados funcionales
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
@@ -497,7 +500,7 @@ Roadmap:
 
 - P2: Centralizar utilidades comunes en `src/common/`. (completado)
 - P2: Refactor de funciones largas. (avance significativo en curso)
-- P3: Completar type hints donde queden `object` genericos.
+- P3: Completar type hints donde queden `object` genericos. (completado)
 
 ### 6) Testing
 
