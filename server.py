@@ -29,7 +29,12 @@ RUN_PID_PATH = ROOT / "data" / "runtime" / "server_run.pid"
 SESSION_FILE = ROOT / "data" / "runtime" / "session.txt"
 RUN_HISTORY_FILE = ROOT / "data" / "runtime" / "run_history.jsonl"
 VERSION_FILE = ROOT / "version.txt"
-SCORING_RULES_FILE = ROOT / "data" / "strategy" / "scoring_rules.json"
+STRATEGY_DIR = ROOT / "data" / "strategy"
+CONFIG_FILE_MAP: dict[str, Path] = {
+    "scoring": STRATEGY_DIR / "scoring_rules.json",
+    "action": STRATEGY_DIR / "action_rules.json",
+    "sizing": STRATEGY_DIR / "sizing_rules.json",
+}
 DECISION_HISTORY_FILE = ROOT / "data" / "runtime" / "decision_history.csv"
 PREDICTION_HISTORY_FILE = ROOT / "data" / "runtime" / "prediction_history.csv"
 RUNTIME_CORRUPT_DIR = ROOT / "data" / "runtime" / "corrupt"
@@ -101,6 +106,14 @@ class RunParams(BaseModel):
 
 class ScoringConfigUpdate(BaseModel):
     content: str = Field(default="", max_length=200_000)
+
+
+def _resolve_config_file(config_name: str) -> Path:
+    key = str(config_name or "").strip().lower()
+    path = CONFIG_FILE_MAP.get(key)
+    if path is None:
+        raise HTTPException(status_code=404, detail="Configuracion no soportada. Usa: scoring, action, sizing.")
+    return path
 
 
 def _parse_ts(value: object) -> datetime | None:
@@ -632,30 +645,36 @@ def get_runs_recent(x_session_token: str = Header(default="")) -> JSONResponse:
     return JSONResponse({"runs": _read_recent_runs(limit=5)})
 
 
-@app.get("/config/scoring")
-def get_scoring_config(x_session_token: str = Header(default="")) -> JSONResponse:
+@app.get("/config/{config_name}")
+def get_strategy_config(config_name: str, x_session_token: str = Header(default="")) -> JSONResponse:
     _require_session_token(x_session_token)
-    if not SCORING_RULES_FILE.exists():
-        raise HTTPException(status_code=404, detail="No existe data/strategy/scoring_rules.json")
-    content = SCORING_RULES_FILE.read_text(encoding="utf-8")
-    return JSONResponse({"path": str(SCORING_RULES_FILE), "content": content})
+    target_file = _resolve_config_file(config_name)
+    if not target_file.exists():
+        raise HTTPException(status_code=404, detail=f"No existe {target_file}.")
+    content = target_file.read_text(encoding="utf-8")
+    return JSONResponse({"name": config_name, "path": str(target_file), "content": content})
 
 
-@app.post("/config/scoring")
-def post_scoring_config(payload: ScoringConfigUpdate, x_session_token: str = Header(default="")) -> JSONResponse:
+@app.post("/config/{config_name}")
+def post_strategy_config(
+    config_name: str,
+    payload: ScoringConfigUpdate,
+    x_session_token: str = Header(default=""),
+) -> JSONResponse:
     _require_session_token(x_session_token)
+    target_file = _resolve_config_file(config_name)
     content = payload.content.strip()
     if not content:
-        raise HTTPException(status_code=422, detail="El contenido de scoring_rules.json no puede estar vacio.")
+        raise HTTPException(status_code=422, detail="El contenido del archivo de configuracion no puede estar vacio.")
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=422, detail=f"JSON invalido: {exc.msg} (linea {exc.lineno}, columna {exc.colno}).")
     if not isinstance(parsed, dict):
-        raise HTTPException(status_code=422, detail="El JSON de scoring_rules.json debe ser un objeto.")
-    SCORING_RULES_FILE.parent.mkdir(parents=True, exist_ok=True)
-    SCORING_RULES_FILE.write_text(json.dumps(parsed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return JSONResponse({"status": "saved", "path": str(SCORING_RULES_FILE)})
+        raise HTTPException(status_code=422, detail="El JSON del archivo de configuracion debe ser un objeto.")
+    target_file.parent.mkdir(parents=True, exist_ok=True)
+    target_file.write_text(json.dumps(parsed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return JSONResponse({"status": "saved", "name": config_name, "path": str(target_file)})
 
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)

@@ -106,6 +106,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de usabilidad operativa: configuracion basica de scoring desde UI local (`GET/POST /config/scoring` + seccion "Configuracion de scoring (avanzado)" en `static/index.html`).
 - 2026-04-30: avance P3 de arquitectura/escalabilidad: adopcion de `HttpGetProtocol` tambien en clientes `argentinadatos` y `bonistas_client` (inyeccion de requester tipado sin cambios funcionales).
 - 2026-04-30: hardening de UX de reporte en Bonos Locales: el resumen compacto ya no muestra literales `nan` y usa fallback `-` para TIR/Paridad/MD cuando faltan datos.
+- 2026-04-30: avance P3 de usabilidad operativa: editor UI de configuracion ampliado de solo `scoring_rules.json` a `scoring/action/sizing` via endpoint generico protegido (`GET/POST /config/{config_name}` con allowlist).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -258,6 +259,11 @@ Prueba de cierre (si aplica):
 - validar que `get_dollar_series(..., get_fn=...)` y `_fetch_html(..., get_fn=...)` acepten inyeccion de cliente HTTP (sin usar red real en test)
 - correr `python -m unittest tests.test_report_render_ui -v`
 - generar `reports/real-report.html` y validar en `Bonos Locales` que en tarjetas de `Subfamilias`/`Taxonomía local` no aparezca `nan` (debe verse `-` cuando no hay dato)
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente en UI local:
+  - en `Configuracion de reglas (avanzado)` cambiar selector entre `scoring/action/sizing`
+  - `Recargar` trae el JSON correspondiente
+  - `Guardar` persiste cambios validos y rechaza JSON invalido
 
 ## Contexto
 
@@ -566,7 +572,7 @@ Roadmap:
 
 - P2: Panel de reportes en UI. (completado)
 - P3: scheduler opcional. (completado)
-- P3: pagina de configuracion basica en UI. (avance inicial completado con editor de `scoring_rules.json`)
+- P3: pagina de configuracion basica en UI. (avance ampliado a `scoring/action/sizing` con endpoint generico protegido)
 
 ### 19) Validacion estadistica y madurez de senales
 

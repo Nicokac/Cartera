@@ -50,9 +50,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - `docs/report-mobile-responsive-checklist.md`: checklist formal para validar
   legibilidad y usabilidad del reporte HTML en mobile/tablet
 - configuracion basica de scoring desde UI local:
-  - `GET /config/scoring` devuelve contenido actual de `data/strategy/scoring_rules.json`
-  - `POST /config/scoring` valida JSON y persiste contenido formateado
-  - nueva seccion `Configuracion de scoring (avanzado)` en `static/index.html`
+  - `GET /config/{config_name}` devuelve contenido actual (`scoring`, `action`, `sizing`)
+  - `POST /config/{config_name}` valida JSON y persiste contenido formateado
+  - nueva seccion `Configuracion de reglas (avanzado)` en `static/index.html`
 - `README.md`: referencia explicita a docs de API local de FastAPI:
   - `/docs`
   - `/openapi.json`
@@ -330,6 +330,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `401` sin token
   - validacion de JSON invalido (`422`)
   - persistencia correcta de JSON formateado
+  - `404` para config name no soportado
+  - persistencia en archivo objetivo (`action_rules.json`)
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

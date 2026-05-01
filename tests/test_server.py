@@ -223,8 +223,20 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         self._tmp = TemporaryDirectory()
         self._tmp_path = Path(self._tmp.name)
         self._scoring_path = self._tmp_path / "scoring_rules.json"
+        self._action_path = self._tmp_path / "action_rules.json"
+        self._sizing_path = self._tmp_path / "sizing_rules.json"
         self._scoring_path.write_text('{"weights":{"momentum":1.0}}\n', encoding="utf-8")
-        self._patcher = patch.object(server, "SCORING_RULES_FILE", self._scoring_path)
+        self._action_path.write_text('{"rules":[]}\n', encoding="utf-8")
+        self._sizing_path.write_text('{"limits":{}}\n', encoding="utf-8")
+        self._patcher = patch.dict(
+            server.CONFIG_FILE_MAP,
+            {
+                "scoring": self._scoring_path,
+                "action": self._action_path,
+                "sizing": self._sizing_path,
+            },
+            clear=True,
+        )
         self._patcher.start()
 
     def tearDown(self):
@@ -242,6 +254,10 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         data = r.json()
         self.assertTrue(data["content"].startswith("{"))
         self.assertIn("scoring_rules.json", data["path"])
+
+    def test_get_config_404_for_unsupported_name(self):
+        r = _client.get("/config/unknown", headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r.status_code, 404)
 
     def test_post_scoring_config_rejects_invalid_json(self):
         r = _client.post(
@@ -262,6 +278,16 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         saved = self._scoring_path.read_text(encoding="utf-8")
         self.assertIn('"momentum": 2.0', saved)
         self.assertTrue(saved.endswith("\n"))
+
+    def test_post_action_config_saves_target_file(self):
+        r = _client.post(
+            "/config/action",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"content": '{"rules":[{"name":"x"}]}'},
+        )
+        self.assertEqual(r.status_code, 200)
+        saved = self._action_path.read_text(encoding="utf-8")
+        self.assertIn('"name": "x"', saved)
 
 
 class TestGetReportsList(unittest.TestCase):
