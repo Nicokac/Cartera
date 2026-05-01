@@ -539,6 +539,9 @@ def _apply_reduccion_score(
     gain_clip_min: float,
     gain_clip_max: float,
 ) -> pd.DataFrame:
+    def _rule_value(rules: dict[str, object], key: str, default: float = 0.0) -> float:
+        return float((rules or {}).get(key, default))
+
     out["score_reduccion"] = (
         float(score_reduccion_weights.get("high_weight", 0.25)) * out["s_high_weight"]
         + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion_Effective"]
@@ -555,9 +558,9 @@ def _apply_reduccion_score(
     out["score_reduccion"] -= np.where(out["Es_Bono"], float(reduccion_penalties.get("bono", 0.05)), 0.00)
     for subfamily, rules in asset_subfamily_adjustments.items():
         mask = out["asset_subfamily"].eq(subfamily)
-        reduccion_boost = float((rules or {}).get("reduccion_boost", 0.0))
-        high_gain_reduccion_boost = float((rules or {}).get("high_gain_reduccion_boost", 0.0))
-        high_gain_threshold_pct = float((rules or {}).get("high_gain_threshold_pct", gain_clip_max))
+        reduccion_boost = _rule_value(rules, "reduccion_boost")
+        high_gain_reduccion_boost = _rule_value(rules, "high_gain_reduccion_boost")
+        high_gain_threshold_pct = _rule_value(rules, "high_gain_threshold_pct", gain_clip_max)
         if reduccion_boost:
             out["score_reduccion"] += np.where(mask, reduccion_boost, 0.0)
         if high_gain_reduccion_boost:

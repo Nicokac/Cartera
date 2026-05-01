@@ -314,6 +314,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     por metrica con helper local `_metric_rules` (sin cambios funcionales)
   - `_apply_refuerzo_score` reduce repeticion en lectura de ajustes por
     subfamilia con helper local `_rule_value` (sin cambios funcionales)
+  - `_apply_reduccion_score` reduce repeticion en lectura de ajustes por
+    subfamilia con helper local `_rule_value` (sin cambios funcionales)
 - accesibilidad UI (contraste):
   - `static/index.html` mejora contraste en textos secundarios y estados disabled
     (`#status-time`, `footer`, `button:disabled`, `#btn-cancel:disabled`)
