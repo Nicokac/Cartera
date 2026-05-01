@@ -374,6 +374,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     en guardados consecutivos dentro del mismo segundo
   - la UI avanzada permite restore desde backups recientes (`Usar` + `Restaurar backup`)
     con confirmacion explicita previo al rollback
+  - hardening en `GET /config/{config_name}/backups`: parametro `limit`
+    validado en rango `1..100` para controlar carga de respuesta
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

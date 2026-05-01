@@ -125,6 +125,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo: la UI de configuracion avanzada muestra “Backups recientes” (top 5) del archivo seleccionado usando `GET /config/{config_name}/backups`.
 - 2026-05-01: avance de usabilidad operativa/API: nuevo `POST /config/{config_name}/restore` para rollback controlado desde backup_path con validacion de ruta segura.
 - 2026-05-01: avance UX operativo: restore de configuracion desde backup integrado en UI avanzada (seleccion desde lista + confirmacion).
+- 2026-05-01: hardening API de backups: `GET /config/{config_name}/backups` ahora valida `limit` en rango `1..100`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -344,6 +345,11 @@ Prueba de cierre (si aplica):
   - en `Backups recientes`, usar boton `Usar` para cargar un `backup_path`
   - ejecutar `Restaurar backup` y confirmar dialogo
   - verificar recarga de contenido y metadata del archivo restaurado
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente por API:
+  - `GET /config/scoring/backups?limit=5` => 200
+  - `GET /config/scoring/backups?limit=0` => 422
+  - `GET /config/scoring/backups?limit=101` => 422
 
 ## Contexto
 

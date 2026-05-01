@@ -329,6 +329,12 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         self.assertIn("path", backups[0])
         self.assertIn("filename", backups[0])
 
+    def test_get_config_backups_rejects_invalid_limit(self):
+        r = _client.get("/config/scoring/backups?limit=0", headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r.status_code, 422)
+        r2 = _client.get("/config/scoring/backups?limit=101", headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r2.status_code, 422)
+
     def test_restore_config_from_backup(self):
         save = _client.post(
             "/config/scoring",

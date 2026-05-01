@@ -242,6 +242,7 @@ Incluye `Revertir cambios` para volver al ultimo contenido cargado sin reconsult
 Cada guardado en `POST /config/{config_name}` crea backup del archivo previo en `data/backups/config/YYYY-MM-DD/`.
 La UI muestra la ruta del backup creado al confirmar un guardado exitoso.
 `GET /config/{config_name}/backups` lista backups disponibles para rollback manual.
+`GET /config/{config_name}/backups` acepta `limit` (1..100).
 La UI muestra los ultimos backups del archivo seleccionado (hasta 5) en el panel avanzado.
 `POST /config/{config_name}/restore` restaura un backup especifico (`backup_path`) con validacion de seguridad de ruta.
 La UI permite seleccionar un backup reciente y restaurarlo con confirmacion explicita.

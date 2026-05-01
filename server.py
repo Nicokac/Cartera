@@ -766,6 +766,8 @@ def get_strategy_config_backups(
     limit: int = 20,
 ) -> JSONResponse:
     _require_session_token(x_session_token)
+    if limit < 1 or limit > 100:
+        raise HTTPException(status_code=422, detail="limit debe estar entre 1 y 100.")
     target_file = _resolve_config_file(config_name)
     rows = _list_config_backups(target_file, limit=limit)
     return JSONResponse({"name": config_name, "backups": rows})
