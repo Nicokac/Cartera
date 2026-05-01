@@ -6,13 +6,23 @@ Fecha de validacion: 2026-04-28
 
 El roadmap propuesto coincide en lineas generales con el estado actual del proyecto y es aplicable como plan de ejecucion.
 
-Ajustes puntuales detectados al validar contra el repo actual:
+## Cierre final
+
+Estado final al 2026-05-01:
+
+- roadmap completado
+- pendientes reales abiertos: `0`
+- fases `v0.3`, `v0.4` y `v0.5` cerradas
+- documento pasa de plan de ejecucion a registro de cierre de implementacion
+- release materializada para distribucion: `0.5.0`
+
+Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
 - Cobertura total actual: 84% (no 87%).
 - Suite actual: 47 archivos `test_*.py` (alineado con el plan).
 - Piso de cobertura en CI: 82% (alineado con el plan de subir a 85%).
 - `POST /cancel` y boton de cancelacion en UI ya implementados (estado final `interrupted`).
-- `status/detail` sigue con `log_tail` de 1200 chars.
+- `status/detail` sigue con `log_tail` de 1200 chars. (resuelto durante la ejecucion)
 
 ## Avance de ejecucion
 
@@ -37,9 +47,9 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-29: completado item P2 de accesibilidad en UI (`aria-live` en estado, `aria-label` de icono y mensajes de error con `role=\"alert\"`).
 - 2026-04-29: hardening adicional en `/run`: rechazo backend de `username/password` vacios (HTTP 422) para evitar corridas invalidas ante fallos de validacion en frontend/autocompletado.
 - 2026-04-29: completados pendientes UX: tooltip explicativo en `Aporte externo ARS` y link `Ver log completo` cuando el estado es `error`.
-- 2026-04-29: item P2 de DevOps (`macos-latest` en CI) queda como deuda tecnica pendiente por inestabilidad actual en GitHub Actions.
+- 2026-04-29: item P2 de DevOps (`macos-latest` en CI) queda temporalmente como deuda tecnica por inestabilidad inicial en GitHub Actions (luego resuelto).
 - 2026-04-29: fix de estabilidad CI: `server.py` asegura creacion de `reports/` antes del mount de archivos estaticos.
-- 2026-04-29: `ubuntu-latest` en CI tambien queda temporalmente desactivado y marcado como deuda tecnica pendiente para no bloquear entregas.
+- 2026-04-29: `ubuntu-latest` en CI tambien queda temporalmente desactivado para no bloquear entregas durante el ajuste inicial (luego resuelto).
 - 2026-04-29: completado item P2 de escalabilidad/documentacion: checklist formal de alta de instrumento (`docs/instrument-onboarding-checklist.md`).
 - 2026-04-29: completado item P1 de documentacion API: README referencia `/docs` y `/openapi.json` de FastAPI.
 - 2026-04-29: completado item P2 de UX: panel de corridas recientes (ultimas 5) con endpoint `GET /runs/recent`.
@@ -77,7 +87,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de Dimension 19: opcion B de clasificador sobre `signal_votes` integrada en modo experimental (sin reemplazar direccion principal).
 - 2026-04-30: completado item P2 de DevOps CI: matriz `ubuntu-latest` + `macos-latest` vuelve a modo bloqueante (sin `continue-on-error` por SO).
 - 2026-04-30: hotfix CI: `pyproject.toml` normalizado a UTF-8 sin BOM para compatibilidad con parser de `coverage` en GitHub Actions.
-- 2026-04-30: avance P2 de DevOps/CI: se reactiva ejecucion de tests en `ubuntu-latest` y se incorpora `macos-latest` en modo best-effort (`continue-on-error`) para recuperar visibilidad sin bloquear entregas.
+- 2026-04-30: avance P2 de DevOps/CI: se reactiva ejecucion de tests en `ubuntu-latest` y se reincorpora `macos-latest` de forma transicional para recuperar visibilidad previa al cierre bloqueante final.
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental en `apply_base_scores` extrayendo ajustes efectivos de ETF/calidad a helper dedicado (`_apply_etf_effective_scores`) sin cambios funcionales.
 - 2026-04-30: mejora de compatibilidad FastAPI: migracion de startup a `lifespan` en `server.py` (se elimina uso de `@app.on_event("startup")` deprecado, manteniendo `on_startup()` como helper de compatibilidad para tests).
 - 2026-04-30: hardening UX/operabilidad en errores de corrida: `server.py` resume fallas de autenticacion IOL (`401 /token`) con mensaje amigable en `status/error` y deja traceback completo en `log_tail` para diagnostico.
@@ -777,6 +787,12 @@ Estado v0.3 (P1) al 2026-04-28:
 - Completado: item 7.
 - Pendiente: sin pendientes P1.
 
+Cierre ejecutivo v0.3:
+
+- Se estabilizo la operacion base del server local: cancelacion, recuperacion de huerfanos y manejo explicito de errores de spawn.
+- Se reforzo la capa de integraciones criticas con retry en IOL/BCRA y backup automatico de runtime.
+- Se llevo la base a un piso de robustez verificable con cobertura minima reforzada y scripts operativos cross-platform iniciales.
+
 ### v0.4 - UX, calidad y observabilidad (P2)
 
 1. Modal custom de confirmacion.
@@ -788,6 +804,24 @@ Estado v0.3 (P1) al 2026-04-28:
 7. `log_tail` ampliado + tiempos por fase.
 8. ADRs iniciales.
 
+Estado v0.4 (P2) al 2026-05-01:
+
+- Completado: item 1.
+- Completado: item 2.
+- Completado: item 3.
+- Completado: item 4.
+- Completado: item 5.
+- Completado: item 6.
+- Completado: item 7.
+- Completado: item 8.
+- Pendiente: sin pendientes P2.
+
+Cierre ejecutivo v0.4:
+
+- La UX de corrida quedo madura: confirmacion custom, progreso visible, reportes previos, corridas recientes y errores accionables.
+- La mantenibilidad subio de forma material: utilidades comunes, ADRs, CONTRIBUTING y refactors relevantes en scoring/sizing.
+- La observabilidad y seguridad operativa quedaron alineadas con uso real: token de sesion, logs mas ricos y diagnostico trazable.
+
 ### v0.5 - Escalabilidad y polish (P3)
 
 1. Rate limiting en `/run`.
@@ -797,10 +831,32 @@ Estado v0.3 (P1) al 2026-04-28:
 5. Scheduler opcional.
 6. Cierre de deuda documental remanente.
 
+Estado v0.5 (P3) al 2026-05-01:
+
+- Completado: item 1.
+- Completado: item 2.
+- Completado: item 3.
+- Completado: item 4.
+- Completado: item 5.
+- Completado: item 6.
+- Pendiente: sin pendientes P3.
+
+Cierre ejecutivo v0.5:
+
+- Se agrego polish operativo y de escala local: rate limiting, cache intradia, circuit breakers y scheduler opcional.
+- El reporte y la documentacion quedaron cerrados con diagrama de arquitectura, auditoria de contraste y validacion responsive estructural.
+- La app quedo lista para distribucion con una superficie mas estable para evolucion futura sin arrastrar deuda abierta del roadmap.
+
 ---
 
-## Verificacion de aplicabilidad
+## Resumen ejecutivo consolidado
 
-- No requiere cambios de codigo para iniciar: es documento de ejecucion.
-- Es compatible con el estado real del repo al 2026-04-28.
-- Puede ejecutarse en commits pequenos, independientes y verificables.
+- `v0.3` resolvio robustez de base y seguridad operativa minima.
+- `v0.4` convirtio la app local en una herramienta mucho mas utilizable, mantenible y observable.
+- `v0.5` termino el polish de escalabilidad local, compatibilidad y cierre documental.
+- Resultado final:
+  - server local endurecido
+  - pipeline y scoring mas mantenibles
+  - UI operativa con configuracion avanzada
+  - reporte HTML mas accesible y portable
+  - distribucion ZIP lista para usuarios finales

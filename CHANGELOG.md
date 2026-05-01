@@ -6,6 +6,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
+### Changed
+
+- documentacion de release alineada con la version publicada `0.5.0`:
+  - `README.md`, `docs/README.md`, `docs/baseline-actual.md` y `docs/product-roadmap.md`
+  - ejemplos de `scripts/release.ps1` actualizados para reflejar la release vigente
+
+## [0.5.0] - 2026-05-01
+
 ### Added
 
 - cobertura estructural para wrappers PowerShell:
@@ -105,6 +113,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Changed
 
+- preparacion de release:
+  - `pyproject.toml` y `version.txt` pasan a `0.5.0`
+  - documentacion operativa de release actualiza ejemplos a la nueva version
+  - `docs/product-roadmap.md` queda saneado como registro de cierre, con resumen ejecutivo de `v0.3`, `v0.4` y `v0.5`
+  - `README.md` corrige referencia del ZIP distribuible a `cartera-v0.5.0-win64.zip`
+  - `docs/product-roadmap.md` aclara como historicos los estados transicionales de CI ya resueltos
 - wrappers PowerShell locales:
   - nuevo helper compartido `scripts/common_local_app.ps1`
   - `setup/start/status/smoke/run/stop` reutilizan rutas con `Join-Path`

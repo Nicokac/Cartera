@@ -11,10 +11,10 @@
     Requiere working tree limpio salvo que se use `-AllowDirty`.
 
 .EXAMPLE
-    .\scripts\release.ps1 -Version 0.2.3
-    .\scripts\release.ps1 -Version 0.2.3 -NoTag
-    .\scripts\release.ps1 -Version 0.2.3 -NoBuild
-    .\scripts\release.ps1 -Version 0.2.3 -DryRun
+    .\scripts\release.ps1 -Version 0.5.0
+    .\scripts\release.ps1 -Version 0.5.0 -NoTag
+    .\scripts\release.ps1 -Version 0.5.0 -NoBuild
+    .\scripts\release.ps1 -Version 0.5.0 -DryRun
 #>
 param(
     [Parameter(Mandatory = $true)]
