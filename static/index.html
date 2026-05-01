@@ -526,6 +526,23 @@
       }
     }
 
+    async function handleConfigEditorSaveShortcut(event) {
+      const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s";
+      if (!isSaveShortcut) {
+        return;
+      }
+      const active = document.activeElement;
+      const editor = document.getElementById("scoring-config");
+      if (active !== editor) {
+        return;
+      }
+      event.preventDefault();
+      const saveBtn = document.getElementById("btn-save-scoring");
+      if (!saveBtn.disabled) {
+        await saveScoringConfig();
+      }
+    }
+
     function updateConfigEditorState() {
       const textarea = document.getElementById("scoring-config");
       const dirtyEl = document.getElementById("config-dirty");
@@ -709,6 +726,7 @@
       document.getElementById("btn-save-scoring").addEventListener("click", saveScoringConfig);
       document.getElementById("strategy-config-kind").addEventListener("change", loadScoringConfig);
       document.getElementById("scoring-config").addEventListener("input", updateConfigEditorState);
+      document.getElementById("scoring-config").addEventListener("keydown", handleConfigEditorSaveShortcut);
 
       loadUsernamePreference();
       updateSummary();
