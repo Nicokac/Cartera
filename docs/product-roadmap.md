@@ -142,6 +142,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: completado item P1 de seguridad: filtrado de secretos en `/status/detail` queda cubierto tanto en `error` como en `log_tail`, respaldado por pruebas unitarias.
 - 2026-05-01: completado item P2 de arquitectura/mantenibilidad: `apply_base_scores` queda reducido a orquestacion minima sobre `_parse_base_score_config(...)` y `_compute_base_scores_from_config(...)`; el refactor incremental se considera cerrado.
 - 2026-05-01: completado item P2 de datos/persistencia: montos criticos de valuacion (`Valorizado_ARS`, `Ganancia_ARS`, `Valor_USD`) pasan a calcularse con `Decimal` en `src/portfolio/valuation.py`, manteniendo salida compatible en `float` para el resto del pipeline.
+- 2026-05-01: avance P3 de calidad/tipado: se introduce alias compartido `DateLike` (`src/common/types.py`) y se reemplaza `object` generico en flujo temporal de `pipeline`, `prediction.store`, `prediction.verifier` y `decision.history`.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -181,6 +182,8 @@ Prueba de cierre (si aplica):
 - validar que la resolucion CLI de credenciales y `/status/detail` no exponen usuario/password reales en mensajes, `error` ni `log_tail`
 - correr `python -m unittest tests.test_valuation_and_checks tests.test_pipeline tests.test_sizing -v`
 - validar que `Valorizado_ARS`, `Ganancia_ARS` y `Valor_USD` conservan comportamiento esperado tras la migracion interna a `Decimal` en valuacion
+- correr `python -m unittest tests.test_prediction_store tests.test_prediction_verifier tests.test_decision_history tests.test_pipeline -v`
+- validar que el alias `DateLike` no altera comportamiento de `run_date/outcome_date/today` en pipeline, persistencia y verificacion historica
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`

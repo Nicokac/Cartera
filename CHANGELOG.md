@@ -374,6 +374,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     `Ganancia_ARS` y `Valor_USD` a aritmetica interna con `Decimal`
   - se mantiene salida `float` en DataFrames para compatibilidad con el pipeline actual
   - `tests/test_valuation_and_checks.py` agrega cobertura especifica para precision monetaria
+- tipado temporal compartido:
+  - nuevo alias `DateLike` en `src/common/types.py`
+  - reemplaza `object` generico en firmas de `pipeline`, `prediction.store`,
+    `prediction.verifier` y `decision.history`
+  - tests temporales/pipeline validan que el cambio no altera comportamiento
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo

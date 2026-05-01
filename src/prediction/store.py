@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import BDay
 
+from common.types import DateLike
+
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_DIR = ROOT / "data" / "runtime"
 PREDICTION_HISTORY_PATH = RUNTIME_DIR / "prediction_history.csv"
@@ -38,7 +40,7 @@ def _empty_prediction_history() -> pd.DataFrame:
     return pd.DataFrame(columns=PREDICTION_HISTORY_COLUMNS)
 
 
-def _normalize_date(value: object) -> str:
+def _normalize_date(value: DateLike) -> str:
     return pd.Timestamp(value).strftime("%Y-%m-%d")
 
 
@@ -53,11 +55,11 @@ def _normalize_signal_votes(value: object) -> str:
     return json.dumps(dict(value), ensure_ascii=True, sort_keys=True)
 
 
-def resolve_prediction_run_date(run_date: object) -> str:
+def resolve_prediction_run_date(run_date: DateLike) -> str:
     return _normalize_date(run_date)
 
 
-def resolve_prediction_outcome_date(run_date: object, *, horizon_days: int) -> str:
+def resolve_prediction_outcome_date(run_date: DateLike, *, horizon_days: int) -> str:
     if int(horizon_days) < 0:
         raise ValueError("horizon_days no puede ser negativo")
     base = pd.Timestamp(run_date).normalize()
@@ -80,7 +82,7 @@ def load_prediction_history(path: Path | None = None) -> pd.DataFrame:
 def build_prediction_observation(
     predictions: pd.DataFrame,
     *,
-    run_date: object,
+    run_date: DateLike,
     horizon_days: int,
 ) -> pd.DataFrame:
     if predictions.empty:
@@ -159,7 +161,7 @@ def apply_prediction_history_retention(
     history: pd.DataFrame,
     *,
     retention_days: int = DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS,
-    today: object | None = None,
+    today: DateLike | None = None,
 ) -> pd.DataFrame:
     days = int(retention_days)
     if days < 1:

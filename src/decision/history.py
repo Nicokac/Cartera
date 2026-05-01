@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import BDay
 from prediction.maturity import MIN_RUNS_FOR_RELIABLE_SERIES, MIN_RUNS_FOR_STREAK
+from common.types import DateLike
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_DIR = ROOT / "data" / "runtime"
@@ -50,11 +51,11 @@ def _empty_history_frame() -> pd.DataFrame:
     return pd.DataFrame(columns=HISTORY_COLUMNS)
 
 
-def _normalize_run_date(run_date: object) -> str:
+def _normalize_run_date(run_date: DateLike) -> str:
     return pd.Timestamp(run_date).strftime("%Y-%m-%d")
 
 
-def resolve_market_run_date(run_date: object, *, market_open_hour: int = 10) -> str:
+def resolve_market_run_date(run_date: DateLike, *, market_open_hour: int = 10) -> str:
     raw = run_date
     ts = pd.Timestamp(run_date)
 
@@ -130,7 +131,7 @@ def load_decision_history(path: Path | None = None) -> pd.DataFrame:
 def build_decision_history_observation(
     final_decision: pd.DataFrame,
     *,
-    run_date: object,
+    run_date: DateLike,
     market_regime: dict[str, Any] | None = None,
 ) -> pd.DataFrame:
     if final_decision.empty:
@@ -190,7 +191,7 @@ def apply_decision_history_retention(
     history: pd.DataFrame,
     *,
     retention_days: int = DEFAULT_DECISION_HISTORY_RETENTION_DAYS,
-    today: object | None = None,
+    today: DateLike | None = None,
 ) -> pd.DataFrame:
     days = int(retention_days)
     if days < 1:
@@ -280,7 +281,7 @@ def enrich_with_temporal_memory(
     final_decision: pd.DataFrame,
     history: pd.DataFrame,
     *,
-    run_date: object,
+    run_date: DateLike,
 ) -> pd.DataFrame:
     out = final_decision.copy()
     if out.empty:

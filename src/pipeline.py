@@ -23,6 +23,7 @@ try:
     from .portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
     from .prediction.predictor import predict
     from .prediction.store import build_prediction_observation, resolve_prediction_outcome_date
+    from .common.types import DateLike
 except ImportError:
     from analytics.dashboard import build_executive_dashboard_data
     from decision.actions import assign_action_v2, assign_base_action, enrich_decision_explanations
@@ -41,6 +42,7 @@ except ImportError:
     from portfolio.valuation import build_bonos_df, build_cedears_df, build_local_df, build_portfolio_master
     from prediction.predictor import predict
     from prediction.store import build_prediction_observation, resolve_prediction_outcome_date
+    from common.types import DateLike
 
 
 logger = logging.getLogger(__name__)
@@ -228,7 +230,7 @@ def build_prediction_bundle(
     *,
     final_decision: pd.DataFrame,
     weights: dict[str, Any] | None,
-    run_date: object,
+    run_date: DateLike,
     market_regime: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     weights = dict(weights or {})

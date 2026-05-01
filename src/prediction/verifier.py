@@ -7,9 +7,11 @@ import pandas as pd
 
 try:
     from ..clients.market_data import fetch_price_history
+    from ..common.types import DateLike
     from ..config import PREDICTION_WEIGHTS
 except ImportError:
     from clients.market_data import fetch_price_history
+    from common.types import DateLike
     from config import PREDICTION_WEIGHTS
 
 
@@ -25,8 +27,8 @@ def classify_outcome(return_pct: float, *, neutral_return_band: float) -> str:
 
 
 def build_verification_period(
-    run_date: object,
-    outcome_date: object,
+    run_date: DateLike,
+    outcome_date: DateLike,
     *,
     buffer_days: int = 10,
 ) -> str:
@@ -37,7 +39,7 @@ def build_verification_period(
     return f"{total_days}d"
 
 
-def resolve_close_on_or_after(history: pd.DataFrame, target_date: object) -> float | None:
+def resolve_close_on_or_after(history: pd.DataFrame, target_date: DateLike) -> float | None:
     if not isinstance(history, pd.DataFrame) or history.empty or "Close" not in history.columns:
         return None
 
@@ -62,7 +64,7 @@ def resolve_close_on_or_after(history: pd.DataFrame, target_date: object) -> flo
 def verify_prediction_history(
     history: pd.DataFrame,
     *,
-    today: object | None = None,
+    today: DateLike | None = None,
     neutral_return_band: float | None = None,
     price_fetcher: Callable[..., pd.DataFrame] | None = None,
 ) -> pd.DataFrame:
