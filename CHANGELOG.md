@@ -389,6 +389,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     `src/decision/sizing.py` y `src/analytics/bond_analytics.py` reemplazan
     varios `dict[str, object]` por `Mapping[str, Any]` y `TypedDict`
   - tests de decision/scoring/sizing/bond analytics validan que no cambia el comportamiento
+- tipado en analytics:
+  - `src/analytics/portfolio_risk.py` agrega `TypedDict` para puntos comparables,
+    filas de riesgo y bundle de salida
+  - `src/analytics/technical.py` agrega `TechnicalOverlayRow` y tipa configuracion/salida
+  - tests de `portfolio_risk`, `technical` y `pipeline` validan compatibilidad
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo

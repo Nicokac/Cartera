@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, TypedDict
 
 import numpy as np
 import pandas as pd
@@ -11,6 +12,44 @@ REQUIRED_COLUMNS = {"Ticker_IOL"}
 OPTIONAL_NUMERIC_COLUMNS = ("Peso_%", "Valorizado_ARS", "Precio_ARS")
 EXCLUDED_RISK_TICKERS = {"CAUCION", "CASH_USD"}
 EXCLUDED_RISK_TYPES = {"FCI"}
+
+
+ComparablePortfolioPoint = TypedDict(
+    "ComparablePortfolioPoint",
+    {
+        "snapshot_date": pd.Timestamp,
+        "total_ars": float,
+        "comparable_index": float,
+        "daily_return_pct": float,
+        "overlap_prev_pct": float,
+        "coverage_prev_pct": float,
+        "coverage_curr_pct": float,
+        "stable_step": bool,
+    },
+)
+
+
+PositionRiskRow = TypedDict(
+    "PositionRiskRow",
+    {
+        "Ticker_IOL": str,
+        "Tipo": Any,
+        "Bloque": Any,
+        "Peso_%": float,
+        "Base_Riesgo": str,
+        "Retorno_Acum_%": float,
+        "Volatilidad_Diaria_%": float,
+        "Drawdown_Max_%": float,
+        "Observaciones": int,
+        "Calidad_Historia": str,
+    },
+)
+
+
+class PortfolioRiskBundle(TypedDict):
+    portfolio_summary: dict[str, Any]
+    portfolio_timeseries: pd.DataFrame
+    position_risk: pd.DataFrame
 
 
 def _load_snapshot_csv(path: Path) -> pd.DataFrame:
@@ -35,7 +74,7 @@ def _load_snapshot_csv(path: Path) -> pd.DataFrame:
 
 
 def load_portfolio_snapshot_history(
-    run_date: object,
+    run_date: Any,
     *,
     snapshots_dirs: list[Path] | None = None,
 ) -> pd.DataFrame:
@@ -164,7 +203,7 @@ def _build_comparable_portfolio_timeseries(history_all: pd.DataFrame) -> pd.Data
         return pd.DataFrame()
 
     dates = totals["snapshot_date"].tolist()
-    rows: list[dict[str, object]] = [
+    rows: list[ComparablePortfolioPoint] = [
         {
             "snapshot_date": dates[0],
             "total_ars": float(totals.loc[0, "total_ars"]),
@@ -264,12 +303,12 @@ def _build_comparable_portfolio_timeseries(history_all: pd.DataFrame) -> pd.Data
 def build_portfolio_risk_bundle(
     current_portfolio: pd.DataFrame | None,
     *,
-    run_date: object,
+    run_date: Any,
     snapshots_dirs: list[Path] | None = None,
     total_ars: float | None = None,
     benchmark_daily_returns: pd.Series | None = None,
     benchmark_name: str = "MEP",
-) -> dict[str, object]:
+) -> PortfolioRiskBundle:
     current_df = current_portfolio.copy() if isinstance(current_portfolio, pd.DataFrame) else pd.DataFrame()
     if current_df.empty or "Ticker_IOL" not in current_df.columns:
         return {
@@ -425,7 +464,7 @@ def build_portfolio_risk_bundle(
 
     current_symbols = risk_current_view["Ticker_IOL"].dropna().astype(str).tolist()
     total_snapshots = int(len(portfolio_timeseries))
-    risk_rows: list[dict[str, object]] = []
+    risk_rows: list[PositionRiskRow] = []
     for symbol in current_symbols:
         ticker_history = history_all.loc[history_all["Ticker_IOL"].eq(symbol)].copy()
         if ticker_history.empty:

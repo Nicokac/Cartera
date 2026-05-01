@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
+from typing import Any, TypedDict
 import numpy as np
 import pandas as pd
 
@@ -11,6 +13,47 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+
+
+TechnicalOverlayRow = TypedDict(
+    "TechnicalOverlayRow",
+    {
+        "Ticker_IOL": str,
+        "Ticker_Finviz": str,
+        "Close_USD": float,
+        "SMA_9": float,
+        "SMA_20": float,
+        "SMA_50": float,
+        "SMA_200": float,
+        "EMA_20": float,
+        "EMA_50": float,
+        "Dist_SMA20_%": float,
+        "Dist_SMA50_%": float,
+        "Dist_SMA200_%": float,
+        "Dist_EMA20_%": float,
+        "Dist_EMA50_%": float,
+        "Avg_Volume_20d": float,
+        "Relative_Volume": float,
+        "Return_1d_%": float,
+        "Return_intraday_%": float,
+        "ADX_14": float,
+        "DI_plus_14": float,
+        "DI_minus_14": float,
+        "RSI_14": float,
+        "Momentum_20d_%": float,
+        "Momentum_60d_%": float,
+        "Vol_20d_Anual_%": float,
+        "Max_3m": float,
+        "Min_3m": float,
+        "High_52w": float,
+        "Low_52w": float,
+        "Dist_52w_High_%": float,
+        "Dist_52w_Low_%": float,
+        "Drawdown_desde_Max3m_%": float,
+        "Tech_Trend": str,
+    },
+    total=False,
+)
 
 
 def normalize_technical_overlay(df_tech: pd.DataFrame) -> pd.DataFrame:
@@ -64,8 +107,8 @@ def compute_rsi(series: pd.Series, period: int = 14) -> pd.Series:
 def build_technical_overlay(
     df_cedears: pd.DataFrame,
     *,
-    scoring_rules: dict[str, object] | None = None,
-    price_history_out: dict | None = None,
+    scoring_rules: Mapping[str, Any] | None = None,
+    price_history_out: dict[str, list[float]] | None = None,
 ) -> pd.DataFrame:
     if df_cedears is None or df_cedears.empty:
         logger.info("Technical overlay skipped: empty CEDEAR frame")
@@ -75,7 +118,7 @@ def build_technical_overlay(
     tech_rules = scoring_rules.get("technical_overlay", {}) or {}
     period = str(tech_rules.get("history_period", "9mo"))
     interval = str(tech_rules.get("interval", "1d"))
-    rows: list[dict[str, object]] = []
+    rows: list[TechnicalOverlayRow] = []
     base = df_cedears[["Ticker_IOL", "Ticker_Finviz"]].dropna().drop_duplicates()
 
     for _, row in base.iterrows():
