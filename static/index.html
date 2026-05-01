@@ -467,7 +467,7 @@
         _lastLoadedConfigText = text;
         updateConfigEditorState();
       } catch (_) {
-        showScoringAlert("No se pudo cargar scoring_rules.json.", true);
+        showScoringAlert(`No se pudo cargar ${kind}_rules.json.`, true);
       }
     }
 
@@ -519,6 +519,7 @@
         }
       } catch (_) {}
       showScoringAlert(`Configuracion guardada.${backupInfo}`);
+      await loadConfigOptions();
       await loadScoringConfig();
     }
 

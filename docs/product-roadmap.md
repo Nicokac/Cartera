@@ -120,6 +120,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: hardening operativo de configuracion avanzada: `POST /config/{config_name}` ahora genera backup automatico del archivo previo en `data/backups/config/YYYY-MM-DD/`.
 - 2026-05-01: avance UX operativo adicional: la UI muestra `backup_path` al guardar configuracion para facilitar rollback manual.
 - 2026-05-01: hardening UX de editor avanzado: aviso `beforeunload` cuando hay cambios sin guardar para evitar perdida accidental de edicion.
+- 2026-05-01: mejora UX de configuracion avanzada: post-guardado refresca metadata (`modified_at`) desde `GET /config` para mostrar estado actualizado en el panel.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -320,6 +321,9 @@ Prueba de cierre (si aplica):
 - validar manualmente cambios sin guardar:
   - editar JSON y recargar/cerrar pestaña
   - el navegador debe advertir que hay cambios pendientes
+- validar manualmente post-guardado:
+  - guardar cambios en cualquier archivo de reglas
+  - confirmar que `Modificado` se actualiza inmediatamente en la metadata mostrada
 
 ## Contexto
 
