@@ -123,6 +123,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: mejora UX de configuracion avanzada: post-guardado refresca metadata (`modified_at`) desde `GET /config` para mostrar estado actualizado en el panel.
 - 2026-05-01: avance de usabilidad operativa/API: nuevo `GET /config/{config_name}/backups` para listar historico de backups por archivo de reglas.
 - 2026-05-01: avance UX operativo: la UI de configuracion avanzada muestra “Backups recientes” (top 5) del archivo seleccionado usando `GET /config/{config_name}/backups`.
+- 2026-05-01: avance de usabilidad operativa/API: nuevo `POST /config/{config_name}/restore` para rollback controlado desde backup_path con validacion de ruta segura.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -333,6 +334,11 @@ Prueba de cierre (si aplica):
 - validar manualmente en UI local:
   - cambiar entre `scoring/action/sizing` y verificar bloque `Backups recientes`
   - confirmar que muestra hasta 5 entradas con fecha, nombre y tamaño
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente restore por API:
+  - guardar cambios para generar backups
+  - restaurar con `POST /config/<name>/restore` enviando `backup_path` valido
+  - verificar que el archivo objetivo vuelve al contenido del backup
 
 ## Contexto
 

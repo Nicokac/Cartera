@@ -329,6 +329,40 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         self.assertIn("path", backups[0])
         self.assertIn("filename", backups[0])
 
+    def test_restore_config_from_backup(self):
+        save = _client.post(
+            "/config/scoring",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"content": '{"weights":{"momentum":2.0}}'},
+        )
+        self.assertEqual(save.status_code, 200)
+        created_backup = save.json()["backup_path"]
+
+        update = _client.post(
+            "/config/scoring",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"content": '{"weights":{"momentum":9.0}}'},
+        )
+        self.assertEqual(update.status_code, 200)
+
+        restore = _client.post(
+            "/config/scoring/restore",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"backup_path": created_backup},
+        )
+        self.assertEqual(restore.status_code, 200)
+        self.assertEqual(restore.json()["status"], "restored")
+        restored_text = self._scoring_path.read_text(encoding="utf-8")
+        self.assertIn('"momentum": 1.0', restored_text)
+
+    def test_restore_rejects_invalid_backup_path(self):
+        r = _client.post(
+            "/config/scoring/restore",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"backup_path": str(self._tmp_path / "other.json")},
+        )
+        self.assertEqual(r.status_code, 400)
+
 
 class TestGetReportsList(unittest.TestCase):
     def setUp(self):

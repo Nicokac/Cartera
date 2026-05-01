@@ -109,6 +109,10 @@ class ScoringConfigUpdate(BaseModel):
     content: str = Field(default="", max_length=200_000)
 
 
+class ConfigRestoreRequest(BaseModel):
+    backup_path: str = Field(default="", max_length=1000)
+
+
 def _resolve_config_file(config_name: str) -> Path:
     key = str(config_name or "").strip().lower()
     path = CONFIG_FILE_MAP.get(key)
@@ -122,7 +126,7 @@ def _backup_config_file(path: Path) -> str | None:
         return None
     date_dir = CONFIG_BACKUP_DIR / datetime.now().strftime("%Y-%m-%d")
     date_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%H%M%S")
+    stamp = datetime.now().strftime("%H%M%S%f")
     backup_name = f"{path.stem}.{stamp}.json"
     backup_path = date_dir / backup_name
     shutil.copy2(path, backup_path)
@@ -147,6 +151,19 @@ def _list_config_backups(path: Path, *, limit: int = 20) -> list[dict[str, objec
         )
     rows.sort(key=lambda row: str(row["modified_at"]), reverse=True)
     return rows[: max(1, int(limit))]
+
+
+def _is_safe_backup_path(target_file: Path, backup_path: Path) -> bool:
+    try:
+        resolved_backup = backup_path.resolve()
+        resolved_root = CONFIG_BACKUP_DIR.resolve()
+        resolved_target = target_file.resolve()
+    except Exception:
+        return False
+    if resolved_root not in resolved_backup.parents:
+        return False
+    expected_prefix = f"{resolved_target.stem}."
+    return resolved_backup.name.startswith(expected_prefix) and resolved_backup.suffix.lower() == ".json"
 
 
 def _parse_ts(value: object) -> datetime | None:
@@ -752,6 +769,45 @@ def get_strategy_config_backups(
     target_file = _resolve_config_file(config_name)
     rows = _list_config_backups(target_file, limit=limit)
     return JSONResponse({"name": config_name, "backups": rows})
+
+
+@app.post("/config/{config_name}/restore")
+def post_strategy_config_restore(
+    config_name: str,
+    payload: ConfigRestoreRequest,
+    x_session_token: str = Header(default=""),
+) -> JSONResponse:
+    _require_session_token(x_session_token)
+    target_file = _resolve_config_file(config_name)
+    backup_path_raw = str(payload.backup_path or "").strip()
+    if not backup_path_raw:
+        raise HTTPException(status_code=422, detail="backup_path es obligatorio.")
+    candidate = Path(backup_path_raw)
+    if not _is_safe_backup_path(target_file, candidate):
+        raise HTTPException(status_code=400, detail="backup_path invalido para la configuracion solicitada.")
+    if not candidate.exists():
+        raise HTTPException(status_code=404, detail="No existe el backup solicitado.")
+    try:
+        content = candidate.read_text(encoding="utf-8")
+        parsed = json.loads(content)
+        if not isinstance(parsed, dict):
+            raise HTTPException(status_code=422, detail="El backup no contiene un JSON objeto valido.")
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+        pre_restore_backup = _backup_config_file(target_file)
+        target_file.write_text(json.dumps(parsed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return JSONResponse(
+            {
+                "status": "restored",
+                "name": config_name,
+                "path": str(target_file),
+                "restored_from": str(candidate),
+                "backup_path": pre_restore_backup,
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"No se pudo restaurar configuracion: {exc}")
 
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
