@@ -14,7 +14,7 @@ Estado final al 2026-05-01:
 - pendientes reales abiertos: `0`
 - fases `v0.3`, `v0.4` y `v0.5` cerradas
 - documento pasa de plan de ejecucion a registro de cierre de implementacion
-- release materializada para distribucion: `0.5.0`
+- release materializada para distribucion: `0.5.1`
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
@@ -159,6 +159,7 @@ Ajustes puntuales detectados al validar contra el repo actual al inicio del trab
 - 2026-05-01: completado item P3 de calidad/tipado: barrido final de `dict[str, object]`/contratos genericos en `decision.scoring`, `clients.bcra`, `clients.pyobd_client` y `portfolio.operations`; el codigo fuente (`src/`) queda sin remanentes de esos contratos genericos en puntos relevados del roadmap.
 - 2026-05-01: completado item P2 de compatibilidad: wrappers PowerShell (`setup/start/status/smoke/run`) ya operan en `pwsh` cross-platform con resolucion de `.venv` por SO, apertura de browser portable y uso de token de sesion para endpoints protegidos.
 - 2026-05-01: completado item P2 de mantenibilidad: `build_operational_proposal` en `src/decision/sizing.py` se parte en helpers internos para acciones operativas, comentarios, rankings, fondeo y asignacion de refuerzos; el pendiente de refactor de funciones largas queda cerrado.
+- 2026-05-01: post-cierre de roadmap: hardening del renderer HTML y memoria temporal para corregir mojibake residual en el reporte (`Predicción`, `Régimen`, `Acción`, símbolos de señal y título de pestaña), mejorar copy (`Metodología`, singular/plural de instrumentos) y alinear `quality_label` con los umbrales visibles del producto.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -187,6 +188,12 @@ Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_decision_scoring tests.strategy_rules_technical_scoring -v`
 - validar sobre una corrida real existente que ranking/acciones sugeridas no cambian respecto a baseline previo para mismo input (control de no regresion funcional del refactor)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- correr `python -m unittest tests.test_report_sections_prediction tests.test_report_render_core tests.test_report_render_ui tests.test_decision_history -v`
+- generar `reports/real-report.html` y validar:
+  - sin textos mojibake (`Predicción`, `Régimen`, `Acción`, `Señales`)
+  - pestaña del browser con `Real Run - YYYY-MM-DD | Cartera de Activos`
+  - columna `Confianza` con separación correcta entre label y porcentaje (`baja 19.37%`)
+  - `Calidad historia` consistente con los umbrales visibles (ej. corrida 20 -> `Robusta`)
 - validar que el refactor de concentracion/momentum mantiene exactamente el mismo comportamiento de `apply_base_scores` (sin cambios en scores ni recomendaciones para un mismo input)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `Momentum_Refuerzo` y `Momentum_Reduccion` no cambian tras la extraccion de `_weighted_momentum` (refactor sin cambio funcional)

@@ -145,9 +145,9 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("30.00%", html)
         self.assertIn("66.67%", html)
         self.assertIn("10 ruedas", html)
-        self.assertIn("Se", html)
+        self.assertIn("Se\u00f1ales de suba", html)
         self.assertIn("signal-table", html)
-        self.assertIn("Acierto histórico (global)", html)
+        self.assertIn("Acierto hist\u00f3rico (global)", html)
         self.assertIn("Acierto por familia", html)
         self.assertIn("58.33%", html)
         self.assertIn("stock", html)
@@ -155,8 +155,9 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("Alto (&gt;= 0.15)", html)
         self.assertIn("Acierto por horizonte", html)
         self.assertIn("5 ruedas", html)
-        self.assertIn("Preparación calibración por familia", html)
+        self.assertIn("Preparaci\u00f3n calibraci\u00f3n por familia", html)
         self.assertIn("Pendiente", html)
+        self.assertIn(">alta</span> 40.00%", html)
 
     def test_warns_when_action_contradicts_direction(self) -> None:
         predictions = pd.DataFrame(
@@ -168,8 +169,8 @@ class BuildPredictionSectionTests(unittest.TestCase):
         )
         html = build_prediction_section({"predictions": predictions, "summary": {}, "config": {}})
 
-        self.assertTrue(("\u26a0 Refuerzo" in html) or ("âš\xa0 Refuerzo" in html))
-        self.assertTrue(("\u26a0 Reducir" in html) or ("âš\xa0 Reducir" in html))
+        self.assertIn("⚠ Refuerzo", html)
+        self.assertIn("⚠ Reducir", html)
 
     def test_keeps_placeholder_action_without_warning(self) -> None:
         predictions = pd.DataFrame(

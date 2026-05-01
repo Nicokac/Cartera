@@ -683,7 +683,7 @@ def _print_coverage_stats(technical_overlay: pd.DataFrame, df_cedears: pd.DataFr
     tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
     tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
     tech_total = int(len(df_cedears))
-    print(f"Cobertura tÃ©cnica: {tech_covered}/{tech_total}")
+    print(f"Cobertura t\u00e9cnica: {tech_covered}/{tech_total}")
     print(
         "Cobertura Finviz: "
         f"{finviz_stats.get('fundamentals_covered', 0)}/{finviz_stats.get('cedears_total', 0)}"

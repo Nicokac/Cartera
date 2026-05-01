@@ -13,7 +13,7 @@ from decision.action_constants import (
 
 
 FAMILY_LABELS = {
-    "stock": "Acción",
+    "stock": "Acci\u00f3n",
     "etf": "ETF",
     "bond": "Bono",
     "fund": "FCI",
@@ -27,7 +27,7 @@ SUBFAMILY_LABELS = {
     "bond_other": "Otros",
     "bond_sov_ar": "Soberano AR",
     "etf_core": "Core",
-    "etf_country_region": "País / Región",
+    "etf_country_region": "Pa\u00eds / Regi\u00f3n",
     "etf_other": "Otros",
     "etf_sector": "Sectorial",
     "fund_other": "Otros",
@@ -158,7 +158,7 @@ def metric_class(column: str, value: object) -> str:
     except Exception:
         text = str(value).strip().lower()
         if column == "asset_family":
-            if text in {"stock", "acción"}:
+            if text in {"stock", "acci\u00f3n"}:
                 return "metric metric-positive"
             if text == "etf":
                 return "metric metric-warn"
@@ -167,7 +167,7 @@ def metric_class(column: str, value: object) -> str:
         if column == "asset_subfamily":
             if text in {"etf_sector", "sectorial"}:
                 return "metric metric-positive"
-            if text in {"etf_country_region", "país / región", "pais / región", "país / region", "país / región"}:
+            if text in {"etf_country_region", "pa\u00eds / regi\u00f3n", "pais / regi\u00f3n", "pa\u00eds / region", "pais / region"}:
                 return "metric metric-warn"
             if text in {"etf_core", "etf_other", "core", "otros"}:
                 return "metric metric-neutral"

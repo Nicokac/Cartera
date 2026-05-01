@@ -253,11 +253,13 @@ def _build_temporal_row(
                 break
             streak += 1
 
+    effective_history_observaciones = history_observaciones + 1 if history_observaciones > 0 else 0
+
     if history_observaciones <= 0:
         quality_label = "Sin historia"
-    elif history_observaciones < MIN_RUNS_FOR_STREAK:
+    elif effective_history_observaciones < MIN_RUNS_FOR_STREAK:
         quality_label = "Corta"
-    elif history_observaciones < MIN_RUNS_FOR_RELIABLE_SERIES:
+    elif effective_history_observaciones < MIN_RUNS_FOR_RELIABLE_SERIES:
         quality_label = "Parcial"
     else:
         quality_label = "Robusta"

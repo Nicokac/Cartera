@@ -37,8 +37,8 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn("Cambios de señal", html)
-        self.assertIn("Sin cambios de señal respecto de la corrida previa.", html)
+        self.assertIn("Cambios de se\u00f1al", html)
+        self.assertIn("Sin cambios de se\u00f1al respecto de la corrida previa.", html)
         self.assertIn("Mantener / Neutral -&gt; Mantener / monitorear", html)
 
 
@@ -82,8 +82,8 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Cambios materiales", html)
         self.assertIn("Refuerzos persistentes", html)
         self.assertIn("Sin historial", html)
-        self._assert_contains_any(html, ("Suben de convicción", "Suben de convicciÃ³n"))
-        self._assert_contains_any(html, ("Bajan a reducción", "Bajan a reducciÃ³n"))
+        self.assertIn("Suben de convicci\u00f3n", html)
+        self.assertIn("Bajan a reducci\u00f3n", html)
         self.assertIn("Vuelven a monitoreo", html)
 
 
@@ -99,8 +99,8 @@ class ReportRenderCoreTests(unittest.TestCase):
     def test_render_report_shows_temporal_columns_in_decision_table(self) -> None:
         html = render_report(_build_minimal_result())
 
-        self.assertIn("Acción previa", html)
-        self.assertIn("Δ Score", html)
+        self.assertIn("Acci\u00f3n previa", html)
+        self.assertIn("\u0394 Score", html)
         self.assertIn("Racha", html)
         self.assertIn("Calidad historia", html)
         self.assertIn("Parcial", html)
@@ -111,8 +111,8 @@ class ReportRenderCoreTests(unittest.TestCase):
     def test_render_report_shows_market_regime_panel(self) -> None:
         html = render_report(_build_minimal_result())
 
-        self.assertIn("Régimen de mercado", html)
-        self.assertIn("Sin activación", html)
+        self.assertIn("R\u00e9gimen de mercado", html)
+        self.assertIn("Sin activaci\u00f3n", html)
         self.assertIn("stress_soberano_local", html)
         self.assertIn("tasas_ust_altas", html)
 
@@ -123,10 +123,10 @@ class ReportRenderCoreTests(unittest.TestCase):
         self.assertIn("Panorama", html)
         self.assertIn("Cambios", html)
         self.assertIn("Sizing activo", html)
-        self.assertIn("Cambios de señal", html)
+        self.assertIn("Cambios de se\u00f1al", html)
         self.assertIn("Liquidez broker", html)
         self.assertIn("Liquidez ampliada", html)
-        self._assert_contains_any(html, ("Vuelve a monitoreo desde reducción", "Vuelve a monitoreo desde reducciÃ³n"))
+        self.assertIn("Vuelve a monitoreo desde reducci\u00f3n", html)
         self.assertIn("Antes: Reducir. Ahora: Mantener / monitorear.", html)
 
 
@@ -155,10 +155,10 @@ class ReportRenderCoreTests(unittest.TestCase):
         }
 
         html = render_report(result)
+        self.assertIn("Ver tenencias pendientes de consolidaci\u00f3n", html)
 
-        self.assertIn("Ver tenencias pendientes de consolidación", html)
         self.assertIn("S31G6", html)
-        self.assertIn("Pendiente de consolidación", html)
+        self.assertIn("Pendiente de consolidacion", html)
 
 
     def test_render_report_shows_prediction_section_when_bundle_has_data(self) -> None:
@@ -196,7 +196,7 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         self.assertIn('href="#prediccion"', html)
         self.assertIn('<section class="panel" id="prediccion">', html)
-        self._assert_contains_any(html, ("Ver detalle completo de predicción", "Ver detalle completo de predicciÃ³n"))
+        self.assertIn("Ver detalle completo de predicci\u00f3n", html)
         self.assertIn("Confianza media", html)
         self.assertIn("XLV", html)
         self.assertIn("MELI", html)

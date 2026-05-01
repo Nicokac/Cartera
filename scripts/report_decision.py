@@ -116,17 +116,17 @@ def describe_action_shift(previous_action: object, current_action: object) -> st
     neutral_actions = {ACTION_MANTENER_NEUTRAL, "Mantener / monitorear"}
 
     if current == ACTION_REFUERZO and previous in neutral_actions:
-        return "Sube de convicciÃ³n"
+        return "Sube de convicción"
     if current == ACTION_REFUERZO and previous == ACTION_REDUCIR:
-        return "Giro desde reducciÃ³n a refuerzo"
+        return "Giro desde reducción a refuerzo"
     if current == ACTION_REDUCIR and previous in neutral_actions:
-        return "Pasa de monitoreo a reducciÃ³n"
+        return "Pasa de monitoreo a reducción"
     if current == ACTION_REDUCIR and previous == ACTION_REFUERZO:
-        return "Giro desde refuerzo a reducciÃ³n"
+        return "Giro desde refuerzo a reducción"
     if current in neutral_actions and previous == ACTION_REFUERZO:
         return "Vuelve a monitoreo desde refuerzo"
     if current in neutral_actions and previous == ACTION_REDUCIR:
-        return "Vuelve a monitoreo desde reducciÃ³n"
+        return "Vuelve a monitoreo desde reducción"
     return f"{previous} -> {current}"
 
 
@@ -205,7 +205,7 @@ def build_decision_priority_board(
             {
                 "kicker": str(row.get("Ticker_IOL", "-")),
                 "title": f"Racha {int(row.get('_racha', 0) or 0)}",
-                "detail": f"Accion {accion} | Calidad {calidad}",
+                "detail": f"Acción {accion} | Calidad {calidad}",
                 "badge": accion if accion else None,
             }
         )
@@ -312,8 +312,8 @@ def build_change_highlights(
     cambios_hacia_neutral = int(changed_view["_accion_actual"].isin(NEUTRAL_ACTIONS).sum())
     changes_direction_summary = f"""
       <div class="meta change-direction-meta">
-        <span>Suben de convicciÃ³n: <strong>{cambios_hacia_refuerzo}</strong></span>
-        <span>Bajan a reducciÃ³n: <strong>{cambios_hacia_reduccion}</strong></span>
+        <span>Suben de convicción: <strong>{cambios_hacia_refuerzo}</strong></span>
+        <span>Bajan a reducción: <strong>{cambios_hacia_reduccion}</strong></span>
         <span>Vuelven a monitoreo: <strong>{cambios_hacia_neutral}</strong></span>
       </div>
     """
@@ -323,7 +323,7 @@ def build_change_highlights(
         current_action = str(row["_accion_actual"])
         score_delta = row.get("score_delta_vs_dia_anterior")
         score_delta_label = fmt_delta_score(score_delta)
-        delta_fragment = f" Î” score {score_delta_label}." if score_delta_label != "-" else ""
+        delta_fragment = f" Δ score {score_delta_label}." if score_delta_label != "-" else ""
         changed_actions.append(
             {
                 "kicker": str(row.get("Ticker_IOL", "-")),

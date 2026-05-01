@@ -95,18 +95,18 @@ def build_header_cards(
       <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
       <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
       <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
-      <article class="card compact"><span class="label">Cobertura técnica</span><strong>{tech_covered}/{tech_total}</strong></article>
+      <article class="card compact"><span class="label">Cobertura t\u00e9cnica</span><strong>{tech_covered}/{tech_total}</strong></article>
       <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
       <article class="card compact"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
     </section>
     """
 
     action_summary = f"""
-    <section class="action-summary-block" aria-label="Distribución de acciones">
-      <p class="action-summary-title">Distribución de acciones</p>
+    <section class="action-summary-block" aria-label="Distribuci\u00f3n de acciones">
+      <p class="action-summary-title">Distribuci\u00f3n de acciones</p>
       <section class="action-strip">
         <article class="action-card buy"><span>En refuerzo</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
-        <article class="action-card sell"><span>En reducción</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
+        <article class="action-card sell"><span>En reducci\u00f3n</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
         <article class="action-card fund"><span>En despliegue</span><strong>{int(action_counts.get(ACTION_DESPLEGAR_LIQUIDEZ, 0))}</strong></article>
         <article class="action-card neutral"><span>En neutral</span><strong>{neutrales}</strong></article>
       </section>
@@ -132,14 +132,14 @@ def build_panorama_section(
         <h2>Panorama</h2>
         <p class="summary-lede">{esc_text(executive_summary)}</p>
         <div class="meta">
-          <span>Régimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activación'}</strong></span>
+          <span>R\u00e9gimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activaci\u00f3n'}</strong></span>
           <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
-          <span>Overlay técnico: <strong>{tech_enabled}</strong></span>
+          <span>Overlay t\u00e9cnico: <strong>{tech_enabled}</strong></span>
         </div>
         <div class="focus-columns">
           <div>
-            <h3>Cambios de señal</h3>
-            {build_focus_list(changed_actions, empty_message='Sin cambios de señal respecto de la corrida previa.', tone='neutral')}
+            <h3>Cambios de se\u00f1al</h3>
+            {build_focus_list(changed_actions, empty_message='Sin cambios de se\u00f1al respecto de la corrida previa.', tone='neutral')}
           </div>
           <div>
             <h3>Alertas de cartera</h3>
@@ -174,7 +174,7 @@ def build_changes_section(
     if decision_memory:
         memory_summary = f"""
     <section class="action-strip compact-strip">
-      <article class="action-card neutral"><span>Cambios materiales</span><strong>{int(decision_memory.get('señales_nuevas', 0))}</strong></article>
+      <article class="action-card neutral"><span>Cambios materiales</span><strong>{int(decision_memory.get('se\u00f1ales_nuevas', 0))}</strong></article>
       <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
       <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
       <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
@@ -193,13 +193,13 @@ def build_changes_section(
             },
             {
                 "kicker": "Persistencia bajista",
-                "title": f"{persistentes_reduccion} reducción{'es' if persistentes_reduccion != 1 else ''} {'persisten' if persistentes_reduccion != 1 else 'persiste'}",
-                "detail": "Señales de recorte que no fueron ruido de una sola corrida.",
+                "title": f"{persistentes_reduccion} reducci\u00f3n{'es' if persistentes_reduccion != 1 else ''} {'persisten' if persistentes_reduccion != 1 else 'persiste'}",
+                "detail": "Se\u00f1ales de recorte que no fueron ruido de una sola corrida.",
             },
             {
                 "kicker": "Novedades",
-                "title": f"{int(decision_memory.get('señales_nuevas', 0))} cambios materiales | {int(decision_memory.get('sin_historial', 0))} sin historial",
-                "detail": "Sirve para separar cambios genuinos de ruido sin base histórica.",
+                "title": f"{int(decision_memory.get('se\u00f1ales_nuevas', 0))} cambios materiales | {int(decision_memory.get('sin_historial', 0))} sin historial",
+                "detail": "Sirve para separar cambios genuinos de ruido sin base hist\u00f3rica.",
             },
         ]
 
@@ -224,9 +224,9 @@ def build_changes_section(
               <div class="focus-detail">Cobertura visible para la capa fundamental y de consenso.</div>
             </article>
             <article class="focus-item">
-              <div class="focus-top"><strong>Técnico</strong></div>
+              <div class="focus-top"><strong>T\u00e9cnico</strong></div>
               <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
-              <div class="focus-detail">Cobertura técnica efectiva para la lectura de tendencia y momentum.</div>
+              <div class="focus-detail">Cobertura t\u00e9cnica efectiva para la lectura de tendencia y momentum.</div>
             </article>
           </div>
         </div>
@@ -320,7 +320,7 @@ def build_decision_section(
     return f"""
     <section class="panel" id="decision">
       <div class="panel-head">
-      <h2>Decisión final</h2>
+      <h2>Decisi\u00f3n final</h2>
         <div class="filters">
           <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
           <select id="action-filter">
@@ -371,7 +371,7 @@ def build_portfolio_section(df_total: pd.DataFrame, *, pending_rows: pd.DataFram
         if "Valorizado_ARS" in pending_view.columns:
             pending_view = pending_view.sort_values("Valorizado_ARS", ascending=False, na_position="last")
         pending_block = build_collapsible(
-            "Ver tenencias pendientes de consolidación",
+            "Ver tenencias pendientes de consolidaci\u00f3n",
             build_table(
                 pending_view.rename(columns={"Ticker_IOL": "Ticker", "Cantidad_Real": "Cantidad real", "Precio_ARS": "Precio ARS", "Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Peso_%": "Peso %"}),
                 formatters={
@@ -471,8 +471,8 @@ def build_report_body(
 ) -> str:
     generated_at_text = str(generated_at_label or "").strip()
     generated_date = generated_at_text.split(" ", 1)[0] if generated_at_text else ""
-    title_prefix = f"{title} · {generated_date}" if generated_date else title
-    tab_title = f"{title_prefix} | Smoke Report"
+    title_prefix = f"{title} - {generated_date}" if generated_date else title
+    tab_title = f"{title_prefix} | Cartera de Activos"
     meta_description = (
         f"{title}. Reporte generado {generated_at_text or 'sin timestamp'} "
         "con panorama, cambios, decisiones, cartera e integridad."
@@ -512,13 +512,13 @@ def build_report_body(
     {sizing_section}
 
     <section class="panel" id="tecnico">
-      <h2>Overlay técnico</h2>
+      <h2>Overlay t\u00e9cnico</h2>
       <div class="meta">
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
       {build_technical_summary(technical_view)}
-      {build_collapsible("Ver tabla técnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
+      {build_collapsible("Ver tabla t\u00e9cnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
     </section>
 
     {bonistas_section}

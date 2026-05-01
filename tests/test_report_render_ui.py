@@ -379,7 +379,7 @@ class ReportRenderUiTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertTrue("⚠ Refuerzo" in html or "âš  Refuerzo" in html)
+        self.assertIn("⚠ Refuerzo", html)
 
 
 if __name__ == "__main__":

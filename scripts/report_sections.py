@@ -33,7 +33,7 @@ def _bond_label(value: object) -> str:
     return _BOND_LABELS.get(key, key or "-")
 
 
-# ── Allocation bar ─────────────────────────────────────────────────────────────
+# Allocation bar
 
 _TIPO_COLOR: dict[str, str] = {
     "cedear": "#0f6c5c",
@@ -46,7 +46,7 @@ _TIPO_COLOR_FALLBACKS = ["#8a9ba8", "#6c7a89", "#4e5f70", "#3d5166"]
 
 def _tipo_slug(tipo: str) -> str:
     s = tipo.lower().strip()
-    for src, dst in [("á","a"),("é","e"),("í","i"),("ó","o"),("ú","u"),("ñ","n"),(" ","-")]:
+    for src, dst in [("\u00e1","a"),("\u00e9","e"),("\u00ed","i"),("\u00f3","o"),("\u00fa","u"),("\u00f1","n"),(" ","-")]:
         s = s.replace(src, dst)
     return "".join(c for c in s if c.isalnum() or c == "-")
 
@@ -98,11 +98,11 @@ def build_allocation_bar(resumen_tipos: pd.DataFrame) -> str:
     )
 
 
-# ── Technical summary ──────────────────────────────────────────────────────────
+# Technical summary
 
 def build_technical_summary(technical_view: pd.DataFrame) -> str:
     if technical_view.empty:
-        return '<div class="empty compact-empty">Sin resumen técnico disponible.</div>'
+        return '<div class="empty compact-empty">Sin resumen t\u00e9cnico disponible.</div>'
 
     work = technical_view.copy()
 
@@ -136,8 +136,8 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     technical_detail = f"""
     <div class="focus-columns focus-columns-wide">
       <div>
-        <h3>Cerca de máximos 52w</h3>
-        {build_focus_list(_items(cerca_max, title_fn=lambda row: 'En máximos 52w' if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs máximo anual"), empty_message='Sin nombres cerca de máximos anuales.', tone='neutral')}
+        <h3>Cerca de m\u00e1ximos 52w</h3>
+        {build_focus_list(_items(cerca_max, title_fn=lambda row: 'En m\u00e1ximos 52w' if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs m\u00e1ximo anual"), empty_message='Sin nombres cerca de m\u00e1ximos anuales.', tone='neutral')}
       </div>
       <div>
         <h3>Por debajo de SMA200</h3>
@@ -149,19 +149,19 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     return f"""
     <div class="focus-columns focus-columns-wide">
       <div>
-        <h3>Más fuertes</h3>
+        <h3>M\u00e1s fuertes</h3>
         {build_focus_list(_items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-up'), empty_message='Sin datos de fortaleza.', tone='buy')}
       </div>
       <div>
-        <h3>Más débiles</h3>
+        <h3>M\u00e1s d\u00e9biles</h3>
         {build_focus_list(_items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-down'), empty_message='Sin datos de debilidad.', tone='sell')}
       </div>
     </div>
-    {build_collapsible('Ver detalle técnico adicional', technical_detail, compact=True)}
+    {build_collapsible('Ver detalle t\u00e9cnico adicional', technical_detail, compact=True)}
     """
 
 
-# ── Bond summary ───────────────────────────────────────────────────────────────
+# Bond summary
 
 def build_bond_summary(
     bond_subfamily_summary: pd.DataFrame,
@@ -181,7 +181,7 @@ def build_bond_summary(
     macro_cards = f"""
     <section class="cards cards-secondary bond-macro-cards">
       <article class="card compact"><span class="label">CER diario</span><strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></article>
-      <article class="card compact"><span class="label">Inflación REM</span><strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))} | 12m {esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></article>
+      <article class="card compact"><span class="label">Inflaci\u00f3n REM</span><strong>{esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))} | 12m {esc_text(bonistas_macro.get('rem_inflacion_12m_pct'))}</strong></article>
       <article class="card compact"><span class="label">Tasas locales</span><strong>TAMAR {esc_text(bonistas_macro.get('tamar'))} | BADLAR {esc_text(bonistas_macro.get('badlar'))}</strong></article>
       <article class="card compact"><span class="label">Tipo de cambio / RP</span><strong>A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))} | RP {esc_text(bonistas_macro.get('riesgo_pais_bps'))}</strong></article>
       <article class="card compact"><span class="label">Reservas BCRA</span><strong>{esc_text(bonistas_macro.get('reservas_bcra_musd'))}</strong></article>
@@ -192,7 +192,7 @@ def build_bond_summary(
     macro_items = [
         {
             "kicker": "Macro local",
-            "title": f"Riesgo país {esc_text(bonistas_macro.get('riesgo_pais_bps'))} | A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))}",
+            "title": f"Riesgo pa\u00eds {esc_text(bonistas_macro.get('riesgo_pais_bps'))} | A3500 {esc_text(bonistas_macro.get('a3500_mayorista'))}",
             "detail": f"CER {esc_text(bonistas_macro.get('cer_diario'))} | REM mensual {esc_text(bonistas_macro.get('rem_inflacion_mensual_pct'))}",
         },
         {
@@ -208,7 +208,7 @@ def build_bond_summary(
             subfamily_items.append(
                 {
                     "kicker": _bond_label(row.get("asset_subfamily", "-")),
-                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {_fmt_or_dash(row.get('TIR_Promedio'), pct=True)}",
+                    "title": f"{safe_int(row.get('Instrumentos', 0) or 0)} {'instrumento' if safe_int(row.get('Instrumentos', 0) or 0) == 1 else 'instrumentos'} | TIR {_fmt_or_dash(row.get('TIR_Promedio'), pct=True)}",
                     "detail": f"Paridad {_fmt_or_dash(row.get('Paridad_Promedio'), pct=True)} | MD {_fmt_or_dash(row.get('MD_Promedio'))}",
                 }
             )
@@ -219,7 +219,7 @@ def build_bond_summary(
             local_items.append(
                 {
                     "kicker": _bond_label(row.get("bonistas_local_subfamily", "-")),
-                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {_fmt_or_dash(row.get('TIR_Promedio'), pct=True)}",
+                    "title": f"{safe_int(row.get('Instrumentos', 0) or 0)} {'instrumento' if safe_int(row.get('Instrumentos', 0) or 0) == 1 else 'instrumentos'} | TIR {_fmt_or_dash(row.get('TIR_Promedio'), pct=True)}",
                     "detail": f"Paridad {_fmt_or_dash(row.get('Paridad_Promedio'), pct=True)} | MD {_fmt_or_dash(row.get('MD_Promedio'))}",
                 }
             )
@@ -236,14 +236,14 @@ def build_bond_summary(
         {build_focus_list(subfamily_items, empty_message='Sin resumen por subfamilia.', tone='neutral')}
       </div>
       <div>
-        <h3>Taxonomía local</h3>
-        {build_focus_list(local_items, empty_message='Sin resumen por taxonomía local.', tone='neutral')}
+        <h3>Taxonom\u00eda local</h3>
+        {build_focus_list(local_items, empty_message='Sin resumen por taxonom\u00eda local.', tone='neutral')}
       </div>
     </div>
     """
 
 
-# ── Summary section ────────────────────────────────────────────────────────────
+# Summary section
 
 def build_summary_section(
     *,
@@ -285,7 +285,7 @@ def build_summary_section(
             "etf": "ETF",
             "fund": "FCI",
             "liquidity": "Liquidez",
-            "stock": "Acción",
+            "stock": "Acci\u00f3n",
         }
         subfamily_labels = {
             "bond_bopreal": "Bopreal",
@@ -293,7 +293,7 @@ def build_summary_section(
             "bond_other": "Otros",
             "bond_sov_ar": "Soberano AR",
             "etf_core": "Core",
-            "etf_country_region": "País / Región",
+            "etf_country_region": "Pa\u00eds / Regi\u00f3n",
             "etf_sector": "Sectorial",
             "fund_other": "Otros",
             "liquidity_other": "Liquidez",
@@ -349,17 +349,17 @@ def build_summary_section(
             <option value="">Todos los tipos</option>
             <option value="CEDEAR">Solo CEDEAR</option>
             <option value="Bono">Solo Bono</option>
-            <option value="Acción Local">Solo Acción Local</option>
+            <option value="Acci\u00f3n Local">Solo Acci\u00f3n Local</option>
           </select>
         </div>
       </div>
       {build_table(
-          position_risk[["Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo", "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones"]].rename(columns={"Ticker_IOL": "Ticker", "Peso_%": "Peso %", "Base_Riesgo": "Base de riesgo", "Calidad_Historia": "Calidad de historia", "Retorno_Acum_%": "Retorno acum.", "Volatilidad_Diaria_%": "Volatilidad diaria", "Drawdown_Max_%": "Drawdown máx."}),
+          position_risk[["Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo", "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones"]].rename(columns={"Ticker_IOL": "Ticker", "Peso_%": "Peso %", "Base_Riesgo": "Base de riesgo", "Calidad_Historia": "Calidad de historia", "Retorno_Acum_%": "Retorno acum.", "Volatilidad_Diaria_%": "Volatilidad diaria", "Drawdown_Max_%": "Drawdown m\u00e1x."}),
           formatters={
               "Peso %": fmt_pct,
               "Retorno acum.": fmt_pct,
               "Volatilidad diaria": fmt_pct,
-              "Drawdown máx.": fmt_pct,
+              "Drawdown m\u00e1x.": fmt_pct,
           },
           table_class="risk-history-table",
           table_id="risk-history-table",
@@ -367,16 +367,16 @@ def build_summary_section(
         """
 
         risk_html = f"""
-      <h3>Riesgo histórico</h3>
+      <h3>Riesgo hist\u00f3rico</h3>
       <div class="meta">
-        <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} → {esc_text(portfolio_summary.get('hasta'))}</strong></span>
+        <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} &rarr; {esc_text(portfolio_summary.get('hasta'))}</strong></span>
         <span>Snapshots: <strong>{safe_int(portfolio_summary.get('snapshots'))}</strong></span>
         <span>Retorno cartera: <strong>{fmt_pct(portfolio_summary.get('retorno_acum_pct'))}</strong></span>
         <span>Vol diaria cartera: <strong>{fmt_pct(portfolio_summary.get('volatilidad_diaria_pct'))}</strong></span>
         <span>Max drawdown cartera: <strong>{fmt_pct(portfolio_summary.get('drawdown_max_pct'))}</strong></span>
       </div>
       <div class="meta">
-        <span>Metodó: <strong>Universo comparable</strong></span>
+        <span>Metodolog\u00eda: <strong>Universo comparable</strong></span>
         <span>Pasos estables: <strong>{safe_int(portfolio_summary.get('pasos_estables'))}/{safe_int(portfolio_summary.get('pasos_totales'))}</strong></span>
         <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
         <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
@@ -393,7 +393,7 @@ def build_summary_section(
       {f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''}
       {f'<div class="meta"><span>{esc_text(benchmark_note)}</span></div>' if benchmark_note else ''}
       {build_collapsible(
-          "Ver diagnóstico completo de riesgo",
+          "Ver diagn\u00f3stico completo de riesgo",
           risk_details,
           compact=True,
       )}
@@ -414,7 +414,7 @@ def build_summary_section(
           },
       )}
       {build_collapsible(
-          "Ver taxonomía operativa",
+          "Ver taxonom\u00eda operativa",
           build_table(
               family_summary_view[["Familia", "Subfamilia", "Instrumentos", "Score promedio"]]
               if not family_summary_view.empty else family_summary_view,
@@ -427,7 +427,7 @@ def build_summary_section(
     """
 
 
-# ── Drift chart ────────────────────────────────────────────────────────────────
+# Drift chart
 
 def build_drift_chart(
     asignacion_final: pd.DataFrame,
@@ -475,7 +475,7 @@ def build_drift_chart(
             f'<div class="drift-seg drift-current" style="width:{w_cur:.1f}%"></div>'
             f'<div class="drift-seg drift-incr" style="width:{w_inc:.1f}%"></div>'
             f'</div>'
-            f'<span class="drift-label">{current:.2f}% → {projected:.2f}%</span>'
+            f'<span class="drift-label">{current:.2f}% &rarr; {projected:.2f}%</span>'
             f'</div>'
         )
 
@@ -488,7 +488,7 @@ def build_drift_chart(
     return f'<div class="drift-chart">{legend}{"".join(rows_html)}</div>'
 
 
-# ── Sizing section ─────────────────────────────────────────────────────────────
+# Sizing section
 
 def build_sizing_section(
     sizing_bundle: dict[str, object],
@@ -532,7 +532,7 @@ def build_sizing_section(
     """
 
 
-# ── Bonistas section ───────────────────────────────────────────────────────────
+# Bonistas section
 
 def build_bonistas_section(
     *,
@@ -555,7 +555,7 @@ def build_bonistas_section(
                 "TIR_Promedio": "TIR promedio",
                 "Paridad_Promedio": "Paridad promedio",
                 "MD_Promedio": "MD promedio",
-                "Dias_al_Vto_Promedio": "Días al vto. promedio",
+                "Dias_al_Vto_Promedio": "D\u00edas al vto. promedio",
             }
         )
 
@@ -564,7 +564,7 @@ def build_bonistas_section(
         bond_local_subfamily_view["bonistas_local_subfamily"] = bond_local_subfamily_view["bonistas_local_subfamily"].map(_bond_label)
         bond_local_subfamily_view = bond_local_subfamily_view.rename(
             columns={
-                "bonistas_local_subfamily": "Taxonomía local",
+                "bonistas_local_subfamily": "Taxonom\u00eda local",
                 "TIR_Promedio": "TIR promedio",
                 "Paridad_Promedio": "Paridad promedio",
                 "MD_Promedio": "MD promedio",
@@ -578,7 +578,7 @@ def build_bonistas_section(
                 bond_monitor_view[col] = bond_monitor_view[col].map(_bond_label)
         if "bonistas_put_flag" in bond_monitor_view.columns:
             bond_monitor_view["bonistas_put_flag"] = bond_monitor_view["bonistas_put_flag"].map(
-                lambda x: "Sí" if bool(x) else "No"
+                lambda x: "S\u00ed" if bool(x) else "No"
             )
         for col in ["bonistas_liquidity_bucket", "bonistas_duration_bucket"]:
             if col in bond_monitor_view.columns:
@@ -589,17 +589,17 @@ def build_bonistas_section(
             columns={
                 "Ticker_IOL": "Ticker",
                 "asset_subfamily": "Subfamilia",
-                "bonistas_local_subfamily": "Taxonomía local",
+                "bonistas_local_subfamily": "Taxonom\u00eda local",
                 "Peso_%": "Peso %",
                 "bonistas_tir_pct": "TIR",
                 "bonistas_paridad_pct": "Paridad",
                 "bonistas_md": "MD",
-                "bonistas_volume_last": "Volumen último",
+                "bonistas_volume_last": "Volumen \u00faltimo",
                 "bonistas_volume_avg_20d": "Volumen prom. 20d",
                 "bonistas_volume_ratio": "Ratio volumen",
                 "bonistas_liquidity_bucket": "Liquidez",
-                "bonistas_duration_bucket": "Duración",
-                "bonistas_days_to_maturity": "Días al vto.",
+                "bonistas_duration_bucket": "Duraci\u00f3n",
+                "bonistas_days_to_maturity": "D\u00edas al vto.",
                 "bonistas_tir_vs_avg_365d_pct": "TIR vs prom. 365d",
                 "bonistas_parity_gap_pct": "Gap de paridad",
                 "bonistas_put_flag": "PUT",
@@ -608,7 +608,7 @@ def build_bonistas_section(
 
     bond_summary_tables = (
         build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_view, formatters={}), compact=True)
-        + build_collapsible("Ver resumen por taxonomía local", build_table(bond_local_subfamily_view, formatters={}), compact=True)
+        + build_collapsible("Ver resumen por taxonom\u00eda local", build_table(bond_local_subfamily_view, formatters={}), compact=True)
         + build_collapsible(
             "Ver monitoreo completo de bonos",
             build_table(
@@ -618,7 +618,7 @@ def build_bonistas_section(
                     "TIR": fmt_pct,
                     "Paridad": fmt_pct,
                     "MD": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}",
-                    "Volumen último": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
+                    "Volumen \u00faltimo": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
                     "Volumen prom. 20d": lambda x: "-" if pd.isna(x) else f"{float(x):,.0f}",
                     "Ratio volumen": lambda x: "-" if pd.isna(x) else f"{float(x):.2f}x",
                     "TIR vs prom. 365d": fmt_pct,

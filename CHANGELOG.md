@@ -6,14 +6,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
+Sin cambios registrados.
+
+## [0.5.1] - 2026-05-01
+
 ### Changed
 
-- documentacion de release alineada con la version publicada `0.5.0`:
+- documentacion de release alineada con la version publicada `0.5.1`:
   - `README.md`, `docs/README.md`, `docs/baseline-actual.md` y `docs/product-roadmap.md`
   - ejemplos de `scripts/release.ps1` actualizados para reflejar la release vigente
+- hardening post-release del renderer HTML:
+  - correccion de mojibake residual en titulos, labels, leyendas y simbolos del reporte
+  - `Real Run` deja de publicar `Smoke Report` en el titulo de la pestana
+  - `quality_label` se alinea con los umbrales visibles al usuario sin perder `Sin historia` en primera observacion
+  - la advertencia de contradiccion en prediccion vuelve a renderizarse como icono de warning real en la tabla final
+  - tests de render dejan de aceptar variantes mojibake como salida valida
+
+### Fixed
+
+- la corrida CLI vuelve a imprimir `Cobertura tecnica` sin mojibake
+- validacion end-to-end confirmada sobre `reports/real-report.html` generado en corrida real
 
 ## [0.5.0] - 2026-05-01
-
 ### Added
 
 - cobertura estructural para wrappers PowerShell:
@@ -114,10 +128,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 ### Changed
 
 - preparacion de release:
-  - `pyproject.toml` y `version.txt` pasan a `0.5.0`
+  - `pyproject.toml` y `version.txt` pasan a `0.5.1`
   - documentacion operativa de release actualiza ejemplos a la nueva version
   - `docs/product-roadmap.md` queda saneado como registro de cierre, con resumen ejecutivo de `v0.3`, `v0.4` y `v0.5`
-  - `README.md` corrige referencia del ZIP distribuible a `cartera-v0.5.0-win64.zip`
+  - `README.md` corrige referencia del ZIP distribuible a `cartera-v0.5.1-win64.zip`
   - `docs/product-roadmap.md` aclara como historicos los estados transicionales de CI ya resueltos
 - wrappers PowerShell locales:
   - nuevo helper compartido `scripts/common_local_app.ps1`

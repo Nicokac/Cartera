@@ -341,7 +341,7 @@ class DecisionHistoryTests(unittest.TestCase):
 
     def test_temporal_quality_label_uses_history_thresholds(self) -> None:
         history_rows: list[dict[str, object]] = []
-        for i in range(1, 21):
+        for i in range(1, 20):
             history_rows.append(
                 {
                     "run_date": f"2026-04-{i:02d}",
