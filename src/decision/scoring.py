@@ -513,16 +513,19 @@ def _apply_refuerzo_score(
     def _rule_value(rules: dict[str, object], key: str, default: float = 0.0) -> float:
         return float((rules or {}).get(key, default))
 
+    def _weight(key: str, default: float) -> float:
+        return float(score_refuerzo_weights.get(key, default))
+
     out["score_refuerzo"] = (
-        float(score_refuerzo_weights.get("low_weight", 0.20)) * out["s_low_weight"]
-        + float(score_refuerzo_weights.get("momentum", 0.25)) * out["Momentum_Refuerzo"]
-        + float(score_refuerzo_weights.get("consensus_good", 0.15)) * out["s_consensus_good"]
-        + float(score_refuerzo_weights.get("beta_ok", 0.10)) * out["s_beta_ok"]
-        + float(score_refuerzo_weights.get("mep_ok", 0.10)) * out["s_mep_ok"]
-        + float(score_refuerzo_weights.get("pe_ok", 0.10)) * out["s_pe_ok"]
-        + float(score_refuerzo_weights.get("big_gain_inverse", 0.10)) * (1 - out["s_big_gain"])
-        + float(score_refuerzo_weights.get("concentration_room", 0.0)) * out["s_concentration_room"]
-        + float(score_refuerzo_weights.get("quality", 0.0)) * out["s_quality_effective"]
+        _weight("low_weight", 0.20) * out["s_low_weight"]
+        + _weight("momentum", 0.25) * out["Momentum_Refuerzo"]
+        + _weight("consensus_good", 0.15) * out["s_consensus_good"]
+        + _weight("beta_ok", 0.10) * out["s_beta_ok"]
+        + _weight("mep_ok", 0.10) * out["s_mep_ok"]
+        + _weight("pe_ok", 0.10) * out["s_pe_ok"]
+        + _weight("big_gain_inverse", 0.10) * (1 - out["s_big_gain"])
+        + _weight("concentration_room", 0.0) * out["s_concentration_room"]
+        + _weight("quality", 0.0) * out["s_quality_effective"]
     )
     out["score_refuerzo"] -= np.where(out["Es_Liquidez"], float(refuerzo_penalties.get("liquidez", 0.35)), 0.00)
     out["score_refuerzo"] -= np.where(out["Es_FCI"], 1.0, 0.00)
@@ -559,16 +562,19 @@ def _apply_reduccion_score(
     def _rule_value(rules: dict[str, object], key: str, default: float = 0.0) -> float:
         return float((rules or {}).get(key, default))
 
+    def _weight(key: str, default: float) -> float:
+        return float(score_reduccion_weights.get(key, default))
+
     out["score_reduccion"] = (
-        float(score_reduccion_weights.get("high_weight", 0.25)) * out["s_high_weight"]
-        + float(score_reduccion_weights.get("momentum", 0.20)) * out["Momentum_Reduccion_Effective"]
-        + float(score_reduccion_weights.get("beta_risk", 0.15)) * out["s_beta_risk"]
-        + float(score_reduccion_weights.get("mep_premium", 0.10)) * out["s_mep_premium"]
-        + float(score_reduccion_weights.get("consensus_bad", 0.10)) * out["s_consensus_bad"]
-        + float(score_reduccion_weights.get("pe_expensive", 0.10)) * out["s_pe_expensive_effective"]
-        + float(score_reduccion_weights.get("big_gain", 0.10)) * out["s_big_gain"]
-        + float(score_reduccion_weights.get("concentration_pressure", 0.0)) * out["s_concentration_pressure_effective"]
-        + float(score_reduccion_weights.get("low_quality", 0.0)) * out["s_low_quality_effective"]
+        _weight("high_weight", 0.25) * out["s_high_weight"]
+        + _weight("momentum", 0.20) * out["Momentum_Reduccion_Effective"]
+        + _weight("beta_risk", 0.15) * out["s_beta_risk"]
+        + _weight("mep_premium", 0.10) * out["s_mep_premium"]
+        + _weight("consensus_bad", 0.10) * out["s_consensus_bad"]
+        + _weight("pe_expensive", 0.10) * out["s_pe_expensive_effective"]
+        + _weight("big_gain", 0.10) * out["s_big_gain"]
+        + _weight("concentration_pressure", 0.0) * out["s_concentration_pressure_effective"]
+        + _weight("low_quality", 0.0) * out["s_low_quality_effective"]
     )
     out["score_reduccion"] -= np.where(out["Es_Liquidez"], float(reduccion_penalties.get("liquidez", 0.25)), 0.00)
     out["score_reduccion"] -= np.where(out["Es_FCI"], 1.0, 0.00)

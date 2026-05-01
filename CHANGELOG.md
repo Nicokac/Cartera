@@ -323,6 +323,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `_apply_concentration_and_momentum_scores` extrae helper
     `_weighted_momentum` para consolidar calculo ponderado de momentum
     (sin cambios funcionales)
+  - `_apply_refuerzo_score` y `_apply_reduccion_score` consolidan lectura de
+    pesos en helper local `_weight` para reducir repeticion
+    (sin cambios funcionales)
 - accesibilidad UI (contraste):
   - `static/index.html` mejora contraste en textos secundarios y estados disabled
     (`#status-time`, `footer`, `button:disabled`, `#btn-cancel:disabled`)
