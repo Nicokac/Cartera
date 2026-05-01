@@ -126,6 +126,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance de usabilidad operativa/API: nuevo `POST /config/{config_name}/restore` para rollback controlado desde backup_path con validacion de ruta segura.
 - 2026-05-01: avance UX operativo: restore de configuracion desde backup integrado en UI avanzada (seleccion desde lista + confirmacion).
 - 2026-05-01: hardening API de backups: `GET /config/{config_name}/backups` ahora valida `limit` en rango `1..100`.
+- 2026-05-01: completado item de testing CI: piso de cobertura sube de 82% a 85% en `.github/workflows/ci.yml` (cobertura local suite estable: 89%).
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 - 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
 
@@ -467,7 +468,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Llevar sizing y bcra a >=82%.
-- P1: Subir floor de CI de 82% a 85%.
+- P1: Subir floor de CI de 82% a 85%. (completado)
 - P2: Smoke de scripts Bash en Unix.
 - P3: Test concurrente: segundo `/run` devuelve 409. (completado)
 

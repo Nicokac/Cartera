@@ -162,3 +162,9 @@
 {"status": "done", "started_at": "2026-04-30 21:08:38", "finished_at": "2026-04-30 21:10:20", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": ""}
 {"status": "done", "started_at": "2026-04-30 21:50:51", "finished_at": "2026-04-30 21:52:38", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": ""}
 {"status": "done", "started_at": "2026-04-30 23:13:27", "finished_at": "2026-04-30 23:14:52", "username": "kachuk_nm@hotmail.com", "usar_liquidez_iol": true, "aporte_externo_ars": 0.0, "error": ""}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-05-01 02:44:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-05-01 02:44:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Corrida previa interrumpida por reinicio del servidor."}
+{"status": "error", "started_at": null, "finished_at": "2026-05-01 02:44:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Código de salida: 2"}
+{"status": "error", "started_at": null, "finished_at": "2026-05-01 02:44:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "Credenciales IOL invalidas. Verifica usuario/password e intenta nuevamente."}
+{"status": "error", "started_at": null, "finished_at": "2026-05-01 02:44:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": "pipeline failed"}
+{"status": "interrupted", "started_at": null, "finished_at": "2026-05-01 02:44:41", "username": null, "usar_liquidez_iol": null, "aporte_externo_ars": null, "error": ""}

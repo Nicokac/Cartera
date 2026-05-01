@@ -374,7 +374,7 @@ CI actual:
 - ejecucion de unittest activa en GitHub Actions para `ubuntu-latest` y `macos-latest`
 - bootstrap automatico de configuracion de ejemplo antes de testear
 - bateria estable del repo sin red real ni credenciales
-- coverage minima exigida en CI sobre la suite estable actual: `82%`
+- coverage minima exigida en CI sobre la suite estable actual: `85%`
 - target de mediano plazo: `90%`
 
 ## Versionado
