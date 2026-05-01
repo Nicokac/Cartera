@@ -725,68 +725,53 @@ def _compute_base_scores_from_config(
     market_context: dict[str, object] | None,
     config: BaseScoreConfig,
 ) -> pd.DataFrame:
-    rank_neutral = config["rank_neutral"]
-    absolute_rules = config["absolute_rules"]
-    etf_adjustments = config["etf_adjustments"]
-    asset_subfamily_adjustments = config["asset_subfamily_adjustments"]
-    score_refuerzo_weights = config["score_refuerzo_weights"]
-    score_reduccion_weights = config["score_reduccion_weights"]
-    score_despliegue_liquidez_weights = config["score_despliegue_liquidez_weights"]
-    refuerzo_penalties = config["refuerzo_penalties"]
-    reduccion_penalties = config["reduccion_penalties"]
-    gain_clip_min = config["gain_clip_min"]
-    gain_clip_max = config["gain_clip_max"]
-    mom_week = config["mom_week"]
-    mom_month = config["mom_month"]
-    mom_ytd = config["mom_ytd"]
-    ref_soft_pct = config["ref_soft_pct"]
-    ref_hard_pct = config["ref_hard_pct"]
-    red_soft_pct = config["red_soft_pct"]
-    red_hard_pct = config["red_hard_pct"]
-
     out = _initialize_base_scores(
         decision.copy(),
-        rank_neutral=rank_neutral,
-        gain_clip_min=gain_clip_min,
-        gain_clip_max=gain_clip_max,
+        rank_neutral=config["rank_neutral"],
+        gain_clip_min=config["gain_clip_min"],
+        gain_clip_max=config["gain_clip_max"],
     )
-    out = _apply_absolute_metric_blends(out, absolute_rules=absolute_rules, rank_neutral=rank_neutral)
+    out = _apply_absolute_metric_blends(
+        out,
+        absolute_rules=config["absolute_rules"],
+        rank_neutral=config["rank_neutral"],
+    )
     out = _apply_concentration_and_momentum_scores(
         out,
-        rank_neutral=rank_neutral,
-        ref_soft_pct=ref_soft_pct,
-        ref_hard_pct=ref_hard_pct,
-        red_soft_pct=red_soft_pct,
-        red_hard_pct=red_hard_pct,
-        mom_week=mom_week,
-        mom_month=mom_month,
-        mom_ytd=mom_ytd,
+        rank_neutral=config["rank_neutral"],
+        ref_soft_pct=config["ref_soft_pct"],
+        ref_hard_pct=config["ref_hard_pct"],
+        red_soft_pct=config["red_soft_pct"],
+        red_hard_pct=config["red_hard_pct"],
+        mom_week=config["mom_week"],
+        mom_month=config["mom_month"],
+        mom_ytd=config["mom_ytd"],
     )
     out = _apply_etf_effective_scores(
         out,
-        rank_neutral=rank_neutral,
-        etf_adjustments=etf_adjustments,
+        rank_neutral=config["rank_neutral"],
+        etf_adjustments=config["etf_adjustments"],
     )
     out = _apply_refuerzo_score(
         out,
-        score_refuerzo_weights=score_refuerzo_weights,
-        refuerzo_penalties=refuerzo_penalties,
-        asset_subfamily_adjustments=asset_subfamily_adjustments,
+        score_refuerzo_weights=config["score_refuerzo_weights"],
+        refuerzo_penalties=config["refuerzo_penalties"],
+        asset_subfamily_adjustments=config["asset_subfamily_adjustments"],
     )
     out = _apply_reduccion_score(
         out,
-        score_reduccion_weights=score_reduccion_weights,
-        reduccion_penalties=reduccion_penalties,
-        asset_subfamily_adjustments=asset_subfamily_adjustments,
-        gain_clip_min=gain_clip_min,
-        gain_clip_max=gain_clip_max,
+        score_reduccion_weights=config["score_reduccion_weights"],
+        reduccion_penalties=config["reduccion_penalties"],
+        asset_subfamily_adjustments=config["asset_subfamily_adjustments"],
+        gain_clip_min=config["gain_clip_min"],
+        gain_clip_max=config["gain_clip_max"],
     )
     out = _apply_post_regime_adjustments(
         out,
         market_context=market_context,
         scoring_rules=scoring_rules,
-        score_despliegue_liquidez_weights=score_despliegue_liquidez_weights,
-        rank_neutral=rank_neutral,
+        score_despliegue_liquidez_weights=config["score_despliegue_liquidez_weights"],
+        rank_neutral=config["rank_neutral"],
     )
     return out
 

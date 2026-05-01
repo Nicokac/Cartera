@@ -302,6 +302,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo helper `_require_session_token(...)` para validacion centralizada
   - reemplaza chequeos duplicados en todos los endpoints protegidos
   - sin cambios funcionales en contratos de API
+- `src/decision/scoring.py`: refactor incremental de mantenibilidad
+  - `_compute_base_scores_from_config` reduce ruido de variables intermedias
+    y usa `BaseScoreConfig` directamente en el pipeline interno de scoring
+  - sin cambios funcionales de resultado
 - accesibilidad UI (contraste):
   - `static/index.html` mejora contraste en textos secundarios y estados disabled
     (`#status-time`, `footer`, `button:disabled`, `#btn-cancel:disabled`)
