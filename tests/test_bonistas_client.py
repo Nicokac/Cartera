@@ -1,6 +1,6 @@
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +11,7 @@ if str(SRC) not in sys.path:
 from clients.bonistas_client import (
     MAX_CACHE_ENTRIES,
     _CACHE,
+    _fetch_html,
     _infer_bonistas_subfamily,
     _parse_instrument_html,
     _set_cached,
@@ -157,6 +158,15 @@ class BonistasClientTests(unittest.TestCase):
         self.assertAlmostEqual(payload["cer_diario"], 738.025, places=3)
         self.assertAlmostEqual(payload["tamar"], 26.31, places=2)
         self.assertIsNone(payload["badlar"])
+
+    def test_fetch_html_accepts_injected_get_fn(self) -> None:
+        response = MagicMock()
+        response.text = "<html>ok</html>"
+        get_fn = MagicMock(return_value=response)
+        html = _fetch_html("/variables", get_fn=get_fn)
+
+        self.assertEqual(html, "<html>ok</html>")
+        get_fn.assert_called_once_with("https://bonistas.com/variables", timeout=30)
 
 
 if __name__ == "__main__":

@@ -159,6 +159,41 @@ class ReportRenderUiTests(unittest.TestCase):
         self.assertIn("Subfamilias", html)
         self.assertIn("Taxonomía local", html)
 
+    def test_render_report_bond_summary_does_not_render_nan_literals(self) -> None:
+        html = render_report(
+            _build_minimal_result(
+                bonistas_bundle={
+                    "bond_monitor": pd.DataFrame([{"Ticker_IOL": "GD30"}]),
+                    "bond_subfamily_summary": pd.DataFrame(
+                        [
+                            {
+                                "asset_subfamily": "bond_sov_ar",
+                                "Instrumentos": 1,
+                                "TIR_Promedio": float("nan"),
+                                "Paridad_Promedio": float("nan"),
+                                "MD_Promedio": float("nan"),
+                            }
+                        ]
+                    ),
+                    "bond_local_subfamily_summary": pd.DataFrame(
+                        [
+                            {
+                                "bonistas_local_subfamily": "bond_hard_dollar",
+                                "Instrumentos": 1,
+                                "TIR_Promedio": float("nan"),
+                                "Paridad_Promedio": float("nan"),
+                                "MD_Promedio": float("nan"),
+                            }
+                        ]
+                    ),
+                    "macro_variables": {},
+                }
+            )
+        )
+        self.assertNotIn("TIR nan", html)
+        self.assertNotIn("Paridad nan", html)
+        self.assertNotIn("MD nan", html)
+
 
     def test_render_report_shows_collapsible_detail_layers(self) -> None:
         html = render_report(_build_minimal_result())

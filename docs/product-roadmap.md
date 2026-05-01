@@ -104,6 +104,8 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de compatibilidad: checklist formal de validacion mobile/responsive del reporte en `docs/report-mobile-responsive-checklist.md` (viewports objetivo, navegadores y criterios de aceptacion).
 - 2026-04-30: completado cierre de deuda documental remanente: se normaliza estado de CI activo (`ubuntu-latest` + `macos-latest`) en `README.md` para alinear documentacion con el workflow vigente.
 - 2026-04-30: avance P3 de usabilidad operativa: configuracion basica de scoring desde UI local (`GET/POST /config/scoring` + seccion "Configuracion de scoring (avanzado)" en `static/index.html`).
+- 2026-04-30: avance P3 de arquitectura/escalabilidad: adopcion de `HttpGetProtocol` tambien en clientes `argentinadatos` y `bonistas_client` (inyeccion de requester tipado sin cambios funcionales).
+- 2026-04-30: hardening de UX de reporte en Bonos Locales: el resumen compacto ya no muestra literales `nan` y usa fallback `-` para TIR/Paridad/MD cuando faltan datos.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -252,6 +254,10 @@ Prueba de cierre (si aplica):
 - validar manualmente en UI local:
   - seccion `Configuracion de scoring (avanzado)` carga JSON actual
   - `Guardar` persiste cambios validos y rechaza JSON invalido
+- correr `python -m unittest tests.test_argentinadatos_client tests.test_bonistas_client -v`
+- validar que `get_dollar_series(..., get_fn=...)` y `_fetch_html(..., get_fn=...)` acepten inyeccion de cliente HTTP (sin usar red real en test)
+- correr `python -m unittest tests.test_report_render_ui -v`
+- generar `reports/real-report.html` y validar en `Bonos Locales` que en tarjetas de `Subfamilias`/`Taxonomía local` no aparezca `nan` (debe verse `-` cuando no hay dato)
 
 ## Contexto
 
@@ -460,7 +466,7 @@ Roadmap:
 
 - P2: Retencion configurable de historiales.
 - P2: Checklist formal para alta de instrumento. (completado)
-- P3: Protocol de clientes externos.
+- P3: Protocol de clientes externos. (avance extendido a `argentinadatos` y `bonistas_client`)
 
 ### 13) Accesibilidad
 

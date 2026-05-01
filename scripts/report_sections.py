@@ -168,6 +168,16 @@ def build_bond_summary(
     bond_local_subfamily_summary: pd.DataFrame,
     bonistas_macro: dict[str, object],
 ) -> str:
+    def _fmt_or_dash(value: object, *, pct: bool = False) -> str:
+        if pd.isna(value):
+            return "-"
+        if pct:
+            return fmt_pct(value)
+        try:
+            return f"{float(value):.2f}"
+        except Exception:
+            return "-"
+
     macro_cards = f"""
     <section class="cards cards-secondary bond-macro-cards">
       <article class="card compact"><span class="label">CER diario</span><strong>{esc_text(bonistas_macro.get('cer_diario'))}</strong></article>
@@ -198,8 +208,8 @@ def build_bond_summary(
             subfamily_items.append(
                 {
                     "kicker": _bond_label(row.get("asset_subfamily", "-")),
-                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {row.get('TIR_Promedio', '-')}",
-                    "detail": f"Paridad {row.get('Paridad_Promedio', '-')} | MD {row.get('MD_Promedio', '-')}",
+                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {_fmt_or_dash(row.get('TIR_Promedio'), pct=True)}",
+                    "detail": f"Paridad {_fmt_or_dash(row.get('Paridad_Promedio'), pct=True)} | MD {_fmt_or_dash(row.get('MD_Promedio'))}",
                 }
             )
 
@@ -209,8 +219,8 @@ def build_bond_summary(
             local_items.append(
                 {
                     "kicker": _bond_label(row.get("bonistas_local_subfamily", "-")),
-                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {row.get('TIR_Promedio', '-')}",
-                    "detail": f"Paridad {row.get('Paridad_Promedio', '-')} | MD {row.get('MD_Promedio', '-')}",
+                    "title": f"{int(row.get('Instrumentos', 0) or 0)} instrumentos | TIR {_fmt_or_dash(row.get('TIR_Promedio'), pct=True)}",
+                    "detail": f"Paridad {_fmt_or_dash(row.get('Paridad_Promedio'), pct=True)} | MD {_fmt_or_dash(row.get('MD_Promedio'))}",
                 }
             )
 

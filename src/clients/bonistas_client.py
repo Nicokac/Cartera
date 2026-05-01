@@ -14,6 +14,7 @@ from typing import Any
 import pandas as pd
 import requests
 from common.numeric import safe_float
+from clients.protocols import HttpGetProtocol
 
 
 DEFAULT_TIMEOUT = 30
@@ -87,8 +88,9 @@ def clear_cache() -> None:
     _CACHE.clear()
 
 
-def _fetch_html(path: str, *, timeout: int = DEFAULT_TIMEOUT) -> str:
-    response = requests.get(f"{BASE_URL}{path}", timeout=timeout)
+def _fetch_html(path: str, *, timeout: int = DEFAULT_TIMEOUT, get_fn: HttpGetProtocol | None = None) -> str:
+    get_impl = get_fn or requests.get
+    response = get_impl(f"{BASE_URL}{path}", timeout=timeout)
     response.raise_for_status()
     return response.text
 
@@ -216,7 +218,13 @@ def _parse_instrument_html(ticker: str, raw_html: str) -> dict[str, Any]:
     return data
 
 
-def get_instrument_data(ticker: str, *, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = True) -> dict[str, Any]:
+def get_instrument_data(
+    ticker: str,
+    *,
+    timeout: int = DEFAULT_TIMEOUT,
+    use_cache: bool = True,
+    get_fn: HttpGetProtocol | None = None,
+) -> dict[str, Any]:
     normalized = normalize_bonistas_ticker(ticker)
     key = _cache_key("instrument", normalized)
     if use_cache:
@@ -225,7 +233,11 @@ def get_instrument_data(ticker: str, *, timeout: int = DEFAULT_TIMEOUT, use_cach
             return cached
 
     try:
-        raw_html = _fetch_html(f"/bono-cotizacion-rendimiento-precio-hoy/{normalized}", timeout=timeout)
+        raw_html = _fetch_html(
+            f"/bono-cotizacion-rendimiento-precio-hoy/{normalized}",
+            timeout=timeout,
+            get_fn=get_fn,
+        )
         payload = _parse_instrument_html(normalized, raw_html)
     except Exception as exc:
         logger.warning("Bonistas instrument fetch failed for %s: %s", normalized, exc)
@@ -251,14 +263,20 @@ def _listing_path(family: str) -> str:
     return mapping[family]
 
 
-def get_listing(family: str, *, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = True) -> pd.DataFrame:
+def get_listing(
+    family: str,
+    *,
+    timeout: int = DEFAULT_TIMEOUT,
+    use_cache: bool = True,
+    get_fn: HttpGetProtocol | None = None,
+) -> pd.DataFrame:
     key = _cache_key("listing", family)
     if use_cache:
         cached = _get_cached(key, LISTING_TTL_MINUTES)
         if cached is not None:
             return cached.copy()
 
-    raw_html = _fetch_html(_listing_path(family), timeout=timeout)
+    raw_html = _fetch_html(_listing_path(family), timeout=timeout, get_fn=get_fn)
     tables = pd.read_html(StringIO(raw_html))
     listing = tables[0].copy() if tables else pd.DataFrame()
     if not listing.empty:
@@ -268,7 +286,12 @@ def get_listing(family: str, *, timeout: int = DEFAULT_TIMEOUT, use_cache: bool 
     return listing
 
 
-def get_macro_variables(*, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = True) -> dict[str, Any]:
+def get_macro_variables(
+    *,
+    timeout: int = DEFAULT_TIMEOUT,
+    use_cache: bool = True,
+    get_fn: HttpGetProtocol | None = None,
+) -> dict[str, Any]:
     key = _cache_key("macro", "variables")
     if use_cache:
         cached = _get_cached(key, MACRO_TTL_MINUTES)
@@ -276,7 +299,7 @@ def get_macro_variables(*, timeout: int = DEFAULT_TIMEOUT, use_cache: bool = Tru
             return dict(cached)
 
     try:
-        raw_html = _fetch_html("/variables", timeout=timeout)
+        raw_html = _fetch_html("/variables", timeout=timeout, get_fn=get_fn)
     except Exception as exc:
         logger.warning("Bonistas macro fetch failed: %s", exc)
         payload = {
@@ -308,8 +331,12 @@ def get_bonds_for_portfolio(
     *,
     timeout: int = DEFAULT_TIMEOUT,
     use_cache: bool = True,
+    get_fn: HttpGetProtocol | None = None,
 ) -> pd.DataFrame:
-    rows = [get_instrument_data(ticker, timeout=timeout, use_cache=use_cache) for ticker in tickers]
+    rows = [
+        get_instrument_data(ticker, timeout=timeout, use_cache=use_cache, get_fn=get_fn)
+        for ticker in tickers
+    ]
     df = pd.DataFrame(rows)
     if df.empty:
         return df

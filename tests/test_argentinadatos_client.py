@@ -1,7 +1,7 @@
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -12,6 +12,20 @@ from clients.argentinadatos import get_dollar_series, get_mep_real, get_riesgo_p
 
 
 class ArgentinaDatosClientTests(unittest.TestCase):
+    def test_get_dollar_series_accepts_injected_get_fn(self) -> None:
+        response = MagicMock()
+        response.json.return_value = [{"compra": "100", "venta": "110", "fecha": "2026-04-08"}]
+        get_fn = MagicMock(return_value=response)
+
+        payload = get_dollar_series(
+            casa="mep",
+            base_url="https://api.example/{casa}",
+            get_fn=get_fn,
+        )
+
+        self.assertEqual(len(payload), 1)
+        get_fn.assert_called_once_with("https://api.example/mep", timeout=10)
+
     def test_get_dollar_series_requires_list_payload(self) -> None:
         with patch("clients.argentinadatos._get_json_payload", return_value={"unexpected": True}):
             with self.assertRaises(ValueError):

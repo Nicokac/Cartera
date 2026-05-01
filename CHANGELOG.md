@@ -327,6 +327,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `401` sin token
   - validacion de JSON invalido (`422`)
   - persistencia correcta de JSON formateado
+- contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
+  - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
+  - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio
+  - mantiene comportamiento existente y mejora testabilidad/inyeccion de cliente
+
+### Testing
+
+- `tests/test_argentinadatos_client.py`: nuevo caso de inyeccion de `get_fn` en `get_dollar_series`
+- `tests/test_bonistas_client.py`: nuevo caso de inyeccion de `get_fn` en `_fetch_html`
 - `docs/product-roadmap.md`: roadmap ampliado de 18 a 19 dimensiones con nueva
   dimension de validacion estadistica y madurez de senales (P1/P2/P3).
 - `src/prediction/maturity.py`: umbrales minimos compartidos para madurez:
@@ -429,6 +438,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 - `static/index.html`: iconos de estado en UI normalizados con secuencias Unicode escapadas
   para evitar mojibake por problemas de encoding (ejemplo: `Corrida cancelada`)
+- `scripts/report_sections.py`: resumen compacto de `Bonos Locales` ahora evita
+  renderizar `nan` literal en `TIR/Paridad/MD` y muestra `-` cuando no hay dato.
+  Se agrega test de regresion en `tests/test_report_render_ui.py`.
 
 ## [0.2.2] - 2026-04-27
 
