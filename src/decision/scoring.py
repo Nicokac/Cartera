@@ -453,31 +453,45 @@ def _apply_concentration_and_momentum_scores(
     mom_month: float,
     mom_ytd: float,
 ) -> pd.DataFrame:
-    out["s_concentration_room"] = np.where(
-        out["Peso_%"].isna(),
-        rank_neutral,
-        np.where(
-            out["Peso_%"] <= ref_soft_pct,
-            1.0,
+    def _piecewise_linear_score(
+        series: pd.Series,
+        *,
+        low: float,
+        high: float,
+        low_score: float,
+        high_score: float,
+        neutral: float,
+    ) -> pd.Series:
+        span = max(high - low, 1e-9)
+        return np.where(
+            series.isna(),
+            neutral,
             np.where(
-                out["Peso_%"] >= ref_hard_pct,
-                0.0,
-                1 - ((out["Peso_%"] - ref_soft_pct) / max(ref_hard_pct - ref_soft_pct, 1e-9)),
+                series <= low,
+                low_score,
+                np.where(
+                    series >= high,
+                    high_score,
+                    low_score + ((series - low) / span) * (high_score - low_score),
+                ),
             ),
-        ),
+        )
+
+    out["s_concentration_room"] = _piecewise_linear_score(
+        out["Peso_%"],
+        low=ref_soft_pct,
+        high=ref_hard_pct,
+        low_score=1.0,
+        high_score=0.0,
+        neutral=rank_neutral,
     )
-    out["s_concentration_pressure"] = np.where(
-        out["Peso_%"].isna(),
-        rank_neutral,
-        np.where(
-            out["Peso_%"] <= red_soft_pct,
-            0.0,
-            np.where(
-                out["Peso_%"] >= red_hard_pct,
-                1.0,
-                (out["Peso_%"] - red_soft_pct) / max(red_hard_pct - red_soft_pct, 1e-9),
-            ),
-        ),
+    out["s_concentration_pressure"] = _piecewise_linear_score(
+        out["Peso_%"],
+        low=red_soft_pct,
+        high=red_hard_pct,
+        low_score=0.0,
+        high_score=1.0,
+        neutral=rank_neutral,
     )
     out["Momentum_Refuerzo"] = mom_week * out["s_mom_week"] + mom_month * out["s_mom_month"] + mom_ytd * out["s_mom_ytd"]
     out["Momentum_Reduccion"] = (
