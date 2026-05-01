@@ -88,6 +88,9 @@ Setup rapido (recomendado para testers):
 .\scripts\setup_local_app.ps1
 ```
 
+Los wrappers `.ps1` tambien funcionan con `pwsh` en macOS/Linux; resuelven
+automaticamente `.venv/Scripts/python.exe` o `.venv/bin/python` segun el sistema.
+
 Instalacion alternativa desde metadata del proyecto:
 
 ```powershell
@@ -259,6 +262,10 @@ Comandos de operacion local:
 .\scripts\stop_local_app.ps1
 .\scripts\smoke_local_app.ps1
 ```
+
+En `pwsh` cross-platform, los wrappers obtienen automaticamente el token de
+sesion via `GET /session` antes de consultar endpoints protegidos como
+`/status`, `/status/detail` y `/api-health`.
 
 Equivalentes Bash (macOS/Linux):
 

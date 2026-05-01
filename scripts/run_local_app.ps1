@@ -5,8 +5,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$runtimeDir = Join-Path $root "data\runtime"
+$commonScript = Join-Path $PSScriptRoot "common_local_app.ps1"
+. $commonScript
+
+$root = Get-RepoRoot
+$runtimeDir = Get-RuntimeDir -Root $root
 $errLog = Join-Path $runtimeDir "local_app.err.log"
 $outLog = Join-Path $runtimeDir "local_app.out.log"
 
@@ -30,13 +33,13 @@ while ($true) {
             & (Join-Path $PSScriptRoot "start_local_app.ps1") -BindHost $BindHost -Port $Port
         }
         "2" {
-            & (Join-Path $PSScriptRoot "status_local_app.ps1")
+            & (Join-Path $PSScriptRoot "status_local_app.ps1") -BindHost $BindHost -Port $Port
         }
         "3" {
             & (Join-Path $PSScriptRoot "stop_local_app.ps1")
         }
         "4" {
-            Start-Process "http://$BindHost`:$Port" | Out-Null
+            Open-LocalUrl -Url "http://$BindHost`:$Port"
             Write-Host "Browser abierto en http://$BindHost`:$Port"
         }
         "5" {

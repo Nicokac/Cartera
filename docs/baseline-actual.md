@@ -2,7 +2,7 @@
 
 ## Vigencia
 
-Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
+Documento actualizado al `2026-05-01`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
 ## Capacidades activas
 
@@ -27,6 +27,7 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
 - wrappers operativos locales en PowerShell para uso diario:
   - `scripts/run_local_app.ps1` (menu interactivo)
   - `scripts/start_local_app.ps1` / `scripts/status_local_app.ps1` / `scripts/stop_local_app.ps1`
+  - compatibles tambien con `pwsh` en macOS/Linux (rutas de `.venv` y apertura de browser resueltas segun plataforma)
 - wrappers operativos locales equivalentes en Bash (macOS/Linux):
   - `scripts/run_local_app.sh` (menu interactivo)
   - `scripts/setup_local_app.sh`
@@ -52,9 +53,9 @@ Documento actualizado al `2026-04-26`. Define la baseline funcional vigente del 
   - `run_local_app.ps1`: menu de start/status/stop/open/tail logs
   - `start_local_app.ps1`: arranque en background con PID en `data/runtime/local_app.pid`
   - `status_local_app.ps1`: estado `running/stopped` con `url` y `checked_at`; limpia PID stale automaticamente
-    - `-Detailed`: consulta `/status/detail` y muestra el payload enriquecido cuando el server esta corriendo
+    - `-Detailed`: obtiene token via `GET /session`, consulta `/status/detail` y muestra el payload enriquecido cuando el server esta corriendo
   - `stop_local_app.ps1`: detencion y limpieza de PID file
-  - `smoke_local_app.ps1`: smoke end-to-end (`start -> /status -> /status/detail -> stop`)
+  - `smoke_local_app.ps1`: smoke end-to-end (`start -> /session -> /status -> /status/detail -> stop`)
   - `run_local_app.sh`: menu de start/status/stop/open/tail logs
   - `start_local_app.sh`: arranque en background con PID en `data/runtime/local_app.pid`
   - `status_local_app.sh`: estado `running/stopped` con `url` y `checked_at`; limpia PID stale automaticamente

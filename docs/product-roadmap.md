@@ -147,6 +147,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance P3 de calidad/tipado: `decision.actions`, `decision.market_regime_scoring`, `decision.sizing` y `analytics.bond_analytics` reemplazan configuraciones/contextos `dict[str, object]` por `Mapping[str, Any]` o `TypedDict` donde el contrato ya era estable.
 - 2026-05-01: avance P3 de calidad/tipado: `analytics.portfolio_risk` y `analytics.technical` incorporan `TypedDict` para filas/bundles y reemplazan configuraciones `dict[str, object]` por tipos mas especificos sin cambiar comportamiento.
 - 2026-05-01: completado item P3 de calidad/tipado: barrido final de `dict[str, object]`/contratos genericos en `decision.scoring`, `clients.bcra`, `clients.pyobd_client` y `portfolio.operations`; el codigo fuente (`src/`) queda sin remanentes de esos contratos genericos en puntos relevados del roadmap.
+- 2026-05-01: completado item P2 de compatibilidad: wrappers PowerShell (`setup/start/status/smoke/run`) ya operan en `pwsh` cross-platform con resolucion de `.venv` por SO, apertura de browser portable y uso de token de sesion para endpoints protegidos.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -196,6 +197,8 @@ Prueba de cierre (si aplica):
 - validar que `portfolio_risk` y `technical` mantienen exactamente las mismas series, metricas y tablas tras tipar filas/bundles de salida
 - correr `python -m unittest tests.test_bcra_client tests.test_pyobd_client tests.test_operations tests.test_decision_scoring -v`
 - validar que el barrido final de tipado en `scoring`, `bcra`, `pyobd_client` y `operations` no altera contratos ni resultados funcionales
+- correr `python -m unittest tests.test_powershell_scripts -v`
+- revisar `pwsh ./scripts/setup_local_app.ps1`, `pwsh ./scripts/status_local_app.ps1 -Detailed` y `pwsh ./scripts/smoke_local_app.ps1` para confirmar resolucion cross-platform de `.venv`, apertura portable y acceso autenticado a `/status` y `/status/detail`
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
@@ -642,14 +645,14 @@ Estado: Windows cubierto; macOS/Linux parcial.
 
 Hallazgos:
 
-- Flujo operativo principal sigue centrado en PS1.
-- Scripts Bash base ya implementados; resta cerrar Fase 2 en `pwsh` cross-platform.
+- Flujo operativo principal ya puede ejecutarse tanto con Bash como con `pwsh`.
+- Scripts Bash base y wrappers PowerShell cross-platform ya implementados.
 - Sin matriz formal de navegadores soportados.
 
 Roadmap:
 
 - P1: Fase 1 cross-platform (scripts Bash). (completado)
-- P2: Fase 2 con `pwsh` cross-platform.
+- P2: Fase 2 con `pwsh` cross-platform. (completado)
 - P3: pruebas mobile/responsive del reporte.
 
 ### 15) Observabilidad

@@ -8,6 +8,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Added
 
+- cobertura estructural para wrappers PowerShell:
+  - nuevo `tests/test_powershell_scripts.py`
+  - verificacion de helper comun, resolucion cross-platform de Python y uso de sesion en scripts protegidos
 - endpoint `POST /cancel` en `server.py` para cancelar corridas en progreso
 - boton `Cancelar corrida` en `static/index.html` (visible solo en estado `running`)
 - cobertura de cancelacion en `tests/test_server.py` (endpoint y transicion a `interrupted`)
@@ -100,6 +103,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Changed
 
+- wrappers PowerShell locales:
+  - nuevo helper compartido `scripts/common_local_app.ps1`
+  - `setup/start/status/smoke/run/stop` reutilizan rutas con `Join-Path`
+  - `setup/start` resuelven `.venv/Scripts/python.exe` o `.venv/bin/python` segun plataforma
+  - `status -Detailed` y `smoke` obtienen token via `GET /session` para consultar `/status` y `/status/detail`
+  - `start/run` usan apertura de browser portable (`Start-Process` / `open` / `xdg-open`)
+- `README.md`, `docs/baseline-actual.md` y `docs/product-roadmap.md` actualizados para reflejar cierre de la Fase 2 `pwsh` cross-platform
 - `server.py`: cuando una corrida se cancela, el estado final queda en `interrupted`
   y se limpia la referencia del proceso al finalizar el watcher
 - `README.md`, `docs/ayuda-usuario.txt` y `docs/product-roadmap.md` actualizados con el nuevo flujo de cancelacion

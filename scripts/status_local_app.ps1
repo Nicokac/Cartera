@@ -6,8 +6,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$pidPath = Join-Path $root "data\runtime\local_app.pid"
+$commonScript = Join-Path $PSScriptRoot "common_local_app.ps1"
+. $commonScript
+
+$root = Get-RepoRoot
+$pidPath = Join-Path (Get-RuntimeDir -Root $root) "local_app.pid"
 $url = "http://$BindHost`:$Port"
 $checkedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
@@ -27,7 +30,9 @@ if ($proc) {
     Write-Host "status=running pid=$pidValue url=$url checked_at=$checkedAt"
     if ($Detailed) {
         try {
-            $detail = Invoke-WebRequest -Uri "$url/status/detail" -UseBasicParsing -TimeoutSec 2
+            $token = Get-LocalSessionToken -BaseUrl $url -TimeoutSec 2
+            $headers = New-SessionHeaders -Token $token
+            $detail = Invoke-WebRequest -Uri "$url/status/detail" -Headers $headers -UseBasicParsing -TimeoutSec 2
             Write-Host $detail.Content
         } catch {
             Write-Host "detail_error=$($_.Exception.Message)"

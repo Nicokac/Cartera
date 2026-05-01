@@ -2,8 +2,11 @@ param()
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$pidPath = Join-Path $root "data\runtime\local_app.pid"
+$commonScript = Join-Path $PSScriptRoot "common_local_app.ps1"
+. $commonScript
+
+$root = Get-RepoRoot
+$pidPath = Join-Path (Get-RuntimeDir -Root $root) "local_app.pid"
 
 if (-not (Test-Path $pidPath)) {
     Write-Host "No hay PID file. La app local no parece estar corriendo."

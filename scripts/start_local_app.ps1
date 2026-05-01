@@ -6,8 +6,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$runtimeDir = Join-Path $root "data\runtime"
+$commonScript = Join-Path $PSScriptRoot "common_local_app.ps1"
+. $commonScript
+
+$root = Get-RepoRoot
+$runtimeDir = Get-RuntimeDir -Root $root
 $pidPath = Join-Path $runtimeDir "local_app.pid"
 $outLog = Join-Path $runtimeDir "local_app.out.log"
 $errLog = Join-Path $runtimeDir "local_app.err.log"
@@ -23,29 +26,29 @@ if (Test-Path $pidPath) {
         if ($proc) {
             Write-Host "Local app ya esta corriendo (PID=$existingPid) en http://$BindHost`:$Port"
             if (-not $NoBrowser) {
-                Start-Process "http://$BindHost`:$Port" | Out-Null
+                Open-LocalUrl -Url "http://$BindHost`:$Port"
             }
             exit 0
         }
     }
 }
 
-$venvPython = Join-Path $root ".venv\Scripts\python.exe"
-if (Test-Path $venvPython) {
-    $pythonExe = $venvPython
-} else {
-    $pythonExe = (Get-Command python -ErrorAction Stop).Source
-}
+$pythonExe = Resolve-VenvPython -Root $root
 $uvicornArgs = @("-m", "uvicorn", "server:app", "--host", $BindHost, "--port", "$Port")
 
-$proc = Start-Process `
-    -FilePath $pythonExe `
-    -ArgumentList $uvicornArgs `
-    -WorkingDirectory $root `
-    -RedirectStandardOutput $outLog `
-    -RedirectStandardError $errLog `
-    -WindowStyle Hidden `
-    -PassThru
+$startProcessParams = @{
+    FilePath = $pythonExe
+    ArgumentList = $uvicornArgs
+    WorkingDirectory = $root
+    RedirectStandardOutput = $outLog
+    RedirectStandardError = $errLog
+    PassThru = $true
+}
+if (Test-IsWindowsPlatform) {
+    $startProcessParams["WindowStyle"] = "Hidden"
+}
+
+$proc = Start-Process @startProcessParams
 
 Set-Content -Path $pidPath -Value $proc.Id -Encoding ascii
 Start-Sleep -Milliseconds 800
@@ -60,5 +63,5 @@ Write-Host "App local iniciada (PID=$($proc.Id)) en http://$BindHost`:$Port"
 Write-Host "Para detenerla: .\scripts\stop_local_app.ps1"
 
 if (-not $NoBrowser) {
-    Start-Process "http://$BindHost`:$Port" | Out-Null
+    Open-LocalUrl -Url "http://$BindHost`:$Port"
 }

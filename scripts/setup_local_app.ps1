@@ -5,9 +5,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$commonScript = Join-Path $PSScriptRoot "common_local_app.ps1"
+. $commonScript
+
+$root = Get-RepoRoot
 $venvDir = Join-Path $root ".venv"
-$venvPython = Join-Path $venvDir "Scripts\python.exe"
 
 function Resolve-PythonLauncher {
     $py = Get-Command py -ErrorAction SilentlyContinue
@@ -31,9 +33,7 @@ if (-not (Test-Path $venvPython)) {
     & $pythonExe @pythonArgs
 }
 
-if (-not (Test-Path $venvPython)) {
-    throw "No se pudo crear el entorno virtual en .venv."
-}
+$venvPython = Resolve-VenvPython -Root $root
 
 Write-Host "[setup] actualizando pip ..."
 & $venvPython -m pip install --upgrade pip
@@ -48,7 +48,7 @@ if ($InstallTestDeps) {
 
 if (-not $SkipBootstrap) {
     Write-Host "[setup] ejecutando bootstrap de configuracion ..."
-    & $venvPython (Join-Path $root "scripts\bootstrap_example_config.py")
+    & $venvPython (Join-Path (Join-Path $root "scripts") "bootstrap_example_config.py")
 }
 
 $envPath = Join-Path $root ".env"

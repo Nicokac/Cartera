@@ -81,6 +81,7 @@ jobs:
             tests.test_numeric_utils \
             tests.test_text_utils \
             tests.test_pyobd_client \
+            tests.test_powershell_scripts \
             tests.test_valuation_and_checks \
             tests.test_market_regime_scoring \
             tests.test_portfolio_risk \
