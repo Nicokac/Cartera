@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TypedDict
 
 import numpy as np
 import pandas as pd
@@ -20,6 +21,27 @@ from decision.operational_comments import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class SizingBundle(TypedDict):
+    propuesta: pd.DataFrame
+    top_reforzar_final: pd.DataFrame
+    top_reducir_final: pd.DataFrame
+    top_bonos_rebalancear: pd.DataFrame
+    top_fondeo: pd.DataFrame
+    descartados_reforzar: pd.DataFrame
+    descartados_reducir: pd.DataFrame
+    descartados_rebalancear: pd.DataFrame
+    descartados_fondeo: pd.DataFrame
+    fuente_fondeo: str
+    usar_liquidez_iol: bool
+    pct_fondeo: float
+    aporte_externo_ars: float
+    aporte_externo_usd: float
+    monto_fondeo_liquidez_ars: float
+    monto_fondeo_liquidez_usd: float
+    monto_fondeo_ars: float
+    monto_fondeo_usd: float
 
 
 def _format_funding_sources(tickers: list[str]) -> str | None:
@@ -108,7 +130,7 @@ def build_operational_proposal(
     aporte_externo_ars: float = 0.0,
     action_rules: dict[str, object] | None = None,
     sizing_rules: dict[str, object] | None = None,
-) -> dict[str, object]:
+) -> SizingBundle:
     action_rules = action_rules or {}
     sizing_rules = sizing_rules or {}
     top_candidates = int(sizing_rules.get("top_candidates", 3))

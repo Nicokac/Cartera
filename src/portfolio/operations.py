@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, TypedDict
 
 import pandas as pd
 
@@ -16,6 +17,58 @@ _MOJIBAKE_FIXES = {
     "AcciÃ³n": "Acción",
     "sÃ­": "sí",
 }
+
+
+class PositionTransitionItem(TypedDict):
+    kicker: str
+    title: str
+    detail: str
+    badge: str
+
+
+class PositionTransitionSummaryRow(TypedDict):
+    simbolo: str
+    cambio: str
+    detalle: str
+
+
+class PositionTransitionBundle(TypedDict):
+    items: list[PositionTransitionItem]
+    summary: pd.DataFrame
+
+
+class OperationHighlightItem(TypedDict):
+    simbolo: str
+    tipo: str
+    fecha: Any
+    monto: Any
+    currency: str
+    cantidad: Any
+    estado: str
+    plazo: str
+
+
+class OperationStats(TypedDict):
+    total: int
+    trading: int
+    events: int
+    completed: int
+
+
+class OperationsHighlights(TypedDict):
+    trades: list[OperationHighlightItem]
+    events: list[OperationHighlightItem]
+
+
+class OperationsBundle(TypedDict):
+    recent_operations: pd.DataFrame
+    recent_trades: pd.DataFrame
+    recent_events: pd.DataFrame
+    symbol_summary: pd.DataFrame
+    stats: OperationStats
+    highlights: OperationsHighlights
+    position_transitions: PositionTransitionBundle
+    previous_snapshot_date: str | None
 
 
 def normalize_text(value: object) -> str:
@@ -194,7 +247,7 @@ def build_position_transition_bundle(
     *,
     recent_operations: pd.DataFrame | None = None,
     limit: int = 6,
-) -> dict[str, object]:
+) -> PositionTransitionBundle:
     current_view = prepare_portfolio_for_compare(current_portfolio)
     previous_view = prepare_portfolio_for_compare(previous_portfolio)
 
@@ -246,7 +299,7 @@ def build_position_transition_bundle(
         )
 
     items: list[dict[str, str]] = []
-    summary_rows: list[dict[str, object]] = []
+    summary_rows: list[PositionTransitionSummaryRow] = []
     all_symbols = sorted(set(current_view.index.tolist()) | set(previous_view.index.tolist()))
 
     for symbol in all_symbols:
@@ -317,7 +370,7 @@ def build_position_transition_bundle(
     return {"items": items, "summary": pd.DataFrame(summary_rows)}
 
 
-def normalize_iol_operations(operations: list[dict[str, object]] | None) -> pd.DataFrame:
+def normalize_iol_operations(operations: list[dict[str, Any]] | None) -> pd.DataFrame:
     if not operations:
         return pd.DataFrame()
 
@@ -368,11 +421,11 @@ def normalize_iol_operations(operations: list[dict[str, object]] | None) -> pd.D
 
 
 def build_operations_bundle(
-    operations: list[dict[str, object]] | None,
+    operations: list[dict[str, Any]] | None,
     *,
     recent_limit: int = 12,
     highlight_limit: int = 4,
-) -> dict[str, object]:
+) -> OperationsBundle:
     df = normalize_iol_operations(operations)
     if df.empty:
         return {
@@ -416,8 +469,8 @@ def build_operations_bundle(
         .sort_values(["ultima_fecha", "monto_total"], ascending=[False, False], na_position="last")
     )
 
-    def _highlight_items(source: pd.DataFrame) -> list[dict[str, object]]:
-        items: list[dict[str, object]] = []
+    def _highlight_items(source: pd.DataFrame) -> list[OperationHighlightItem]:
+        items: list[OperationHighlightItem] = []
         for row in source.head(highlight_limit).itertuples(index=False):
             row_series = pd.Series(row, index=source.columns)
             items.append(
@@ -453,13 +506,13 @@ def build_operations_bundle(
 
 
 def enrich_operations_bundle(
-    operations_bundle: dict[str, object],
+    operations_bundle: OperationsBundle,
     *,
     current_portfolio: pd.DataFrame | None = None,
     previous_portfolio: pd.DataFrame | None = None,
     previous_snapshot_date: str | None = None,
     transition_limit: int = 6,
-) -> dict[str, object]:
+) -> OperationsBundle:
     bundle = dict(operations_bundle or {})
     recent_operations = bundle.get("recent_operations", pd.DataFrame())
     bundle["position_transitions"] = build_position_transition_bundle(

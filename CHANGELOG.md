@@ -379,6 +379,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - reemplaza `object` generico en firmas de `pipeline`, `prediction.store`,
     `prediction.verifier` y `decision.history`
   - tests temporales/pipeline validan que el cambio no altera comportamiento
+- tipado de contratos de dominio:
+  - `src/portfolio/operations.py` agrega `TypedDict` para bundles de
+    transiciones, highlights y operaciones
+  - `src/decision/sizing.py` agrega `SizingBundle` para el contrato de salida
+  - tests de `operations`, `sizing` y `pipeline` validan compatibilidad
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo
