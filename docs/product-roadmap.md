@@ -126,6 +126,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance de usabilidad operativa/API: nuevo `POST /config/{config_name}/restore` para rollback controlado desde backup_path con validacion de ruta segura.
 - 2026-05-01: avance UX operativo: restore de configuracion desde backup integrado en UI avanzada (seleccion desde lista + confirmacion).
 - 2026-05-01: hardening API de backups: `GET /config/{config_name}/backups` ahora valida `limit` en rango `1..100`.
+- 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -350,6 +351,9 @@ Prueba de cierre (si aplica):
   - `GET /config/scoring/backups?limit=5` => 200
   - `GET /config/scoring/backups?limit=0` => 422
   - `GET /config/scoring/backups?limit=101` => 422
+- validar manualmente en UI local:
+  - cambiar `Ver` en backups recientes entre 1 y 20
+  - confirmar que la lista se refresca con la nueva cantidad
 
 ## Contexto
 

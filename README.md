@@ -244,6 +244,7 @@ La UI muestra la ruta del backup creado al confirmar un guardado exitoso.
 `GET /config/{config_name}/backups` lista backups disponibles para rollback manual.
 `GET /config/{config_name}/backups` acepta `limit` (1..100).
 La UI muestra los ultimos backups del archivo seleccionado (hasta 5) en el panel avanzado.
+Ese listado ahora permite ajustar cantidad visible (1..20) desde la propia UI.
 `POST /config/{config_name}/restore` restaura un backup especifico (`backup_path`) con validacion de seguridad de ruta.
 La UI permite seleccionar un backup reciente y restaurarlo con confirmacion explicita.
 Si hay cambios sin guardar en el editor avanzado, la pestaña avisa antes de salir/recargar.
