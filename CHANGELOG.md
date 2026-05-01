@@ -369,6 +369,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - se consolida cierre de roadmap para auditoria de secretos y filtrado de `log_tail`
 - `docs/product-roadmap.md`: cierre formal del refactor incremental de `apply_base_scores`
   y de la adopcion de `typing.Protocol` en clientes externos
+- precision monetaria en valuacion:
+  - `src/portfolio/valuation.py` migra calculos criticos de `Valorizado_ARS`,
+    `Ganancia_ARS` y `Valor_USD` a aritmetica interna con `Decimal`
+  - se mantiene salida `float` en DataFrames para compatibilidad con el pipeline actual
+  - `tests/test_valuation_and_checks.py` agrega cobertura especifica para precision monetaria
 - observabilidad de integraciones:
   - `GET /api-health` agrega campo `checked_at` por proveedor
   - facilita trazabilidad temporal de disponibilidad/latencia por chequeo

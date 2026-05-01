@@ -130,6 +130,16 @@ class ValuationAndChecksTests(unittest.TestCase):
 
         self.assertTrue(pd.isna(result.loc[0, "Valor_USD"]))
 
+    def test_build_local_df_uses_decimal_arithmetic_for_monetary_fields(self) -> None:
+        df_local = build_local_df(
+            [("GGAL", "GGAL", "Finanzas", 3, 0.1)],
+            {"GGAL": 0.3},
+        )
+
+        row = df_local.iloc[0]
+        self.assertAlmostEqual(float(row["Valorizado_ARS"]), 0.9, places=10)
+        self.assertAlmostEqual(float(row["Ganancia_ARS"]), 0.6, places=10)
+
 
 if __name__ == "__main__":
     unittest.main()

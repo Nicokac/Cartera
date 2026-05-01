@@ -141,6 +141,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: completado item P1 de seguridad: auditoria operativa de credenciales reforzada con tests para asegurar que la resolucion CLI de usuario/password no imprime secretos.
 - 2026-05-01: completado item P1 de seguridad: filtrado de secretos en `/status/detail` queda cubierto tanto en `error` como en `log_tail`, respaldado por pruebas unitarias.
 - 2026-05-01: completado item P2 de arquitectura/mantenibilidad: `apply_base_scores` queda reducido a orquestacion minima sobre `_parse_base_score_config(...)` y `_compute_base_scores_from_config(...)`; el refactor incremental se considera cerrado.
+- 2026-05-01: completado item P2 de datos/persistencia: montos criticos de valuacion (`Valorizado_ARS`, `Ganancia_ARS`, `Valor_USD`) pasan a calcularse con `Decimal` en `src/portfolio/valuation.py`, manteniendo salida compatible en `float` para el resto del pipeline.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -178,6 +179,8 @@ Prueba de cierre (si aplica):
 - validar que FRED y PyOBD aceptan clientes inyectados tipados sin depender de patching interno del modulo
 - correr `python -m unittest tests.test_generate_real_report_split_cli tests.test_server -v`
 - validar que la resolucion CLI de credenciales y `/status/detail` no exponen usuario/password reales en mensajes, `error` ni `log_tail`
+- correr `python -m unittest tests.test_valuation_and_checks tests.test_pipeline tests.test_sizing -v`
+- validar que `Valorizado_ARS`, `Ganancia_ARS` y `Valor_USD` conservan comportamiento esperado tras la migracion interna a `Decimal` en valuacion
 - correr `python -m unittest tests.test_sizing tests.test_pipeline -v`
 - ejecutar una corrida completa y verificar que la columna/comentario `comentario_operativo` mantiene el mismo comportamiento textual esperado en bonos, liquidez y CEDEARs
 - correr `python -m unittest tests.test_iol_client tests.test_bcra_client -v`
@@ -548,7 +551,7 @@ Hallazgos:
 Roadmap:
 
 - P1: Backup diario de CSV runtime. (completado)
-- P2: Migrar montos criticos a `Decimal`.
+- P2: Migrar montos criticos a `Decimal`. (completado)
 - P2: Retencion configurable (default 90 dias). (completado)
 - P3: Validacion de integridad al arranque. (completado)
 

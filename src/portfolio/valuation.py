@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation
 import logging
 from typing import Any
 
@@ -32,6 +33,46 @@ MASTER_PORTFOLIO_COLUMNS = [
     "Es_Liquidez",
 ]
 
+_DECIMAL_ZERO = Decimal("0")
+
+
+def _to_decimal(value: object) -> Decimal | None:
+    numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    if pd.isna(numeric):
+        return None
+    try:
+        return Decimal(str(numeric))
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def _decimal_to_float(value: Decimal | None) -> float | None:
+    return float(value) if value is not None else None
+
+
+def _money_mul(left: object, right: object) -> float | None:
+    left_dec = _to_decimal(left)
+    right_dec = _to_decimal(right)
+    if left_dec is None or right_dec is None:
+        return None
+    return _decimal_to_float(left_dec * right_dec)
+
+
+def _money_sub(left: object, right: object) -> Decimal | None:
+    left_dec = _to_decimal(left)
+    right_dec = _to_decimal(right)
+    if left_dec is None or right_dec is None:
+        return None
+    return left_dec - right_dec
+
+
+def _money_div(left: object, right: object) -> float | None:
+    left_dec = _to_decimal(left)
+    right_dec = _to_decimal(right)
+    if left_dec is None or right_dec is None or right_dec == _DECIMAL_ZERO:
+        return None
+    return _decimal_to_float(left_dec / right_dec)
+
 
 def _compute_weight_pct(series: pd.Series) -> pd.Series:
     values = pd.to_numeric(series, errors="coerce")
@@ -50,8 +91,9 @@ def build_cedears_df(
     registros = []
     for ticker_iol, ticker_finviz, bloque, cantidad, ppc_ars in portafolio:
         precio = precios_iol.get(ticker_iol)
-        valorizado = cantidad * precio if precio is not None else None
-        ganancia = (precio - ppc_ars) * cantidad if precio is not None else None
+        valorizado = _money_mul(cantidad, precio)
+        delta_precio = _money_sub(precio, ppc_ars)
+        ganancia = _decimal_to_float(delta_precio * _to_decimal(cantidad)) if delta_precio is not None else None
         registros.append(
             {
                 "Ticker_IOL": ticker_iol,
@@ -80,8 +122,9 @@ def build_local_df(acciones_locales: list[tuple], precios_iol: dict[str, float])
     registros = []
     for ticker_iol, ticker_api, bloque, cantidad, ppc_ars in acciones_locales:
         precio = precios_iol.get(ticker_iol)
-        valorizado = cantidad * precio if precio is not None else None
-        ganancia = (precio - ppc_ars) * cantidad if precio is not None else None
+        valorizado = _money_mul(cantidad, precio)
+        delta_precio = _money_sub(precio, ppc_ars)
+        ganancia = _decimal_to_float(delta_precio * _to_decimal(cantidad)) if delta_precio is not None else None
         registros.append(
             {
                 "Ticker_IOL": ticker_iol,
@@ -112,9 +155,9 @@ def build_bonos_df(bonos: list[tuple], precios_iol: dict[str, float]) -> pd.Data
     for ticker_iol, bloque, cantidad, ppc_ars, vn_factor in bonos:
         precio = precios_iol.get(ticker_iol)
         cantidad_real = cantidad / vn_factor
-        valorizado = cantidad_real * precio if precio is not None else None
-        costo = cantidad_real * ppc_ars
-        ganancia = valorizado - costo if valorizado is not None else None
+        valorizado = _money_mul(cantidad_real, precio)
+        costo = _money_mul(cantidad_real, ppc_ars)
+        ganancia = _decimal_to_float(_money_sub(valorizado, costo)) if valorizado is not None else None
         registros.append(
             {
                 "Ticker_IOL": ticker_iol,
@@ -151,7 +194,9 @@ def attach_value_usd(
     out = df.copy()
     mep_value = positive_float_or_none(mep_real)
     if "Valor_USD" not in out.columns:
-        out["Valor_USD"] = out["Valorizado_ARS"] / mep_value if mep_value is not None else np.nan
+        out["Valor_USD"] = (
+            out["Valorizado_ARS"].apply(lambda value: _money_div(value, mep_value)) if mep_value is not None else np.nan
+        )
     if default_columns:
         for col in default_columns:
             if col not in out.columns:
@@ -197,11 +242,17 @@ def build_portfolio_master(
         df_total["Cantidad_Real"] = df_total["Cantidad_Real"].fillna(df_total.get("Cantidad"))
 
     if "Valor_USD" not in df_total.columns:
-        df_total["Valor_USD"] = df_total["Valorizado_ARS"] / mep_value if mep_value is not None else np.nan
+        df_total["Valor_USD"] = (
+            df_total["Valorizado_ARS"].apply(lambda value: _money_div(value, mep_value))
+            if mep_value is not None
+            else np.nan
+        )
     else:
         faltantes = df_total["Valor_USD"].isna()
         if mep_value is not None:
-            df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"] / mep_value
+            df_total.loc[faltantes, "Valor_USD"] = df_total.loc[faltantes, "Valorizado_ARS"].apply(
+                lambda value: _money_div(value, mep_value)
+            )
 
     df_total["Peso_%"] = _compute_weight_pct(df_total["Valorizado_ARS"])
 
