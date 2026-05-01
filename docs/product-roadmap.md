@@ -121,6 +121,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo adicional: la UI muestra `backup_path` al guardar configuracion para facilitar rollback manual.
 - 2026-05-01: hardening UX de editor avanzado: aviso `beforeunload` cuando hay cambios sin guardar para evitar perdida accidental de edicion.
 - 2026-05-01: mejora UX de configuracion avanzada: post-guardado refresca metadata (`modified_at`) desde `GET /config` para mostrar estado actualizado en el panel.
+- 2026-05-01: avance de usabilidad operativa/API: nuevo `GET /config/{config_name}/backups` para listar historico de backups por archivo de reglas.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -324,6 +325,10 @@ Prueba de cierre (si aplica):
 - validar manualmente post-guardado:
   - guardar cambios en cualquier archivo de reglas
   - confirmar que `Modificado` se actualiza inmediatamente en la metadata mostrada
+- correr `python -m unittest tests.test_server.TestScoringConfigEndpoints -v`
+- validar manualmente backups por API:
+  - guardar al menos un cambio en `scoring/action/sizing`
+  - consultar `GET /config/<name>/backups` y verificar lista con `path`, `filename`, `modified_at`, `size_bytes`
 
 ## Contexto
 

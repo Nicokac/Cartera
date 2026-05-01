@@ -364,6 +364,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     en el editor avanzado (`beforeunload`)
   - tras guardar, la UI refresca `GET /config` para actualizar metadata
     (`modified_at`) en pantalla inmediatamente
+  - nuevo endpoint `GET /config/{config_name}/backups` para listar backups
+    disponibles del archivo de reglas seleccionado
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

@@ -129,6 +129,26 @@ def _backup_config_file(path: Path) -> str | None:
     return str(backup_path)
 
 
+def _list_config_backups(path: Path, *, limit: int = 20) -> list[dict[str, object]]:
+    if not CONFIG_BACKUP_DIR.exists():
+        return []
+    prefix = f"{path.stem}."
+    rows: list[dict[str, object]] = []
+    for candidate in CONFIG_BACKUP_DIR.glob("*/*.json"):
+        if not candidate.name.startswith(prefix):
+            continue
+        rows.append(
+            {
+                "path": str(candidate),
+                "filename": candidate.name,
+                "modified_at": datetime.fromtimestamp(candidate.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                "size_bytes": candidate.stat().st_size,
+            }
+        )
+    rows.sort(key=lambda row: str(row["modified_at"]), reverse=True)
+    return rows[: max(1, int(limit))]
+
+
 def _parse_ts(value: object) -> datetime | None:
     if not isinstance(value, str) or not value.strip():
         return None
@@ -720,6 +740,18 @@ def post_strategy_config(
             "backup_path": backup_path,
         }
     )
+
+
+@app.get("/config/{config_name}/backups")
+def get_strategy_config_backups(
+    config_name: str,
+    x_session_token: str = Header(default=""),
+    limit: int = 20,
+) -> JSONResponse:
+    _require_session_token(x_session_token)
+    target_file = _resolve_config_file(config_name)
+    rows = _list_config_backups(target_file, limit=limit)
+    return JSONResponse({"name": config_name, "backups": rows})
 
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)

@@ -314,6 +314,21 @@ class TestScoringConfigEndpoints(unittest.TestCase):
         saved = self._action_path.read_text(encoding="utf-8")
         self.assertIn('"name": "x"', saved)
 
+    def test_get_config_backups_lists_created_backups(self):
+        _client.post(
+            "/config/scoring",
+            headers={"X-Session-Token": "test-session-token"},
+            json={"content": '{"weights":{"momentum":2.0}}'},
+        )
+        r = _client.get("/config/scoring/backups", headers={"X-Session-Token": "test-session-token"})
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertEqual(data["name"], "scoring")
+        backups = data.get("backups", [])
+        self.assertGreaterEqual(len(backups), 1)
+        self.assertIn("path", backups[0])
+        self.assertIn("filename", backups[0])
+
 
 class TestGetReportsList(unittest.TestCase):
     def setUp(self):
