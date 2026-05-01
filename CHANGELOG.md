@@ -350,6 +350,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     (`filename`, `exists`, `modified_at`) en pantalla
   - el editor avanzado incorpora `dirty state` y validacion JSON en vivo:
     `Guardar` se habilita solo cuando hay cambios pendientes y el JSON es valido
+  - nuevo boton `Formatear JSON` en el editor avanzado para pretty-print local
+    antes de guardar
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

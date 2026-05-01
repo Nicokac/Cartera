@@ -114,6 +114,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance de usabilidad operativa/API: `GET /config` ahora devuelve metadata por archivo (`filename`, `exists`, `modified_at`) para diagnóstico y UX de configuración avanzada.
 - 2026-05-01: avance UX operativo en configuracion avanzada: la UI ahora muestra metadata del archivo seleccionado (`filename`, `exists`, `modified_at`) usando `GET /config`.
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: editor con estado de cambios pendientes (`dirty state`) y habilitacion de `Guardar` solo para JSON valido.
+- 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Formatear JSON` para pretty-print local previo a guardado.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -297,6 +298,9 @@ Prueba de cierre (si aplica):
   - sin cambios: muestra `Sin cambios pendientes.` y `Guardar` deshabilitado
   - con cambios y JSON valido: muestra `Cambios pendientes de guardar.` y `Guardar` habilitado
   - con JSON invalido: muestra `Cambios pendientes (JSON invalido).` y `Guardar` deshabilitado
+- validar manualmente `Formatear JSON`:
+  - con JSON valido: reindenta el contenido y mantiene estado de cambios
+  - con JSON invalido: muestra alerta `No se pudo formatear: JSON invalido.`
 
 ## Contexto
 

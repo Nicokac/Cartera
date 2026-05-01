@@ -171,6 +171,7 @@
     <textarea id="scoring-config" class="config-area" spellcheck="false"></textarea>
     <div class="config-actions">
       <button type="button" class="secondary" id="btn-load-scoring">Recargar</button>
+      <button type="button" class="secondary" id="btn-format-scoring">Formatear JSON</button>
       <button type="button" id="btn-save-scoring" disabled>Guardar</button>
     </div>
     <div id="config-meta" class="config-meta"></div>
@@ -512,6 +513,19 @@
       await loadScoringConfig();
     }
 
+    function formatScoringConfigJson() {
+      clearScoringAlert();
+      const textarea = document.getElementById("scoring-config");
+      const text = textarea.value || "";
+      try {
+        const parsed = JSON.parse(text);
+        textarea.value = `${JSON.stringify(parsed, null, 2)}\n`;
+        updateConfigEditorState();
+      } catch (_) {
+        showScoringAlert("No se pudo formatear: JSON invalido.", true);
+      }
+    }
+
     function updateConfigEditorState() {
       const textarea = document.getElementById("scoring-config");
       const dirtyEl = document.getElementById("config-dirty");
@@ -691,6 +705,7 @@
       document.getElementById("preset-aporte").addEventListener("click", applyPresetAporteExterno);
       document.getElementById("btn-cancel").addEventListener("click", cancelRun);
       document.getElementById("btn-load-scoring").addEventListener("click", loadScoringConfig);
+      document.getElementById("btn-format-scoring").addEventListener("click", formatScoringConfigJson);
       document.getElementById("btn-save-scoring").addEventListener("click", saveScoringConfig);
       document.getElementById("strategy-config-kind").addEventListener("change", loadScoringConfig);
       document.getElementById("scoring-config").addEventListener("input", updateConfigEditorState);
