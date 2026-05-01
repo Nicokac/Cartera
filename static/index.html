@@ -551,7 +551,19 @@
         showScoringAlert(detail, true);
         return;
       }
-      showScoringAlert("Configuracion restaurada desde backup.");
+      let restoreInfo = "";
+      try {
+        const payload = await res.json();
+        const restoredFrom = payload && payload.restored_from ? payload.restored_from : "";
+        const preBackup = payload && payload.backup_path ? payload.backup_path : "";
+        if (restoredFrom) {
+          restoreInfo += ` Origen: ${restoredFrom}.`;
+        }
+        if (preBackup) {
+          restoreInfo += ` Backup previo: ${preBackup}.`;
+        }
+      } catch (_) {}
+      showScoringAlert(`Configuracion restaurada desde backup.${restoreInfo}`);
       await loadConfigOptions();
       await loadScoringConfig();
     }

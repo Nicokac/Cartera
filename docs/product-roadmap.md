@@ -127,6 +127,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo: restore de configuracion desde backup integrado en UI avanzada (seleccion desde lista + confirmacion).
 - 2026-05-01: hardening API de backups: `GET /config/{config_name}/backups` ahora valida `limit` en rango `1..100`.
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
+- 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -354,6 +355,10 @@ Prueba de cierre (si aplica):
 - validar manualmente en UI local:
   - cambiar `Ver` en backups recientes entre 1 y 20
   - confirmar que la lista se refresca con la nueva cantidad
+- validar manualmente restore desde UI:
+  - restaurar un backup y confirmar mensaje con:
+    - `Origen: <backup usado>`
+    - `Backup previo: <backup generado antes de restaurar>`
 
 ## Contexto
 
