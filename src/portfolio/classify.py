@@ -44,12 +44,17 @@ def classify_iol_portfolio(
             continue
 
         if tipo_norm in {"ACCIONES", "ACCION"}:
-            if bloque == "Sin clasificar" and argentina_equity_map and simbolo in argentina_equity_map:
-                bloque = str((argentina_equity_map.get(simbolo) or {}).get("block") or "Argentina")
-            acciones_locales.append((simbolo, simbolo, bloque, cantidad, ppc))
+            pais_titulo = str(titulo.get("pais") or "").lower().replace(" ", "_")
+            if pais_titulo == "estados_unidos":
+                ticker_finviz = finviz_map.get(simbolo)
+                portafolio.append((simbolo, ticker_finviz, bloque, cantidad, ppc))
+            else:
+                if bloque == "Sin clasificar" and argentina_equity_map and simbolo in argentina_equity_map:
+                    bloque = str((argentina_equity_map.get(simbolo) or {}).get("block") or "Argentina")
+                acciones_locales.append((simbolo, simbolo, bloque, cantidad, ppc))
             continue
 
-        if tipo_norm in {"TITULOSPUBLICOS", "TITULOPUBLICO"}:
+        if tipo_norm in {"TITULOSPUBLICOS", "TITULOPUBLICO", "LETRAS", "LETRANOTA"}:
             vn_factor = float(vn_factor_map.get(simbolo, 100) or 100)
             bonos.append((simbolo, bloque, cantidad, ppc, vn_factor))
             continue

@@ -8,6 +8,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 Sin cambios registrados.
 
+## [0.5.2] - 2026-05-01
+
+### Fixed
+
+- `src/portfolio/classify.py`: instrumentos de tipo `Letras` y `LetraNota` (ej. S31G6) ya son reconocidos y enrutados al bucket de bonos; antes caian silenciosamente fuera del clasificador y quedaban marcados como "pendiente de consolidacion" con cantidad incorrecta derivada del historial de operaciones
+- `scripts/generate_real_report_runtime.py`: el portafolio de la cuenta `estados_Unidos` ya se incorpora a la cartera consolidada via `_fetch_merged_portfolio`; antes se ignoraba completamente el endpoint `/portafolio/estados_Unidos`, dejando posiciones como TTWO invisibles en reporte, scoring y riesgo
+- `scripts/generate_real_report_runtime.py`: acciones de mercado estadounidense (tipo `ACCIONES`, pais `estados_Unidos`) se ruutan al bucket de CEDEARs con lookup Finviz cuando disponible, en lugar de al bucket de acciones locales
+- `scripts/generate_real_report_runtime.py`: `extract_quote_tickers_impl` incluye `Letras` y `LetraNota` en el conjunto de tipos cotizables para snapshot de precios
+
 ## [0.5.1] - 2026-05-01
 
 ### Changed

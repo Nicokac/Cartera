@@ -16,6 +16,8 @@ Subfamilias:
 - `stock_argentina`
 - `stock_other`
 
+Las acciones de mercado `estados_Unidos` (cuenta EEUU de IOL, tipo `ACCIONES`, pais `estados_Unidos`) se enrutan al bucket de CEDEARs (`portafolio`) con lookup Finviz, no al bucket de acciones locales.
+
 ### `etf`
 
 Subfamilias:
@@ -32,6 +34,8 @@ Subfamilias:
 - `bond_cer`
 - `bond_bopreal`
 - `bond_other`
+
+Tipos IOL reconocidos como bonos: `TitulosPublicos`, `TituloPublico`, `Letras`, `LetraNota`. Las Letras del Tesoro (ej. S31G6) se enrutan a este bucket con `vn_factor` del mapa o 100 por defecto.
 
 ### `fci`
 

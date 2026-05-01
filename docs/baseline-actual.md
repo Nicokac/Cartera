@@ -4,12 +4,12 @@
 
 Documento actualizado al `2026-05-01`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
-Version de release vigente: `0.5.1`.
+Version de release vigente: `0.5.2`.
 
 ## Capacidades activas
 
-- consolidacion de cartera y liquidez desde IOL
-- scoring operativo para CEDEARs, acciones locales, bonos y liquidez
+- consolidacion de cartera y liquidez desde IOL, incluyendo cuenta `estados_Unidos` (posiciones en mercado NASDAQ/NYSE)
+- scoring operativo para CEDEARs, acciones locales, bonos (incluye Letras del Tesoro) y liquidez
 - overlay tecnico con datos de mercado y manejo visible de errores por ticker
 - contexto macro y capa local de bonos
 - memoria temporal diaria entre corridas

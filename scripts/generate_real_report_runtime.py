@@ -74,7 +74,7 @@ def parse_finviz_pct_impl(value: object, *, logger: logging.Logger) -> float:
 
 def extract_quote_tickers_impl(activos: list[dict]) -> list[str]:
     tickers: set[str] = set()
-    allowed_types = {"CEDEARS", "ACCIONES", "ACCION", "TITULOSPUBLICOS", "TITULOPUBLICO"}
+    allowed_types = {"CEDEARS", "ACCIONES", "ACCION", "TITULOSPUBLICOS", "TITULOPUBLICO", "LETRAS", "LETRANOTA"}
 
     for activo in activos:
         titulo = activo.get("titulo", {}) or {}
@@ -212,9 +212,26 @@ def fetch_iol_payloads_impl(
                 return [item for item in nested if isinstance(item, dict)]
         return []
 
+    def _fetch_merged_portfolio(token: str) -> dict[str, object]:
+        portfolio_ar = iol_get_portafolio_fn(token, base_url=base_url, pais="argentina")
+        activos_ar = list(portfolio_ar.get("activos") or [])
+        try:
+            portfolio_us = iol_get_portafolio_fn(token, base_url=base_url, pais="estados_Unidos")
+            activos_us = list(portfolio_us.get("activos") or [])
+        except requests.HTTPError as exc_us:
+            status_us = exc_us.response.status_code if exc_us.response is not None else None
+            if status_us == 404:
+                activos_us = []
+                logger.info("Portafolio estados_Unidos no disponible (404), se omite.")
+            else:
+                raise
+        merged = dict(portfolio_ar)
+        merged["activos"] = activos_ar + activos_us
+        return merged
+
     current_token = token
     try:
-        portfolio_payload = iol_get_portafolio_fn(current_token, base_url=base_url, pais="argentina")
+        portfolio_payload = _fetch_merged_portfolio(current_token)
         estado_payload = iol_get_estado_cuenta_fn(current_token, base_url=base_url)
         operaciones_payload_raw = iol_get_operaciones_fn(
             current_token,
@@ -230,7 +247,7 @@ def fetch_iol_payloads_impl(
             raise
         logger.info("IOL token expirado durante descarga inicial. Reautenticando y reintentando.")
         current_token = iol_login_fn(username, password, base_url=base_url)
-        portfolio_payload = iol_get_portafolio_fn(current_token, base_url=base_url, pais="argentina")
+        portfolio_payload = _fetch_merged_portfolio(current_token)
         estado_payload = iol_get_estado_cuenta_fn(current_token, base_url=base_url)
         operaciones_payload_raw = iol_get_operaciones_fn(
             current_token,
