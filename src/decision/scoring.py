@@ -493,6 +493,9 @@ def _apply_refuerzo_score(
     refuerzo_penalties: dict[str, object],
     asset_subfamily_adjustments: dict[str, object],
 ) -> pd.DataFrame:
+    def _rule_value(rules: dict[str, object], key: str, default: float = 0.0) -> float:
+        return float((rules or {}).get(key, default))
+
     out["score_refuerzo"] = (
         float(score_refuerzo_weights.get("low_weight", 0.20)) * out["s_low_weight"]
         + float(score_refuerzo_weights.get("momentum", 0.25)) * out["Momentum_Refuerzo"]
@@ -514,9 +517,9 @@ def _apply_refuerzo_score(
     )
     for subfamily, rules in asset_subfamily_adjustments.items():
         mask = out["asset_subfamily"].eq(subfamily)
-        refuerzo_penalty = float((rules or {}).get("refuerzo_penalty", 0.0))
-        refuerzo_boost = float((rules or {}).get("refuerzo_boost", 0.0))
-        sparse_data_penalty = float((rules or {}).get("sparse_data_penalty", 0.0))
+        refuerzo_penalty = _rule_value(rules, "refuerzo_penalty")
+        refuerzo_boost = _rule_value(rules, "refuerzo_boost")
+        sparse_data_penalty = _rule_value(rules, "sparse_data_penalty")
         if refuerzo_penalty:
             out["score_refuerzo"] -= np.where(mask, refuerzo_penalty, 0.0)
         if refuerzo_boost:

@@ -129,6 +129,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: cierre funcional de configuración operativa en UI: editor avanzado completo para `scoring/action/sizing` con discovery, validación JSON, dirty-state, format/revert, backup/restore y trazabilidad de cambios.
 - 2026-05-01: completado item de testing CI: piso de cobertura sube de 82% a 85% en `.github/workflows/ci.yml` (cobertura local suite estable: 89%).
 - 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_absolute_metric_blends` reduce repeticion de acceso a reglas por metrica mediante helper local `_metric_rules` (sin cambios funcionales).
+- 2026-05-01: avance P2 de mantenibilidad en scoring: `_apply_refuerzo_score` reduce repeticion al leer ajustes por subfamilia mediante helper local `_rule_value` (sin cambios funcionales).
 - 2026-05-01: avance UX operativo: selector en UI para cantidad de backups recientes visibles (1..20), usando query `limit` del endpoint.
 - 2026-05-01: mejora UX de restore: la UI ahora muestra trazabilidad completa post-restore (`restored_from` + backup de seguridad previo).
 
@@ -357,6 +358,8 @@ Prueba de cierre (si aplica):
   - `GET /config/scoring/backups?limit=101` => 422
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor interno de `_apply_absolute_metric_blends`
+- correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
+- validar baseline de scoring para confirmar que ranking/acciones no cambian tras el refactor interno de `_apply_refuerzo_score`
 - validar manualmente en UI local:
   - cambiar `Ver` en backups recientes entre 1 y 20
   - confirmar que la lista se refresca con la nueva cantidad
