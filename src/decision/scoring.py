@@ -156,6 +156,10 @@ def build_decision_base(
         ced_data["total_ratings"] = np.nan
 
     decision = base.merge(ced_data, on="Ticker_IOL", how="left")
+    if "Ticker_Finviz" in df_total.columns:
+        finviz_from_total = df_total.set_index("Ticker_IOL")["Ticker_Finviz"].dropna()
+        mask_missing = decision["Ticker_Finviz"].isna()
+        decision.loc[mask_missing, "Ticker_Finviz"] = decision.loc[mask_missing, "Ticker_IOL"].map(finviz_from_total)
     decision["Cobertura_Modelo"] = np.where(decision["Ticker_Finviz"].notna(), "Completa", "Parcial")
     if "Es_Liquidez" in decision.columns:
         decision["Es_Liquidez"] = decision["Es_Liquidez"].fillna(decision["Tipo"].eq("Liquidez")).astype(bool)
@@ -165,6 +169,7 @@ def build_decision_base(
     decision["Es_Bono"] = decision["Tipo"].eq("Bono")
     decision["Es_FCI"] = decision["Tipo"].eq("FCI")
     decision["Es_Accion_Local"] = decision["Tipo"].eq("Acción Local")
+    decision["Es_Accion_US"] = decision["Tipo"].eq("Acción US")
     decision["Es_ETF"] = decision["is_etf"].fillna(False).astype(bool) if "is_etf" in decision.columns else False
     decision["Es_Core_ETF"] = (
         decision["is_core_etf"].fillna(False).astype(bool) if "is_core_etf" in decision.columns else False
@@ -179,6 +184,7 @@ def build_decision_base(
     decision.loc[decision["Es_FCI"], "asset_family"] = "fund"
     decision.loc[decision["Es_Bono"], "asset_family"] = "bond"
     decision.loc[decision["Es_Accion_Local"], "asset_family"] = "stock"
+    decision.loc[decision["Es_Accion_US"], "asset_family"] = "stock"
     decision.loc[decision["Es_Cedear"] & ~decision["Es_ETF"], "asset_family"] = "stock"
     decision.loc[decision["Es_ETF"] & decision["Es_Core_ETF"], "asset_subfamily"] = "etf_core"
     decision.loc[decision["Es_ETF"] & decision["asset_subfamily"].isna(), "asset_subfamily"] = "etf_other"
@@ -276,6 +282,7 @@ def _initialize_base_scores(
         "Es_ETF": False,
         "Es_Core_ETF": False,
         "Es_FCI": False,
+        "Es_Accion_US": False,
     }
     for col, default in numeric_defaults.items():
         if col not in out.columns:

@@ -4,7 +4,7 @@
 
 Documento actualizado al `2026-05-01`. Define la baseline funcional vigente del proyecto, no una foto puntual de cartera.
 
-Version de release vigente: `0.5.2`.
+Version de release vigente: `0.5.3`.
 
 ## Capacidades activas
 

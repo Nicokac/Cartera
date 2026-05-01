@@ -118,7 +118,10 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         "Drawdown_desde_Max3m_%",
     ]
     tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
-    tech_total = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
+    _df_cedears_len = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
+    _df_us = portfolio_bundle.get("df_us", pd.DataFrame())
+    _df_us_with_finviz = int((_df_us["Ticker_Finviz"].notna()).sum()) if not _df_us.empty and "Ticker_Finviz" in _df_us.columns else 0
+    tech_total = _df_cedears_len + _df_us_with_finviz
     tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
     tech_enabled = "Si" if tech_covered > 0 else "No"
     finviz_total = int(finviz_stats.get("cedears_total", tech_total))

@@ -4,7 +4,7 @@ Indice de la documentacion activa del proyecto.
 
 ## Puntos de entrada
 
-- release vigente: `0.5.2`
+- release vigente: `0.5.3`
 - [README.md](../README.md)
 - [baseline-actual.md](baseline-actual.md)
 - [improvement-roadmap.md](improvement-roadmap.md)

@@ -668,7 +668,7 @@ def _build_operations_context(
     )
 
 
-def _print_coverage_stats(technical_overlay: pd.DataFrame, df_cedears: pd.DataFrame, finviz_stats: dict[str, object]) -> None:
+def _print_coverage_stats(technical_overlay: pd.DataFrame, df_cedears: pd.DataFrame, finviz_stats: dict[str, object], df_us: pd.DataFrame | None = None) -> None:
     tech_metric_cols = [
         "Dist_SMA20_%",
         "Dist_SMA50_%",
@@ -682,7 +682,8 @@ def _print_coverage_stats(technical_overlay: pd.DataFrame, df_cedears: pd.DataFr
     ]
     tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
     tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
-    tech_total = int(len(df_cedears))
+    us_with_finviz = int((df_us["Ticker_Finviz"].notna()).sum()) if df_us is not None and not df_us.empty and "Ticker_Finviz" in df_us.columns else 0
+    tech_total = int(len(df_cedears)) + us_with_finviz
     print(f"Cobertura t\u00e9cnica: {tech_covered}/{tech_total}")
     print(
         "Cobertura Finviz: "
@@ -834,8 +835,14 @@ def _build_analysis_context(
     df_total = portfolio_bundle["df_total"]
     df_cedears, df_ratings_res, finviz_stats = enrich_real_cedears(portfolio_bundle["df_cedears"], mep_real=mep_real)
     price_history: dict[str, list[float]] = {}
-    technical_overlay = build_technical_overlay(df_cedears, scoring_rules=project_config.SCORING_RULES, price_history_out=price_history)
-    _print_coverage_stats(technical_overlay, df_cedears, finviz_stats)
+    df_us = portfolio_bundle.get("df_us", pd.DataFrame())
+    technical_overlay = build_technical_overlay(
+        df_cedears,
+        df_extra=df_us if not df_us.empty else None,
+        scoring_rules=project_config.SCORING_RULES,
+        price_history_out=price_history,
+    )
+    _print_coverage_stats(technical_overlay, df_cedears, finviz_stats, df_us=df_us)
 
     decision_bundle = build_decision_bundle(
         df_total=df_total,

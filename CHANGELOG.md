@@ -8,6 +8,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 Sin cambios registrados.
 
+## [0.5.3] - 2026-05-01
+
+### Added
+
+- `data/mappings/block_map.json`: entradas `TTWO` → "Growth" y `S31G6` → "CER" para que los nuevos activos reciban bloque correcto en scoring
+- `data/mappings/finviz_map.json`: entrada `TTWO` → "TTWO" para cobertura Finviz del stock NASDAQ
+- `data/mappings/instrument_profile_map.json`: entrada `TTWO` (Stock / stock_growth) para consistencia con el catalogo de instrumentos
+- `data/mappings/vn_factor_map.json`: entrada `S31G6` → 100 (explicita; antes usaba el default silencioso)
+
+### Fixed
+
+- `src/decision/scoring.py`: acciones de mercado estadounidense (`Tipo == "Accion US"`) ya reciben `asset_family = "stock"` via nuevo flag `Es_Accion_US`; antes quedaban sin familia y el motor de scoring las trataba como instrumentos desconocidos
+- `src/decision/scoring.py`: `Ticker_Finviz` de instrumentos no-CEDEAR (acciones US) ya se propaga al decision frame rellenando desde `df_total` tras el merge; `Cobertura_Modelo` pasa de "Parcial" a "Completa" para TTWO una vez que tenga datos Finviz
+- `src/decision/scoring.py`: `Es_Accion_US` agregado a `bool_defaults` en `apply_base_scores` como fallback defensivo
+- `src/analytics/technical.py`: `build_technical_overlay` acepta `df_extra` opcional para incluir acciones US (TTWO) en el overlay tecnico via Yahoo Finance; antes solo procesaba CEDEARs
+- `scripts/generate_real_report.py`: pasa `df_us` como `df_extra` a `build_technical_overlay`; actualiza `_print_coverage_stats` para incluir US stocks con Finviz ticker en el denominador de cobertura tecnica
+- `scripts/report_composer.py`: `tech_total` suma CEDEARs + acciones US con `Ticker_Finviz` para que el KPI "Cobertura tecnica" sea correcto
+
 ## [0.5.2] - 2026-05-01
 
 ### Fixed
@@ -39,6 +57,7 @@ Sin cambios registrados.
 - validacion end-to-end confirmada sobre `reports/real-report.html` generado en corrida real
 
 ## [0.5.0] - 2026-05-01
+
 ### Added
 
 - cobertura estructural para wrappers PowerShell:

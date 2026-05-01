@@ -107,6 +107,7 @@ def compute_rsi(series: pd.Series, period: int = 14) -> pd.Series:
 def build_technical_overlay(
     df_cedears: pd.DataFrame,
     *,
+    df_extra: pd.DataFrame | None = None,
     scoring_rules: Mapping[str, Any] | None = None,
     price_history_out: dict[str, list[float]] | None = None,
 ) -> pd.DataFrame:
@@ -120,6 +121,10 @@ def build_technical_overlay(
     interval = str(tech_rules.get("interval", "1d"))
     rows: list[TechnicalOverlayRow] = []
     base = df_cedears[["Ticker_IOL", "Ticker_Finviz"]].dropna().drop_duplicates()
+    if df_extra is not None and not df_extra.empty:
+        if "Ticker_IOL" in df_extra.columns and "Ticker_Finviz" in df_extra.columns:
+            extra_base = df_extra[["Ticker_IOL", "Ticker_Finviz"]].dropna().drop_duplicates()
+            base = pd.concat([base, extra_base], ignore_index=True).drop_duplicates(subset="Ticker_IOL")
 
     for _, row in base.iterrows():
         ticker_iol = str(row["Ticker_IOL"])
