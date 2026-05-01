@@ -49,6 +49,7 @@
     .config-actions { display: flex; gap: .5rem; margin-top: .7rem; }
     .config-actions .secondary { background: #4b5563; }
     .config-meta { margin-top: .5rem; font-size: .84rem; color: #4b5563; }
+    .config-dirty { margin-top: .35rem; font-size: .82rem; color: #9a3412; }
     .config-alert { margin-top: .6rem; padding: .5rem .65rem; border-radius: 6px; font-size: .86rem; display: none; }
     .config-alert.ok { background: #dcfce7; color: #166534; }
     .config-alert.error { background: #fee2e2; color: #991b1b; }
@@ -170,9 +171,10 @@
     <textarea id="scoring-config" class="config-area" spellcheck="false"></textarea>
     <div class="config-actions">
       <button type="button" class="secondary" id="btn-load-scoring">Recargar</button>
-      <button type="button" id="btn-save-scoring">Guardar</button>
+      <button type="button" id="btn-save-scoring" disabled>Guardar</button>
     </div>
     <div id="config-meta" class="config-meta"></div>
+    <div id="config-dirty" class="config-dirty"></div>
     <div id="scoring-alert" class="config-alert" role="alert"></div>
   </section>
 
@@ -200,6 +202,7 @@
     let _reportsLoaded = false;
     let _sessionToken = "";
     let _configMetaByName = {};
+    let _lastLoadedConfigText = "";
     const USERNAME_KEY = "cartera.username";
     const REMEMBER_USERNAME_KEY = "cartera.remember_username";
 
@@ -456,7 +459,10 @@
           throw new Error("fetch failed");
         }
         const payload = await res.json();
-        document.getElementById("scoring-config").value = payload.content || "";
+        const text = payload.content || "";
+        document.getElementById("scoring-config").value = text;
+        _lastLoadedConfigText = text;
+        updateConfigEditorState();
       } catch (_) {
         showScoringAlert("No se pudo cargar scoring_rules.json.", true);
       }
@@ -504,6 +510,29 @@
       }
       showScoringAlert("Configuracion guardada.");
       await loadScoringConfig();
+    }
+
+    function updateConfigEditorState() {
+      const textarea = document.getElementById("scoring-config");
+      const dirtyEl = document.getElementById("config-dirty");
+      const saveBtn = document.getElementById("btn-save-scoring");
+      const text = textarea.value || "";
+      const isDirty = text !== _lastLoadedConfigText;
+      let isValidJson = false;
+      try {
+        JSON.parse(text);
+        isValidJson = true;
+      } catch (_) {
+        isValidJson = false;
+      }
+      if (!isDirty) {
+        dirtyEl.textContent = "Sin cambios pendientes.";
+      } else if (!isValidJson) {
+        dirtyEl.textContent = "Cambios pendientes (JSON invalido).";
+      } else {
+        dirtyEl.textContent = "Cambios pendientes de guardar.";
+      }
+      saveBtn.disabled = !isDirty || !isValidJson;
     }
 
     async function loadConfigOptions() {
@@ -664,6 +693,7 @@
       document.getElementById("btn-load-scoring").addEventListener("click", loadScoringConfig);
       document.getElementById("btn-save-scoring").addEventListener("click", saveScoringConfig);
       document.getElementById("strategy-config-kind").addEventListener("change", loadScoringConfig);
+      document.getElementById("scoring-config").addEventListener("input", updateConfigEditorState);
 
       loadUsernamePreference();
       updateSummary();

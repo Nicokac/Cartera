@@ -113,6 +113,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P2 de arquitectura/mantenibilidad: refactor incremental adicional en `_compute_base_scores_from_config` para reducir variables intermedias y mantener flujo declarativo basado en `BaseScoreConfig` (sin cambios funcionales).
 - 2026-04-30: avance de usabilidad operativa/API: `GET /config` ahora devuelve metadata por archivo (`filename`, `exists`, `modified_at`) para diagnóstico y UX de configuración avanzada.
 - 2026-05-01: avance UX operativo en configuracion avanzada: la UI ahora muestra metadata del archivo seleccionado (`filename`, `exists`, `modified_at`) usando `GET /config`.
+- 2026-05-01: avance UX operativo adicional en configuracion avanzada: editor con estado de cambios pendientes (`dirty state`) y habilitacion de `Guardar` solo para JSON valido.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -292,6 +293,10 @@ Prueba de cierre (si aplica):
 - validar manualmente en la app local:
   - al cambiar entre `scoring/action/sizing`, el panel muestra metadatos del archivo seleccionado
   - si el archivo no existe, `Existe: no` y `Modificado: -`
+- validar manualmente en la app local (editor avanzado):
+  - sin cambios: muestra `Sin cambios pendientes.` y `Guardar` deshabilitado
+  - con cambios y JSON valido: muestra `Cambios pendientes de guardar.` y `Guardar` habilitado
+  - con JSON invalido: muestra `Cambios pendientes (JSON invalido).` y `Guardar` deshabilitado
 
 ## Contexto
 

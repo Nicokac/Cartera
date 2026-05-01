@@ -235,6 +235,7 @@ Al startup del servidor se valida schema basico de `data/runtime/decision_histor
 La UI consume `GET /config` para poblar dinamicamente el selector de archivos editables.
 Cada item de `GET /config` incluye `filename`, `exists` y `modified_at`.
 La UI muestra esos metadatos del archivo seleccionado en el panel de configuracion avanzada.
+El editor avanzado marca cambios pendientes y habilita `Guardar` solo con JSON valido.
 
 Comandos de operacion local:
 
