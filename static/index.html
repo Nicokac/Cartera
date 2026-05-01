@@ -172,6 +172,7 @@
     <div class="config-actions">
       <button type="button" class="secondary" id="btn-load-scoring">Recargar</button>
       <button type="button" class="secondary" id="btn-format-scoring">Formatear JSON</button>
+      <button type="button" class="secondary" id="btn-revert-scoring" disabled>Revertir cambios</button>
       <button type="button" id="btn-save-scoring" disabled>Guardar</button>
     </div>
     <div id="config-meta" class="config-meta"></div>
@@ -547,6 +548,7 @@
       const textarea = document.getElementById("scoring-config");
       const dirtyEl = document.getElementById("config-dirty");
       const saveBtn = document.getElementById("btn-save-scoring");
+      const revertBtn = document.getElementById("btn-revert-scoring");
       const text = textarea.value || "";
       const isDirty = text !== _lastLoadedConfigText;
       let isValidJson = false;
@@ -564,6 +566,14 @@
         dirtyEl.textContent = "Cambios pendientes de guardar.";
       }
       saveBtn.disabled = !isDirty || !isValidJson;
+      revertBtn.disabled = !isDirty;
+    }
+
+    function revertScoringConfigChanges() {
+      clearScoringAlert();
+      const textarea = document.getElementById("scoring-config");
+      textarea.value = _lastLoadedConfigText;
+      updateConfigEditorState();
     }
 
     async function loadConfigOptions() {
@@ -723,6 +733,7 @@
       document.getElementById("btn-cancel").addEventListener("click", cancelRun);
       document.getElementById("btn-load-scoring").addEventListener("click", loadScoringConfig);
       document.getElementById("btn-format-scoring").addEventListener("click", formatScoringConfigJson);
+      document.getElementById("btn-revert-scoring").addEventListener("click", revertScoringConfigChanges);
       document.getElementById("btn-save-scoring").addEventListener("click", saveScoringConfig);
       document.getElementById("strategy-config-kind").addEventListener("change", loadScoringConfig);
       document.getElementById("scoring-config").addEventListener("input", updateConfigEditorState);

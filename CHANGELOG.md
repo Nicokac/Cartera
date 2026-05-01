@@ -354,6 +354,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
     antes de guardar
   - nuevo atajo de teclado en editor avanzado: `Ctrl+S` / `Cmd+S` para guardar
     rapidamente cuando el contenido es valido
+  - nuevo boton `Revertir cambios` en editor avanzado para descartar edicion
+    local y volver al ultimo contenido cargado
 - contratos tipados (`Protocol`) extendidos a clientes HTTP adicionales:
   - `src/clients/argentinadatos.py` ahora acepta `get_fn: HttpGetProtocol`
   - `src/clients/bonistas_client.py` ahora acepta `get_fn: HttpGetProtocol` en fetch/listing/macro/portfolio

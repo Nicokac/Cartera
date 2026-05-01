@@ -238,6 +238,7 @@ La UI muestra esos metadatos del archivo seleccionado en el panel de configuraci
 El editor avanzado marca cambios pendientes y habilita `Guardar` solo con JSON valido.
 Incluye accion `Formatear JSON` para normalizar indentacion antes de guardar.
 Atajo del editor avanzado: `Ctrl+S` (Windows/Linux) o `Cmd+S` (macOS) para guardar.
+Incluye `Revertir cambios` para volver al ultimo contenido cargado sin reconsultar al backend.
 
 Comandos de operacion local:
 

@@ -116,6 +116,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: editor con estado de cambios pendientes (`dirty state`) y habilitacion de `Guardar` solo para JSON valido.
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Formatear JSON` para pretty-print local previo a guardado.
 - 2026-05-01: avance UX operativo adicional en configuracion avanzada: atajo `Ctrl+S/Cmd+S` dentro del editor para guardar rapido cuando hay cambios validos.
+- 2026-05-01: avance UX operativo adicional en configuracion avanzada: boton `Revertir cambios` para volver al ultimo contenido cargado localmente.
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -305,6 +306,9 @@ Prueba de cierre (si aplica):
 - validar manualmente atajo de guardado:
   - foco en editor + `Ctrl+S` (o `Cmd+S` en macOS) con JSON valido => guarda
   - con `Guardar` deshabilitado (sin cambios o JSON invalido) no dispara guardado
+- validar manualmente `Revertir cambios`:
+  - editar contenido sin guardar y usar `Revertir cambios` => vuelve al ultimo estado cargado
+  - tras revertir, `Guardar` queda deshabilitado y estado vuelve a `Sin cambios pendientes.`
 
 ## Contexto
 
