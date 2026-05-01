@@ -490,6 +490,36 @@
       await loadScoringConfig();
     }
 
+    async function loadConfigOptions() {
+      const select = document.getElementById("strategy-config-kind");
+      try {
+        const res = await fetchWithSession("/config");
+        if (!res.ok) {
+          throw new Error("fetch failed");
+        }
+        const payload = await res.json();
+        const rows = Array.isArray(payload.configs) ? payload.configs : [];
+        if (rows.length === 0) {
+          return;
+        }
+        const current = select.value;
+        select.innerHTML = "";
+        for (const row of rows) {
+          if (!row || !row.name) continue;
+          const option = document.createElement("option");
+          option.value = row.name;
+          const suffix = row.exists ? "" : " (no existe)";
+          option.textContent = `${row.name}_rules.json${suffix}`;
+          select.appendChild(option);
+        }
+        if ([...select.options].some((opt) => opt.value === current)) {
+          select.value = current;
+        }
+      } catch (_) {
+        // Fallback: keep static options if discovery endpoint is unavailable.
+      }
+    }
+
     function openConfirmModal({ username, usar_liquidez_iol, aporte_externo_ars }) {
       return new Promise((resolve) => {
         const backdrop = document.getElementById("confirm-modal-backdrop");
@@ -620,6 +650,8 @@
         const sData = await sRes.json();
         _sessionToken = sData.token || "";
       } catch (_) {}
+
+      await loadConfigOptions();
 
       try {
         const res = await fetchWithSession("/status");

@@ -109,6 +109,7 @@ Ajustes puntuales detectados al validar contra el repo actual:
 - 2026-04-30: avance P3 de usabilidad operativa: editor UI de configuracion ampliado de solo `scoring_rules.json` a `scoring/action/sizing` via endpoint generico protegido (`GET/POST /config/{config_name}` con allowlist).
 - 2026-04-30: avance de observabilidad en integraciones: `/api-health` ahora incluye `checked_at` por proveedor para trazabilidad temporal de cada chequeo.
 - 2026-04-30: avance de usabilidad operativa/API: nuevo `GET /config` para descubrir configuraciones editables soportadas (`scoring`, `action`, `sizing`).
+- 2026-04-30: avance UX operativo: selector de reglas en UI ahora se puebla dinamicamente desde `GET /config` (evita desalineacion entre frontend y allowlist backend).
 
 Prueba de cierre (si aplica):
 - correr `python -m unittest tests.test_prediction_store tests.test_prediction_cycle -v`
@@ -275,6 +276,9 @@ Prueba de cierre (si aplica):
   - `scoring`
   - `action`
   - `sizing`
+- validar manualmente en UI local:
+  - el selector de `Configuracion de reglas` se carga desde backend al iniciar
+  - si se agrega/quita item en allowlist de `server.py`, la UI refleja el cambio sin tocar HTML
 
 ## Contexto
 
