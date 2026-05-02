@@ -118,20 +118,27 @@ def build_panorama_section(
     sizing_bundle: dict[str, object],
     sizing_preview: str,
 ) -> str:
+    activation_state = 'Activo' if market_regime.get('any_active') else 'Sin activaci\u00f3n'
+    changed_html = build_focus_list(
+        changed_actions,
+        empty_message='Sin cambios de se\u00f1al respecto de la corrida previa.',
+        tone='neutral',
+    )
+    liquidez_iol = "Si" if sizing_bundle.get('usar_liquidez_iol') else "No"
     return f"""
     <section class="grid spotlight-grid" id="panorama">
       <section class="panel spotlight" id="panorama-resumen">
         <h2>Panorama</h2>
         <p class="summary-lede">{esc_text(executive_summary)}</p>
         <div class="meta">
-          <span>R\u00e9gimen: <strong>{'Activo' if market_regime.get('any_active') else 'Sin activaci\u00f3n'}</strong></span>
+          <span>R\u00e9gimen: <strong>{activation_state}</strong></span>
           <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
           <span>Overlay t\u00e9cnico: <strong>{tech_enabled}</strong></span>
         </div>
         <div class="focus-columns" id="panorama-alertas">
           <div>
             <h3>Cambios de se\u00f1al</h3>
-            {build_focus_list(changed_actions, empty_message='Sin cambios de se\u00f1al respecto de la corrida previa.', tone='neutral')}
+            {changed_html}
           </div>
           <div>
             <h3>Alertas de cartera</h3>
@@ -144,7 +151,7 @@ def build_panorama_section(
         <div class="meta">
           <span>Fuente: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
           <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
-          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+          <span>Usa liquidez IOL: <strong>{liquidez_iol}</strong></span>
         </div>
         {sizing_preview}
       </section>
@@ -164,22 +171,31 @@ def build_changes_section(
 ) -> str:
     memory_summary = ""
     if decision_memory:
+        n_senales = int(decision_memory.get('se\u00f1ales_nuevas', 0))
+        n_refuerzo = int(decision_memory.get('persistentes_refuerzo', 0))
+        n_reduccion = int(decision_memory.get('persistentes_reduccion', 0))
+        n_sin_hist = int(decision_memory.get('sin_historial', 0))
         memory_summary = f"""
     <section class="action-strip compact-strip">
-      <article class="action-card neutral"><span>Cambios materiales</span><strong>{int(decision_memory.get('se\u00f1ales_nuevas', 0))}</strong></article>
-      <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{int(decision_memory.get('persistentes_refuerzo', 0))}</strong></article>
-      <article class="action-card sell"><span>Reducciones persistentes</span><strong>{int(decision_memory.get('persistentes_reduccion', 0))}</strong></article>
-      <article class="action-card fund"><span>Sin historial</span><strong>{int(decision_memory.get('sin_historial', 0))}</strong></article>
+      <article class="action-card neutral"><span>Cambios materiales</span><strong>{n_senales}</strong></article>
+      <article class="action-card buy"><span>Refuerzos persistentes</span><strong>{n_refuerzo}</strong></article>
+      <article class="action-card sell"><span>Reducciones persistentes</span><strong>{n_reduccion}</strong></article>
+      <article class="action-card fund"><span>Sin historial</span><strong>{n_sin_hist}</strong></article>
     </section>
     """
     memory_focus: list[dict[str, str]] = []
     if decision_memory:
         pr = int(decision_memory.get('persistentes_refuerzo', 0))
         pdn = int(decision_memory.get('persistentes_reduccion', 0))
+        n_senales = int(decision_memory.get('se\u00f1ales_nuevas', 0))
+        n_sin_hist = int(decision_memory.get('sin_historial', 0))
+        refuerzo_verb = 'persisten' if pr != 1 else 'persiste'
+        reduccion_noun = 'reducciones' if pdn != 1 else 'reducci\u00f3n'
+        reduccion_verb = 'persisten' if pdn != 1 else 'persiste'
         memory_focus = [
-            {"kicker": "Persistencia alcista", "title": f"{pr} refuerzo{'s' if pr != 1 else ''} {'persisten' if pr != 1 else 'persiste'}", "detail": "Convicciones que se sostienen respecto de la corrida previa."},
-            {"kicker": "Persistencia bajista", "title": f"{pdn} reducci\u00f3n{'es' if pdn != 1 else ''} {'persisten' if pdn != 1 else 'persiste'}", "detail": "Se\u00f1ales de recorte que no fueron ruido de una sola corrida."},
-            {"kicker": "Novedades", "title": f"{int(decision_memory.get('se\u00f1ales_nuevas', 0))} cambios materiales | {int(decision_memory.get('sin_historial', 0))} sin historial", "detail": "Sirve para separar cambios genuinos de ruido sin base hist\u00f3rica."},
+            {"kicker": "Persistencia alcista", "title": f"{pr} refuerzo{'s' if pr != 1 else ''} {refuerzo_verb}", "detail": "Convicciones que se sostienen respecto de la corrida previa."},
+            {"kicker": "Persistencia bajista", "title": f"{pdn} {reduccion_noun} {reduccion_verb}", "detail": "Se\u00f1ales de recorte que no fueron ruido de una sola corrida."},
+            {"kicker": "Novedades", "title": f"{n_senales} cambios materiales | {n_sin_hist} sin historial", "detail": "Sirve para separar cambios genuinos de ruido sin base hist\u00f3rica."},
         ]
     return f"""
     <section class="panel" id="cambios">

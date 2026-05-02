@@ -14,7 +14,7 @@ Estado final al 2026-05-01:
 - pendientes reales abiertos: `0`
 - fases `v0.3`, `v0.4` y `v0.5` cerradas
 - documento pasa de plan de ejecucion a registro de cierre de implementacion
-- release materializada para distribucion: `0.5.3`
+- release materializada para distribucion: `0.5.4`
 
 ## Continuidad post-cierre (UI)
 
@@ -321,6 +321,14 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar acceso directo a `#sizing-drift`.
+- 2026-05-01: Fase UI-2 — tokens semanticos de estado y zebra rows:
+  - `static/styles.css`: tokens `--ok`, `--ok-bg`, `--ok-bg-strong`, `--caution`, `--caution-bg`, `--bad`, `--bad-bg`, `--neutral-text`, `--neutral-bg` definidos en `:root`
+  - `static/styles.css`: fila par de todas las tablas con zebra sutil (`tbody tr:nth-child(even)`)
+  - clases `.metric-*`, `.badge-*`, `.cell-quality-*`, `.integrity-*`, `.sig-*`, `.drift-*` migradas a tokens; sin cambio visual perceptible
+- 2026-05-01: corrección de compatibilidad Python 3.11 en renderer:
+  - `scripts/report_layout_sections.py` y `scripts/report_sections.py`: backslash unicode escapes dentro de expresiones f-string reemplazados por variables pre-computadas
+  - sin cambios en salida HTML; suite de render 32/32 OK
+- version bump a `0.5.4`
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

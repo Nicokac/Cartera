@@ -6,6 +6,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-05-01
+
 ### Added
 
 - `docs/report-ui-embellecimiento-plan.md`: plan post v0.5 para embellecimiento del reporte con:
@@ -207,6 +209,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_sections.py` añade anchor `#sizing-drift` para el bloque de drift
   - `scripts/report_layout_sections.py` agrega acceso directo `Sizing drift` en quick-nav
   - sin cambios funcionales en asignación ni cálculo de drift
+- Fase UI-2 — legibilidad de datos:
+  - `static/styles.css`: tokens semánticos de estado (`--ok`, `--ok-bg`, `--ok-bg-strong`, `--caution`, `--caution-bg`, `--bad`, `--bad-bg`, `--neutral-text`, `--neutral-bg`) agregados a `:root`
+  - `static/styles.css`: zebra sutil en filas pares de todas las tablas (`tbody tr:nth-child(even)`)
+  - `static/styles.css`: `.metric-*`, `.badge-*`, `.cell-quality-*`, `.integrity-*`, `.sig-*`, `.focus-item.*`, `.drift-*` migrados a tokens semánticos (sin cambio visual perceptible, pero mantenibles)
+- corrección de compatibilidad Python 3.11 en f-strings del renderer:
+  - `scripts/report_layout_sections.py`: strings con escapes unicode dentro de expresiones `{...}` reemplazados por variables pre-computadas (`build_panorama_section`, `build_changes_section`)
+  - `scripts/report_sections.py`: mismo patrón en `build_technical_summary`, `build_bond_summary` y `build_summary_section`
+  - sin cambios en salida HTML del reporte; suite de render en verde (32/32 tests OK)
 
 ## [0.5.3] - 2026-05-01
 

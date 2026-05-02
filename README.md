@@ -12,8 +12,8 @@ Motor de analisis de cartera para IOL con foco en:
 
 El repo esta en una etapa operativa estable:
 
-- version de release vigente: `0.5.3`
-- distribuible vigente: `dist/cartera-v0.5.3-win64.zip`
+- version de release vigente: `0.5.4`
+- distribuible vigente: `dist/cartera-v0.5.4-win64.zip`
 
 - pipeline canonico concentrado en `src/`
 - renderer HTML modularizado en:
@@ -159,7 +159,7 @@ Notas:
 
 ## Distribucion para usuarios finales
 
-Para generar el zip distribuible (`dist/cartera-v0.5.3-win64.zip`):
+Para generar el zip distribuible (`dist/cartera-v0.5.4-win64.zip`):
 
 ```powershell
 .\scripts\build_dist.ps1
@@ -403,8 +403,8 @@ CI actual:
 Automatizacion local de release:
 
 ```powershell
-.\scripts\release.ps1 -Version 0.5.3 -DryRun
-.\scripts\release.ps1 -Version 0.5.3
+.\scripts\release.ps1 -Version 0.5.4 -DryRun
+.\scripts\release.ps1 -Version 0.5.4
 ```
 
 El script:

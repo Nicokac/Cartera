@@ -133,31 +133,57 @@ def build_technical_summary(technical_view: pd.DataFrame) -> str:
     if not bajo_sma.empty and sma200_col in bajo_sma.columns:
         bajo_sma = bajo_sma[bajo_sma[sma200_col] < 0]
 
+    def _cerca_title(row: object) -> str:
+        if abs(float(row.get(high52_col) or 0)) < 0.5:
+            return 'En m\u00e1ximos 52w'
+        return fmt_pct(row.get(high52_col)) + ' vs m\u00e1ximo anual'
+
+    cerca_max_html = build_focus_list(
+        _items(cerca_max, title_fn=_cerca_title),
+        empty_message='Sin nombres cerca de m\u00e1ximos anuales.',
+        tone='neutral',
+    )
+    bajo_sma_html = build_focus_list(
+        _items(bajo_sma, title_fn=lambda row: f"{fmt_pct(row.get(sma200_col))} vs SMA200"),
+        empty_message='Sin nombres relevantes por debajo de SMA200.',
+        tone='neutral',
+    )
     technical_detail = f"""
     <div class="focus-columns focus-columns-wide">
       <div>
         <h3>Cerca de m\u00e1ximos 52w</h3>
-        {build_focus_list(_items(cerca_max, title_fn=lambda row: 'En m\u00e1ximos 52w' if abs(float(row.get(high52_col) or 0)) < 0.5 else f"{fmt_pct(row.get(high52_col))} vs m\u00e1ximo anual"), empty_message='Sin nombres cerca de m\u00e1ximos anuales.', tone='neutral')}
+        {cerca_max_html}
       </div>
       <div>
         <h3>Por debajo de SMA200</h3>
-        {build_focus_list(_items(bajo_sma, title_fn=lambda row: f"{fmt_pct(row.get(sma200_col))} vs SMA200"), empty_message='Sin nombres relevantes por debajo de SMA200.', tone='neutral')}
+        {bajo_sma_html}
       </div>
     </div>
     """
 
+    fuertes_html = build_focus_list(
+        _items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-up'),
+        empty_message='Sin datos de fortaleza.',
+        tone='buy',
+    )
+    debiles_html = build_focus_list(
+        _items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-down'),
+        empty_message='Sin datos de debilidad.',
+        tone='sell',
+    )
+    detalle_collapsible = build_collapsible('Ver detalle t\u00e9cnico adicional', technical_detail, compact=True)
     return f"""
     <div class="focus-columns focus-columns-wide">
       <div>
         <h3>M\u00e1s fuertes</h3>
-        {build_focus_list(_items(fuertes, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-up'), empty_message='Sin datos de fortaleza.', tone='buy')}
+        {fuertes_html}
       </div>
       <div>
         <h3>M\u00e1s d\u00e9biles</h3>
-        {build_focus_list(_items(debiles, title_fn=lambda row: f"{fmt_pct(row.get(momentum_col))} en 20d", extra_class='tech-down'), empty_message='Sin datos de debilidad.', tone='sell')}
+        {debiles_html}
       </div>
     </div>
-    {build_collapsible('Ver detalle t\u00e9cnico adicional', technical_detail, compact=True)}
+    {detalle_collapsible}
     """
 
 
@@ -224,6 +250,9 @@ def build_bond_summary(
                 }
             )
 
+    local_items_html = build_focus_list(
+        local_items, empty_message='Sin resumen por taxonom\u00eda local.', tone='neutral'
+    )
     return f"""
     {macro_cards}
     <div class="focus-columns focus-columns-wide">
@@ -237,7 +266,7 @@ def build_bond_summary(
       </div>
       <div>
         <h3>Taxonom\u00eda local</h3>
-        {build_focus_list(local_items, empty_message='Sin resumen por taxonom\u00eda local.', tone='neutral')}
+        {local_items_html}
       </div>
     </div>
     """
@@ -333,6 +362,23 @@ def build_summary_section(
         benchmark_validation = portfolio_summary.get("benchmark_validation", {}) or {}
         benchmark_note = benchmark_validation.get("nota")
 
+        _drawdown_col = 'Drawdown m\u00e1x.'
+        _risk_tbl_cols = [
+            "Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo",
+            "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones",
+        ]
+        _risk_tbl_rename = {
+            "Ticker_IOL": "Ticker", "Peso_%": "Peso %", "Base_Riesgo": "Base de riesgo",
+            "Calidad_Historia": "Calidad de historia", "Retorno_Acum_%": "Retorno acum.",
+            "Volatilidad_Diaria_%": "Volatilidad diaria", "Drawdown_Max_%": _drawdown_col,
+        }
+        _risk_tbl_formatters = {"Peso %": fmt_pct, "Retorno acum.": fmt_pct, "Volatilidad diaria": fmt_pct, _drawdown_col: fmt_pct}
+        risk_table_html = build_table(
+            position_risk[_risk_tbl_cols].rename(columns=_risk_tbl_rename),
+            formatters=_risk_tbl_formatters,
+            table_class="risk-history-table",
+            table_id="risk-history-table",
+        )
         risk_details = f"""
       {_build_risk_focus_block(market_risk, title='Riesgo de mercado', empty_message='Sin posiciones de mercado para analizar.')}
       {_build_risk_focus_block(bond_risk, title='Riesgo de renta fija', empty_message='Sin bonos para analizar.')}
@@ -353,19 +399,25 @@ def build_summary_section(
           </select>
         </div>
       </div>
-      {build_table(
-          position_risk[["Ticker_IOL", "Tipo", "Bloque", "Peso_%", "Base_Riesgo", "Calidad_Historia", "Retorno_Acum_%", "Volatilidad_Diaria_%", "Drawdown_Max_%", "Observaciones"]].rename(columns={"Ticker_IOL": "Ticker", "Peso_%": "Peso %", "Base_Riesgo": "Base de riesgo", "Calidad_Historia": "Calidad de historia", "Retorno_Acum_%": "Retorno acum.", "Volatilidad_Diaria_%": "Volatilidad diaria", "Drawdown_Max_%": "Drawdown m\u00e1x."}),
-          formatters={
-              "Peso %": fmt_pct,
-              "Retorno acum.": fmt_pct,
-              "Volatilidad diaria": fmt_pct,
-              "Drawdown m\u00e1x.": fmt_pct,
-          },
-          table_class="risk-history-table",
-          table_id="risk-history-table",
-      )}
+      {risk_table_html}
         """
 
+        benchmark_meta = ""
+        if benchmark_validation:
+            benchmark_meta = (
+                '<div class="meta">'
+                f'<span>Benchmark: <strong>{esc_text(benchmark_validation.get("benchmark"))}</strong></span>'
+                f'<span>Estado validacion: <strong>{esc_text(benchmark_validation.get("status"))}</strong></span>'
+                f'<span>Obs benchmark: <strong>{safe_int(benchmark_validation.get("observaciones"))}</strong></span>'
+                f'<span>Correlacion: <strong>{fmt_score(benchmark_validation.get("correlacion"))}</strong></span>'
+                f'<span>Tracking error diario: <strong>{fmt_pct(benchmark_validation.get("tracking_error_pct"))}</strong></span>'
+                '</div>'
+            )
+        stability_meta = f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''
+        benchmark_note_meta = f'<div class="meta"><span>{esc_text(benchmark_note)}</span></div>' if benchmark_note else ''
+        risk_diag_collapsible = build_collapsible(
+            'Ver diagn\u00f3stico completo de riesgo', risk_details, compact=True
+        )
         risk_html = f"""
       <h3>Riesgo hist\u00f3rico</h3>
       <div class="meta">
@@ -381,47 +433,31 @@ def build_summary_section(
         <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
         <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
       </div>
-      {f'''
-      <div class="meta">
-        <span>Benchmark: <strong>{esc_text(benchmark_validation.get("benchmark"))}</strong></span>
-        <span>Estado validacion: <strong>{esc_text(benchmark_validation.get("status"))}</strong></span>
-        <span>Obs benchmark: <strong>{safe_int(benchmark_validation.get("observaciones"))}</strong></span>
-        <span>Correlacion: <strong>{fmt_score(benchmark_validation.get("correlacion"))}</strong></span>
-        <span>Tracking error diario: <strong>{fmt_pct(benchmark_validation.get("tracking_error_pct"))}</strong></span>
-      </div>
-      ''' if benchmark_validation else ''}
-      {f'<div class="meta"><span>{esc_text(stability_note)}</span></div>' if stability_note else ''}
-      {f'<div class="meta"><span>{esc_text(benchmark_note)}</span></div>' if benchmark_note else ''}
-      {build_collapsible(
-          "Ver diagn\u00f3stico completo de riesgo",
-          risk_details,
-          compact=True,
-      )}
+      {benchmark_meta}
+      {stability_meta}
+      {benchmark_note_meta}
+      {risk_diag_collapsible}
         """
+    summary_table_html = build_table(
+        resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]].rename(
+            columns={"Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}
+        ),
+        formatters={"Valorizado ARS": fmt_ars, "Valor USD": fmt_usd, "Ganancia ARS": fmt_ars, "Peso %": fmt_pct},
+    )
+    taxonomy_table_html = build_table(
+        family_summary_view[["Familia", "Subfamilia", "Instrumentos", "Score promedio"]]
+        if not family_summary_view.empty else family_summary_view,
+        formatters={"Score promedio": fmt_score},
+    )
+    taxonomy_collapsible = build_collapsible('Ver taxonom\u00eda operativa', taxonomy_table_html, compact=True)
     return f"""
     <section class="panel" id="resumen">
       <h2>Resumen por tipo</h2>
       {summary_kpis}
       {score_dist_html}
       {build_allocation_bar(resumen_tipos)}
-      {build_table(
-          resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]].rename(columns={"Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}),
-          formatters={
-              "Valorizado ARS": fmt_ars,
-              "Valor USD": fmt_usd,
-              "Ganancia ARS": fmt_ars,
-              "Peso %": fmt_pct,
-          },
-      )}
-      {build_collapsible(
-          "Ver taxonom\u00eda operativa",
-          build_table(
-              family_summary_view[["Familia", "Subfamilia", "Instrumentos", "Score promedio"]]
-              if not family_summary_view.empty else family_summary_view,
-              formatters={"Score promedio": fmt_score},
-          ),
-          compact=True,
-      )}
+      {summary_table_html}
+      {taxonomy_collapsible}
       {risk_html}
     </section>
     """

@@ -15,6 +15,15 @@
   --shadow-strong: 0 16px 34px rgba(29, 42, 47, 0.12);
   --mono: "IBM Plex Mono", "Consolas", monospace;
   --sans: "Segoe UI", "Helvetica Neue", sans-serif;
+  --ok: #0f6c5c;
+  --ok-bg: rgba(18, 132, 94, 0.10);
+  --ok-bg-strong: rgba(18, 132, 94, 0.18);
+  --caution: #8c640f;
+  --caution-bg: rgba(176, 126, 15, 0.12);
+  --bad: #9f3a22;
+  --bad-bg: rgba(177, 57, 45, 0.10);
+  --neutral-text: #51616c;
+  --neutral-bg: rgba(86, 98, 110, 0.10);
 }
 
 * {
@@ -668,11 +677,11 @@ section.grid {
 }
 
 .focus-item.tech-up .focus-title {
-  color: #0f6c5c;
+  color: var(--ok);
 }
 
 .focus-item.tech-down .focus-title {
-  color: #9f3a22;
+  color: var(--bad);
 }
 
 .tone-buy .focus-item {
@@ -815,6 +824,10 @@ th {
   background: #f8f5ee;
 }
 
+tbody tr:nth-child(even) {
+  background: rgba(15, 108, 92, 0.025);
+}
+
 tbody tr:hover {
   background: rgba(15, 108, 92, 0.06);
 }
@@ -824,18 +837,18 @@ tbody tr:hover {
 }
 
 .risk-history-table .cell-quality-robusta {
-  color: #0f6c5c;
+  color: var(--ok);
 }
 
 .risk-history-table .cell-quality-parcial {
-  color: #8c640f;
-  background: rgba(176, 126, 15, 0.08);
+  color: var(--caution);
+  background: var(--caution-bg);
 }
 
 .risk-history-table .cell-quality-corta,
 .risk-history-table .cell-quality-sin-historia {
-  color: #9f3a22;
-  background: rgba(177, 57, 45, 0.08);
+  color: var(--bad);
+  background: var(--bad-bg);
 }
 
 .score {
@@ -912,28 +925,28 @@ tbody tr:hover {
 }
 
 .metric-strong {
-  background: rgba(18, 132, 94, 0.18);
+  background: var(--ok-bg-strong);
   color: #0c5e50;
 }
 
 .metric-positive {
-  background: rgba(18, 132, 94, 0.10);
-  color: #0f6c5c;
+  background: var(--ok-bg);
+  color: var(--ok);
 }
 
 .metric-warn {
-  background: rgba(176, 126, 15, 0.14);
-  color: #8c640f;
+  background: var(--caution-bg);
+  color: var(--caution);
 }
 
 .metric-negative {
-  background: rgba(177, 57, 45, 0.12);
-  color: #9f3a22;
+  background: var(--bad-bg);
+  color: var(--bad);
 }
 
 .metric-neutral {
-  background: rgba(86, 98, 110, 0.10);
-  color: #51616c;
+  background: var(--neutral-bg);
+  color: var(--neutral-text);
 }
 
 .technical-table th,
@@ -967,23 +980,23 @@ tbody tr:hover td:first-child {
 }
 
 .badge-buy {
-  background: rgba(18, 132, 94, 0.12);
-  color: #0f6c5c;
+  background: var(--ok-bg);
+  color: var(--ok);
 }
 
 .badge-sell {
-  background: rgba(177, 57, 45, 0.12);
-  color: #9f3a22;
+  background: var(--bad-bg);
+  color: var(--bad);
 }
 
 .badge-fund {
-  background: rgba(176, 126, 15, 0.14);
-  color: #8c640f;
+  background: var(--caution-bg);
+  color: var(--caution);
 }
 
 .badge-neutral {
-  background: rgba(86, 98, 110, 0.12);
-  color: #51616c;
+  background: var(--neutral-bg);
+  color: var(--neutral-text);
 }
 
 .prediction-legend {
@@ -1025,21 +1038,21 @@ tbody tr:hover td:first-child {
 }
 
 .integrity-ok {
-  background: rgba(18, 132, 94, 0.08);
+  background: var(--ok-bg);
   border-color: rgba(18, 132, 94, 0.20);
   color: #0c5e50;
 }
 
 .integrity-warn {
-  background: rgba(176, 126, 15, 0.10);
+  background: var(--caution-bg);
   border-color: rgba(176, 126, 15, 0.28);
-  color: #8c640f;
+  color: var(--caution);
 }
 
 .integrity-error {
-  background: rgba(177, 57, 45, 0.10);
+  background: var(--bad-bg);
   border-color: rgba(177, 57, 45, 0.28);
-  color: #9f3a22;
+  color: var(--bad);
 }
 
 .integrity-dot {
@@ -1131,17 +1144,17 @@ tbody tr:hover td:first-child {
 }
 
 .sig-pos {
-  background: rgba(18, 132, 94, 0.14);
-  color: #0f6c5c;
+  background: var(--ok-bg);
+  color: var(--ok);
 }
 
 .sig-neg {
-  background: rgba(177, 57, 45, 0.14);
-  color: #9f3a22;
+  background: var(--bad-bg);
+  color: var(--bad);
 }
 
 .sig-neu {
-  background: rgba(86, 98, 110, 0.10);
+  background: var(--neutral-bg);
   color: #8a9ba8;
 }
 
@@ -1203,7 +1216,7 @@ tbody tr:hover td:first-child {
 }
 
 .drift-current-dot { background: #8a9ba8; }
-.drift-incr-dot    { background: #0f6c5c; }
+.drift-incr-dot    { background: var(--ok); }
 
 .drift-row {
   display: flex;
@@ -1237,7 +1250,7 @@ tbody tr:hover td:first-child {
 }
 
 .drift-incr {
-  background: #0f6c5c;
+  background: var(--ok);
   opacity: 0.85;
 }
 
