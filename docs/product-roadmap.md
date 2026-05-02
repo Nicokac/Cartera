@@ -100,6 +100,9 @@ Avance UI post-cierre:
   - nuevo helper privado `_build_pending_portfolio_rows(...)` en `scripts/report_composer.py`
   - `prepare_render_context(...)` delega armado de pendientes de consolidacion y reduce logica inline
   - sin cambios funcionales ni visuales
+- 2026-05-01: snapshot documental de arquitectura de renderer post-refactor:
+  - actualizado `docs/report-ux-architecture.md` con modulos vigentes (`report_layout_sections`, `report_page`, `report_document`, `report_assets`, etc.)
+  - agregado flujo de render actual extremo a extremo para facilitar onboarding y proxima fase de embellecimiento
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

@@ -18,8 +18,14 @@ La arquitectura base del reporte ya esta implementada y estable:
 La arquitectura tecnica actual del renderer quedo separada en:
 
 - `report_renderer`: orquestacion y timing
-- `report_composer`: armado de contexto y composicion de secciones
-- `report_layout`: layout principal y shell HTML
+- `report_composer`: armado de contexto, secciones y adaptador de inputs del body
+- `report_layout`: fachada publica compatible (`build_report_body` + reexports de builders)
+- `report_layout_sections`: builders de shell/secciones (panorama, cambios, decision, cartera, integridad, etc.)
+- `report_layout_main`: composicion del `main` de la pagina
+- `report_page`: orquestacion final (`meta + main + document`)
+- `report_meta`: metadatos de documento (tab title / description)
+- `report_document`: shell HTML final (`doctype/head/body`)
+- `report_assets`: carga de CSS/JS del reporte
 - `report_sections`: bloques reutilizables (incluye seccion de riesgo historico)
 - `report_decision`: presentacion de tablas y narrativa de decision
 - `report_primitives`: helpers HTML reutilizables (focus blocks, tablas, barras)
@@ -28,6 +34,16 @@ La arquitectura tecnica actual del renderer quedo separada en:
 El modulo analitico de soporte es:
 
 - `analytics/portfolio_risk.py`: calcula el bundle de riesgo historico que consume `report_sections`
+
+## Flujo de render vigente
+
+1. `report_renderer.render_report(...)`
+2. `report_composer.prepare_render_context(...)`
+3. `report_composer.build_render_sections(...)`
+4. `report_composer.compose_report_body_inputs(...)`
+5. `report_layout.build_report_body(...)` (fachada)
+6. `report_page.build_report_page(...)`
+7. `report_document.build_report_document(...)`
 
 ## Capas vigentes
 

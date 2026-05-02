@@ -90,6 +90,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_composer.py` agrega `_build_pending_portfolio_rows(...)` y delega desde `prepare_render_context(...)`
   - menor logica inline para pendientes de consolidacion, sin cambios en salida
   - sin cambios funcionales/visuales (validado con suite de render)
+- documentacion tecnica de arquitectura de reporte actualizada:
+  - `docs/report-ux-architecture.md` refleja el estado post-refactor del renderer (fachada `report_layout`, modulos `report_layout_sections/report_page/report_document/report_assets`)
+  - incluye flujo de render vigente extremo a extremo para la transicion a fase de embellecimiento
 
 ## [0.5.3] - 2026-05-01
 
