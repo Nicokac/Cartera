@@ -116,6 +116,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` mueve `Operaciones`, `Predicción` y `Resumen` a colapsables por defecto para reducir saturación visual inicial
   - agrega bloque guía `analysis-pulse` para orientar lectura rápida del módulo
   - `static/styles.css` agrega estilos de `analysis-pulse`
+- ajuste P1 de densidad en módulo Mercado y Contexto:
+  - `scripts/report_layout_main.py` agrega `market-pulse` y pasa `Bonos Locales` a bloque colapsable de segundo nivel
+  - mantiene `Overlay técnico` como capa visible prioritaria del módulo
+  - `static/styles.css` agrega estilos de `market-pulse`
 
 ## [0.5.3] - 2026-05-01
 

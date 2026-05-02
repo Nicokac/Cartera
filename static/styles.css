@@ -383,6 +383,34 @@ section.grid {
   font-size: 13px;
 }
 
+.market-pulse {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.market-item {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(15, 108, 92, 0.2);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.market-item strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent);
+  font: 700 12px/1.2 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.market-item span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .panel h2 {
   margin: 0 0 14px;
   font-size: 18px;
