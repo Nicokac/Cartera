@@ -475,7 +475,65 @@ def build_report_body(
         f"{title}. Reporte generado {generated_at_text or 'sin timestamp'} "
         "con panorama, cambios, decisiones, cartera e integridad."
     )
-    main_content = f"""  <main class="page">
+    main_content = build_report_main_content(
+        title=title,
+        headline=headline,
+        lede=lede,
+        integrity_strip=integrity_strip,
+        quick_nav=quick_nav,
+        primary_cards=primary_cards,
+        secondary_cards=secondary_cards,
+        panorama_section=panorama_section,
+        changes_section=changes_section,
+        operations_section=operations_section,
+        prediction_section=prediction_section,
+        regime_summary=regime_summary,
+        summary_section=summary_section,
+        sizing_section=sizing_section,
+        tech_enabled=tech_enabled,
+        tech_covered=tech_covered,
+        tech_total=tech_total,
+        technical_view=technical_view,
+        price_history=price_history,
+        bonistas_section=bonistas_section,
+        decision_section=decision_section,
+        portfolio_section=portfolio_section,
+        integrity_section=integrity_section,
+    )
+    return build_report_document(
+        tab_title=tab_title,
+        meta_description=meta_description,
+        main_content=main_content,
+    )
+
+
+def build_report_main_content(
+    *,
+    title: str,
+    headline: str,
+    lede: str,
+    integrity_strip: str,
+    quick_nav: str,
+    primary_cards: str,
+    secondary_cards: str,
+    panorama_section: str,
+    changes_section: str,
+    operations_section: str,
+    prediction_section: str,
+    regime_summary: str,
+    summary_section: str,
+    sizing_section: str,
+    tech_enabled: str,
+    tech_covered: int,
+    tech_total: int,
+    technical_view: pd.DataFrame,
+    price_history: dict | None,
+    bonistas_section: str,
+    decision_section: str,
+    portfolio_section: str,
+    integrity_section: str,
+) -> str:
+    return f"""  <main class="page">
     <header class="hero">
       <div>
         <p class="eyebrow">{esc_text(title)}</p>
@@ -514,9 +572,4 @@ def build_report_body(
     {portfolio_section}
     {integrity_section}
   </main>"""
-    return build_report_document(
-        tab_title=tab_title,
-        meta_description=meta_description,
-        main_content=main_content,
-    )
 

@@ -41,6 +41,10 @@ Avance UI post-cierre:
   - nuevo modulo `scripts/report_document.py` para encapsular el documento HTML (head/body/assets)
   - `scripts/report_layout.py` queda enfocado en el contenido (`main`) y delega shell global al nuevo builder
   - sin cambios funcionales ni visuales en el reporte generado
+- 2026-05-01: refactor de organizacion interna en `report_layout`:
+  - nuevo helper `build_report_main_content(...)` para aislar el template principal del reporte
+  - `build_report_body(...)` queda reducido a metadatos + orquestacion de documento
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

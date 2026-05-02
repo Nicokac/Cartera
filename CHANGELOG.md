@@ -38,6 +38,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `scripts/report_document.py` como builder del shell HTML (`doctype/head/body/assets`)
   - `scripts/report_layout.py` conserva composicion de contenido y delega documento global al nuevo modulo
   - sin cambios de comportamiento en salida renderizada
+- refactor interno de `scripts/report_layout.py`:
+  - nuevo `build_report_main_content(...)` para separar template principal del reporte
+  - `build_report_body(...)` queda enfocado en metadatos de documento y composicion final
+  - sin cambios funcionales/visuales
 
 ## [0.5.3] - 2026-05-01
 
