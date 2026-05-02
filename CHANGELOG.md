@@ -157,6 +157,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` separa `Decisión` en subbloques con anchors (`#decision-prioridades`, `#decision-workspace`)
   - quick-nav agrega accesos directos `Decisión foco` y `Decisión detalle`
   - mantiene el contrato textual de compatibilidad (`Ver tabla completa de decision`)
+- navegación granular en módulo de cartera:
+  - `scripts/report_layout_sections.py` separa `Cartera` en subbloques con anchors (`#cartera-resumen`, `#cartera-detalle`)
+  - quick-nav agrega accesos directos `Cartera foco` y `Cartera detalle`
+  - sin cambios funcionales en tablas o reglas de consolidación
 
 ## [0.5.3] - 2026-05-01
 

@@ -213,6 +213,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar que quick-nav navegue correctamente entre resumen de decisiÃ³n y workspace detallado.
+- 2026-05-01: navegaciÃ³n granular en mÃ³dulo Cartera:
+  - `scripts/report_layout_sections.py` separa `Cartera` en subbloques con anchors propios:
+    - `#cartera-resumen` (KPIs de posiciones/tipos/pendientes)
+    - `#cartera-detalle` (tabla completa + pendientes de consolidaciÃ³n)
+  - quick-nav incorpora accesos `Cartera foco` y `Cartera detalle`
+  - sin cambios de contenido ni reglas de render
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n de quick-nav entre resumen de cartera y detalle completo.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

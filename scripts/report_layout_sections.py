@@ -228,6 +228,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#decision-prioridades">Decisión foco</a>
       <a href="#decision-workspace">Decisión detalle</a>
       <a href="#module-cartera">Cartera</a>
+      <a href="#cartera-resumen">Cartera foco</a>
+      <a href="#cartera-detalle">Cartera detalle</a>
       <a href="#module-riesgo">Riesgo</a>
       <a href="#panorama">Panorama</a>
       {operations_detail_nav}
@@ -369,28 +371,32 @@ def build_portfolio_section(df_total: pd.DataFrame, *, pending_rows: pd.DataFram
     return f"""
     <section class="panel" id="cartera">
       <h2>Cartera maestra</h2>
-      <div class="meta">
-        <span>Posiciones: <strong>{total_positions}</strong></span>
-        <span>Tipos presentes: <strong>{unique_types}</strong></span>
-        <span>Mayor posición: <strong>{esc_text(principal_label)}</strong></span>
-        <span>Pendientes: <strong>{pending_count}</strong></span>
-      </div>
-      {build_collapsible(
-          "Ver cartera completa",
-          build_table(
-              df_total[["Ticker_IOL", "Tipo", "Bloque", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]]
-              .sort_values("Valorizado_ARS", ascending=False)
-              .rename(columns={"Ticker_IOL": "Ticker", "Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}),
-              formatters={
-                  "Valorizado ARS": fmt_ars,
-                  "Valor USD": fmt_usd,
-                  "Ganancia ARS": fmt_ars,
-                  "Peso %": fmt_pct,
-              },
-          ),
-          compact=True,
-      )}
-      {pending_block}
+      <section class="module-subblock" id="cartera-resumen">
+        <div class="meta">
+          <span>Posiciones: <strong>{total_positions}</strong></span>
+          <span>Tipos presentes: <strong>{unique_types}</strong></span>
+          <span>Mayor posición: <strong>{esc_text(principal_label)}</strong></span>
+          <span>Pendientes: <strong>{pending_count}</strong></span>
+        </div>
+      </section>
+      <section class="module-subblock" id="cartera-detalle">
+        {build_collapsible(
+            "Ver cartera completa",
+            build_table(
+                df_total[["Ticker_IOL", "Tipo", "Bloque", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]]
+                .sort_values("Valorizado_ARS", ascending=False)
+                .rename(columns={"Ticker_IOL": "Ticker", "Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}),
+                formatters={
+                    "Valorizado ARS": fmt_ars,
+                    "Valor USD": fmt_usd,
+                    "Ganancia ARS": fmt_ars,
+                    "Peso %": fmt_pct,
+                },
+            ),
+            compact=True,
+        )}
+        {pending_block}
+      </section>
     </section>
     """
 
