@@ -539,17 +539,17 @@ def build_report_main_content(
     {integrity_strip}
     {quick_nav}
 
-    {primary_cards}
-    {secondary_cards}
-    {panorama_section}
-    {changes_section}
-    {operations_section}
-    {prediction_section}
-    {regime_summary}
-
-    {summary_section}
-
-    {sizing_section}
+    {build_report_sections_shell(
+        primary_cards=primary_cards,
+        secondary_cards=secondary_cards,
+        panorama_section=panorama_section,
+        changes_section=changes_section,
+        operations_section=operations_section,
+        prediction_section=prediction_section,
+        regime_summary=regime_summary,
+        summary_section=summary_section,
+        sizing_section=sizing_section,
+    )}
 
     {build_technical_panel(
         tech_enabled=tech_enabled,
@@ -593,4 +593,29 @@ def build_technical_panel(
       {build_technical_summary(technical_view)}
       {build_collapsible("Ver tabla t\u00e9cnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
     </section>"""
+
+
+def build_report_sections_shell(
+    *,
+    primary_cards: str,
+    secondary_cards: str,
+    panorama_section: str,
+    changes_section: str,
+    operations_section: str,
+    prediction_section: str,
+    regime_summary: str,
+    summary_section: str,
+    sizing_section: str,
+) -> str:
+    return f"""{primary_cards}
+    {secondary_cards}
+    {panorama_section}
+    {changes_section}
+    {operations_section}
+    {prediction_section}
+    {regime_summary}
+
+    {summary_section}
+
+    {sizing_section}"""
 

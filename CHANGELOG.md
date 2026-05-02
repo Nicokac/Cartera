@@ -46,6 +46,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevos helpers `build_report_hero(...)` y `build_technical_panel(...)`
   - menor complejidad del template principal y mejor modularidad interna
   - sin cambios funcionales/visuales
+- refactor del shell de secciones en `scripts/report_layout.py`:
+  - nuevo helper `build_report_sections_shell(...)` para encapsular cards y secciones intermedias
+  - `build_report_main_content(...)` queda más lineal y mantenible
+  - sin cambios funcionales/visuales
 
 ## [0.5.3] - 2026-05-01
 

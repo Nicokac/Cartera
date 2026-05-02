@@ -49,6 +49,10 @@ Avance UI post-cierre:
   - extraidos helpers `build_report_hero(...)` y `build_technical_panel(...)`
   - menor acoplamiento del template principal y mejor separacion por secciones
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de shell de secciones en `report_layout`:
+  - nuevo helper `build_report_sections_shell(...)` para agrupar el bloque central de cards/secciones
+  - `build_report_main_content(...)` reduce complejidad y mejora legibilidad
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
