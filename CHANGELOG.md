@@ -129,6 +129,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` agrega `portfolio-pulse` para lectura rápida (composición, posiciones y pendientes)
   - `static/styles.css` agrega estilos de `portfolio-pulse` y ajuste responsive junto a los pulsos de Dashboard/Análisis/Mercado
   - no cambia contrato funcional: `Cartera maestra` sigue visible y tablas completas continúan en colapsables
+- ajuste P1 de densidad en módulo Riesgo e Integridad:
+  - `scripts/report_layout_main.py` mueve `Ver resumen de cartera y riesgo` desde `Análisis` al módulo `Riesgo e Integridad`
+  - agrega `risk-pulse` para lectura rápida del módulo (riesgo histórico + chequeos de integridad)
+  - `static/styles.css` suma estilos para `risk-pulse` con adaptación mobile
 
 ## [0.5.3] - 2026-05-01
 

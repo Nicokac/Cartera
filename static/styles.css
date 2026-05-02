@@ -439,6 +439,34 @@ section.grid {
   font-size: 13px;
 }
 
+.risk-pulse {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.risk-item {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(86, 98, 110, 0.2);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.risk-item strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+  font: 700 12px/1.2 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.risk-item span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .panel h2 {
   margin: 0 0 14px;
   font-size: 18px;
@@ -1380,6 +1408,10 @@ summary:focus-visible {
   }
 
   .market-pulse {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-pulse {
     grid-template-columns: 1fr;
   }
 

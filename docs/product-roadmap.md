@@ -147,6 +147,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - validar en `reports/real-report.html` que `Cartera` muestre el bloque de lectura rÃ¡pida y que el detalle completo siga accesible desde colapsables.
+- 2026-05-01: ajuste P1 de densidad en mÃ³dulo Riesgo e Integridad:
+  - `scripts/report_layout_main.py` mueve `Resumen de cartera y riesgo` desde `AnÃ¡lisis` al mÃ³dulo `Riesgo e Integridad` para alinear la arquitectura de informaciÃ³n
+  - `scripts/report_layout_main.py` agrega bloque de lectura rÃ¡pida (`risk-pulse`) con foco en riesgo histÃ³rico e integridad
+  - `static/styles.css` incorpora estilos de `risk-pulse` y su comportamiento responsive
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - validar en `reports/real-report.html` que `AnÃ¡lisis` quede enfocado en operaciones/predicciÃ³n y que `Riesgo e Integridad` concentre el acceso a resumen/riesgo + chequeos de integridad.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
