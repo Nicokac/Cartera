@@ -176,6 +176,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` separa dashboard en subbloques con anchors (`#dashboard-foco`, `#dashboard-detalle`)
   - `scripts/report_layout_sections.py` agrega accesos rápidos `Dashboard foco` y `Dashboard detalle`
   - sin cambios funcionales en KPIs, panorama, régimen o sizing
+- navegación granular en panel de integridad:
+  - `scripts/report_layout_sections.py` separa `Integridad` en `#integridad-resumen` y `#integridad-chequeos`
+  - quick-nav agrega accesos `Integridad foco` y `Integridad detalle`
+  - sin cambios funcionales en chequeos ni estado agregado
 
 ## [0.5.3] - 2026-05-01
 

@@ -255,6 +255,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular del dashboard.
+- 2026-05-02: navegaciÃ³n granular en Integridad:
+  - `scripts/report_layout_sections.py` separa el panel `Integridad` en subbloques:
+    - `#integridad-resumen` (estado general, chequeos, alertas)
+    - `#integridad-chequeos` (detalle colapsable de chequeos)
+  - quick-nav agrega accesos directos `Integridad foco` y `Integridad detalle`
+  - sin cambios funcionales en reglas/resultado de chequeos
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular en `Integridad`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

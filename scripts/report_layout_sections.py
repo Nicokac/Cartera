@@ -239,6 +239,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#module-riesgo">Riesgo</a>
       <a href="#riesgo-resumen">Riesgo foco</a>
       <a href="#riesgo-integridad">Riesgo detalle</a>
+      <a href="#integridad-resumen">Integridad foco</a>
+      <a href="#integridad-chequeos">Integridad detalle</a>
       <a href="#panorama">Panorama</a>
       {operations_legacy_nav}
       {prediction_legacy_nav}
@@ -424,12 +426,16 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
     return f"""
     <section class="panel" id="integridad">
       <h2>Integridad</h2>
-      <div class="meta">
-        <span>Estado general: <strong>{status}</strong></span>
-        <span>Chequeos: <strong>{n_checks}</strong></span>
-        <span>Alertas: <strong>{n_warn}</strong></span>
-      </div>
-      {build_collapsible("Ver chequeos de integridad", build_table(integrity_report.rename(columns={"check": "Chequeo", "estado": "Estado", "detalle": "Detalle"})), compact=True)}
+      <section class="module-subblock" id="integridad-resumen">
+        <div class="meta">
+          <span>Estado general: <strong>{status}</strong></span>
+          <span>Chequeos: <strong>{n_checks}</strong></span>
+          <span>Alertas: <strong>{n_warn}</strong></span>
+        </div>
+      </section>
+      <section class="module-subblock" id="integridad-chequeos">
+        {build_collapsible("Ver chequeos de integridad", build_table(integrity_report.rename(columns={"check": "Chequeo", "estado": "Estado", "detalle": "Detalle"})), compact=True)}
+      </section>
     </section>
     """
 
