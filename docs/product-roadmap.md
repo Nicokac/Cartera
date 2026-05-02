@@ -174,6 +174,17 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar legibilidad de etiquetas en quick-nav y cabeceras de mÃ³dulo.
+- 2026-05-01: avance de modularizaciÃ³n IA en flujo analÃ­tico:
+  - `scripts/report_layout_main.py` separa el antiguo mÃ³dulo `AnÃ¡lisis` en dos mÃ³dulos explÃ­citos:
+    - `Operaciones e Historial` (`#module-analisis`)
+    - `SeÃ±ales y PredicciÃ³n` (`#module-prediccion`)
+  - se mantiene el patrÃ³n de lectura progresiva (pulse + detalle colapsable) sin perder contenido
+  - `static/styles.css` incorpora `prediction-pulse` con comportamiento responsive alineado al resto de mÃ³dulos
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que:
+    - `Operaciones` y `PredicciÃ³n` aparezcan en mÃ³dulos independientes
+    - ambos mantengan acceso a su detalle completo por colapsable.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

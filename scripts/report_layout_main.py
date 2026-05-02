@@ -47,10 +47,9 @@ def build_report_main_content(
         sizing_section=sizing_section,
     )}
 
-    {build_analysis_module(
-        operations_section=operations_section,
-        prediction_section=prediction_section,
-    )}
+    {build_operations_module(operations_section=operations_section)}
+
+    {build_prediction_module(prediction_section=prediction_section)}
 
     <section class=\"module-block module-market\" id=\"module-mercado\">
       <header class=\"module-head\">
@@ -164,24 +163,34 @@ def build_dashboard_module(
     </section>"""
 
 
-def build_analysis_module(
-    *,
-    operations_section: str,
-    prediction_section: str,
-) -> str:
+def build_operations_module(*, operations_section: str) -> str:
     operations_block = build_collapsible("Ver operaciones recientes", operations_section, compact=True) if operations_section.strip() else ""
-    prediction_block = build_collapsible("Ver señales y predicción", prediction_section, compact=True) if prediction_section.strip() else ""
     return f"""<section class=\"module-block module-analysis\" id=\"module-analisis\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
-      <h2>Análisis</h2>
+      <h2>Operaciones e Historial</h2>
     </header>
     <section class=\"analysis-pulse\">
-      <article class=\"analysis-item\"><strong>Qué cambió hoy</strong><span>Operaciones y movimientos recientes</span></article>
-      <article class=\"analysis-item\"><strong>Qué podría pasar</strong><span>predicción y confianza del modelo</span></article>
-      <article class=\"analysis-item\"><strong>Contexto de señales</strong><span>Lectura operativa y perspectiva de corto plazo</span></article>
+      <article class=\"analysis-item\"><strong>Actividad reciente</strong><span>Compras, ventas y eventos recientes</span></article>
+      <article class=\"analysis-item\"><strong>Impacto operativo</strong><span>Cambios observados contra snapshot previo</span></article>
+      <article class=\"analysis-item\"><strong>Auditoría</strong><span>Detalle completo por símbolo y operación</span></article>
     </section>
     {operations_block}
+    </section>"""
+
+
+def build_prediction_module(*, prediction_section: str) -> str:
+    prediction_block = build_collapsible("Ver señales y predicción", prediction_section, compact=True) if prediction_section.strip() else ""
+    return f"""<section class=\"module-block module-prediction\" id=\"module-prediccion\">
+    <header class=\"module-head\">
+      <p class=\"module-kicker\">Módulo</p>
+      <h2>Señales y Predicción</h2>
+    </header>
+    <section class=\"prediction-pulse\">
+      <article class=\"prediction-item\"><strong>Dirección esperada</strong><span>Distribución suba, baja y neutral</span></article>
+      <article class=\"prediction-item\"><strong>Confianza</strong><span>Lectura de convicción y validación histórica</span></article>
+      <article class=\"prediction-item\"><strong>Detalle de señales</strong><span>Drivers por ticker y horizonte objetivo</span></article>
+    </section>
     {prediction_block}
     </section>"""
 

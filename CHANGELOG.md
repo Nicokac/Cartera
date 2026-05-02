@@ -142,6 +142,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - saneamiento final de labels en shell principal del reporte:
   - `scripts/report_layout_main.py` corrige mojibake residual en módulos, pulsos y CTAs (acentos/tildes de navegación y encabezados)
   - preserva el contrato textual de tests (`Ver tabla completa de decision`) y no altera lógica de render
+- avance de modularización en análisis del reporte:
+  - `scripts/report_layout_main.py` divide el bloque `Análisis` en dos módulos explícitos: `Operaciones e Historial` y `Señales y Predicción`
+  - conserva patrón de lectura por capas (pulse + colapsable) y mantiene contenido funcional
+  - `static/styles.css` agrega estilos de `prediction-pulse` con adaptación responsive
 
 ## [0.5.3] - 2026-05-01
 
