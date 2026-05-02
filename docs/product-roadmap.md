@@ -240,6 +240,12 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular en ambos mÃ³dulos.
+- 2026-05-02: saneamiento de quick-nav post-modularizaciÃ³n:
+  - `scripts/report_layout_sections.py` renombra links legacy de compatibilidad a `Operaciones tabla` / `PredicciÃ³n tabla` para diferenciarlos de los nuevos `foco/detalle`
+  - reduce ambigÃ¼edad de navegaciÃ³n sin perder acceso a anchors histÃ³ricos (`#operaciones`, `#prediccion`)
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - validar en `reports/real-report.html` que quick-nav muestre claramente foco, detalle y tabla para operaciones/predicciÃ³n.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

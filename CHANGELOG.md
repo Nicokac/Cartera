@@ -169,6 +169,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` agrega subbloques con anchors (`#operaciones-resumen/#operaciones-detalle`, `#prediccion-resumen/#prediccion-detalle`)
   - `scripts/report_layout_sections.py` suma accesos directos `Operaciones foco/detalle` y `Predicción foco/detalle`
   - sin cambios funcionales en contenido ni contratos de detalle
+- saneamiento de quick-nav tras modularización:
+  - `scripts/report_layout_sections.py` renombra accesos legacy a `Operaciones tabla` y `Predicción tabla`
+  - mantiene compatibilidad con anchors históricos (`#operaciones`, `#prediccion`) evitando ambigüedad frente a los nuevos links `foco/detalle`
 
 ## [0.5.3] - 2026-05-01
 
