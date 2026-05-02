@@ -133,6 +133,13 @@ Avance UI post-cierre:
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
+- 2026-05-01: ajuste P1 de densidad en mÃ³dulo DecisiÃ³n y Rebalanceo:
+  - `scripts/report_layout_sections.py` mantiene visibles `DistribuciÃ³n de acciones`, `Convicciones alcistas`, `Riesgos a recortar` y `Monitoreo destacado` como capa primaria
+  - filtros y tabla completa de decisiÃ³n quedan en capa colapsable (`Ver tabla completa de decision`) para reducir saturaciÃ³n inicial
+  - contrato textual preservado para no romper navegaciÃ³n ni pruebas de UI
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - validar en `reports/real-report.html` que el tablero prioritario de `DecisiÃ³n` quede visible y que la tabla completa siga accesible por colapsable.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

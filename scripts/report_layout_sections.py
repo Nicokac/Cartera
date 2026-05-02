@@ -284,27 +284,31 @@ def build_decision_section(
     motive_col: str,
     action_summary: str = "",
 ) -> str:
+    decision_workspace = f"""
+    <div class="panel-head">
+      <h3>Workspace de decisión</h3>
+      <div class="filters">
+        <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
+        <select id="action-filter">
+          <option value="">Todas las acciones</option>
+          <option value="{ACTION_REFUERZO}">{ACTION_REFUERZO}</option>
+          <option value="{ACTION_REDUCIR}">{ACTION_REDUCIR}</option>
+          <option value="{ACTION_DESPLEGAR_LIQUIDEZ}">{ACTION_DESPLEGAR_LIQUIDEZ}</option>
+          <option value="{ACTION_MANTENER_NEUTRAL}">{ACTION_MANTENER_NEUTRAL}</option>
+        </select>
+        <select id="type-filter">
+          <option value="">Todos los tipos</option>
+        </select>
+      </div>
+    </div>
+    {build_decision_table(decision_view, action_col=action_col, motive_col=motive_col)}
+    """
     return f"""
     <section class="panel" id="decision">
-      <div class="panel-head">
       <h2>Decisión final</h2>
-        <div class="filters">
-          <input id="ticker-filter" type="search" placeholder="Filtrar ticker">
-          <select id="action-filter">
-            <option value="">Todas las acciones</option>
-            <option value="{ACTION_REFUERZO}">{ACTION_REFUERZO}</option>
-            <option value="{ACTION_REDUCIR}">{ACTION_REDUCIR}</option>
-            <option value="{ACTION_DESPLEGAR_LIQUIDEZ}">{ACTION_DESPLEGAR_LIQUIDEZ}</option>
-            <option value="{ACTION_MANTENER_NEUTRAL}">{ACTION_MANTENER_NEUTRAL}</option>
-          </select>
-          <select id="type-filter">
-            <option value="">Todos los tipos</option>
-          </select>
-        </div>
-      </div>
       {action_summary}
       {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
-      {build_collapsible("Ver tabla completa de decision", build_decision_table(decision_view, action_col=action_col, motive_col=motive_col))}
+      {build_collapsible("Ver tabla completa de decision", decision_workspace)}
     </section>
     """
 

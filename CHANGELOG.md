@@ -121,6 +121,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - mantiene `Overlay técnico` como capa visible prioritaria del módulo
   - `static/styles.css` agrega estilos de `market-pulse`
 
+- ajuste P1 de densidad en módulo Decisión y Rebalanceo:
+  - `scripts/report_layout_sections.py` mantiene visible la capa prioritaria (`Distribución de acciones`, `Convicciones alcistas`, `Riesgos a recortar`, `Monitoreo destacado`)
+  - filtros + tabla completa de decisión pasan a capa colapsable (`Ver tabla completa de decision`)
+  - se preserva el contrato de texto esperado por la suite de UI para evitar regresiones
+
 ## [0.5.3] - 2026-05-01
 
 ### Added
