@@ -106,6 +106,10 @@ Avance UI post-cierre:
 - 2026-05-01: gate formal de cierre de refactor UI:
   - nuevo `docs/report-ui-ready-checklist.md` con criterios `ready for visual redesign`
   - enlaces agregados en `docs/README.md` y `README.md` para entrada rapida a la fase de embellecimiento
+- 2026-05-01: contrato IA para fase visual:
+  - nuevo `docs/report-ia-architecture.md` con division en 8 modulos de producto, niveles de lectura (rapida/analisis/auditoria), mapeo bloque->modulo y backlog P1/P2/P3
+  - `docs/report-ui-embellecimiento-plan.md` enlaza explicitamente este contrato como base de ejecucion
+  - `docs/README.md` y `README.md` incorporan link directo al contrato
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

@@ -96,6 +96,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - gate formal para inicio de embellecimiento UI:
   - nuevo `docs/report-ui-ready-checklist.md` con criterios de salida de refactor y pruebas minimas por bloque visual
   - `docs/README.md` y `README.md` ahora enlazan plan + checklist de la fase UI
+- contrato de arquitectura de informacion para la fase visual:
+  - nuevo `docs/report-ia-architecture.md` con modulos de navegacion (Dashboard, Cartera, Decision, Prediccion, Tecnico, Bonos/Macro, Operaciones, Riesgo/Integridad)
+  - define niveles de lectura, mapeo bloque->modulo, mapeo bloque->componente y backlog de ejecucion P1/P2/P3
+  - `docs/report-ui-embellecimiento-plan.md`, `docs/README.md` y `README.md` quedan alineados al contrato
 
 ## [0.5.3] - 2026-05-01
 

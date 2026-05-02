@@ -132,3 +132,9 @@ Mantener single-page, pero separar responsabilidades en 3 capas:
 
 - Documento creado como guía de ejecución para la etapa de embellecimiento.
 - No reemplaza `docs/product-roadmap.md`; lo complementa como stream UI post-cierre v0.5.
+
+## Contrato IA
+
+- Referencia de arquitectura de informacion: docs/report-ia-architecture.md.
+- Este contrato define modulos, jerarquia de lectura y backlog P1/P2/P3 previo al embellecimiento visual fino.
+

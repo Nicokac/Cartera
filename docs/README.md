@@ -12,6 +12,7 @@ Indice de la documentacion activa del proyecto.
 - [prediction-engine-history.md](prediction-engine-history.md)
 - [report-ux-architecture.md](report-ux-architecture.md)
 - [report-ui-embellecimiento-plan.md](report-ui-embellecimiento-plan.md)
+- [report-ia-architecture.md](report-ia-architecture.md)
 - [report-ui-ready-checklist.md](report-ui-ready-checklist.md)
 - [asset-taxonomy.md](asset-taxonomy.md)
 - [browser-support.md](browser-support.md)
@@ -37,6 +38,7 @@ Indice de la documentacion activa del proyecto.
 - `prediction-engine-history.md`: bitacora de implementacion y cambios por fase del motor de prediccion
 - `report-ux-architecture.md`: arquitectura vigente del reporte ya modularizado y criterio de evolucion visual
 - `report-ui-embellecimiento-plan.md`: plan de ejecucion de la fase de embellecimiento UI
+- `report-ia-architecture.md`: contrato de arquitectura de informacion (modulos, jerarquia de lectura y backlog P1/P2/P3)
 - `report-ui-ready-checklist.md`: gate de salida de refactor y criterio de inicio para embellecimiento visual
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `browser-support.md`: matriz oficial de navegadores/OS soportados para app local y reporte
