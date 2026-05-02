@@ -3,8 +3,8 @@
 import html
 import pandas as pd
 
-from report_assets import load_report_css, load_report_js
 from report_decision import build_decision_priority_board, build_decision_table
+from report_document import build_report_document
 from report_primitives import (
     build_collapsible,
     build_focus_list,
@@ -475,17 +475,7 @@ def build_report_body(
         f"{title}. Reporte generado {generated_at_text or 'sin timestamp'} "
         "con panorama, cambios, decisiones, cartera e integridad."
     )
-    return f"""<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{esc_text(tab_title)}</title>
-  <meta name="description" content="{esc_text(meta_description)}">
-  <style>{load_report_css()}</style>
-</head>
-<body>
-  <main class="page">
+    main_content = f"""  <main class="page">
     <header class="hero">
       <div>
         <p class="eyebrow">{esc_text(title)}</p>
@@ -523,9 +513,10 @@ def build_report_body(
     {decision_section}
     {portfolio_section}
     {integrity_section}
-  </main>
-  <script>{load_report_js()}</script>
-</body>
-</html>
-"""
+  </main>"""
+    return build_report_document(
+        tab_title=tab_title,
+        meta_description=meta_description,
+        main_content=main_content,
+    )
 

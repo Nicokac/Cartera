@@ -34,6 +34,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `scripts/report_assets.py` para centralizar carga de assets (`styles.css`, `report-ui.js`)
   - `scripts/report_layout.py` ahora usa `load_report_css()` y `load_report_js()`
   - carga de assets cacheada con `lru_cache` para reducir I/O repetido en renders sucesivos
+- refactor tecnico de composicion del documento HTML del reporte:
+  - nuevo `scripts/report_document.py` como builder del shell HTML (`doctype/head/body/assets`)
+  - `scripts/report_layout.py` conserva composicion de contenido y delega documento global al nuevo modulo
+  - sin cambios de comportamiento en salida renderizada
 
 ## [0.5.3] - 2026-05-01
 

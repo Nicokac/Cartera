@@ -37,6 +37,10 @@ Avance UI post-cierre:
   - nuevo modulo `scripts/report_assets.py` (carga/cache de CSS y JS)
   - `scripts/report_layout.py` consume `load_report_css()` y `load_report_js()`
   - base preparada para seguir modularizando `real-report` sin tocar UX
+- 2026-05-01: refactor tecnico de composicion HTML:
+  - nuevo modulo `scripts/report_document.py` para encapsular el documento HTML (head/body/assets)
+  - `scripts/report_layout.py` queda enfocado en el contenido (`main`) y delega shell global al nuevo builder
+  - sin cambios funcionales ni visuales en el reporte generado
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
