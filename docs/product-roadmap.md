@@ -53,6 +53,10 @@ Avance UI post-cierre:
   - nuevo helper `build_report_sections_shell(...)` para agrupar el bloque central de cards/secciones
   - `build_report_main_content(...)` reduce complejidad y mejora legibilidad
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de metadatos de documento en `report_layout`:
+  - nuevo helper `build_report_meta(...)` para encapsular `tab_title` y `meta_description`
+  - `build_report_body(...)` reduce lógica incidental de composición
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
