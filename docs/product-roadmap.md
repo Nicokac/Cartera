@@ -185,6 +185,13 @@ Avance UI post-cierre:
   - generar `reports/real-report.html` y validar que:
     - `Operaciones` y `PredicciÃ³n` aparezcan en mÃ³dulos independientes
     - ambos mantengan acceso a su detalle completo por colapsable.
+- 2026-05-01: alineaciÃ³n de quick-nav con mÃ³dulos nuevos:
+  - `scripts/report_layout_sections.py` actualiza navegaciÃ³n principal para apuntar a `#module-analisis` (Operaciones) y `#module-prediccion` (PredicciÃ³n)
+  - se mantienen anchors internos como compatibilidad (`Operaciones detalle`, `PredicciÃ³n detalle`)
+  - sin cambios funcionales de contenido/render
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que quick-nav lleve correctamente a los dos mÃ³dulos nuevos y mantenga acceso al detalle interno.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

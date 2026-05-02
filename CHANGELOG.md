@@ -146,6 +146,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` divide el bloque `Análisis` en dos módulos explícitos: `Operaciones e Historial` y `Señales y Predicción`
   - conserva patrón de lectura por capas (pulse + colapsable) y mantiene contenido funcional
   - `static/styles.css` agrega estilos de `prediction-pulse` con adaptación responsive
+- alineación de quick-nav con modularización de análisis:
+  - `scripts/report_layout_sections.py` actualiza navegación principal para apuntar a `Operaciones` y `Predicción` como módulos separados
+  - mantiene links de compatibilidad a anchors internos (`Operaciones detalle`, `Predicción detalle`)
 
 ## [0.5.3] - 2026-05-01
 
