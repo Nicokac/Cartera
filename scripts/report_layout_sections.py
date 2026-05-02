@@ -221,7 +221,11 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
     <nav class="quick-nav">
       <a href="#module-dashboard">Dashboard</a>
       <a href="#module-analisis">Operaciones</a>
+      <a href="#operaciones-resumen">Operaciones foco</a>
+      <a href="#operaciones-detalle">Operaciones detalle</a>
       <a href="#module-prediccion">Predicción</a>
+      <a href="#prediccion-resumen">Predicción foco</a>
+      <a href="#prediccion-detalle">Predicción detalle</a>
       <a href="#module-mercado">Mercado</a>
       <a href="#module-tecnico">Técnico</a>
       <a href="#module-decision">Decisi\u00f3n</a>

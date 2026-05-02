@@ -178,12 +178,14 @@ def build_operations_module(*, operations_section: str) -> str:
       <p class=\"module-kicker\">Módulo</p>
       <h2>Operaciones e Historial</h2>
     </header>
-    <section class=\"analysis-pulse\">
+    <section class=\"analysis-pulse module-subblock\" id=\"operaciones-resumen\">
       <article class=\"analysis-item\"><strong>Actividad reciente</strong><span>Compras, ventas y eventos recientes</span></article>
       <article class=\"analysis-item\"><strong>Impacto operativo</strong><span>Cambios observados contra snapshot previo</span></article>
       <article class=\"analysis-item\"><strong>Auditoría</strong><span>Detalle completo por símbolo y operación</span></article>
     </section>
-    {operations_block}
+    <section class=\"module-subblock\" id=\"operaciones-detalle\">
+      {operations_block}
+    </section>
     </section>"""
 
 
@@ -194,12 +196,14 @@ def build_prediction_module(*, prediction_section: str) -> str:
       <p class=\"module-kicker\">Módulo</p>
       <h2>Señales y Predicción</h2>
     </header>
-    <section class=\"prediction-pulse\">
+    <section class=\"prediction-pulse module-subblock\" id=\"prediccion-resumen\">
       <article class=\"prediction-item\"><strong>Dirección esperada</strong><span>Distribución suba, baja y neutral</span></article>
       <article class=\"prediction-item\"><strong>Confianza</strong><span>Lectura de convicción y validación histórica</span></article>
       <article class=\"prediction-item\"><strong>Detalle de señales</strong><span>Drivers por ticker y horizonte objetivo</span></article>
     </section>
-    {prediction_block}
+    <section class=\"module-subblock\" id=\"prediccion-detalle\">
+      {prediction_block}
+    </section>
     </section>"""
 
 

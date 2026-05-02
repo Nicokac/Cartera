@@ -165,6 +165,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` separa `Riesgo e Integridad` en subbloques (`#riesgo-resumen`, `#riesgo-integridad`)
   - `scripts/report_layout_sections.py` agrega accesos directos `Riesgo foco` y `Riesgo detalle` en quick-nav
   - sin cambios funcionales en métricas de riesgo ni chequeos de integridad
+- navegación granular en módulos de operaciones y predicción:
+  - `scripts/report_layout_main.py` agrega subbloques con anchors (`#operaciones-resumen/#operaciones-detalle`, `#prediccion-resumen/#prediccion-detalle`)
+  - `scripts/report_layout_sections.py` suma accesos directos `Operaciones foco/detalle` y `Predicción foco/detalle`
+  - sin cambios funcionales en contenido ni contratos de detalle
 
 ## [0.5.3] - 2026-05-01
 

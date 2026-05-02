@@ -231,6 +231,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar que quick-nav navegue entre foco y detalle de `Riesgo e Integridad`.
+- 2026-05-02: navegaciÃ³n granular en Operaciones y PredicciÃ³n:
+  - `scripts/report_layout_main.py` agrega subbloques con anchors:
+    - `#operaciones-resumen` y `#operaciones-detalle`
+    - `#prediccion-resumen` y `#prediccion-detalle`
+  - `scripts/report_layout_sections.py` incorpora accesos directos en quick-nav: `Operaciones foco/detalle` y `PredicciÃ³n foco/detalle`
+  - sin cambios funcionales en contenido, filtros ni tablas de detalle
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular en ambos mÃ³dulos.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
