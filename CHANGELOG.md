@@ -153,6 +153,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` separa el bloque en submódulos explícitos `Técnico` (`#module-tecnico`) y `Bonos y Macro` (`#module-bonos`)
   - `scripts/report_layout_sections.py` agrega navegación rápida directa a ambos submódulos
   - `static/styles.css` agrega estilos de espaciado para subbloques (`module-subblock`)
+- navegación granular en módulo de decisión:
+  - `scripts/report_layout_sections.py` separa `Decisión` en subbloques con anchors (`#decision-prioridades`, `#decision-workspace`)
+  - quick-nav agrega accesos directos `Decisión foco` y `Decisión detalle`
+  - mantiene el contrato textual de compatibilidad (`Ver tabla completa de decision`)
 
 ## [0.5.3] - 2026-05-01
 

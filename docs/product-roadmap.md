@@ -204,6 +204,15 @@ Avance UI post-cierre:
     - `Mercado` -> mÃ³dulo general
     - `TÃ©cnico` -> subbloque tÃ©cnico
     - `Bonos y Macro` -> subbloque de bonos + detalle.
+- 2026-05-01: navegaciÃ³n granular en mÃ³dulo DecisiÃ³n:
+  - `scripts/report_layout_sections.py` separa `DecisiÃ³n` en subbloques con anchors propios:
+    - `#decision-prioridades` (tablero prioritario)
+    - `#decision-workspace` (filtros + tabla completa)
+  - quick-nav incorpora accesos directos `DecisiÃ³n foco` y `DecisiÃ³n detalle`
+  - mantiene contrato de texto del colapsable (`Ver tabla completa de decision`) para compatibilidad de tests
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que quick-nav navegue correctamente entre resumen de decisiÃ³n y workspace detallado.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

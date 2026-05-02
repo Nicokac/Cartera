@@ -225,6 +225,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#module-mercado">Mercado</a>
       <a href="#module-tecnico">Técnico</a>
       <a href="#module-decision">Decisi\u00f3n</a>
+      <a href="#decision-prioridades">Decisión foco</a>
+      <a href="#decision-workspace">Decisión detalle</a>
       <a href="#module-cartera">Cartera</a>
       <a href="#module-riesgo">Riesgo</a>
       <a href="#panorama">Panorama</a>
@@ -309,8 +311,12 @@ def build_decision_section(
     <section class="panel" id="decision">
       <h2>Decisión final</h2>
       {action_summary}
-      {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
-      {build_collapsible("Ver tabla completa de decision", decision_workspace)}
+      <section class="module-subblock" id="decision-prioridades">
+        {build_decision_priority_board(decision_view, action_col=action_col, motive_col=motive_col)}
+      </section>
+      <section class="module-subblock" id="decision-workspace">
+        {build_collapsible("Ver tabla completa de decision", decision_workspace)}
+      </section>
     </section>
     """
 
