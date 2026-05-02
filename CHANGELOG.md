@@ -139,6 +139,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - saneamiento adicional de labels en secciones del reporte:
   - `scripts/report_layout_sections.py` corrige mojibake residual en textos visibles de `Decisión` y `Cartera` (workspace, títulos, consolidación y mayor posición)
   - normaliza separador visual en principal posición (`·`) sin cambios funcionales
+- saneamiento final de labels en shell principal del reporte:
+  - `scripts/report_layout_main.py` corrige mojibake residual en módulos, pulsos y CTAs (acentos/tildes de navegación y encabezados)
+  - preserva el contrato textual de tests (`Ver tabla completa de decision`) y no altera lógica de render
 
 ## [0.5.3] - 2026-05-01
 

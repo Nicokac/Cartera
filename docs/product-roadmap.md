@@ -167,6 +167,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar que no aparezcan fragmentos mojibake en `DecisiÃ³n final`, `Cartera maestra` y `tenencias pendientes`.
+- 2026-05-01: saneamiento final de etiquetas en shell principal:
+  - `scripts/report_layout_main.py` normaliza acentos/tildes restantes en mÃ³dulos, pulsos y CTAs (`MÃ³dulo`, `AnÃ¡lisis`, `DecisiÃ³n`, `TÃ©cnico`, `ComposiciÃ³n`, `exposiciÃ³n`, etc.)
+  - se conserva el contrato textual requerido por tests (`Ver tabla completa de decision`) para no romper compatibilidad
+  - sin cambios funcionales del renderer
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar legibilidad de etiquetas en quick-nav y cabeceras de mÃ³dulo.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

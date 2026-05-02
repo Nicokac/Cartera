@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import pandas as pd
 
@@ -126,7 +126,7 @@ def build_technical_panel(
     price_history: dict | None,
 ) -> str:
     return f"""<section class=\"panel\" id=\"tecnico\">
-      <h2>Overlay técnico</h2>
+      <h2>Overlay Técnico</h2>
       <div class=\"meta\">
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
@@ -178,9 +178,11 @@ def build_analysis_module(
     </header>
     <section class=\"analysis-pulse\">
       <article class=\"analysis-item\"><strong>Qué cambió hoy</strong><span>Operaciones y movimientos recientes</span></article>
-      <article class=\"analysis-item\"><strong>Qué podría pasar</strong><span>Predicción y confianza del modelo</span></article>
+      <article class=\"analysis-item\"><strong>Qué podría pasar</strong><span>predicción y confianza del modelo</span></article>
       <article class=\"analysis-item\"><strong>Contexto de señales</strong><span>Lectura operativa y perspectiva de corto plazo</span></article>
     </section>
     {operations_block}
     {prediction_block}
     </section>"""
+
+
