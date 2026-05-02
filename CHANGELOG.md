@@ -66,6 +66,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `scripts/report_page.py` para componer `build_report_meta` + `build_report_main_content` + `build_report_document`
   - `scripts/report_layout.py` mantiene `build_report_body(...)` como wrapper de compatibilidad
   - sin cambios funcionales/visuales
+- refactor de shell de secciones del reporte a modulo dedicado:
+  - nuevo `scripts/report_layout_sections.py` con builders de integridad, cards, quick-nav, panorama, cambios, regimen y sizing preview
+  - `scripts/report_layout.py` reduce acoplamiento y conserva secciones de decision/cartera/integridad
+  - sin cambios funcionales/visuales (validado con suite de render)
 
 ## [0.5.3] - 2026-05-01
 

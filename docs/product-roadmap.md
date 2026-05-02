@@ -73,6 +73,10 @@ Avance UI post-cierre:
   - nuevo `scripts/report_page.py` para centralizar `meta + main + document`
   - `scripts/report_layout.py` conserva API publica (`build_report_body`) como wrapper
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de shell de secciones a modulo dedicado:
+  - nuevo `scripts/report_layout_sections.py` con builders de integridad, header cards, quick-nav, panorama, cambios, regimen y preview de sizing
+  - `scripts/report_layout.py` reduce responsabilidad y conserva builders de decision/cartera/integridad + wrapper publico
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
@@ -258,6 +262,8 @@ Prueba de cierre (si aplica):
 - validar que el refactor de concentracion/momentum mantiene exactamente el mismo comportamiento de `apply_base_scores` (sin cambios en scores ni recomendaciones para un mismo input)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `Momentum_Refuerzo` y `Momentum_Reduccion` no cambian tras la extraccion de `_weighted_momentum` (refactor sin cambio funcional)
+- correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- validar que el refactor a `report_layout_sections.py` no cambia salida funcional del reporte (navegacion, paneles y tablas renderizados)
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `score_refuerzo` y `score_reduccion` se mantienen estables para el mismo input tras la centralizacion de pesos con `_weight`
 - correr `python -m unittest tests.test_fred_client tests.test_pyobd_client -v`
