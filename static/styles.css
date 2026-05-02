@@ -173,6 +173,21 @@ body {
 
 .cards-secondary {
   margin-top: 0;
+  opacity: 0.82;
+}
+
+.cards-secondary .card {
+  border-top: 2px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, var(--line) 8%);
+}
+
+.cards-secondary .card .label {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.cards-secondary .card strong {
+  font-size: 16px;
 }
 
 .summary-kpis {

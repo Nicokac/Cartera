@@ -536,7 +536,7 @@ def build_sizing_section(
     return f"""
     <section class="panel" id="sizing">
       <div class="panel-head">
-        <h2>Sizing</h2>
+        <h2>Asignación sugerida</h2>
         <button id="copy-sizing" class="copy-btn" title="Copiar tabla como TSV para pegar en Excel">Copiar tabla</button>
       </div>
       <section class="module-subblock" id="sizing-resumen">

@@ -165,7 +165,7 @@ def build_dashboard_module(
     return f"""<section class=\"module-block module-dashboard\" id=\"module-dashboard\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
-      <h2>Dashboard Ejecutivo</h2>
+      <h2>Dashboard</h2>
     </header>
     <section class=\"dashboard-pulse module-subblock\" id=\"dashboard-foco\">
       <a class=\"pulse-item\" href=\"#module-decision\"><strong>Ir a Decisión</strong><span>Rebalanceo y acción sugerida</span></a>
