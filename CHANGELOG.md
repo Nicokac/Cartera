@@ -62,6 +62,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `scripts/report_meta.py` con `build_report_meta(...)`
   - `scripts/report_layout.py` delega calculo de `tab_title` y `meta_description`
   - sin cambios funcionales/visuales
+- refactor de orquestacion final del render de reporte:
+  - nuevo `scripts/report_page.py` para componer `build_report_meta` + `build_report_main_content` + `build_report_document`
+  - `scripts/report_layout.py` mantiene `build_report_body(...)` como wrapper de compatibilidad
+  - sin cambios funcionales/visuales
 
 ## [0.5.3] - 2026-05-01
 

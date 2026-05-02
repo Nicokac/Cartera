@@ -69,6 +69,10 @@ Avance UI post-cierre:
   - nuevo `scripts/report_meta.py` con `build_report_meta(...)`
   - `scripts/report_layout.py` elimina logica de metadatos inline y delega
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de orquestacion final del render:
+  - nuevo `scripts/report_page.py` para centralizar `meta + main + document`
+  - `scripts/report_layout.py` conserva API publica (`build_report_body`) como wrapper
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

@@ -4,9 +4,7 @@ import html
 import pandas as pd
 
 from report_decision import build_decision_priority_board, build_decision_table
-from report_document import build_report_document
-from report_layout_main import build_report_main_content
-from report_meta import build_report_meta
+from report_page import build_report_page
 from report_primitives import (
     build_collapsible,
     build_focus_list,
@@ -467,9 +465,9 @@ def build_report_body(
     portfolio_section: str,
     integrity_section: str,
 ) -> str:
-    tab_title, meta_description = build_report_meta(title=title, generated_at_label=generated_at_label)
-    main_content = build_report_main_content(
+    return build_report_page(
         title=title,
+        generated_at_label=generated_at_label,
         headline=headline,
         lede=lede,
         integrity_strip=integrity_strip,
@@ -492,11 +490,6 @@ def build_report_body(
         decision_section=decision_section,
         portfolio_section=portfolio_section,
         integrity_section=integrity_section,
-    )
-    return build_report_document(
-        tab_title=tab_title,
-        meta_description=meta_description,
-        main_content=main_content,
     )
 
 
