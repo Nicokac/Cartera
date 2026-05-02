@@ -70,6 +70,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `scripts/report_layout_sections.py` con builders de integridad, cards, quick-nav, panorama, cambios, regimen y sizing preview
   - `scripts/report_layout.py` reduce acoplamiento y conserva secciones de decision/cartera/integridad
   - sin cambios funcionales/visuales (validado con suite de render)
+- refactor adicional de modularizacion de secciones del reporte:
+  - `scripts/report_layout_sections.py` incorpora builders de `decision`, `cartera` e `integridad`
+  - `scripts/report_layout.py` queda como fachada de compatibilidad (re-export + `build_report_body`)
+  - sin cambios funcionales/visuales (validado con suite de render)
 
 ## [0.5.3] - 2026-05-01
 
