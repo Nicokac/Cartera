@@ -56,6 +56,8 @@ Resumen funcional vigente:
 - [ADRs de arquitectura](docs/decisions/README.md)
 - [Compatibilidad de navegadores](docs/browser-support.md)
 - [Checklist mobile/responsive del reporte](docs/report-mobile-responsive-checklist.md)
+- [Plan de embellecimiento UI del reporte](docs/report-ui-embellecimiento-plan.md)
+- [Checklist de salida de refactor UI](docs/report-ui-ready-checklist.md)
 - [Checklist de alta de instrumento](docs/instrument-onboarding-checklist.md)
 
 ## Estructura

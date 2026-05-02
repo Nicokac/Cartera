@@ -11,6 +11,8 @@ Indice de la documentacion activa del proyecto.
 - [prediction-engine-roadmap.md](prediction-engine-roadmap.md)
 - [prediction-engine-history.md](prediction-engine-history.md)
 - [report-ux-architecture.md](report-ux-architecture.md)
+- [report-ui-embellecimiento-plan.md](report-ui-embellecimiento-plan.md)
+- [report-ui-ready-checklist.md](report-ui-ready-checklist.md)
 - [asset-taxonomy.md](asset-taxonomy.md)
 - [browser-support.md](browser-support.md)
 - [report-mobile-responsive-checklist.md](report-mobile-responsive-checklist.md)
@@ -34,6 +36,8 @@ Indice de la documentacion activa del proyecto.
 - `prediction-engine-roadmap.md`: arquitectura, fases, contratos y criterios de avance del motor de prediccion direccional
 - `prediction-engine-history.md`: bitacora de implementacion y cambios por fase del motor de prediccion
 - `report-ux-architecture.md`: arquitectura vigente del reporte ya modularizado y criterio de evolucion visual
+- `report-ui-embellecimiento-plan.md`: plan de ejecucion de la fase de embellecimiento UI
+- `report-ui-ready-checklist.md`: gate de salida de refactor y criterio de inicio para embellecimiento visual
 - `asset-taxonomy.md`: taxonomia efectiva del motor y fuentes de configuracion
 - `browser-support.md`: matriz oficial de navegadores/OS soportados para app local y reporte
 - `report-mobile-responsive-checklist.md`: procedimiento de prueba mobile/responsive del reporte HTML

@@ -103,6 +103,9 @@ Avance UI post-cierre:
 - 2026-05-01: snapshot documental de arquitectura de renderer post-refactor:
   - actualizado `docs/report-ux-architecture.md` con modulos vigentes (`report_layout_sections`, `report_page`, `report_document`, `report_assets`, etc.)
   - agregado flujo de render actual extremo a extremo para facilitar onboarding y proxima fase de embellecimiento
+- 2026-05-01: gate formal de cierre de refactor UI:
+  - nuevo `docs/report-ui-ready-checklist.md` con criterios `ready for visual redesign`
+  - enlaces agregados en `docs/README.md` y `README.md` para entrada rapida a la fase de embellecimiento
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

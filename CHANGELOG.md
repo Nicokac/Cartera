@@ -93,6 +93,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - documentacion tecnica de arquitectura de reporte actualizada:
   - `docs/report-ux-architecture.md` refleja el estado post-refactor del renderer (fachada `report_layout`, modulos `report_layout_sections/report_page/report_document/report_assets`)
   - incluye flujo de render vigente extremo a extremo para la transicion a fase de embellecimiento
+- gate formal para inicio de embellecimiento UI:
+  - nuevo `docs/report-ui-ready-checklist.md` con criterios de salida de refactor y pruebas minimas por bloque visual
+  - `docs/README.md` y `README.md` ahora enlazan plan + checklist de la fase UI
 
 ## [0.5.3] - 2026-05-01
 
