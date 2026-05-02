@@ -54,11 +54,11 @@ def build_report_main_content(
 
     <section class=\"module-block module-market\" id=\"module-mercado\">
       <header class=\"module-head\">
-        <p class=\"module-kicker\">Modulo</p>
+        <p class=\"module-kicker\">Módulo</p>
         <h2>Mercado y Contexto</h2>
       </header>
       <section class=\"market-pulse\">
-        <article class=\"market-item\"><strong>Tecnico</strong><span>Tendencia, momentum y cobertura</span></article>
+        <article class=\"market-item\"><strong>Técnico</strong><span>Tendencia, momentum y cobertura</span></article>
         <article class=\"market-item\"><strong>Bonos y macro</strong><span>Contexto local y monitoreo de renta fija</span></article>
       </section>
       {build_technical_panel(
@@ -73,32 +73,32 @@ def build_report_main_content(
 
     <section class=\"module-block module-decision\" id=\"module-decision\">
       <header class=\"module-head\">
-        <p class=\"module-kicker\">Modulo</p>
-        <h2>Decision y Rebalanceo</h2>
+        <p class=\"module-kicker\">Módulo</p>
+        <h2>Decisión y Rebalanceo</h2>
       </header>
       {decision_section}
     </section>
 
     <section class=\"module-block module-portfolio\" id=\"module-cartera\">
       <header class=\"module-head\">
-        <p class=\"module-kicker\">Modulo</p>
+        <p class=\"module-kicker\">Módulo</p>
         <h2>Cartera</h2>
       </header>
       <section class=\"portfolio-pulse\">
-        <article class=\"portfolio-item\"><strong>Composicion</strong><span>Tipos, pesos y mayor posicion</span></article>
+        <article class=\"portfolio-item\"><strong>Composición</strong><span>Tipos, pesos y mayor posición</span></article>
         <article class=\"portfolio-item\"><strong>Posiciones</strong><span>Vista completa por ticker</span></article>
-        <article class=\"portfolio-item\"><strong>Pendientes</strong><span>Tenencias fuera de consolidacion</span></article>
+        <article class=\"portfolio-item\"><strong>Pendientes</strong><span>Tenencias fuera de consolidación</span></article>
       </section>
       {portfolio_section}
     </section>
 
     <section class=\"module-block module-risk\" id=\"module-riesgo\">
       <header class=\"module-head\">
-        <p class=\"module-kicker\">Modulo</p>
+        <p class=\"module-kicker\">Módulo</p>
         <h2>Riesgo e Integridad</h2>
       </header>
       <section class=\"risk-pulse\">
-        <article class=\"risk-item\"><strong>Riesgo historico</strong><span>Retorno, volatilidad y drawdown</span></article>
+        <article class=\"risk-item\"><strong>Riesgo histórico</strong><span>Retorno, volatilidad y drawdown</span></article>
         <article class=\"risk-item\"><strong>Integridad</strong><span>Chequeos y alertas de consistencia</span></article>
       </section>
       {build_collapsible("Ver resumen de cartera y riesgo", summary_section, compact=True)}
@@ -126,13 +126,13 @@ def build_technical_panel(
     price_history: dict | None,
 ) -> str:
     return f"""<section class=\"panel\" id=\"tecnico\">
-      <h2>Overlay tecnico</h2>
+      <h2>Overlay técnico</h2>
       <div class=\"meta\">
         <span>Activo: <strong>{tech_enabled}</strong></span>
         <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
       </div>
       {build_technical_summary(technical_view)}
-      {build_collapsible("Ver tabla tecnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
+      {build_collapsible("Ver tabla técnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
     </section>"""
 
 
@@ -147,13 +147,13 @@ def build_dashboard_module(
 ) -> str:
     return f"""<section class=\"module-block module-dashboard\" id=\"module-dashboard\">
     <header class=\"module-head\">
-      <p class=\"module-kicker\">Modulo</p>
+      <p class=\"module-kicker\">Módulo</p>
       <h2>Dashboard Ejecutivo</h2>
     </header>
     <section class=\"dashboard-pulse\">
-      <a class=\"pulse-item\" href=\"#module-decision\"><strong>Ir a Decision</strong><span>Rebalanceo y accion sugerida</span></a>
-      <a class=\"pulse-item\" href=\"#module-cartera\"><strong>Ir a Cartera</strong><span>Composicion y exposicion</span></a>
-      <a class=\"pulse-item\" href=\"#module-riesgo\"><strong>Ir a Riesgo</strong><span>Integridad y diagnostico</span></a>
+      <a class=\"pulse-item\" href=\"#module-decision\"><strong>Ir a Decisión</strong><span>Rebalanceo y acción sugerida</span></a>
+      <a class=\"pulse-item\" href=\"#module-cartera\"><strong>Ir a Cartera</strong><span>Composición y exposición</span></a>
+      <a class=\"pulse-item\" href=\"#module-riesgo\"><strong>Ir a Riesgo</strong><span>Integridad y diagnóstico</span></a>
     </section>
     {primary_cards}
     {secondary_cards}
@@ -170,16 +170,16 @@ def build_analysis_module(
     prediction_section: str,
 ) -> str:
     operations_block = build_collapsible("Ver operaciones recientes", operations_section, compact=True) if operations_section.strip() else ""
-    prediction_block = build_collapsible("Ver senales y prediccion", prediction_section, compact=True) if prediction_section.strip() else ""
+    prediction_block = build_collapsible("Ver señales y predicción", prediction_section, compact=True) if prediction_section.strip() else ""
     return f"""<section class=\"module-block module-analysis\" id=\"module-analisis\">
     <header class=\"module-head\">
-      <p class=\"module-kicker\">Modulo</p>
-      <h2>Analisis</h2>
+      <p class=\"module-kicker\">Módulo</p>
+      <h2>Análisis</h2>
     </header>
     <section class=\"analysis-pulse\">
-      <article class=\"analysis-item\"><strong>Que cambio hoy</strong><span>Operaciones y movimientos recientes</span></article>
-      <article class=\"analysis-item\"><strong>Que podria pasar</strong><span>Prediccion y confianza del modelo</span></article>
-      <article class=\"analysis-item\"><strong>Contexto de senales</strong><span>Lectura operativa y perspectiva de corto plazo</span></article>
+      <article class=\"analysis-item\"><strong>Qué cambió hoy</strong><span>Operaciones y movimientos recientes</span></article>
+      <article class=\"analysis-item\"><strong>Qué podría pasar</strong><span>Predicción y confianza del modelo</span></article>
+      <article class=\"analysis-item\"><strong>Contexto de señales</strong><span>Lectura operativa y perspectiva de corto plazo</span></article>
     </section>
     {operations_block}
     {prediction_block}

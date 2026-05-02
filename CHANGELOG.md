@@ -133,6 +133,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` mueve `Ver resumen de cartera y riesgo` desde `Análisis` al módulo `Riesgo e Integridad`
   - agrega `risk-pulse` para lectura rápida del módulo (riesgo histórico + chequeos de integridad)
   - `static/styles.css` suma estilos para `risk-pulse` con adaptación mobile
+- saneamiento de labels en shell modular del reporte:
+  - `scripts/report_layout_main.py` corrige textos visibles de módulos, pulsos y CTAs (acentos/tildes) para eliminar residuos de mojibake
+  - sin impacto funcional en navegación ni estructura del reporte
 
 ## [0.5.3] - 2026-05-01
 

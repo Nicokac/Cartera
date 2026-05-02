@@ -154,6 +154,12 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - validar en `reports/real-report.html` que `AnÃ¡lisis` quede enfocado en operaciones/predicciÃ³n y que `Riesgo e Integridad` concentre el acceso a resumen/riesgo + chequeos de integridad.
+- 2026-05-01: saneamiento de texto en shell modular del reporte:
+  - `scripts/report_layout_main.py` normaliza labels de mÃ³dulo, pulsos y CTAs para evitar residuos de mojibake y recuperar legibilidad (tildes/acentos correctos)
+  - sin cambios funcionales en estructura ni comportamiento del renderer
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar visualmente legibilidad de encabezados/CTAs en `Dashboard`, `AnÃ¡lisis`, `Mercado`, `DecisiÃ³n`, `Cartera` y `Riesgo`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
