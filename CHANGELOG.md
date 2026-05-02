@@ -54,6 +54,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo helper `build_report_meta(...)` para generar `tab_title` y `meta_description`
   - `build_report_body(...)` reduce lógica incidental y mejora separación de responsabilidades
   - sin cambios funcionales/visuales
+- refactor de modularizacion del `main` del reporte:
+  - nuevo `scripts/report_layout_main.py` para encapsular hero, shell de secciones y panel técnico
+  - `scripts/report_layout.py` delega `build_report_main_content(...)` al nuevo modulo
+  - sin cambios funcionales/visuales
 
 ## [0.5.3] - 2026-05-01
 

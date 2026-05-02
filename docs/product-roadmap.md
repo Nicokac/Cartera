@@ -57,6 +57,14 @@ Avance UI post-cierre:
   - nuevo helper `build_report_meta(...)` para encapsular `tab_title` y `meta_description`
   - `build_report_body(...)` reduce lógica incidental de composición
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de modularizacion del `main` del reporte:
+  - nuevo modulo `scripts/report_layout_main.py` con:
+    - `build_report_main_content(...)`
+    - `build_report_hero(...)`
+    - `build_technical_panel(...)`
+    - `build_report_sections_shell(...)`
+  - `scripts/report_layout.py` delega el armado del `main` para bajar acoplamiento
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
