@@ -104,6 +104,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` reorganiza la pagina en modulos explicitos (`Dashboard Ejecutivo`, `Análisis`, `Mercado y Contexto`, `Decisión y Rebalanceo`, `Cartera`, `Riesgo e Integridad`)
   - `static/styles.css` agrega shell visual modular base (`module-block`, `module-head`, `module-kicker`)
   - sin perdida funcional: misma informacion, con jerarquia de lectura mas clara
+- avance P1 en navegacion modular del reporte:
+  - `scripts/report_layout_sections.py` actualiza `quick-nav` para priorizar modulos del layout
+  - conserva anclas de compatibilidad por seccion (incluida `#bonistas`) para no romper flujo existente ni tests
+  - sin regresion funcional (suite de render en verde)
 
 ## [0.5.3] - 2026-05-01
 

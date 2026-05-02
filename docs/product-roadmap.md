@@ -114,6 +114,10 @@ Avance UI post-cierre:
   - `scripts/report_layout_main.py` agrupa la pagina en modulos explicitos (`Dashboard Ejecutivo`, `Análisis`, `Mercado y Contexto`, `Decisión y Rebalanceo`, `Cartera`, `Riesgo e Integridad`)
   - `static/styles.css` incorpora estilos base de shell modular (`module-block`, `module-head`, `module-kicker`)
   - no se elimina informacion; se reorganiza la jerarquia de lectura en la misma pagina
+- 2026-05-01: navegacion P1 por modulos en quick-nav:
+  - `scripts/report_layout_sections.py` prioriza anchors de modulo (`#module-dashboard`, `#module-analisis`, `#module-mercado`, `#module-decision`, `#module-cartera`, `#module-riesgo`)
+  - se mantiene compatibilidad con anchors historicos de seccion (incluye `#bonistas` para detalle de bonos y contrato de tests)
+  - mismo comportamiento sticky/active en navegacion
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
