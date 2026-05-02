@@ -30,6 +30,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - mejoras de accesibilidad visual (`:focus-visible`) y microinteracciones en controles
   - headers de tabla sticky para lectura de tablas extensas
   - correccion de mojibake en icono de colapsables CSS (`\25B8`)
+- refactor tecnico (sin cambios funcionales/visuales) del renderer de reporte:
+  - nuevo `scripts/report_assets.py` para centralizar carga de assets (`styles.css`, `report-ui.js`)
+  - `scripts/report_layout.py` ahora usa `load_report_css()` y `load_report_js()`
+  - carga de assets cacheada con `lru_cache` para reducir I/O repetido en renders sucesivos
 
 ## [0.5.3] - 2026-05-01
 

@@ -33,6 +33,10 @@ Avance UI post-cierre:
   - mejoras de foco visible y microinteracciones
   - headers de tabla sticky para lectura de tablas largas
   - fix de mojibake en indicador de colapsables (`\25B8`)
+- 2026-05-01: refactor tecnico adicional (sin cambios visuales) para desacoplar assets del renderer:
+  - nuevo modulo `scripts/report_assets.py` (carga/cache de CSS y JS)
+  - `scripts/report_layout.py` consume `load_report_css()` y `load_report_js()`
+  - base preparada para seguir modularizando `real-report` sin tocar UX
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
