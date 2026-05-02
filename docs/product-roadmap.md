@@ -140,6 +140,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - validar en `reports/real-report.html` que el tablero prioritario de `DecisiÃ³n` quede visible y que la tabla completa siga accesible por colapsable.
+- 2026-05-01: ajuste P1 de densidad en mÃ³dulo Cartera:
+  - `scripts/report_layout_main.py` agrega bloque de lectura rÃ¡pida (`portfolio-pulse`) para priorizar composiciÃ³n, posiciones y pendientes
+  - `static/styles.css` incorpora estilos de `portfolio-pulse` alineados al shell modular existente
+  - se mantiene la capa primaria de `Cartera maestra` y el detalle completo continÃºa en colapsables (`Ver cartera completa`, `Ver tenencias pendientes de consolidaciÃ³n`)
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - validar en `reports/real-report.html` que `Cartera` muestre el bloque de lectura rÃ¡pida y que el detalle completo siga accesible desde colapsables.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

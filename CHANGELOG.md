@@ -125,6 +125,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` mantiene visible la capa prioritaria (`Distribución de acciones`, `Convicciones alcistas`, `Riesgos a recortar`, `Monitoreo destacado`)
   - filtros + tabla completa de decisión pasan a capa colapsable (`Ver tabla completa de decision`)
   - se preserva el contrato de texto esperado por la suite de UI para evitar regresiones
+- ajuste P1 de densidad en módulo Cartera:
+  - `scripts/report_layout_main.py` agrega `portfolio-pulse` para lectura rápida (composición, posiciones y pendientes)
+  - `static/styles.css` agrega estilos de `portfolio-pulse` y ajuste responsive junto a los pulsos de Dashboard/Análisis/Mercado
+  - no cambia contrato funcional: `Cartera maestra` sigue visible y tablas completas continúan en colapsables
 
 ## [0.5.3] - 2026-05-01
 

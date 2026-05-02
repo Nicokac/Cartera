@@ -85,6 +85,11 @@ def build_report_main_content(
         <p class="module-kicker">Módulo</p>
         <h2>Cartera</h2>
       </header>
+      <section class="portfolio-pulse">
+        <article class="portfolio-item"><strong>ComposiciÃ³n</strong><span>Tipos, pesos y mayor posiciÃ³n</span></article>
+        <article class="portfolio-item"><strong>Posiciones</strong><span>Vista completa por ticker</span></article>
+        <article class="portfolio-item"><strong>Pendientes</strong><span>Tenencias fuera de consolidaciÃ³n</span></article>
+      </section>
       {portfolio_section}
     </section>
 
