@@ -65,6 +65,10 @@ Avance UI post-cierre:
     - `build_report_sections_shell(...)`
   - `scripts/report_layout.py` delega el armado del `main` para bajar acoplamiento
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de metadatos a modulo dedicado:
+  - nuevo `scripts/report_meta.py` con `build_report_meta(...)`
+  - `scripts/report_layout.py` elimina logica de metadatos inline y delega
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
