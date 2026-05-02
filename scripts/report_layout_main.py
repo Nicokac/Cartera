@@ -46,7 +46,27 @@ def build_report_main_content(
         regime_summary=regime_summary,
     )}
 
-    {build_operations_module(operations_section=operations_section)}
+    <section class=\"module-block module-portfolio\" id=\"module-cartera\">
+      <header class=\"module-head\">
+        <p class=\"module-kicker\">Módulo</p>
+        <h2>Cartera</h2>
+      </header>
+      <section class=\"portfolio-pulse\">
+        <article class=\"portfolio-item\"><strong>Composición</strong><span>Tipos, pesos y mayor posición</span></article>
+        <article class=\"portfolio-item\"><strong>Posiciones</strong><span>Vista completa por ticker</span></article>
+        <article class=\"portfolio-item\"><strong>Pendientes</strong><span>Tenencias fuera de consolidación</span></article>
+      </section>
+      {portfolio_section}
+    </section>
+
+    <section class=\"module-block module-decision\" id=\"module-decision\">
+      <header class=\"module-head\">
+        <p class=\"module-kicker\">Módulo</p>
+        <h2>Decisión y Rebalanceo</h2>
+      </header>
+      {decision_section}
+      {sizing_section}
+    </section>
 
     {build_prediction_module(prediction_section=prediction_section)}
 
@@ -80,27 +100,7 @@ def build_report_main_content(
       </section>
     </section>
 
-    <section class=\"module-block module-decision\" id=\"module-decision\">
-      <header class=\"module-head\">
-        <p class=\"module-kicker\">Módulo</p>
-        <h2>Decisión y Rebalanceo</h2>
-      </header>
-      {decision_section}
-      {sizing_section}
-    </section>
-
-    <section class=\"module-block module-portfolio\" id=\"module-cartera\">
-      <header class=\"module-head\">
-        <p class=\"module-kicker\">Módulo</p>
-        <h2>Cartera</h2>
-      </header>
-      <section class=\"portfolio-pulse\">
-        <article class=\"portfolio-item\"><strong>Composición</strong><span>Tipos, pesos y mayor posición</span></article>
-        <article class=\"portfolio-item\"><strong>Posiciones</strong><span>Vista completa por ticker</span></article>
-        <article class=\"portfolio-item\"><strong>Pendientes</strong><span>Tenencias fuera de consolidación</span></article>
-      </section>
-      {portfolio_section}
-    </section>
+    {build_operations_module(operations_section=operations_section)}
 
     <section class=\"module-block module-risk\" id=\"module-riesgo\">
       <header class=\"module-head\">
@@ -140,7 +140,7 @@ def build_technical_panel(
     price_history: dict | None,
 ) -> str:
     return f"""<section class=\"panel\" id=\"tecnico\">
-      <h2>Overlay técnico</h2>
+      <h2>Lectura técnica</h2>
       <section class=\"module-subblock\" id=\"tecnico-resumen\">
         <div class=\"meta\">
           <span>Activo: <strong>{tech_enabled}</strong></span>
@@ -187,7 +187,7 @@ def build_operations_module(*, operations_section: str) -> str:
     return f"""<section class=\"module-block module-analysis\" id=\"module-analisis\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
-      <h2>Operaciones e Historial</h2>
+      <h2>Operaciones</h2>
     </header>
     <section class=\"analysis-pulse module-subblock\" id=\"operaciones-resumen\">
       <article class=\"analysis-item\"><strong>Actividad reciente</strong><span>Compras, ventas y eventos recientes</span></article>
@@ -205,7 +205,7 @@ def build_prediction_module(*, prediction_section: str) -> str:
     return f"""<section class=\"module-block module-prediction\" id=\"module-prediccion\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
-      <h2>Señales y Predicción</h2>
+      <h2>Predicción</h2>
     </header>
     <section class=\"prediction-pulse module-subblock\" id=\"prediccion-resumen\">
       <article class=\"prediction-item\"><strong>Dirección esperada</strong><span>Distribución suba, baja y neutral</span></article>

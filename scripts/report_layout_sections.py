@@ -266,16 +266,19 @@ def build_regime_section(market_regime: dict[str, object]) -> str:
     active_flags_label = ", ".join(str(flag) for flag in regime_active_flags) if regime_active_flags else "Ninguno"
     regime_state = "Activo" if market_regime.get("any_active") else "Sin activaci\u00f3n"
     regime_state_class = "regime-chip-active" if market_regime.get("any_active") else "regime-chip-inactive"
+    flags_detail = (
+        '<div class="meta regime-flags">'
+        + (''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>')
+        + '</div>'
+    )
     return f"""
     <section class="panel" id="regimen">
-      <h2>R\u00e9gimen de mercado</h2>
+      <h2>Contexto de mercado</h2>
       <div class="meta">
         <span class="regime-chip {regime_state_class}"><strong>Estado:</strong> {esc_text(regime_state)}</span>
         <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
       </div>
-      <div class="meta regime-flags">
-        {''.join(regime_items) if regime_items else '<span>Sin flags configurados</span>'}
-      </div>
+      {build_collapsible("Ver flags de mercado", flags_detail, compact=True)}
     </section>
     """
 

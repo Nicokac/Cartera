@@ -111,7 +111,7 @@ class ReportRenderCoreTests(unittest.TestCase):
     def test_render_report_shows_market_regime_panel(self) -> None:
         html = render_report(_build_minimal_result())
 
-        self.assertIn("R\u00e9gimen de mercado", html)
+        self.assertIn("Contexto de mercado", html)
         self.assertIn("Sin activaci\u00f3n", html)
         self.assertIn("stress_soberano_local", html)
         self.assertIn("tasas_ust_altas", html)
