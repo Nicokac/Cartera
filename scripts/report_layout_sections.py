@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import pandas as pd
@@ -410,3 +410,5 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
       {build_collapsible("Ver chequeos de integridad", build_table(integrity_report.rename(columns={"check": "Chequeo", "estado": "Estado", "detalle": "Detalle"})), compact=True)}
     </section>
     """
+
+

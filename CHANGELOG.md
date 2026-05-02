@@ -136,6 +136,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - saneamiento de labels en shell modular del reporte:
   - `scripts/report_layout_main.py` corrige textos visibles de módulos, pulsos y CTAs (acentos/tildes) para eliminar residuos de mojibake
   - sin impacto funcional en navegación ni estructura del reporte
+- saneamiento adicional de labels en secciones del reporte:
+  - `scripts/report_layout_sections.py` corrige mojibake residual en textos visibles de `Decisión` y `Cartera` (workspace, títulos, consolidación y mayor posición)
+  - normaliza separador visual en principal posición (`·`) sin cambios funcionales
 
 ## [0.5.3] - 2026-05-01
 

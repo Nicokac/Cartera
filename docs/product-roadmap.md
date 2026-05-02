@@ -160,6 +160,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar visualmente legibilidad de encabezados/CTAs en `Dashboard`, `AnÃ¡lisis`, `Mercado`, `DecisiÃ³n`, `Cartera` y `Riesgo`.
+- 2026-05-01: saneamiento adicional de texto en bloques de secciÃ³n:
+  - `scripts/report_layout_sections.py` corrige residuos de mojibake en textos visibles de `DecisiÃ³n` y `Cartera` (workspace, tÃ­tulos, consolidaciÃ³n y mayor posiciÃ³n)
+  - normaliza separador visual de principal posiciÃ³n (`Â·` -> `·`)
+  - sin cambios de lÃ³gica ni contrato funcional del reporte
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que no aparezcan fragmentos mojibake en `DecisiÃ³n final`, `Cartera maestra` y `tenencias pendientes`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
