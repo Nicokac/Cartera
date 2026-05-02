@@ -200,6 +200,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_sections.py` separa `Sizing` en `#sizing-resumen` y `#sizing-detalle`
   - `scripts/report_layout_sections.py` agrega accesos `Sizing foco` y `Sizing detalle` en quick-nav
   - sin cambios funcionales en asignación ni drift de cartera
+- accesos ejecutivos en quick-nav para dashboard:
+  - `scripts/report_layout_sections.py` agrega links directos a `#cambios` y `#regimen`
+  - mejora navegación rápida de bloques ejecutivos sin cambios funcionales
 
 ## [0.5.3] - 2026-05-01
 

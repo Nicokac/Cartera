@@ -307,6 +307,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular en `Sizing`.
+- 2026-05-02: quick-nav ejecutivo en Dashboard:
+  - `scripts/report_layout_sections.py` agrega accesos directos `Cambios` y `RÃ©gimen`
+  - mejora navegaciÃ³n hacia bloques ejecutivos del dashboard sin alterar estructura de contenido
+  - sin cambios funcionales en cÃ¡lculo ni render de dichas secciones
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que quick-nav lleve correctamente a `#cambios` y `#regimen`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
