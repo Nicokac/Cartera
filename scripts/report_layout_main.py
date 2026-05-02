@@ -38,30 +38,59 @@ def build_report_main_content(
     {integrity_strip}
     {quick_nav}
 
-    {build_report_sections_shell(
+    {build_dashboard_module(
         primary_cards=primary_cards,
         secondary_cards=secondary_cards,
         panorama_section=panorama_section,
         changes_section=changes_section,
-        operations_section=operations_section,
-        prediction_section=prediction_section,
         regime_summary=regime_summary,
-        summary_section=summary_section,
         sizing_section=sizing_section,
     )}
 
-    {build_technical_panel(
+    {build_analysis_module(
+        operations_section=operations_section,
+        prediction_section=prediction_section,
+        summary_section=summary_section,
+    )}
+
+    <section class="module-block module-market" id="module-mercado">
+      <header class="module-head">
+        <p class="module-kicker">Módulo</p>
+        <h2>Mercado y Contexto</h2>
+      </header>
+      {build_technical_panel(
         tech_enabled=tech_enabled,
         tech_covered=tech_covered,
         tech_total=tech_total,
         technical_view=technical_view,
         price_history=price_history,
-    )}
+      )}
+      {bonistas_section}
+    </section>
 
-    {bonistas_section}
-    {decision_section}
-    {portfolio_section}
-    {integrity_section}
+    <section class="module-block module-decision" id="module-decision">
+      <header class="module-head">
+        <p class="module-kicker">Módulo</p>
+        <h2>Decisión y Rebalanceo</h2>
+      </header>
+      {decision_section}
+    </section>
+
+    <section class="module-block module-portfolio" id="module-cartera">
+      <header class="module-head">
+        <p class="module-kicker">Módulo</p>
+        <h2>Cartera</h2>
+      </header>
+      {portfolio_section}
+    </section>
+
+    <section class="module-block module-risk" id="module-riesgo">
+      <header class="module-head">
+        <p class="module-kicker">Módulo</p>
+        <h2>Riesgo e Integridad</h2>
+      </header>
+      {integrity_section}
+    </section>
   </main>"""
 
 
@@ -94,27 +123,41 @@ def build_technical_panel(
     </section>"""
 
 
-def build_report_sections_shell(
+def build_dashboard_module(
     *,
     primary_cards: str,
     secondary_cards: str,
     panorama_section: str,
     changes_section: str,
-    operations_section: str,
-    prediction_section: str,
     regime_summary: str,
-    summary_section: str,
     sizing_section: str,
 ) -> str:
-    return f"""{primary_cards}
+    return f"""<section class="module-block module-dashboard" id="module-dashboard">
+    <header class="module-head">
+      <p class="module-kicker">Módulo</p>
+      <h2>Dashboard Ejecutivo</h2>
+    </header>
+    {primary_cards}
     {secondary_cards}
     {panorama_section}
     {changes_section}
+    {regime_summary}
+    {sizing_section}
+    </section>"""
+
+
+def build_analysis_module(
+    *,
+    operations_section: str,
+    prediction_section: str,
+    summary_section: str,
+) -> str:
+    return f"""<section class="module-block module-analysis" id="module-analisis">
+    <header class="module-head">
+      <p class="module-kicker">Módulo</p>
+      <h2>Análisis</h2>
+    </header>
     {operations_section}
     {prediction_section}
-    {regime_summary}
-
     {summary_section}
-
-    {sizing_section}"""
-
+    </section>"""

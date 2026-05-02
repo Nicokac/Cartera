@@ -100,6 +100,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `docs/report-ia-architecture.md` con modulos de navegacion (Dashboard, Cartera, Decision, Prediccion, Tecnico, Bonos/Macro, Operaciones, Riesgo/Integridad)
   - define niveles de lectura, mapeo bloque->modulo, mapeo bloque->componente y backlog de ejecucion P1/P2/P3
   - `docs/report-ui-embellecimiento-plan.md`, `docs/README.md` y `README.md` quedan alineados al contrato
+- inicio de ejecucion P1 del contrato IA en el layout del reporte:
+  - `scripts/report_layout_main.py` reorganiza la pagina en modulos explicitos (`Dashboard Ejecutivo`, `Análisis`, `Mercado y Contexto`, `Decisión y Rebalanceo`, `Cartera`, `Riesgo e Integridad`)
+  - `static/styles.css` agrega shell visual modular base (`module-block`, `module-head`, `module-kicker`)
+  - sin perdida funcional: misma informacion, con jerarquia de lectura mas clara
 
 ## [0.5.3] - 2026-05-01
 

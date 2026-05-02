@@ -290,6 +290,33 @@ section.grid {
   margin-top: 18px;
 }
 
+.module-block {
+  margin-top: 24px;
+}
+
+.module-head {
+  margin: 0 0 12px;
+  padding: 0 4px;
+}
+
+.module-kicker {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font: 600 11px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.module-head h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0.01em;
+}
+
+.module-dashboard {
+  padding-top: 4px;
+}
+
 .panel h2 {
   margin: 0 0 14px;
   font-size: 18px;

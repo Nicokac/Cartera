@@ -110,6 +110,10 @@ Avance UI post-cierre:
   - nuevo `docs/report-ia-architecture.md` con division en 8 modulos de producto, niveles de lectura (rapida/analisis/auditoria), mapeo bloque->modulo y backlog P1/P2/P3
   - `docs/report-ui-embellecimiento-plan.md` enlaza explicitamente este contrato como base de ejecucion
   - `docs/README.md` y `README.md` incorporan link directo al contrato
+- 2026-05-01: inicio de ejecucion P1 del contrato IA (Dashboard Ejecutivo en layout):
+  - `scripts/report_layout_main.py` agrupa la pagina en modulos explicitos (`Dashboard Ejecutivo`, `Análisis`, `Mercado y Contexto`, `Decisión y Rebalanceo`, `Cartera`, `Riesgo e Integridad`)
+  - `static/styles.css` incorpora estilos base de shell modular (`module-block`, `module-head`, `module-kicker`)
+  - no se elimina informacion; se reorganiza la jerarquia de lectura en la misma pagina
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
@@ -307,6 +311,11 @@ Prueba de cierre (si aplica):
 - validar que `prepare_render_context(...)` conserva mismas claves consumidas por `build_render_sections(...)` tras la extraccion de sub-builders
 - correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
 - validar que `pending_portfolio_rows` sigue mostrandose en `Cartera` cuando hay operaciones sin consolidar
+- correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- generar `reports/real-report.html` y validar visualmente que la nueva jerarquia por modulos mantiene:
+  - quick-nav funcional
+  - secciones existentes completas
+  - orden de lectura Dashboard -> Analisis -> Mercado -> Decision -> Cartera -> Riesgo
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `score_refuerzo` y `score_reduccion` se mantienen estables para el mismo input tras la centralizacion de pesos con `_weight`
 - correr `python -m unittest tests.test_fred_client tests.test_pyobd_client -v`
