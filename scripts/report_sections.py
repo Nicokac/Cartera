@@ -526,11 +526,13 @@ def build_sizing_section(
             table_class="sizing-table",
             table_id="sizing-table",
         )}
-        {build_collapsible(
-            "Ver drift de cartera",
-            build_drift_chart(asignacion_final, df_total if df_total is not None else pd.DataFrame(), total_ars),
-            compact=True,
-        )}
+        <section class="module-subblock" id="sizing-drift">
+          {build_collapsible(
+              "Ver drift de cartera",
+              build_drift_chart(asignacion_final, df_total if df_total is not None else pd.DataFrame(), total_ars),
+              compact=True,
+          )}
+        </section>
       </section>
     </section>
     """

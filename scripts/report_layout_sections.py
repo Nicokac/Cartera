@@ -250,6 +250,7 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#regimen">Régimen</a>
       <a href="#sizing-resumen">Sizing foco</a>
       <a href="#sizing-detalle">Sizing detalle</a>
+      <a href="#sizing-drift">Sizing drift</a>
       {operations_legacy_nav}
       {prediction_legacy_nav}
       <a href="#resumen">Resumen</a>

@@ -314,6 +314,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar que quick-nav lleve correctamente a `#cambios` y `#regimen`.
+- 2026-05-02: navegaciÃ³n granular adicional en Sizing (drift):
+  - `scripts/report_sections.py` agrega subbloque con anchor `#sizing-drift` para separar el drift del detalle general
+  - `scripts/report_layout_sections.py` incorpora acceso directo `Sizing drift` en quick-nav
+  - sin cambios funcionales en cÃ¡lculo/visualizaciÃ³n del drift
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar acceso directo a `#sizing-drift`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

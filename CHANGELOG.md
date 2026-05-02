@@ -203,6 +203,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - accesos ejecutivos en quick-nav para dashboard:
   - `scripts/report_layout_sections.py` agrega links directos a `#cambios` y `#regimen`
   - mejora navegación rápida de bloques ejecutivos sin cambios funcionales
+- navegación granular adicional en sizing:
+  - `scripts/report_sections.py` añade anchor `#sizing-drift` para el bloque de drift
+  - `scripts/report_layout_sections.py` agrega acceso directo `Sizing drift` en quick-nav
+  - sin cambios funcionales en asignación ni cálculo de drift
 
 ## [0.5.3] - 2026-05-01
 
