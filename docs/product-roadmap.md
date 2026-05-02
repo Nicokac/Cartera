@@ -246,6 +246,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - validar en `reports/real-report.html` que quick-nav muestre claramente foco, detalle y tabla para operaciones/predicciÃ³n.
+- 2026-05-02: navegaciÃ³n granular en Dashboard Ejecutivo:
+  - `scripts/report_layout_main.py` separa dashboard en subbloques con anchors:
+    - `#dashboard-foco` (accesos rÃ¡pidos)
+    - `#dashboard-detalle` (KPI cards, panorama, cambios, rÃ©gimen y sizing)
+  - `scripts/report_layout_sections.py` agrega accesos directos en quick-nav: `Dashboard foco` y `Dashboard detalle`
+  - sin cambios en contenido ni comportamiento funcional del dashboard
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular del dashboard.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

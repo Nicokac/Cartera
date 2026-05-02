@@ -157,17 +157,19 @@ def build_dashboard_module(
       <p class=\"module-kicker\">Módulo</p>
       <h2>Dashboard Ejecutivo</h2>
     </header>
-    <section class=\"dashboard-pulse\">
+    <section class=\"dashboard-pulse module-subblock\" id=\"dashboard-foco\">
       <a class=\"pulse-item\" href=\"#module-decision\"><strong>Ir a Decisión</strong><span>Rebalanceo y acción sugerida</span></a>
       <a class=\"pulse-item\" href=\"#module-cartera\"><strong>Ir a Cartera</strong><span>Composición y exposición</span></a>
       <a class=\"pulse-item\" href=\"#module-riesgo\"><strong>Ir a Riesgo</strong><span>Integridad y diagnóstico</span></a>
     </section>
-    {primary_cards}
-    {secondary_cards}
-    {panorama_section}
-    {build_collapsible("Ver cambios y cobertura", changes_section, compact=True)}
-    {regime_summary}
-    {sizing_section}
+    <section class=\"module-subblock\" id=\"dashboard-detalle\">
+      {primary_cards}
+      {secondary_cards}
+      {panorama_section}
+      {build_collapsible("Ver cambios y cobertura", changes_section, compact=True)}
+      {regime_summary}
+      {sizing_section}
+    </section>
     </section>"""
 
 

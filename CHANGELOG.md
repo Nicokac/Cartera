@@ -172,6 +172,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - saneamiento de quick-nav tras modularización:
   - `scripts/report_layout_sections.py` renombra accesos legacy a `Operaciones tabla` y `Predicción tabla`
   - mantiene compatibilidad con anchors históricos (`#operaciones`, `#prediccion`) evitando ambigüedad frente a los nuevos links `foco/detalle`
+- navegación granular en dashboard ejecutivo:
+  - `scripts/report_layout_main.py` separa dashboard en subbloques con anchors (`#dashboard-foco`, `#dashboard-detalle`)
+  - `scripts/report_layout_sections.py` agrega accesos rápidos `Dashboard foco` y `Dashboard detalle`
+  - sin cambios funcionales en KPIs, panorama, régimen o sizing
 
 ## [0.5.3] - 2026-05-01
 

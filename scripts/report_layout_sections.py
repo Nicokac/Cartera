@@ -220,6 +220,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
     return f"""
     <nav class="quick-nav">
       <a href="#module-dashboard">Dashboard</a>
+      <a href="#dashboard-foco">Dashboard foco</a>
+      <a href="#dashboard-detalle">Dashboard detalle</a>
       <a href="#module-analisis">Operaciones</a>
       <a href="#operaciones-resumen">Operaciones foco</a>
       <a href="#operaciones-detalle">Operaciones detalle</a>
