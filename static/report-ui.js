@@ -5,8 +5,6 @@ const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
 const riskHistoryFilter = document.getElementById('risk-history-filter');
 const riskHistoryTypeFilter = document.getElementById('risk-history-type-filter');
 const riskRows = Array.from(document.querySelectorAll('#risk-history-table tbody tr'));
-const navLinks = Array.from(document.querySelectorAll('.quick-nav a[href^="#"]'));
-const observedSections = Array.from(document.querySelectorAll('section[id]'));
 
 if (typeSelect) {
   const types = [...new Set(rows.map((r) => r.dataset.type).filter(Boolean))].sort();
@@ -33,11 +31,12 @@ function applyDecisionFilter() {
   });
 }
 
-tickerInput.addEventListener('input', applyDecisionFilter);
-actionSelect.addEventListener('change', applyDecisionFilter);
-typeSelect.addEventListener('change', applyDecisionFilter);
+if (tickerInput) tickerInput.addEventListener('input', applyDecisionFilter);
+if (actionSelect) actionSelect.addEventListener('change', applyDecisionFilter);
+if (typeSelect) typeSelect.addEventListener('change', applyDecisionFilter);
 
 function applyRiskHistoryFilter() {
+  if (!riskHistoryFilter || !riskHistoryTypeFilter) return;
   const qualityNeedle = riskHistoryFilter.value || '';
   const typeNeedle = riskHistoryTypeFilter.value || '';
   riskRows.forEach((row) => {
@@ -51,8 +50,8 @@ function applyRiskHistoryFilter() {
   });
 }
 
-riskHistoryFilter.addEventListener('change', applyRiskHistoryFilter);
-riskHistoryTypeFilter.addEventListener('change', applyRiskHistoryFilter);
+if (riskHistoryFilter) riskHistoryFilter.addEventListener('change', applyRiskHistoryFilter);
+if (riskHistoryTypeFilter) riskHistoryTypeFilter.addEventListener('change', applyRiskHistoryFilter);
 
 let sortState = { col: null, dir: 'asc' };
 
@@ -86,7 +85,7 @@ if (copySizingBtn) {
       Array.from(r.querySelectorAll('td')).map((td) => td.textContent.trim()).join('\t')
     );
     navigator.clipboard.writeText([headers.join('\t'), ...dataRows].join('\r\n')).then(() => {
-      copySizingBtn.textContent = '\u2713 Copiado';
+      copySizingBtn.textContent = '✓ Copiado';
       setTimeout(() => { copySizingBtn.textContent = 'Copiar'; }, 2000);
     });
   });
@@ -102,28 +101,36 @@ if (toggleTechBtn) {
   });
 }
 
-function setActiveNavByHash() {
-  const hash = window.location.hash;
-  if (!hash) return;
-  navLinks.forEach((link) => {
-    link.classList.toggle('active', link.getAttribute('href') === hash);
+// View navigation
+const viewButtons = Array.from(document.querySelectorAll('[data-view-nav] [data-target-view]'));
+const viewSections = Array.from(document.querySelectorAll('.report-view[data-view]'));
+
+function activateView(viewName) {
+  const isAll = viewName === 'all';
+  document.body.classList.toggle('view-all', isAll);
+  viewSections.forEach((section) => {
+    section.classList.toggle('is-active', !isAll && section.dataset.view === viewName);
   });
+  viewButtons.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.targetView === viewName);
+  });
+  const hashTarget = isAll ? 'all' : viewName;
+  history.replaceState(null, '', '#' + hashTarget);
 }
 
-const observer = new IntersectionObserver((entries) => {
-  const visible = entries
-    .filter((entry) => entry.isIntersecting)
-    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-  if (!visible) return;
-  const id = `#${visible.target.id}`;
-  navLinks.forEach((link) => {
-    link.classList.toggle('active', link.getAttribute('href') === id);
-  });
-}, { threshold: [0.2, 0.45, 0.7] });
+function activateViewFromHash() {
+  const hash = window.location.hash.replace('#', '');
+  const validViews = viewSections.map((s) => s.dataset.view).concat(['all']);
+  const target = validViews.includes(hash) ? hash : 'dashboard';
+  activateView(target);
+}
 
-observedSections.forEach((section) => observer.observe(section));
-setActiveNavByHash();
-window.addEventListener('hashchange', setActiveNavByHash);
+viewButtons.forEach((btn) => {
+  btn.addEventListener('click', () => activateView(btn.dataset.targetView));
+});
+
+window.addEventListener('hashchange', activateViewFromHash);
+activateViewFromHash();
 
 function updateQuickNavOverflow() {
   const quickNav = document.querySelector('.quick-nav');

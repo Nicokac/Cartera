@@ -1376,6 +1376,56 @@ summary:focus-visible {
   margin-bottom: 8px;
 }
 
+/* View navigation */
+
+.report-view {
+  display: none;
+}
+
+.report-view.is-active {
+  display: block;
+}
+
+body.view-all .report-view {
+  display: block;
+}
+
+[data-view-nav] button {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+[data-view-nav] button:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+[data-view-nav] button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+
+[data-view-nav] button[data-target-view="all"] {
+  color: var(--muted);
+  border-color: var(--line);
+}
+
+[data-view-nav] button[data-target-view="all"].active {
+  background: var(--panel);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
 /* Print styles */
 
 @media print {

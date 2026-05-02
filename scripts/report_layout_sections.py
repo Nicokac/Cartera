@@ -230,25 +230,27 @@ def build_changes_section(
 
 
 def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
-    bonistas_link = '<a href="#module-bonos">Bonos y Macro</a>' if show_bonistas else ""
-    operations_link = '<a href="#module-analisis">Operaciones</a>' if show_operations else ""
-    prediction_link = '<a href="#module-prediccion">Predicción</a>' if show_prediction else ""
-    links = [
-        '<a href="#module-dashboard">Dashboard</a>',
-        '<a href="#module-cartera">Cartera</a>',
-        '<a href="#module-decision">Decisión</a>',
-        prediction_link,
-        '<a href="#module-tecnico">Técnico</a>',
-        bonistas_link,
-        operations_link,
-        '<a href="#module-riesgo">Riesgo</a>',
+    bonistas_btn = '<button type="button" data-target-view="bonos">Bonos y Macro</button>' if show_bonistas else ""
+    operations_btn = '<button type="button" data-target-view="operaciones">Operaciones</button>' if show_operations else ""
+    prediction_btn = '<button type="button" data-target-view="prediccion">Predicción</button>' if show_prediction else ""
+    buttons = [
+        '<button type="button" data-target-view="dashboard" class="active">Dashboard</button>',
+        '<button type="button" data-target-view="cartera">Cartera</button>',
+        '<button type="button" data-target-view="decision">Decisión</button>',
+        prediction_btn,
+        '<button type="button" data-target-view="tecnico">Técnico</button>',
+        bonistas_btn,
+        operations_btn,
+        '<button type="button" data-target-view="riesgo">Riesgo</button>',
+        '<button type="button" data-target-view="all">Vista completa</button>',
     ]
     sep = "\n"
-    items = sep.join("      " + lnk for lnk in links if lnk) + "\n"
+    items = sep.join("      " + btn for btn in buttons if btn) + "\n"
     return f"""
-    <nav class="quick-nav">
+    <nav class="quick-nav" data-view-nav>
 {items}    </nav>
     """
+
 
 
 def build_regime_section(market_regime: dict[str, object]) -> str:

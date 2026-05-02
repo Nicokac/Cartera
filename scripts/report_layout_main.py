@@ -46,7 +46,7 @@ def build_report_main_content(
         regime_summary=regime_summary,
     )}
 
-    <section class=\"module-block module-portfolio\" id=\"module-cartera\">
+    <section class=\"module-block report-view module-portfolio\" id=\"module-cartera\" data-view=\"cartera\">
       <header class=\"module-head\">
         <p class=\"module-kicker\">Módulo</p>
         <h2>Cartera</h2>
@@ -59,7 +59,7 @@ def build_report_main_content(
       {portfolio_section}
     </section>
 
-    <section class=\"module-block module-decision\" id=\"module-decision\">
+    <section class=\"module-block report-view module-decision\" id=\"module-decision\" data-view=\"decision\">
       <header class=\"module-head\">
         <p class=\"module-kicker\">Módulo</p>
         <h2>Decisión y Rebalanceo</h2>
@@ -70,7 +70,7 @@ def build_report_main_content(
 
     {build_prediction_module(prediction_section=prediction_section)}
 
-    <section class=\"module-block module-technical\" id=\"module-tecnico\">
+    <section class=\"module-block report-view module-technical\" id=\"module-tecnico\" data-view=\"tecnico\">
       <header class=\"module-head\">
         <p class=\"module-kicker\">Módulo</p>
         <h2>Técnico</h2>
@@ -84,7 +84,7 @@ def build_report_main_content(
       )}
     </section>
 
-    <section class=\"module-block module-bonds\" id=\"module-bonos\">
+    <section class=\"module-block report-view module-bonds\" id=\"module-bonos\" data-view=\"bonos\">
       <header class=\"module-head\">
         <p class=\"module-kicker\">Módulo</p>
         <h2>Bonos y Macro</h2>
@@ -102,7 +102,7 @@ def build_report_main_content(
 
     {build_operations_module(operations_section=operations_section)}
 
-    <section class=\"module-block module-risk\" id=\"module-riesgo\">
+    <section class=\"module-block report-view module-risk\" id=\"module-riesgo\" data-view=\"riesgo\">
       <header class=\"module-head\">
         <p class=\"module-kicker\">Módulo</p>
         <h2>Riesgo e Integridad</h2>
@@ -162,7 +162,7 @@ def build_dashboard_module(
     changes_section: str,
     regime_summary: str,
 ) -> str:
-    return f"""<section class=\"module-block module-dashboard\" id=\"module-dashboard\">
+    return f"""<section class=\"module-block report-view is-active module-dashboard\" id=\"module-dashboard\" data-view=\"dashboard\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
       <h2>Dashboard</h2>
@@ -184,7 +184,7 @@ def build_dashboard_module(
 
 def build_operations_module(*, operations_section: str) -> str:
     operations_block = build_collapsible("Ver operaciones recientes", operations_section, compact=True) if operations_section.strip() else ""
-    return f"""<section class=\"module-block module-analysis\" id=\"module-analisis\">
+    return f"""<section class=\"module-block report-view module-analysis\" id=\"module-analisis\" data-view=\"operaciones\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
       <h2>Operaciones</h2>
@@ -202,7 +202,7 @@ def build_operations_module(*, operations_section: str) -> str:
 
 def build_prediction_module(*, prediction_section: str) -> str:
     prediction_block = build_collapsible("Ver señales y predicción", prediction_section, compact=True) if prediction_section.strip() else ""
-    return f"""<section class=\"module-block module-prediction\" id=\"module-prediccion\">
+    return f"""<section class=\"module-block report-view module-prediction\" id=\"module-prediccion\" data-view=\"prediccion\">
     <header class=\"module-head\">
       <p class=\"module-kicker\">Módulo</p>
       <h2>Predicción</h2>
