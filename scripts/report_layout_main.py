@@ -104,8 +104,12 @@ def build_report_main_content(
         <article class=\"risk-item\"><strong>Riesgo histórico</strong><span>Retorno, volatilidad y drawdown</span></article>
         <article class=\"risk-item\"><strong>Integridad</strong><span>Chequeos y alertas de consistencia</span></article>
       </section>
-      {build_collapsible("Ver resumen de cartera y riesgo", summary_section, compact=True)}
-      {integrity_section}
+      <section class=\"module-subblock\" id=\"riesgo-resumen\">
+        {build_collapsible("Ver resumen de cartera y riesgo", summary_section, compact=True)}
+      </section>
+      <section class=\"module-subblock\" id=\"riesgo-integridad\">
+        {integrity_section}
+      </section>
     </section>
   </main>"""
 

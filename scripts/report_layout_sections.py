@@ -231,6 +231,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#cartera-resumen">Cartera foco</a>
       <a href="#cartera-detalle">Cartera detalle</a>
       <a href="#module-riesgo">Riesgo</a>
+      <a href="#riesgo-resumen">Riesgo foco</a>
+      <a href="#riesgo-integridad">Riesgo detalle</a>
       <a href="#panorama">Panorama</a>
       {operations_detail_nav}
       {prediction_detail_nav}

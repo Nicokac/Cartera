@@ -222,6 +222,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n de quick-nav entre resumen de cartera y detalle completo.
+- 2026-05-02: navegaciÃ³n granular en mÃ³dulo Riesgo e Integridad:
+  - `scripts/report_layout_main.py` separa el mÃ³dulo en subbloques con anchors:
+    - `#riesgo-resumen` (resumen de cartera y riesgo)
+    - `#riesgo-integridad` (chequeos de integridad)
+  - `scripts/report_layout_sections.py` agrega accesos en quick-nav: `Riesgo foco` y `Riesgo detalle`
+  - sin cambios de datos ni lÃ³gica de evaluaciÃ³n de riesgo/integridad
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que quick-nav navegue entre foco y detalle de `Riesgo e Integridad`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
