@@ -188,6 +188,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` separa `Bonos y Macro` en `#bonos-resumen` y `#bonos-detalle`
   - `scripts/report_layout_sections.py` agrega accesos `Bonos foco`, `Bonos detalle` y `Bonos tabla` (anchor histórico `#bonistas`)
   - sin cambios funcionales en métricas macro ni monitoreo de bonos
+- navegación granular en bloque de panorama:
+  - `scripts/report_layout_sections.py` agrega anchors `#panorama-resumen` y `#panorama-alertas`
+  - quick-nav suma accesos directos `Panorama foco` y `Panorama alertas`
+  - sin cambios funcionales en reglas de foco, cambios o alertas
 
 ## [0.5.3] - 2026-05-01
 

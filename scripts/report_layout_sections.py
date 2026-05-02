@@ -120,7 +120,7 @@ def build_panorama_section(
 ) -> str:
     return f"""
     <section class="grid spotlight-grid" id="panorama">
-      <section class="panel spotlight">
+      <section class="panel spotlight" id="panorama-resumen">
         <h2>Panorama</h2>
         <p class="summary-lede">{esc_text(executive_summary)}</p>
         <div class="meta">
@@ -128,7 +128,7 @@ def build_panorama_section(
           <span>Flags activos: <strong>{esc_text(active_flags_label)}</strong></span>
           <span>Overlay t\u00e9cnico: <strong>{tech_enabled}</strong></span>
         </div>
-        <div class="focus-columns">
+        <div class="focus-columns" id="panorama-alertas">
           <div>
             <h3>Cambios de se\u00f1al</h3>
             {build_focus_list(changed_actions, empty_message='Sin cambios de se\u00f1al respecto de la corrida previa.', tone='neutral')}
@@ -244,6 +244,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#integridad-resumen">Integridad foco</a>
       <a href="#integridad-chequeos">Integridad detalle</a>
       <a href="#panorama">Panorama</a>
+      <a href="#panorama-resumen">Panorama foco</a>
+      <a href="#panorama-alertas">Panorama alertas</a>
       {operations_legacy_nav}
       {prediction_legacy_nav}
       <a href="#resumen">Resumen</a>

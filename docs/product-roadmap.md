@@ -282,6 +282,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular en `Bonos y Macro`.
+- 2026-05-02: navegaciÃ³n granular en Panorama:
+  - `scripts/report_layout_sections.py` agrega anchors dedicados:
+    - `#panorama-resumen` (estado ejecutivo del panorama)
+    - `#panorama-alertas` (bloque de cambios de seÃ±al y alertas de cartera)
+  - quick-nav incorpora accesos `Panorama foco` y `Panorama alertas`
+  - sin cambios funcionales en KPIs ni reglas de foco/alertas
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular de `Panorama`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
