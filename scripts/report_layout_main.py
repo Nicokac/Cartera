@@ -157,12 +157,20 @@ def build_analysis_module(
     prediction_section: str,
     summary_section: str,
 ) -> str:
+    operations_block = build_collapsible("Ver operaciones recientes", operations_section, compact=True) if operations_section.strip() else ""
+    prediction_block = build_collapsible("Ver señales y predicción", prediction_section, compact=True) if prediction_section.strip() else ""
+    summary_block = build_collapsible("Ver resumen de cartera y riesgo", summary_section, compact=True) if summary_section.strip() else ""
     return f"""<section class="module-block module-analysis" id="module-analisis">
     <header class="module-head">
       <p class="module-kicker">Módulo</p>
       <h2>Análisis</h2>
     </header>
-    {operations_section}
-    {prediction_section}
-    {summary_section}
+    <section class="analysis-pulse">
+      <article class="analysis-item"><strong>Qué cambió hoy</strong><span>Operaciones y movimientos recientes</span></article>
+      <article class="analysis-item"><strong>Qué podría pasar</strong><span>Predicción y confianza del modelo</span></article>
+      <article class="analysis-item"><strong>Contexto agregado</strong><span>Composición, riesgo y coberturas</span></article>
+    </section>
+    {operations_block}
+    {prediction_block}
+    {summary_block}
     </section>"""

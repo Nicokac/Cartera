@@ -122,6 +122,10 @@ Avance UI post-cierre:
   - `scripts/report_layout_main.py` agrega bloque de accesos rapidos (`Decisión`, `Cartera`, `Riesgo`) en la cabecera del modulo
   - el bloque completo de `Cambios` pasa a capa colapsable en dashboard (`Ver cambios y cobertura`) para reducir ruido inicial sin perder informacion
   - `static/styles.css` incorpora estilos base de `dashboard-pulse`
+- 2026-05-01: ajuste P1 de densidad en módulo Análisis:
+  - `scripts/report_layout_main.py` convierte `Operaciones`, `Predicción` y `Resumen` en bloques colapsables dentro de `Análisis`
+  - se agrega cabecera de lectura rápida (`analysis-pulse`) para mantener contexto de negocio antes del detalle
+  - `static/styles.css` incorpora estilos de `analysis-pulse`
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

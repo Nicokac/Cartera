@@ -355,6 +355,34 @@ section.grid {
   background: rgba(15, 108, 92, 0.06);
 }
 
+.analysis-pulse {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.analysis-item {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(86, 98, 110, 0.2);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.analysis-item strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+  font: 700 12px/1.2 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.analysis-item span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .panel h2 {
   margin: 0 0 14px;
   font-size: 18px;

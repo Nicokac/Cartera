@@ -112,6 +112,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_main.py` suma bloque de accesos rapidos a modulos clave (`Decisión`, `Cartera`, `Riesgo`)
   - `Cambios` se mantiene completo pero pasa a bloque colapsable en la portada (`Ver cambios y cobertura`)
   - `static/styles.css` agrega estilos de `dashboard-pulse`
+- ajuste P1 de densidad en módulo Análisis:
+  - `scripts/report_layout_main.py` mueve `Operaciones`, `Predicción` y `Resumen` a colapsables por defecto para reducir saturación visual inicial
+  - agrega bloque guía `analysis-pulse` para orientar lectura rápida del módulo
+  - `static/styles.css` agrega estilos de `analysis-pulse`
 
 ## [0.5.3] - 2026-05-01
 
