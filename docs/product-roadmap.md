@@ -96,6 +96,10 @@ Avance UI post-cierre:
     - `_extract_decision_context(...)`
   - `prepare_render_context(...)` queda como orquestador de contexto con menor acoplamiento interno
   - sin cambios funcionales ni visuales
+- 2026-05-01: saneamiento adicional de contexto de render:
+  - nuevo helper privado `_build_pending_portfolio_rows(...)` en `scripts/report_composer.py`
+  - `prepare_render_context(...)` delega armado de pendientes de consolidacion y reduce logica inline
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
@@ -291,6 +295,8 @@ Prueba de cierre (si aplica):
 - validar que el tipado (`TypedDict`) no altera el contrato runtime de `render_report(...)`
 - correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
 - validar que `prepare_render_context(...)` conserva mismas claves consumidas por `build_render_sections(...)` tras la extraccion de sub-builders
+- correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- validar que `pending_portfolio_rows` sigue mostrandose en `Cartera` cuando hay operaciones sin consolidar
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `score_refuerzo` y `score_reduccion` se mantienen estables para el mismo input tras la centralizacion de pesos con `_weight`
 - correr `python -m unittest tests.test_fred_client tests.test_pyobd_client -v`

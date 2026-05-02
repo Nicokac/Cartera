@@ -212,6 +212,25 @@ def _extract_decision_context(
     }
 
 
+def _build_pending_portfolio_rows(
+    *,
+    operations_bundle: dict[str, object],
+    df_total: pd.DataFrame,
+    prices_iol: dict[str, object],
+    vn_factor_map: dict[str, object],
+    mep_real: float,
+    kpis: dict[str, object],
+) -> pd.DataFrame:
+    return build_pending_trade_portfolio_rows(
+        operations_bundle.get("recent_trades", pd.DataFrame()) if isinstance(operations_bundle, dict) else pd.DataFrame(),
+        current_portfolio=df_total,
+        prices_iol=prices_iol,
+        vn_factor_map=vn_factor_map,
+        mep_real=mep_real,
+        total_portfolio_ars=float(kpis.get("total_ars", 0) or 0),
+    )
+
+
 def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     mep_real = float(result["mep_real"])
     generated_at_label = result.get("generated_at_label")
@@ -252,13 +271,13 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         market_regime=market_regime,
         asignacion_final=asignacion_final,
     )
-    pending_portfolio_rows = build_pending_trade_portfolio_rows(
-        operations_bundle.get("recent_trades", pd.DataFrame()) if isinstance(operations_bundle, dict) else pd.DataFrame(),
-        current_portfolio=df_total,
+    pending_portfolio_rows = _build_pending_portfolio_rows(
+        operations_bundle=operations_bundle,
+        df_total=df_total,
         prices_iol=prices_iol,
         vn_factor_map=vn_factor_map,
         mep_real=mep_real,
-        total_portfolio_ars=float(kpis.get("total_ars", 0) or 0),
+        kpis=kpis,
     )
 
     return {

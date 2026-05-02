@@ -86,6 +86,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_composer.py` extrae sub-builders privados (`_extract_bonistas_context`, `_extract_coverage_context`, `_extract_decision_context`)
   - `prepare_render_context(...)` reduce tamaño y acoplamiento, manteniendo contrato de salida
   - sin cambios funcionales/visuales (validado con suite de render)
+- saneamiento adicional en contexto de render:
+  - `scripts/report_composer.py` agrega `_build_pending_portfolio_rows(...)` y delega desde `prepare_render_context(...)`
+  - menor logica inline para pendientes de consolidacion, sin cambios en salida
+  - sin cambios funcionales/visuales (validado con suite de render)
 
 ## [0.5.3] - 2026-05-01
 
