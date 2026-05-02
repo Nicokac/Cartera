@@ -196,6 +196,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` marca enlaces `tabla` como secundarios (`is-secondary`)
   - `static/styles.css` agrega estilo diferenciado para reducir ruido visual frente a links `foco/detalle`
   - sin impacto funcional en navegación
+- navegación granular en panel de sizing:
+  - `scripts/report_sections.py` separa `Sizing` en `#sizing-resumen` y `#sizing-detalle`
+  - `scripts/report_layout_sections.py` agrega accesos `Sizing foco` y `Sizing detalle` en quick-nav
+  - sin cambios funcionales en asignación ni drift de cartera
 
 ## [0.5.3] - 2026-05-01
 

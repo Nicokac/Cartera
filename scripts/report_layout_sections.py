@@ -246,6 +246,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#panorama">Panorama</a>
       <a href="#panorama-resumen">Panorama foco</a>
       <a href="#panorama-alertas">Panorama alertas</a>
+      <a href="#sizing-resumen">Sizing foco</a>
+      <a href="#sizing-detalle">Sizing detalle</a>
       {operations_legacy_nav}
       {prediction_legacy_nav}
       <a href="#resumen">Resumen</a>

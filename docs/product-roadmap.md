@@ -298,6 +298,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar que los links `tabla` se vean secundarios y sigan funcionando.
+- 2026-05-02: navegaciÃ³n granular en Sizing:
+  - `scripts/report_sections.py` separa el panel `Sizing` en subbloques:
+    - `#sizing-resumen` (metadatos de fondeo)
+    - `#sizing-detalle` (tabla de asignaciÃ³n + drift)
+  - `scripts/report_layout_sections.py` agrega accesos directos `Sizing foco` y `Sizing detalle` en quick-nav
+  - sin cambios funcionales en cÃ¡lculo de sizing ni drift
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular en `Sizing`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

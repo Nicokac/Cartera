@@ -503,31 +503,35 @@ def build_sizing_section(
         <h2>Sizing</h2>
         <button id="copy-sizing" class="copy-btn" title="Copiar tabla como TSV para pegar en Excel">Copiar tabla</button>
       </div>
-      <div class="meta">
-        <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
-        <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
-        <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
-        <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
-        <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
-      </div>
-      {build_table(
-          ensure_table_columns(
-              asignacion_final,
-              ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"],
-          ).rename(columns={"Ticker_IOL": "Ticker", "Bucket_Prudencia": "Bucket de prudencia", "Peso_Fondeo_%": "Peso del fondeo", "Monto_ARS": "Monto ARS", "Monto_USD": "Monto USD"}),
-          formatters={
-              "Peso del fondeo": fmt_pct,
-              "Monto ARS": fmt_ars,
-              "Monto USD": fmt_usd,
-          },
-          table_class="sizing-table",
-          table_id="sizing-table",
-      )}
-      {build_collapsible(
-          "Ver drift de cartera",
-          build_drift_chart(asignacion_final, df_total if df_total is not None else pd.DataFrame(), total_ars),
-          compact=True,
-      )}
+      <section class="module-subblock" id="sizing-resumen">
+        <div class="meta">
+          <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
+          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
+          <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
+          <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
+          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
+        </div>
+      </section>
+      <section class="module-subblock" id="sizing-detalle">
+        {build_table(
+            ensure_table_columns(
+                asignacion_final,
+                ["Ticker_IOL", "Bucket_Prudencia", "Peso_Fondeo_%", "Monto_ARS", "Monto_USD"],
+            ).rename(columns={"Ticker_IOL": "Ticker", "Bucket_Prudencia": "Bucket de prudencia", "Peso_Fondeo_%": "Peso del fondeo", "Monto_ARS": "Monto ARS", "Monto_USD": "Monto USD"}),
+            formatters={
+                "Peso del fondeo": fmt_pct,
+                "Monto ARS": fmt_ars,
+                "Monto USD": fmt_usd,
+            },
+            table_class="sizing-table",
+            table_id="sizing-table",
+        )}
+        {build_collapsible(
+            "Ver drift de cartera",
+            build_drift_chart(asignacion_final, df_total if df_total is not None else pd.DataFrame(), total_ars),
+            compact=True,
+        )}
+      </section>
     </section>
     """
 
