@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import html
 import pandas as pd
@@ -146,8 +146,8 @@ def build_panorama_section(
           </div>
         </div>
       </section>
-      <section class="panel spotlight spotlight-side" id="sizing-resumen">
-        <h2>Sizing activo</h2>
+      <section class="panel spotlight spotlight-side" id="panorama-sizing">
+        <h2>Asignación sugerida</h2>
         <div class="meta">
           <span>Fuente: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
           <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
@@ -230,51 +230,24 @@ def build_changes_section(
 
 
 def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
-    bonistas_nav = '<a href="#module-bonos">Bonos y Macro</a><a href="#bonos-resumen">Bonos foco</a><a href="#bonos-detalle">Bonos detalle</a><a class="is-secondary" href="#bonistas">Bonos tabla</a>' if show_bonistas else ""
-    operations_legacy_nav = '<a class="is-secondary" href="#operaciones">Operaciones tabla</a>' if show_operations else ""
-    prediction_legacy_nav = '<a class="is-secondary" href="#prediccion">Predicción tabla</a>' if show_prediction else ""
+    bonistas_link = '<a href="#module-bonos">Bonos y Macro</a>' if show_bonistas else ""
+    operations_link = '<a href="#module-analisis">Operaciones</a>' if show_operations else ""
+    prediction_link = '<a href="#module-prediccion">Predicción</a>' if show_prediction else ""
+    links = [
+        '<a href="#module-dashboard">Dashboard</a>',
+        '<a href="#module-cartera">Cartera</a>',
+        '<a href="#module-decision">Decisión</a>',
+        prediction_link,
+        '<a href="#module-tecnico">Técnico</a>',
+        bonistas_link,
+        operations_link,
+        '<a href="#module-riesgo">Riesgo</a>',
+    ]
+    sep = "\n"
+    items = sep.join("      " + lnk for lnk in links if lnk) + "\n"
     return f"""
     <nav class="quick-nav">
-      <a href="#module-dashboard">Dashboard</a>
-      <a href="#dashboard-foco">Dashboard foco</a>
-      <a href="#dashboard-detalle">Dashboard detalle</a>
-      <a href="#module-analisis">Operaciones</a>
-      <a href="#operaciones-resumen">Operaciones foco</a>
-      <a href="#operaciones-detalle">Operaciones detalle</a>
-      <a href="#module-prediccion">Predicción</a>
-      <a href="#prediccion-resumen">Predicción foco</a>
-      <a href="#prediccion-detalle">Predicción detalle</a>
-      <a href="#module-mercado">Mercado</a>
-      <a href="#module-tecnico">Técnico</a>
-      <a href="#tecnico-resumen">Técnico foco</a>
-      <a href="#tecnico-detalle">Técnico detalle</a>
-      <a href="#module-decision">Decisi\u00f3n</a>
-      <a href="#decision-prioridades">Decisión foco</a>
-      <a href="#decision-workspace">Decisión detalle</a>
-      <a href="#module-cartera">Cartera</a>
-      <a href="#cartera-resumen">Cartera foco</a>
-      <a href="#cartera-detalle">Cartera detalle</a>
-      <a href="#module-riesgo">Riesgo</a>
-      <a href="#riesgo-resumen">Riesgo foco</a>
-      <a href="#riesgo-integridad">Riesgo detalle</a>
-      <a href="#integridad-resumen">Integridad foco</a>
-      <a href="#integridad-chequeos">Integridad detalle</a>
-      <a href="#panorama">Panorama</a>
-      <a href="#panorama-resumen">Panorama foco</a>
-      <a href="#panorama-alertas">Panorama alertas</a>
-      <a href="#cambios">Cambios</a>
-      <a href="#regimen">Régimen</a>
-      <a href="#sizing-resumen">Sizing foco</a>
-      <a href="#sizing-detalle">Sizing detalle</a>
-      <a href="#sizing-drift">Sizing drift</a>
-      {operations_legacy_nav}
-      {prediction_legacy_nav}
-      <a href="#resumen">Resumen</a>
-      <a href="#sizing">Sizing</a>
-      <a href="#tecnico">T\u00e9cnico</a>
-      {bonistas_nav}
-      <a href="#integridad">Integridad</a>
-    </nav>
+{items}    </nav>
     """
 
 

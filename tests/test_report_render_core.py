@@ -60,7 +60,7 @@ class ReportRenderCoreTests(unittest.TestCase):
             )
         )
 
-        self.assertIn('href="#bonistas"', html)
+        self.assertIn('id="bonistas"', html)
         self.assertIn('<section class="panel" id="bonistas">', html)
         self.assertIn("Bonos Locales", html)
         self.assertIn("Reservas BCRA", html)
@@ -122,7 +122,7 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         self.assertIn("Panorama", html)
         self.assertIn("Cambios", html)
-        self.assertIn("Sizing activo", html)
+        self.assertIn("Asignación sugerida", html)
         self.assertIn("Cambios de se\u00f1al", html)
         self.assertIn("Liquidez broker", html)
         self.assertIn("Liquidez ampliada", html)
@@ -194,7 +194,7 @@ class ReportRenderCoreTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn('href="#prediccion"', html)
+        self.assertIn('id="prediccion"', html)
         self.assertIn('<section class="panel" id="prediccion">', html)
         self.assertIn("Ver detalle completo de predicci\u00f3n", html)
         self.assertIn("Confianza media", html)

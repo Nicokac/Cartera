@@ -101,7 +101,7 @@ class ReportRenderOperationsTests(unittest.TestCase):
 
         html = render_report(result)
 
-        self.assertIn('href="#operaciones"', html)
+        self.assertIn('id="operaciones"', html)
         self.assertIn(">Operaciones<", html)
         self.assertIn("Operaciones recientes", html)
         self.assertIn("Lectura operacional", html)

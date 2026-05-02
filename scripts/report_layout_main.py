@@ -44,41 +44,39 @@ def build_report_main_content(
         panorama_section=panorama_section,
         changes_section=changes_section,
         regime_summary=regime_summary,
-        sizing_section=sizing_section,
     )}
 
     {build_operations_module(operations_section=operations_section)}
 
     {build_prediction_module(prediction_section=prediction_section)}
 
-    <section class=\"module-block module-market\" id=\"module-mercado\">
+    <section class=\"module-block module-technical\" id=\"module-tecnico\">
       <header class=\"module-head\">
         <p class=\"module-kicker\">Módulo</p>
-        <h2>Mercado y Contexto</h2>
+        <h2>Técnico</h2>
       </header>
-      <section class=\"market-pulse\">
-        <article class=\"market-item\"><strong>Técnico</strong><span>Tendencia, momentum y cobertura</span></article>
-        <article class=\"market-item\"><strong>Bonos y macro</strong><span>Contexto local y monitoreo de renta fija</span></article>
+      {build_technical_panel(
+        tech_enabled=tech_enabled,
+        tech_covered=tech_covered,
+        tech_total=tech_total,
+        technical_view=technical_view,
+        price_history=price_history,
+      )}
+    </section>
+
+    <section class=\"module-block module-bonds\" id=\"module-bonos\">
+      <header class=\"module-head\">
+        <p class=\"module-kicker\">Módulo</p>
+        <h2>Bonos y Macro</h2>
+      </header>
+      <section class=\"module-subblock\" id=\"bonos-resumen\">
+        <div class=\"meta\">
+          <span>Foco: <strong>Macro local + renta fija</strong></span>
+          <span>Incluye: <strong>subfamilias, taxonomía y monitoreo completo</strong></span>
+        </div>
       </section>
-      <section class=\"module-subblock\" id=\"module-tecnico\">
-        {build_technical_panel(
-          tech_enabled=tech_enabled,
-          tech_covered=tech_covered,
-          tech_total=tech_total,
-          technical_view=technical_view,
-          price_history=price_history,
-        )}
-      </section>
-      <section class=\"module-subblock\" id=\"module-bonos\">
-        <section class=\"module-subblock\" id=\"bonos-resumen\">
-          <div class=\"meta\">
-            <span>Foco: <strong>Macro local + renta fija</strong></span>
-            <span>Incluye: <strong>subfamilias, taxonomía y monitoreo completo</strong></span>
-          </div>
-        </section>
-        <section class=\"module-subblock\" id=\"bonos-detalle\">
-          {build_collapsible("Ver bonos y contexto macro", bonistas_section, compact=True)}
-        </section>
+      <section class=\"module-subblock\" id=\"bonos-detalle\">
+        {build_collapsible("Ver bonos y contexto macro", bonistas_section, compact=True)}
       </section>
     </section>
 
@@ -88,6 +86,7 @@ def build_report_main_content(
         <h2>Decisión y Rebalanceo</h2>
       </header>
       {decision_section}
+      {sizing_section}
     </section>
 
     <section class=\"module-block module-portfolio\" id=\"module-cartera\">
@@ -141,7 +140,7 @@ def build_technical_panel(
     price_history: dict | None,
 ) -> str:
     return f"""<section class=\"panel\" id=\"tecnico\">
-      <h2>Overlay Técnico</h2>
+      <h2>Overlay técnico</h2>
       <section class=\"module-subblock\" id=\"tecnico-resumen\">
         <div class=\"meta\">
           <span>Activo: <strong>{tech_enabled}</strong></span>
@@ -162,7 +161,6 @@ def build_dashboard_module(
     panorama_section: str,
     changes_section: str,
     regime_summary: str,
-    sizing_section: str,
 ) -> str:
     return f"""<section class=\"module-block module-dashboard\" id=\"module-dashboard\">
     <header class=\"module-head\">
@@ -180,7 +178,6 @@ def build_dashboard_module(
       {panorama_section}
       {build_collapsible("Ver cambios y cobertura", changes_section, compact=True)}
       {regime_summary}
-      {sizing_section}
     </section>
     </section>"""
 
