@@ -180,6 +180,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` separa `Integridad` en `#integridad-resumen` y `#integridad-chequeos`
   - quick-nav agrega accesos `Integridad foco` y `Integridad detalle`
   - sin cambios funcionales en chequeos ni estado agregado
+- navegación granular en módulo técnico:
+  - `scripts/report_layout_main.py` separa `Overlay Técnico` en `#tecnico-resumen` y `#tecnico-detalle`
+  - `scripts/report_layout_sections.py` agrega accesos directos `Técnico foco` y `Técnico detalle` en quick-nav
+  - sin cambios funcionales en cálculos ni cobertura técnica
 
 ## [0.5.3] - 2026-05-01
 

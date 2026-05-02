@@ -134,12 +134,16 @@ def build_technical_panel(
 ) -> str:
     return f"""<section class=\"panel\" id=\"tecnico\">
       <h2>Overlay Técnico</h2>
-      <div class=\"meta\">
-        <span>Activo: <strong>{tech_enabled}</strong></span>
-        <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
-      </div>
-      {build_technical_summary(technical_view)}
-      {build_collapsible("Ver tabla técnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
+      <section class=\"module-subblock\" id=\"tecnico-resumen\">
+        <div class=\"meta\">
+          <span>Activo: <strong>{tech_enabled}</strong></span>
+          <span>Cobertura: <strong>{tech_covered}/{tech_total}</strong></span>
+        </div>
+        {build_technical_summary(technical_view)}
+      </section>
+      <section class=\"module-subblock\" id=\"tecnico-detalle\">
+        {build_collapsible("Ver tabla técnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
+      </section>
     </section>"""
 
 

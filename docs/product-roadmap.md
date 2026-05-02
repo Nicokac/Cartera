@@ -264,6 +264,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular en `Integridad`.
+- 2026-05-02: navegaciÃ³n granular en mÃ³dulo TÃ©cnico:
+  - `scripts/report_layout_main.py` separa `Overlay TÃ©cnico` en subbloques:
+    - `#tecnico-resumen` (estado/cobertura + resumen tÃ©cnico)
+    - `#tecnico-detalle` (tabla tÃ©cnica completa colapsable)
+  - `scripts/report_layout_sections.py` agrega accesos directos `TÃ©cnico foco` y `TÃ©cnico detalle` en quick-nav
+  - sin cambios funcionales en cÃ¡lculos ni tabla de indicadores
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular de foco/detalle en `TÃ©cnico`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

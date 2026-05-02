@@ -230,6 +230,8 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#prediccion-detalle">Predicción detalle</a>
       <a href="#module-mercado">Mercado</a>
       <a href="#module-tecnico">Técnico</a>
+      <a href="#tecnico-resumen">Técnico foco</a>
+      <a href="#tecnico-detalle">Técnico detalle</a>
       <a href="#module-decision">Decisi\u00f3n</a>
       <a href="#decision-prioridades">Decisión foco</a>
       <a href="#decision-workspace">Decisión detalle</a>
