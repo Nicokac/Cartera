@@ -192,6 +192,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` agrega anchors `#panorama-resumen` y `#panorama-alertas`
   - quick-nav suma accesos directos `Panorama foco` y `Panorama alertas`
   - sin cambios funcionales en reglas de foco, cambios o alertas
+- legibilidad de quick-nav para enlaces legacy:
+  - `scripts/report_layout_sections.py` marca enlaces `tabla` como secundarios (`is-secondary`)
+  - `static/styles.css` agrega estilo diferenciado para reducir ruido visual frente a links `foco/detalle`
+  - sin impacto funcional en navegación
 
 ## [0.5.3] - 2026-05-01
 

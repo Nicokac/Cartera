@@ -118,6 +118,12 @@ body {
   box-shadow: 0 8px 18px rgba(15, 108, 92, 0.18);
 }
 
+.quick-nav a.is-secondary {
+  color: #55646c;
+  border-style: dashed;
+  background: rgba(255, 253, 248, 0.65);
+}
+
 .quick-nav::before,
 .quick-nav::after {
   content: "";

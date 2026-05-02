@@ -291,6 +291,13 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular de `Panorama`.
+- 2026-05-02: ajuste de legibilidad en quick-nav (links legacy):
+  - `scripts/report_layout_sections.py` marca enlaces de compatibilidad `tabla` (`Operaciones`, `PredicciÃ³n`, `Bonos`) como secundarios mediante clase `is-secondary`
+  - `static/styles.css` agrega estilo visual diferenciado para `a.is-secondary` (menos prominente) sin afectar navegaciÃ³n
+  - objetivo: priorizar `foco/detalle` sin perder accesos histÃ³ricos
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar que los links `tabla` se vean secundarios y sigan funcionando.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
