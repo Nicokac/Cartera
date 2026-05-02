@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+from typing import TypedDict
 
 from report_decision import (
     build_change_highlights,
@@ -29,6 +30,53 @@ from report_sections_prediction import build_prediction_section
 from portfolio.operations import build_pending_trade_portfolio_rows
 
 from decision.action_constants import NEUTRAL_ACTIONS
+
+
+class RenderSections(TypedDict):
+    primary_cards: str
+    secondary_cards: str
+    action_summary: str
+    panorama_section: str
+    changes_section: str
+    regime_summary: str
+    bonistas_section: str
+    quick_nav: str
+    operations_section: str
+    prediction_section: str
+    summary_section: str
+    sizing_section: str
+    decision_section: str
+    portfolio_section: str
+    integrity_section: str
+    integrity_strip: str
+
+
+class ReportBodyInputs(TypedDict):
+    title: str
+    generated_at_label: object
+    headline: str
+    lede: str
+    integrity_strip: str
+    quick_nav: str
+    primary_cards: str
+    secondary_cards: str
+    action_summary: str
+    panorama_section: str
+    changes_section: str
+    operations_section: str
+    prediction_section: str
+    regime_summary: str
+    summary_section: str
+    sizing_section: str
+    tech_enabled: str
+    tech_covered: int
+    tech_total: int
+    technical_view: pd.DataFrame
+    price_history: dict[str, list[float]]
+    bonistas_section: str
+    decision_section: str
+    portfolio_section: str
+    integrity_section: str
 
 
 def build_technical_view(technical_overlay: pd.DataFrame) -> pd.DataFrame:
@@ -198,7 +246,7 @@ def build_render_sections(
     context: dict[str, object],
     *,
     time_section,
-) -> dict[str, object]:
+) -> RenderSections:
     executive_summary = time_section(
         "executive_summary",
         lambda: build_executive_summary(
@@ -344,11 +392,11 @@ def build_render_sections(
 def compose_report_body_inputs(
     *,
     context: dict[str, object],
-    sections: dict[str, object],
+    sections: RenderSections,
     title: str,
     headline: str,
     lede: str,
-) -> dict[str, object]:
+) -> ReportBodyInputs:
     return {
         "title": title,
         "generated_at_label": context.get("generated_at_label"),

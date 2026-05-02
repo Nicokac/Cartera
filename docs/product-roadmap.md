@@ -85,6 +85,10 @@ Avance UI post-cierre:
   - nuevo adaptador `compose_report_body_inputs(...)` en `scripts/report_composer.py` para centralizar el mapping `context/sections -> build_report_body(...)`
   - `scripts/report_renderer.py` deja de acoplarse a claves internas del composer y delega el armado de kwargs al adaptador
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de tipado interno en composer de reporte:
+  - nuevos `TypedDict` en `scripts/report_composer.py`: `RenderSections` y `ReportBodyInputs`
+  - `build_render_sections(...)` y `compose_report_body_inputs(...)` ahora devuelven contratos tipados explícitos
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
@@ -276,6 +280,8 @@ Prueba de cierre (si aplica):
 - validar que `report_layout.py` sigue exponiendo la misma API publica para `report_composer` tras quedar como fachada
 - correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
 - validar que `render_report(...)` mantiene salida equivalente tras delegar kwargs a `compose_report_body_inputs(...)`
+- correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- validar que el tipado (`TypedDict`) no altera el contrato runtime de `render_report(...)`
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `score_refuerzo` y `score_reduccion` se mantienen estables para el mismo input tras la centralizacion de pesos con `_weight`
 - correr `python -m unittest tests.test_fred_client tests.test_pyobd_client -v`

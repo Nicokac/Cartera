@@ -78,6 +78,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `compose_report_body_inputs(...)` en `scripts/report_composer.py`
   - `scripts/report_renderer.py` pasa a construir `build_report_body(**kwargs)` via adaptador, eliminando mapping duplicado de claves
   - sin cambios funcionales/visuales (validado con suite de render)
+- refactor de tipado interno en composer del reporte:
+  - `scripts/report_composer.py` incorpora `TypedDict` (`RenderSections`, `ReportBodyInputs`) para endurecer contratos internos
+  - `build_render_sections(...)` y `compose_report_body_inputs(...)` pasan a devolver tipos explícitos
+  - sin cambios funcionales/visuales (validado con suite de render)
 
 ## [0.5.3] - 2026-05-01
 
