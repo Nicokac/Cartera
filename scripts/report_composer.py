@@ -339,3 +339,40 @@ def build_render_sections(
         "integrity_section": integrity_section,
         "integrity_strip": integrity_strip,
     }
+
+
+def compose_report_body_inputs(
+    *,
+    context: dict[str, object],
+    sections: dict[str, object],
+    title: str,
+    headline: str,
+    lede: str,
+) -> dict[str, object]:
+    return {
+        "title": title,
+        "generated_at_label": context.get("generated_at_label"),
+        "headline": headline,
+        "lede": lede,
+        "integrity_strip": sections.get("integrity_strip", ""),
+        "quick_nav": sections["quick_nav"],
+        "primary_cards": sections["primary_cards"],
+        "secondary_cards": sections["secondary_cards"],
+        "action_summary": sections["action_summary"],
+        "panorama_section": sections["panorama_section"],
+        "changes_section": sections["changes_section"],
+        "operations_section": sections["operations_section"],
+        "prediction_section": sections["prediction_section"],
+        "regime_summary": sections["regime_summary"],
+        "summary_section": sections["summary_section"],
+        "sizing_section": sections["sizing_section"],
+        "tech_enabled": str(context["tech_enabled"]),
+        "tech_covered": int(context["tech_covered"]),
+        "tech_total": int(context["tech_total"]),
+        "technical_view": context["technical_view"],
+        "price_history": context.get("price_history", {}),
+        "bonistas_section": sections["bonistas_section"],
+        "decision_section": sections["decision_section"],
+        "portfolio_section": sections["portfolio_section"],
+        "integrity_section": sections["integrity_section"],
+    }

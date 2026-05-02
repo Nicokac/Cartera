@@ -4,7 +4,11 @@ import logging
 import time
 from pathlib import Path
 
-from report_composer import build_render_sections, prepare_render_context
+from report_composer import (
+    build_render_sections,
+    compose_report_body_inputs,
+    prepare_render_context,
+)
 from report_layout import build_report_body
 
 
@@ -31,35 +35,16 @@ def render_report(
 
     context = prepare_render_context(result)
     sections = build_render_sections(context, time_section=_time_section)
+    body_inputs = compose_report_body_inputs(
+        context=context,
+        sections=sections,
+        title=title,
+        headline=headline,
+        lede=lede,
+    )
     html_body = _time_section(
         "body",
-        lambda: build_report_body(
-            title=title,
-            generated_at_label=context.get("generated_at_label"),
-            headline=headline,
-            lede=lede,
-            integrity_strip=sections.get("integrity_strip", ""),
-            quick_nav=sections["quick_nav"],
-            primary_cards=sections["primary_cards"],
-            secondary_cards=sections["secondary_cards"],
-            action_summary=sections["action_summary"],
-            panorama_section=sections["panorama_section"],
-            changes_section=sections["changes_section"],
-            operations_section=sections["operations_section"],
-            prediction_section=sections["prediction_section"],
-            regime_summary=sections["regime_summary"],
-            summary_section=sections["summary_section"],
-            sizing_section=sections["sizing_section"],
-            tech_enabled=str(context["tech_enabled"]),
-            tech_covered=int(context["tech_covered"]),
-            tech_total=int(context["tech_total"]),
-            technical_view=context["technical_view"],
-            price_history=context.get("price_history", {}),
-            bonistas_section=sections["bonistas_section"],
-            decision_section=sections["decision_section"],
-            portfolio_section=sections["portfolio_section"],
-            integrity_section=sections["integrity_section"],
-        ),
+        lambda: build_report_body(**body_inputs),
     )
     logger.info(
         "Report section timings: total=%.4fs %s",

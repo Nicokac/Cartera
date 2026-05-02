@@ -74,6 +74,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` incorpora builders de `decision`, `cartera` e `integridad`
   - `scripts/report_layout.py` queda como fachada de compatibilidad (re-export + `build_report_body`)
   - sin cambios funcionales/visuales (validado con suite de render)
+- refactor de acoplamiento entre composer y renderer del reporte:
+  - nuevo `compose_report_body_inputs(...)` en `scripts/report_composer.py`
+  - `scripts/report_renderer.py` pasa a construir `build_report_body(**kwargs)` via adaptador, eliminando mapping duplicado de claves
+  - sin cambios funcionales/visuales (validado con suite de render)
 
 ## [0.5.3] - 2026-05-01
 

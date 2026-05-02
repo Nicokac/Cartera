@@ -81,6 +81,10 @@ Avance UI post-cierre:
   - `scripts/report_layout_sections.py` incorpora tambien builders de `decision`, `cartera` e `integridad`
   - `scripts/report_layout.py` queda como fachada de compatibilidad (re-export de builders + `build_report_body`)
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor de acoplamiento entre composer y renderer:
+  - nuevo adaptador `compose_report_body_inputs(...)` en `scripts/report_composer.py` para centralizar el mapping `context/sections -> build_report_body(...)`
+  - `scripts/report_renderer.py` deja de acoplarse a claves internas del composer y delega el armado de kwargs al adaptador
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK
@@ -270,6 +274,8 @@ Prueba de cierre (si aplica):
 - validar que el refactor a `report_layout_sections.py` no cambia salida funcional del reporte (navegacion, paneles y tablas renderizados)
 - correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
 - validar que `report_layout.py` sigue exponiendo la misma API publica para `report_composer` tras quedar como fachada
+- correr `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- validar que `render_report(...)` mantiene salida equivalente tras delegar kwargs a `compose_report_body_inputs(...)`
 - correr `python -m unittest tests.test_decision_scoring tests.test_pipeline -v`
 - validar que `score_refuerzo` y `score_reduccion` se mantienen estables para el mismo input tras la centralizacion de pesos con `_weight`
 - correr `python -m unittest tests.test_fred_client tests.test_pyobd_client -v`
