@@ -214,7 +214,7 @@ def build_changes_section(
 
 
 def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
-    bonistas_nav = '<a href="#module-bonos">Bonos y Macro</a><a href="#bonistas">Bonos detalle</a>' if show_bonistas else ""
+    bonistas_nav = '<a href="#module-bonos">Bonos y Macro</a><a href="#bonos-resumen">Bonos foco</a><a href="#bonos-detalle">Bonos detalle</a><a href="#bonistas">Bonos tabla</a>' if show_bonistas else ""
     operations_legacy_nav = '<a href="#operaciones">Operaciones tabla</a>' if show_operations else ""
     prediction_legacy_nav = '<a href="#prediccion">Predicción tabla</a>' if show_prediction else ""
     return f"""

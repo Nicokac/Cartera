@@ -273,6 +273,15 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar navegaciÃ³n granular de foco/detalle en `TÃ©cnico`.
+- 2026-05-02: navegaciÃ³n granular en Bonos y Macro:
+  - `scripts/report_layout_main.py` separa submÃ³dulo de bonos en:
+    - `#bonos-resumen` (foco narrativo de contexto macro/renta fija)
+    - `#bonos-detalle` (detalle colapsable con secciÃ³n completa)
+  - `scripts/report_layout_sections.py` extiende quick-nav con `Bonos foco`, `Bonos detalle` y `Bonos tabla` (compatibilidad con `#bonistas`)
+  - sin cambios funcionales en macro, subfamilias ni monitoreo de bonos
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n granular en `Bonos y Macro`.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 

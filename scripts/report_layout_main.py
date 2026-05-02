@@ -70,7 +70,15 @@ def build_report_main_content(
         )}
       </section>
       <section class=\"module-subblock\" id=\"module-bonos\">
-        {build_collapsible("Ver bonos y contexto macro", bonistas_section, compact=True)}
+        <section class=\"module-subblock\" id=\"bonos-resumen\">
+          <div class=\"meta\">
+            <span>Foco: <strong>Macro local + renta fija</strong></span>
+            <span>Incluye: <strong>subfamilias, taxonomía y monitoreo completo</strong></span>
+          </div>
+        </section>
+        <section class=\"module-subblock\" id=\"bonos-detalle\">
+          {build_collapsible("Ver bonos y contexto macro", bonistas_section, compact=True)}
+        </section>
       </section>
     </section>
 
