@@ -42,6 +42,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - nuevo `build_report_main_content(...)` para separar template principal del reporte
   - `build_report_body(...)` queda enfocado en metadatos de documento y composicion final
   - sin cambios funcionales/visuales
+- refactor adicional por bloques en `scripts/report_layout.py`:
+  - nuevos helpers `build_report_hero(...)` y `build_technical_panel(...)`
+  - menor complejidad del template principal y mejor modularidad interna
+  - sin cambios funcionales/visuales
 
 ## [0.5.3] - 2026-05-01
 

@@ -45,6 +45,10 @@ Avance UI post-cierre:
   - nuevo helper `build_report_main_content(...)` para aislar el template principal del reporte
   - `build_report_body(...)` queda reducido a metadatos + orquestacion de documento
   - sin cambios funcionales ni visuales
+- 2026-05-01: refactor por bloques en `report_layout`:
+  - extraidos helpers `build_report_hero(...)` y `build_technical_panel(...)`
+  - menor acoplamiento del template principal y mejor separacion por secciones
+  - sin cambios funcionales ni visuales
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

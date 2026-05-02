@@ -534,13 +534,7 @@ def build_report_main_content(
     integrity_section: str,
 ) -> str:
     return f"""  <main class="page">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">{esc_text(title)}</p>
-        <h1>{esc_text(headline)}</h1>
-        <p class="lede">{lede}</p>
-      </div>
-    </header>
+    {build_report_hero(title=title, headline=headline, lede=lede)}
 
     {integrity_strip}
     {quick_nav}
@@ -557,7 +551,40 @@ def build_report_main_content(
 
     {sizing_section}
 
-    <section class="panel" id="tecnico">
+    {build_technical_panel(
+        tech_enabled=tech_enabled,
+        tech_covered=tech_covered,
+        tech_total=tech_total,
+        technical_view=technical_view,
+        price_history=price_history,
+    )}
+
+    {bonistas_section}
+    {decision_section}
+    {portfolio_section}
+    {integrity_section}
+  </main>"""
+
+
+def build_report_hero(*, title: str, headline: str, lede: str) -> str:
+    return f"""<header class="hero">
+      <div>
+        <p class="eyebrow">{esc_text(title)}</p>
+        <h1>{esc_text(headline)}</h1>
+        <p class="lede">{lede}</p>
+      </div>
+    </header>"""
+
+
+def build_technical_panel(
+    *,
+    tech_enabled: str,
+    tech_covered: int,
+    tech_total: int,
+    technical_view: pd.DataFrame,
+    price_history: dict | None,
+) -> str:
+    return f"""<section class="panel" id="tecnico">
       <h2>Overlay t\u00e9cnico</h2>
       <div class="meta">
         <span>Activo: <strong>{tech_enabled}</strong></span>
@@ -565,11 +592,5 @@ def build_report_main_content(
       </div>
       {build_technical_summary(technical_view)}
       {build_collapsible("Ver tabla t\u00e9cnica completa", build_technical_table(technical_view, price_history=price_history or {}), compact=True)}
-    </section>
-
-    {bonistas_section}
-    {decision_section}
-    {portfolio_section}
-    {integrity_section}
-  </main>"""
+    </section>"""
 
