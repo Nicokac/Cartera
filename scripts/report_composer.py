@@ -111,6 +111,107 @@ def build_technical_view(technical_overlay: pd.DataFrame) -> pd.DataFrame:
     return technical_view
 
 
+def _extract_bonistas_context(bonistas_bundle: dict[str, object]) -> dict[str, object]:
+    bond_monitor = bonistas_bundle.get("bond_monitor", pd.DataFrame())
+    bond_subfamily_summary = bonistas_bundle.get("bond_subfamily_summary", pd.DataFrame())
+    bond_local_subfamily_summary = bonistas_bundle.get("bond_local_subfamily_summary", pd.DataFrame())
+    bonistas_macro = bonistas_bundle.get("macro_variables", {}) or {}
+    ust_status = str(bonistas_macro.get("ust_status") or "").strip().lower()
+    ust_note = "<span>UST source: <strong>FRED no disponible</strong></span>" if ust_status == "error" else ""
+    show_bonistas = (
+        (isinstance(bond_monitor, pd.DataFrame) and not bond_monitor.empty)
+        or (isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty)
+        or (isinstance(bond_local_subfamily_summary, pd.DataFrame) and not bond_local_subfamily_summary.empty)
+        or bool(bonistas_macro)
+    )
+    return {
+        "bond_monitor": bond_monitor,
+        "bond_subfamily_summary": bond_subfamily_summary,
+        "bond_local_subfamily_summary": bond_local_subfamily_summary,
+        "bonistas_macro": bonistas_macro,
+        "ust_note": ust_note,
+        "show_bonistas": show_bonistas,
+    }
+
+
+def _extract_coverage_context(
+    *,
+    technical_overlay: pd.DataFrame,
+    portfolio_bundle: dict[str, object],
+    finviz_stats: dict[str, object],
+) -> dict[str, object]:
+    tech_metric_cols = [
+        "Dist_SMA20_%",
+        "Dist_SMA50_%",
+        "Dist_SMA200_%",
+        "Dist_EMA20_%",
+        "Dist_EMA50_%",
+        "Dist_52w_High_%",
+        "Dist_52w_Low_%",
+        "RSI_14",
+        "Momentum_20d_%",
+        "Momentum_60d_%",
+        "Vol_20d_Anual_%",
+        "Avg_Volume_20d",
+        "Drawdown_desde_Max3m_%",
+    ]
+    tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
+    df_cedears_len = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
+    df_us = portfolio_bundle.get("df_us", pd.DataFrame())
+    df_us_with_finviz = int((df_us["Ticker_Finviz"].notna()).sum()) if not df_us.empty and "Ticker_Finviz" in df_us.columns else 0
+    tech_total = df_cedears_len + df_us_with_finviz
+    tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
+    tech_enabled = "Si" if tech_covered > 0 else "No"
+    finviz_total = int(finviz_stats.get("cedears_total", tech_total))
+    finviz_fund_covered = int(finviz_stats.get("fundamentals_covered", 0))
+    finviz_ratings_covered = int(finviz_stats.get("ratings_covered", 0))
+    return {
+        "tech_total": tech_total,
+        "tech_covered": tech_covered,
+        "tech_enabled": tech_enabled,
+        "finviz_total": finviz_total,
+        "finviz_fund_covered": finviz_fund_covered,
+        "finviz_ratings_covered": finviz_ratings_covered,
+    }
+
+
+def _extract_decision_context(
+    *,
+    final_decision: pd.DataFrame,
+    propuesta: pd.DataFrame,
+    technical_overlay: pd.DataFrame,
+    market_regime: dict[str, object],
+    asignacion_final: pd.DataFrame,
+) -> dict[str, object]:
+    decision_view, action_col, motive_col = select_decision_view(final_decision, propuesta)
+    action_counts = decision_view[action_col].value_counts(dropna=False).to_dict()
+    neutrales = sum(int(action_counts.get(action_name, 0)) for action_name in NEUTRAL_ACTIONS)
+    technical_view = build_technical_view(technical_overlay)
+    family_summary = build_family_summary(decision_view)
+    changed_actions, changes_direction_summary, buy_focus, sell_focus = build_change_highlights(
+        decision_view,
+        action_col=action_col,
+        motive_col=motive_col,
+    )
+    sizing_preview = build_sizing_preview(asignacion_final)
+    active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
+    return {
+        "decision_view": decision_view,
+        "action_col": action_col,
+        "motive_col": motive_col,
+        "action_counts": action_counts,
+        "neutrales": neutrales,
+        "technical_view": technical_view,
+        "family_summary": family_summary,
+        "changed_actions": changed_actions,
+        "changes_direction_summary": changes_direction_summary,
+        "buy_focus": buy_focus,
+        "sell_focus": sell_focus,
+        "sizing_preview": sizing_preview,
+        "active_flags_label": active_flags_label,
+    }
+
+
 def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     mep_real = float(result["mep_real"])
     generated_at_label = result.get("generated_at_label")
@@ -138,56 +239,19 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
     asignacion_final = sizing_bundle["asignacion_final"].copy()
     resumen_tipos = dashboard_bundle["resumen_tipos"].copy()
     kpis = dashboard_bundle["kpis"]
-    bond_monitor = bonistas_bundle.get("bond_monitor", pd.DataFrame())
-    bond_subfamily_summary = bonistas_bundle.get("bond_subfamily_summary", pd.DataFrame())
-    bond_local_subfamily_summary = bonistas_bundle.get("bond_local_subfamily_summary", pd.DataFrame())
-    bonistas_macro = bonistas_bundle.get("macro_variables", {}) or {}
-    ust_status = str(bonistas_macro.get("ust_status") or "").strip().lower()
-    ust_note = "<span>UST source: <strong>FRED no disponible</strong></span>" if ust_status == "error" else ""
-    show_bonistas = (
-        (isinstance(bond_monitor, pd.DataFrame) and not bond_monitor.empty)
-        or (isinstance(bond_subfamily_summary, pd.DataFrame) and not bond_subfamily_summary.empty)
-        or (isinstance(bond_local_subfamily_summary, pd.DataFrame) and not bond_local_subfamily_summary.empty)
-        or bool(bonistas_macro)
+    bonistas_context = _extract_bonistas_context(bonistas_bundle)
+    coverage_context = _extract_coverage_context(
+        technical_overlay=technical_overlay,
+        portfolio_bundle=portfolio_bundle,
+        finviz_stats=finviz_stats,
     )
-    tech_metric_cols = [
-        "Dist_SMA20_%",
-        "Dist_SMA50_%",
-        "Dist_SMA200_%",
-        "Dist_EMA20_%",
-        "Dist_EMA50_%",
-        "Dist_52w_High_%",
-        "Dist_52w_Low_%",
-        "RSI_14",
-        "Momentum_20d_%",
-        "Momentum_60d_%",
-        "Vol_20d_Anual_%",
-        "Avg_Volume_20d",
-        "Drawdown_desde_Max3m_%",
-    ]
-    tech_available_cols = [col for col in tech_metric_cols if col in technical_overlay.columns]
-    _df_cedears_len = int(len(portfolio_bundle.get("df_cedears", pd.DataFrame())))
-    _df_us = portfolio_bundle.get("df_us", pd.DataFrame())
-    _df_us_with_finviz = int((_df_us["Ticker_Finviz"].notna()).sum()) if not _df_us.empty and "Ticker_Finviz" in _df_us.columns else 0
-    tech_total = _df_cedears_len + _df_us_with_finviz
-    tech_covered = int(technical_overlay[tech_available_cols].notna().any(axis=1).sum()) if tech_available_cols else 0
-    tech_enabled = "Si" if tech_covered > 0 else "No"
-    finviz_total = int(finviz_stats.get("cedears_total", tech_total))
-    finviz_fund_covered = int(finviz_stats.get("fundamentals_covered", 0))
-    finviz_ratings_covered = int(finviz_stats.get("ratings_covered", 0))
-
-    decision_view, action_col, motive_col = select_decision_view(final_decision, propuesta)
-    action_counts = decision_view[action_col].value_counts(dropna=False).to_dict()
-    neutrales = sum(int(action_counts.get(action_name, 0)) for action_name in NEUTRAL_ACTIONS)
-    technical_view = build_technical_view(technical_overlay)
-    family_summary = build_family_summary(decision_view)
-    changed_actions, changes_direction_summary, buy_focus, sell_focus = build_change_highlights(
-        decision_view,
-        action_col=action_col,
-        motive_col=motive_col,
+    decision_context = _extract_decision_context(
+        final_decision=final_decision,
+        propuesta=propuesta,
+        technical_overlay=technical_overlay,
+        market_regime=market_regime,
+        asignacion_final=asignacion_final,
     )
-    sizing_preview = build_sizing_preview(asignacion_final)
-    active_flags_label = ", ".join(str(flag) for flag in (market_regime.get("active_flags", []) or [])) if market_regime else "Ninguno"
     pending_portfolio_rows = build_pending_trade_portfolio_rows(
         operations_bundle.get("recent_trades", pd.DataFrame()) if isinstance(operations_bundle, dict) else pd.DataFrame(),
         current_portfolio=df_total,
@@ -212,33 +276,11 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         "asignacion_final": asignacion_final,
         "resumen_tipos": resumen_tipos,
         "kpis": kpis,
-        "bond_monitor": bond_monitor,
-        "bond_subfamily_summary": bond_subfamily_summary,
-        "bond_local_subfamily_summary": bond_local_subfamily_summary,
-        "bonistas_macro": bonistas_macro,
-        "ust_note": ust_note,
-        "show_bonistas": show_bonistas,
-        "tech_total": tech_total,
-        "tech_covered": tech_covered,
-        "tech_enabled": tech_enabled,
-        "finviz_total": finviz_total,
-        "finviz_fund_covered": finviz_fund_covered,
-        "finviz_ratings_covered": finviz_ratings_covered,
-        "decision_view": decision_view,
-        "action_col": action_col,
-        "motive_col": motive_col,
-        "action_counts": action_counts,
-        "neutrales": neutrales,
-        "technical_view": technical_view,
+        **bonistas_context,
+        **coverage_context,
+        **decision_context,
         "price_history": price_history,
         "pending_portfolio_rows": pending_portfolio_rows,
-        "family_summary": family_summary,
-        "changed_actions": changed_actions,
-        "changes_direction_summary": changes_direction_summary,
-        "buy_focus": buy_focus,
-        "sell_focus": sell_focus,
-        "sizing_preview": sizing_preview,
-        "active_flags_label": active_flags_label,
     }
 
 

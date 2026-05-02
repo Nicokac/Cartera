@@ -82,6 +82,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_composer.py` incorpora `TypedDict` (`RenderSections`, `ReportBodyInputs`) para endurecer contratos internos
   - `build_render_sections(...)` y `compose_report_body_inputs(...)` pasan a devolver tipos explícitos
   - sin cambios funcionales/visuales (validado con suite de render)
+- refactor de complejidad en construccion de contexto de render:
+  - `scripts/report_composer.py` extrae sub-builders privados (`_extract_bonistas_context`, `_extract_coverage_context`, `_extract_decision_context`)
+  - `prepare_render_context(...)` reduce tamaño y acoplamiento, manteniendo contrato de salida
+  - sin cambios funcionales/visuales (validado con suite de render)
 
 ## [0.5.3] - 2026-05-01
 
