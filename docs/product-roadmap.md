@@ -118,6 +118,10 @@ Avance UI post-cierre:
   - `scripts/report_layout_sections.py` prioriza anchors de modulo (`#module-dashboard`, `#module-analisis`, `#module-mercado`, `#module-decision`, `#module-cartera`, `#module-riesgo`)
   - se mantiene compatibilidad con anchors historicos de seccion (incluye `#bonistas` para detalle de bonos y contrato de tests)
   - mismo comportamiento sticky/active en navegacion
+- 2026-05-01: ajuste P1 de densidad en Dashboard Ejecutivo:
+  - `scripts/report_layout_main.py` agrega bloque de accesos rapidos (`Decisión`, `Cartera`, `Riesgo`) en la cabecera del modulo
+  - el bloque completo de `Cambios` pasa a capa colapsable en dashboard (`Ver cambios y cobertura`) para reducir ruido inicial sin perder informacion
+  - `static/styles.css` incorpora estilos base de `dashboard-pulse`
 - validacion aplicada:
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - 32 tests OK

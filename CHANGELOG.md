@@ -108,6 +108,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `scripts/report_layout_sections.py` actualiza `quick-nav` para priorizar modulos del layout
   - conserva anclas de compatibilidad por seccion (incluida `#bonistas`) para no romper flujo existente ni tests
   - sin regresion funcional (suite de render en verde)
+- ajuste P1 de densidad en Dashboard Ejecutivo:
+  - `scripts/report_layout_main.py` suma bloque de accesos rapidos a modulos clave (`Decisión`, `Cartera`, `Riesgo`)
+  - `Cambios` se mantiene completo pero pasa a bloque colapsable en la portada (`Ver cambios y cobertura`)
+  - `static/styles.css` agrega estilos de `dashboard-pulse`
 
 ## [0.5.3] - 2026-05-01
 
