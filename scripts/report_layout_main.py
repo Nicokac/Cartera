@@ -60,14 +60,18 @@ def build_report_main_content(
         <article class=\"market-item\"><strong>Técnico</strong><span>Tendencia, momentum y cobertura</span></article>
         <article class=\"market-item\"><strong>Bonos y macro</strong><span>Contexto local y monitoreo de renta fija</span></article>
       </section>
-      {build_technical_panel(
-        tech_enabled=tech_enabled,
-        tech_covered=tech_covered,
-        tech_total=tech_total,
-        technical_view=technical_view,
-        price_history=price_history,
-      )}
-      {build_collapsible("Ver bonos y contexto macro", bonistas_section, compact=True)}
+      <section class=\"module-subblock\" id=\"module-tecnico\">
+        {build_technical_panel(
+          tech_enabled=tech_enabled,
+          tech_covered=tech_covered,
+          tech_total=tech_total,
+          technical_view=technical_view,
+          price_history=price_history,
+        )}
+      </section>
+      <section class=\"module-subblock\" id=\"module-bonos\">
+        {build_collapsible("Ver bonos y contexto macro", bonistas_section, compact=True)}
+      </section>
     </section>
 
     <section class=\"module-block module-decision\" id=\"module-decision\">

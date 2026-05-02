@@ -214,7 +214,7 @@ def build_changes_section(
 
 
 def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
-    bonistas_nav = '<a href="#module-mercado">Bonos</a><a href="#bonistas">Bonos detalle</a>' if show_bonistas else ""
+    bonistas_nav = '<a href="#module-bonos">Bonos y Macro</a><a href="#bonistas">Bonos detalle</a>' if show_bonistas else ""
     operations_detail_nav = '<a href="#operaciones">Operaciones detalle</a>' if show_operations else ""
     prediction_detail_nav = '<a href="#prediccion">Predicción detalle</a>' if show_prediction else ""
     return f"""
@@ -223,6 +223,7 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
       <a href="#module-analisis">Operaciones</a>
       <a href="#module-prediccion">Predicción</a>
       <a href="#module-mercado">Mercado</a>
+      <a href="#module-tecnico">Técnico</a>
       <a href="#module-decision">Decisi\u00f3n</a>
       <a href="#module-cartera">Cartera</a>
       <a href="#module-riesgo">Riesgo</a>

@@ -149,6 +149,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - alineación de quick-nav con modularización de análisis:
   - `scripts/report_layout_sections.py` actualiza navegación principal para apuntar a `Operaciones` y `Predicción` como módulos separados
   - mantiene links de compatibilidad a anchors internos (`Operaciones detalle`, `Predicción detalle`)
+- avance de modularización en Mercado y Contexto:
+  - `scripts/report_layout_main.py` separa el bloque en submódulos explícitos `Técnico` (`#module-tecnico`) y `Bonos y Macro` (`#module-bonos`)
+  - `scripts/report_layout_sections.py` agrega navegación rápida directa a ambos submódulos
+  - `static/styles.css` agrega estilos de espaciado para subbloques (`module-subblock`)
 
 ## [0.5.3] - 2026-05-01
 

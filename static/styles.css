@@ -317,6 +317,10 @@ section.grid {
   padding-top: 4px;
 }
 
+.module-subblock + .module-subblock {
+  margin-top: 10px;
+}
+
 .dashboard-pulse {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

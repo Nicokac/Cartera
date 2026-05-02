@@ -192,6 +192,18 @@ Avance UI post-cierre:
 - pruebas aplicadas en este cambio (si aplica):
   - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
   - generar `reports/real-report.html` y validar que quick-nav lleve correctamente a los dos mÃ³dulos nuevos y mantenga acceso al detalle interno.
+- 2026-05-01: avance de modularizaciÃ³n interna en `Mercado y Contexto`:
+  - `scripts/report_layout_main.py` separa el mÃ³dulo en dos subbloques explÃ­citos:
+    - `#module-tecnico` para overlay tÃ©cnico
+    - `#module-bonos` para bonos y macro (detalle colapsable)
+  - `scripts/report_layout_sections.py` actualiza quick-nav para navegar tambiÃ©n a `TÃ©cnico` y `Bonos y Macro`
+  - `static/styles.css` agrega espaciado entre subbloques de mÃ³dulo (`module-subblock`)
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - generar `reports/real-report.html` y validar navegaciÃ³n:
+    - `Mercado` -> mÃ³dulo general
+    - `TÃ©cnico` -> subbloque tÃ©cnico
+    - `Bonos y Macro` -> subbloque de bonos + detalle.
 
 Ajustes puntuales detectados al validar contra el repo actual al inicio del trabajo:
 
