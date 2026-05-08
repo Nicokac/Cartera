@@ -84,7 +84,20 @@ Avance UI post-cierre:
     - quick-nav usable horizontalmente,
     - dashboard legible sin solapamientos,
     - cards y paneles con buena densidad,
-    - sin overflow horizontal global.
+  - sin overflow horizontal global.
+
+- 2026-05-08: embellecimiento visual Fase UI-1 (foco e interaccion de controles):
+  - `static/styles.css` agrega refinamiento de interaccion en:
+    - `filters input/select` (hover/focus-visible),
+    - `th.sortable` (hover visual en encabezados ordenables),
+    - foco global coherente usando `--focus-ring`.
+  - objetivo: mejorar legibilidad operativa y navegacion por teclado sin cambiar comportamiento.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - en `Decisión`, validar foco visible en buscador/selects.
+  - validar hover y orden en headers sortables de la tabla.
+  - navegar por teclado (`Tab`) y confirmar foco coherente en botones/inputs/summary.
 
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).

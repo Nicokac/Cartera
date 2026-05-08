@@ -674,6 +674,19 @@ section.grid {
   background: #fff;
   color: var(--ink);
   font: 500 14px/1 var(--sans);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.filters input:hover,
+.filters select:hover {
+  border-color: rgba(15, 108, 92, 0.34);
+}
+
+.filters input:focus-visible,
+.filters select:focus-visible {
+  border-color: rgba(15, 108, 92, 0.42);
+  box-shadow: 0 0 0 3px rgba(15, 108, 92, 0.14);
+  background: #fffdfa;
 }
 
 .meta {
@@ -1467,6 +1480,12 @@ tbody tr:hover td:first-child {
 th.sortable {
   cursor: pointer;
   user-select: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+th.sortable:hover {
+  color: #31464e;
+  background: #f3eee5;
 }
 
 th.sortable::after {
@@ -1497,7 +1516,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 2px solid rgba(15, 108, 92, 0.55);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
