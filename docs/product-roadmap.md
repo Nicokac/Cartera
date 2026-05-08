@@ -139,6 +139,18 @@ Avance UI post-cierre:
   - revisar que bloques `Sin datos` sean visibles pero no invasivos.
   - confirmar que no cambia contenido ni reglas de negocio.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (ergonomía de navegación):
+  - `static/styles.css` agrega ergonomía de navegación para shell modular:
+    - `scroll-margin-top` en módulos/subbloques/paneles para convivir mejor con quick-nav sticky.
+    - animación suave de entrada en vista activa (`report-view.is-active`) con fallback desactivado en `prefers-reduced-motion`.
+  - sin cambios funcionales en navegación ni en estructura de contenido.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - navegar entre vistas y validar transición visual suave sin parpadeos.
+  - abrir enlaces internos/anchors y confirmar que los títulos no queden tapados por quick-nav.
+  - validar que con `reduced-motion` la animación no se aplique.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.
