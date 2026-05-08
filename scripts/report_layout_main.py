@@ -184,18 +184,8 @@ def build_dashboard_module(
     integrity_status: str = "ok",
     lede: str = "",
 ) -> str:
-    time_part = str(generated_at_label or "")
-    if " " in time_part:
-        time_part = time_part.split(" ", 1)[1]
-    integrity_label = {"ok": "Integridad OK", "warn": "Integridad WARN", "error": "Integridad ERROR"}.get(integrity_status, "Integridad OK")
-    integrity_class = f"integrity-{integrity_status}"
     return f"""<section class=\"module-block report-view is-active module-dashboard\" id=\"module-dashboard\" data-view=\"dashboard\">
     <div class=\"dashboard-hero\">
-      <div class=\"dashboard-hero-meta\">
-        <span class=\"dashboard-run-label\">Real Run</span>
-        <span class=\"dashboard-run-time\">{esc_text(time_part)}</span>
-        <span class=\"dashboard-integrity-badge {integrity_class}\">{integrity_label}</span>
-      </div>
       <div class=\"dashboard-hero-totals\">
         <span class=\"dashboard-total-ars\">{fmt_ars(total_ars)}</span>
         <span class=\"dashboard-total-sep\">·</span>
@@ -252,4 +242,3 @@ def build_prediction_module(*, prediction_section: str) -> str:
       {prediction_block}
     </section>
     </section>"""
-

@@ -27,6 +27,18 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 
 Avance UI post-cierre:
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (ronda de refinamiento desktop):
+  - `scripts/report_layout_main.py`: dashboard hero simplificado para evitar duplicación con el hero principal.
+  - `scripts/report_layout_sections.py`: barra de integridad sin timestamp duplicado.
+  - `static/styles.css`: mejor contraste de valores en `cards-secondary`, mayor identidad visual del estado `neutral` en la distribución de acciones y ajuste de lectura de la columna `Motivo` en tabla de decisión.
+  - `static/styles.css`: badges de acción con control de ancho para textos largos.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - validar que `Dashboard` no duplique etiqueta/estado/hora en hero interno.
+  - validar que en `Decisión` la columna `Motivo` sea más legible en viewport desktop estándar.
+  - validar que en `Resumen por tipo` los valores de cards secundarias mantengan lectura rápida.
+
 - 2026-05-08: embellecimiento visual Fase UI-1 (batch dashboard + módulos desktop):
   - `static/styles.css`: ajustes de jerarquía tipográfica en labels/cabeceras, contraste de estado activo en navegación, separación de filas KPI, contraste de barra de integridad, semántica visual de pills de decisión, interacción más clara en colapsables y cabecera de tabla de sizing.
   - `scripts/report_layout_main.py`: hero con bloque lateral (estado de integridad y hora de corrida) para equilibrar composición en desktop.

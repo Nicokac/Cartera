@@ -40,9 +40,6 @@ def build_integrity_strip(
             status = "warn"
 
     status_label = {"ok": "OK", "warn": "WARN", "error": "ERROR"}[status]
-    time_part = str(generated_at_label or "")
-    if " " in time_part:
-        time_part = time_part.split(" ", 1)[1]
     warn_part = (
         f' &middot; <span class="integrity-warn-count">{n_warn} alerta{"s" if n_warn != 1 else ""}</span>'
         if n_warn > 0
@@ -53,7 +50,6 @@ def build_integrity_strip(
         f'<span class="integrity-dot"></span>'
         f'<span>Integridad: <strong>{html.escape(status_label)}</strong>'
         f" &middot; {n_checks} checks{warn_part}</span>"
-        f'<span class="integrity-time">{html.escape(time_part)}</span>'
         f"</div>"
     )
 

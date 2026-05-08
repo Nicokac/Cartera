@@ -8,6 +8,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Fixed
 
+- embellecimiento UI fase 1 (ronda de refinamiento desktop):
+  - `scripts/report_layout_main.py`: simplificación de `dashboard-hero` para evitar duplicación visual con el hero principal (se mantiene foco en totales).
+  - `scripts/report_layout_sections.py`: barra de integridad sin timestamp duplicado (se conserva estado + cantidad de checks/alertas).
+  - `static/styles.css`: mejor legibilidad de `cards-secondary` (valores con mayor contraste), mayor identidad del estado neutral en distribución de acciones y ajuste de columna `Motivo` en `#decision-table` para reducir truncado.
+  - `static/styles.css`: control de ancho en badges de decisión para evitar pills desbalanceadas en textos largos.
 - embellecimiento UI fase 1 (batch visual dashboard + módulos desktop):
   - `static/styles.css`: mejoras de jerarquía tipográfica, contraste de navegación activa, separación visual de filas KPI, mayor contraste de barra de integridad, refinamiento de colapsables y cabeceras de tabla de sizing.
   - `scripts/report_layout_main.py`: hero con bloque lateral de estado (`Integridad`) y hora para aprovechar mejor el ancho en desktop.
