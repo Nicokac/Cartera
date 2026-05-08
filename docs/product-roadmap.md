@@ -251,6 +251,21 @@ Avance UI post-cierre:
   - revisar `Decisión`, `Predicción`, `Cartera` y `Bonos` para confirmar legibilidad de headers/celdas.
   - confirmar que sticky headers y primera columna sticky siguen estables.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (foco desktop/browser):
+  - `static/styles.css` amplía el ancho útil del contenedor principal para escritorio (`1180 -> 1320`) y mejora la densidad visual de información en pantallas grandes.
+  - `static/styles.css` ajusta jerarquía/ritmo de shell desktop:
+    - `quick-nav` más compacta y menos invasiva,
+    - `module-head` más marcado para separar módulos,
+    - `panel/cards/grid` con mejor balance entre aire y capacidad de lectura,
+    - `focus-columns` más apretadas para reducir scroll vertical innecesario.
+  - sin cambios funcionales de navegación, filtros ni render.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - abrir `reports/real-report.html` en desktop (>=1440px) y validar que se aproveche mejor el ancho sin romper composición.
+  - recorrer `Dashboard`, `Decisión`, `Cartera` y `Riesgo` para confirmar mejor separación visual de módulos.
+  - validar que quick-nav siga estable (sticky, foco y estado activo) durante scroll largo.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles

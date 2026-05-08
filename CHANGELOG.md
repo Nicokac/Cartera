@@ -69,6 +69,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: pistas visuales bilaterales de scroll horizontal en `table-wrap` para pantallas chicas.
   - `static/styles.css`: ajuste tipográfico de `th/td` bajo `max-width: 860px` para mantener legibilidad en tablas densas.
   - sin cambios funcionales en datos ni lógica de render.
+- embellecimiento UI fase 1 con foco desktop/browser:
+  - `static/styles.css`: expansión del ancho útil de página (`1180 -> 1320`) para mejorar densidad informativa en monitores de escritorio.
+  - `static/styles.css`: ajuste de jerarquía visual en shell desktop (`quick-nav`, `module-head`, `panel`, `cards`, `grid`, `focus-columns`) para escaneo más claro entre módulos.
+  - sin cambios funcionales en renderer ni contratos de salida.
 
 ## [0.5.4] - 2026-05-01
 

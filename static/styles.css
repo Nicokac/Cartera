@@ -45,9 +45,9 @@ body {
 }
 
 .page {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1320px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 32px 0 48px;
+  padding: 30px 0 52px;
 }
 
 .hero {
@@ -91,14 +91,14 @@ body {
 .quick-nav {
   display: flex;
   flex-wrap: nowrap;
-  gap: 10px;
+  gap: 8px;
   margin: 18px 0 0;
   position: sticky;
   top: 10px;
   z-index: 20;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid rgba(15, 108, 92, 0.18);
-  border-radius: var(--radius-pill);
+  border-radius: 14px;
   background: var(--surface-soft);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(10px);
@@ -189,8 +189,8 @@ body {
 .cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin: 20px 0;
+  gap: 12px;
+  margin: 18px 0;
 }
 
 .cards-secondary {
@@ -242,7 +242,7 @@ section.grid {
 }
 
 .card {
-  padding: 18px;
+  padding: 16px;
 }
 
 .cards-primary .card {
@@ -261,7 +261,7 @@ section.grid {
 }
 
 .card strong {
-  font-size: 24px;
+  font-size: 23px;
   line-height: 1.1;
   color: var(--kpi-value);
 }
@@ -341,8 +341,8 @@ section.grid {
 
 .grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 16px;
 }
 
 .spotlight-grid {
@@ -350,12 +350,12 @@ section.grid {
 }
 
 .panel {
-  padding: 20px;
-  margin-top: 16px;
+  padding: 22px;
+  margin-top: 14px;
 }
 
 .module-block {
-  margin-top: 28px;
+  margin-top: 30px;
   padding-top: 2px;
 }
 
@@ -368,9 +368,9 @@ section.grid {
 }
 
 .module-head {
-  margin: 0 0 12px;
-  padding: 0 6px 10px;
-  border-bottom: 1px solid rgba(215, 208, 198, 0.62);
+  margin: 0 0 14px;
+  padding: 0 8px 12px;
+  border-bottom: 1px solid rgba(215, 208, 198, 0.82);
 }
 
 .module-kicker {
@@ -383,7 +383,7 @@ section.grid {
 
 .module-head h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   letter-spacing: 0.01em;
   color: #1e2f36;
 }
@@ -657,7 +657,7 @@ section.grid {
 
 .panel h2 {
   margin: 0 0 14px;
-  font-size: 18px;
+  font-size: 19px;
   letter-spacing: 0.01em;
 }
 
@@ -674,7 +674,7 @@ section.grid {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   padding: 0 0 10px;
   border-bottom: 1px solid rgba(215, 208, 198, 0.76);
 }
@@ -790,7 +790,7 @@ section.grid {
 .focus-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 14px;
   align-items: start;
 }
 
