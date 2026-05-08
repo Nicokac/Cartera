@@ -8,6 +8,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Fixed
 
+- embellecimiento UI fase 1 en shell visual del reporte:
+  - `static/styles.css`: refinamiento de `hero`, quick-nav por vistas, cards KPI primarios y headers de modulo para mejorar jerarquia visual y contraste.
+  - agregado `focus-visible` en botones de navegacion para navegacion por teclado mas clara.
+  - sin cambios funcionales en renderer, navegación o contratos de datos.
 - cierre documental de refactor UI previo a embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
   - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.

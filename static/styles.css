@@ -24,6 +24,11 @@
   --bad-bg: rgba(177, 57, 45, 0.10);
   --neutral-text: #51616c;
   --neutral-bg: rgba(86, 98, 110, 0.10);
+  --surface-soft: rgba(255, 253, 248, 0.78);
+  --surface-strong: rgba(255, 253, 248, 0.92);
+  --focus-ring: rgba(15, 108, 92, 0.28);
+  --kpi-value: #132b31;
+  --kpi-label: #48606a;
 }
 
 * {
@@ -46,11 +51,13 @@ body {
 }
 
 .hero {
-  background: linear-gradient(135deg, rgba(15, 108, 92, 0.12), rgba(255, 253, 248, 0.95));
-  border: 1px solid rgba(15, 108, 92, 0.14);
+  background:
+    radial-gradient(circle at 86% 18%, rgba(15, 108, 92, 0.16), transparent 38%),
+    linear-gradient(138deg, rgba(15, 108, 92, 0.13), rgba(255, 253, 248, 0.96));
+  border: 1px solid rgba(15, 108, 92, 0.18);
   border-radius: calc(var(--radius) + 6px);
-  box-shadow: var(--shadow);
-  padding: 28px;
+  box-shadow: var(--shadow-strong);
+  padding: 30px;
 }
 
 .eyebrow {
@@ -88,10 +95,10 @@ body {
   position: sticky;
   top: 10px;
   z-index: 20;
-  padding: 10px 8px;
-  border: 1px solid rgba(15, 108, 92, 0.14);
+  padding: 10px;
+  border: 1px solid rgba(15, 108, 92, 0.18);
   border-radius: var(--radius-pill);
-  background: rgba(255, 253, 248, 0.72);
+  background: var(--surface-soft);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(10px);
   overflow-x: auto;
@@ -239,12 +246,13 @@ section.grid {
 
 .cards-primary .card {
   border-top: 3px solid rgba(15, 108, 92, 0.35);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 253, 248, 0.92));
 }
 
 .card .label {
   display: block;
   margin-bottom: 10px;
-  color: #4d5b64;
+  color: var(--kpi-label);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -254,6 +262,7 @@ section.grid {
 .card strong {
   font-size: 24px;
   line-height: 1.1;
+  color: var(--kpi-value);
 }
 
 .card.compact strong {
@@ -340,7 +349,8 @@ section.grid {
 
 .module-head {
   margin: 0 0 12px;
-  padding: 0 4px;
+  padding: 0 4px 10px;
+  border-bottom: 1px solid rgba(215, 208, 198, 0.62);
 }
 
 .module-kicker {
@@ -355,6 +365,7 @@ section.grid {
   margin: 0;
   font-size: 20px;
   letter-spacing: 0.01em;
+  color: #1e2f36;
 }
 
 .module-dashboard {
@@ -365,11 +376,11 @@ section.grid {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 12px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, rgba(15, 108, 92, 0.06) 0%, rgba(255, 255, 255, 0.5) 100%);
-  border: 1px solid rgba(15, 108, 92, 0.14);
+  background: linear-gradient(135deg, rgba(15, 108, 92, 0.10) 0%, rgba(255, 255, 255, 0.64) 100%);
+  border: 1px solid rgba(15, 108, 92, 0.20);
 }
 
 .dashboard-hero-meta {
@@ -1486,39 +1497,49 @@ body.view-all .report-view {
 }
 
 [data-view-nav] button {
-  background: none;
-  border: 1px solid transparent;
+  background: var(--surface-strong);
+  border: 1px solid rgba(15, 108, 92, 0.20);
   border-radius: var(--radius-pill);
-  padding: 6px 14px;
+  padding: 8px 14px;
   font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
   white-space: nowrap;
 }
 
 [data-view-nav] button:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: rgba(15, 108, 92, 0.10);
+  border-color: rgba(15, 108, 92, 0.34);
 }
 
 [data-view-nav] button.active {
   background: var(--accent);
-  color: #fff;
-  border-color: transparent;
+  color: #fffdf8;
+  border-color: var(--accent);
+  box-shadow: 0 8px 18px rgba(15, 108, 92, 0.18);
+}
+
+[data-view-nav] button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 [data-view-nav] button[data-target-view="all"] {
-  color: var(--muted);
-  border-color: var(--line);
+  color: #55646c;
+  border-style: dashed;
+  border-color: rgba(15, 108, 92, 0.20);
+  background: rgba(255, 253, 248, 0.70);
 }
 
 [data-view-nav] button[data-target-view="all"].active {
   background: var(--panel);
   color: var(--ink);
   border-color: var(--line);
+  box-shadow: none;
 }
 
 /* Print styles */
@@ -1650,5 +1671,3 @@ body.view-all .report-view {
     scroll-behavior: auto !important;
   }
 }
-
-

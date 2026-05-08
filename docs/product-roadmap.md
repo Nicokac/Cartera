@@ -27,6 +27,20 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 
 Avance UI post-cierre:
 
+- 2026-05-08: inicio de embellecimiento visual Fase UI-1 (Dashboard visual system):
+  - `static/styles.css` incorpora ajuste de tokens de superficie/foco/KPI y mejora jerarquia visual en:
+    - `hero` (profundidad y contraste),
+    - `quick-nav` por vistas (botones, hover/active/focus-visible),
+    - `cards` de KPIs primarios (label/value),
+    - encabezados de modulo (`module-head`) y `dashboard-hero`.
+  - sin cambios de markup ni logica; foco en presentacion y legibilidad.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - abrir `reports/real-report.html` y validar mejora visual de portada/KPIs/quick-nav sin cambios funcionales.
+  - navegar entre vistas y confirmar estado activo/foco visible en botones de quick-nav.
+  - verificar responsive basico en ancho reducido (sin overflow horizontal global nuevo).
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.
