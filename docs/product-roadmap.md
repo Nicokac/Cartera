@@ -99,6 +99,19 @@ Avance UI post-cierre:
   - validar hover y orden en headers sortables de la tabla.
   - navegar por teclado (`Tab`) y confirmar foco coherente en botones/inputs/summary.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (bloques ejecutivos):
+  - `static/styles.css` refuerza jerarquia visual en:
+    - `action-card` (estados buy/sell/fund/neutral con contraste y hover),
+    - `dashboard-integrity-badge` (legibilidad de estado),
+    - `prediction-legend` e `integrity-strip` (contenedores mas claros y consistentes).
+  - sin cambios en datos/render; solo pulido visual de lectura ejecutiva.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - validar en `Dashboard` y `Cambios` que los bloques ejecutivos tengan mejor contraste/jerarquia.
+  - comprobar que estados visuales de cards y badges sean claros en desktop y mobile.
+  - confirmar que no cambia contenido ni orden funcional de secciones.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.

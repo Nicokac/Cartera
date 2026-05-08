@@ -297,6 +297,12 @@ section.grid {
   border-radius: var(--radius);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.action-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(29, 42, 47, 0.12);
 }
 
 .action-card span {
@@ -313,19 +319,23 @@ section.grid {
 }
 
 .action-card.buy {
-  background: linear-gradient(135deg, rgba(18, 132, 94, 0.12), rgba(255, 253, 248, 0.96));
+  background: linear-gradient(135deg, rgba(18, 132, 94, 0.14), rgba(255, 253, 248, 0.96));
+  border-color: rgba(18, 132, 94, 0.26);
 }
 
 .action-card.sell {
-  background: linear-gradient(135deg, rgba(177, 57, 45, 0.12), rgba(255, 253, 248, 0.96));
+  background: linear-gradient(135deg, rgba(177, 57, 45, 0.14), rgba(255, 253, 248, 0.96));
+  border-color: rgba(177, 57, 45, 0.26);
 }
 
 .action-card.fund {
-  background: linear-gradient(135deg, rgba(176, 126, 15, 0.14), rgba(255, 253, 248, 0.96));
+  background: linear-gradient(135deg, rgba(176, 126, 15, 0.16), rgba(255, 253, 248, 0.96));
+  border-color: rgba(176, 126, 15, 0.26);
 }
 
 .action-card.neutral {
-  background: linear-gradient(135deg, rgba(86, 98, 110, 0.12), rgba(255, 253, 248, 0.96));
+  background: linear-gradient(135deg, rgba(86, 98, 110, 0.14), rgba(255, 253, 248, 0.96));
+  border-color: rgba(86, 98, 110, 0.22);
 }
 
 .grid {
@@ -407,8 +417,8 @@ section.grid {
 
 .dashboard-integrity-badge {
   font: 700 11px/1 var(--mono);
-  padding: 2px 8px;
-  border-radius: 3px;
+  padding: 4px 9px;
+  border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -1175,9 +1185,10 @@ tbody tr:hover td:first-child {
   gap: 8px;
   margin: 0 0 14px;
   padding: 12px 14px;
-  border: 1px solid rgba(15, 108, 92, 0.12);
+  border: 1px solid rgba(15, 108, 92, 0.18);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(255, 255, 255, 0.70);
+  box-shadow: 0 4px 14px rgba(29, 42, 47, 0.05);
 }
 
 .signal-legend,
@@ -1202,10 +1213,11 @@ tbody tr:hover td:first-child {
   align-items: center;
   gap: 10px;
   margin: 12px 0 0;
-  padding: 8px 16px;
+  padding: 9px 16px;
   border-radius: 999px;
   font: 600 12px/1 var(--mono);
   border: 1px solid transparent;
+  box-shadow: 0 6px 14px rgba(29, 42, 47, 0.05);
 }
 
 .integrity-ok {

@@ -26,6 +26,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - embellecimiento UI fase 1 en interaccion visual:
   - `static/styles.css`: mejora de `hover/focus-visible` en filtros (`input/select`), encabezados sortables y foco global consistente.
   - sin cambios funcionales en filtros/sort ni en contratos de render.
+- embellecimiento UI fase 1 en bloques ejecutivos:
+  - `static/styles.css`: refinamiento visual de `action-card`, `dashboard-integrity-badge`, `prediction-legend` e `integrity-strip` para reforzar contraste y jerarquia de lectura.
+  - sin cambios funcionales en renderer ni datos mostrados.
 - cierre documental de refactor UI previo a embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
   - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.
