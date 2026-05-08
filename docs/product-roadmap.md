@@ -151,6 +151,19 @@ Avance UI post-cierre:
   - abrir enlaces internos/anchors y confirmar que los títulos no queden tapados por quick-nav.
   - validar que con `reduced-motion` la animación no se aplique.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (microtipografía):
+  - `static/styles.css` refina lectura textual en bloques narrativos y metadata:
+    - `summary-lede` con mejor ritmo de línea,
+    - `meta` y `meta strong` con jerarquía textual más clara,
+    - `focus-detail` y `muted-inline` con `line-height`/`text-wrap` optimizados.
+  - sin cambios de datos, estructura ni interacción.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - revisar narrativa en `Panorama`, `Cambios`, `Predicción` y `Riesgo` buscando mejor legibilidad.
+  - validar que textos largos no quiebren de forma brusca.
+  - confirmar que no hay cambios funcionales en filtros, navegación ni colapsables.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.

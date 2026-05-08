@@ -38,6 +38,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - embellecimiento UI fase 1 en ergonomia de navegacion:
   - `static/styles.css`: `scroll-margin-top` para secciones ancladas y transición visual de vista activa con respeto a `prefers-reduced-motion`.
   - mejora experiencia de navegación en shell modular sin cambios funcionales.
+- embellecimiento UI fase 1 en microtipografia:
+  - `static/styles.css`: ajuste fino de lectura en `summary-lede`, `meta`, `focus-detail` y `muted-inline` para mejorar escaneo narrativo.
+  - sin cambios funcionales en renderer, navegación o estructura de datos.
 - cierre documental de refactor UI previo a embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
   - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.

@@ -83,8 +83,9 @@ body {
 .summary-lede {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.58;
+  letter-spacing: 0.005em;
 }
 
 .quick-nav {
@@ -714,7 +715,13 @@ section.grid {
   gap: 12px 18px;
   margin-bottom: 14px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.meta strong {
+  color: #23333a;
+  font-weight: 700;
 }
 
 .change-direction-meta {
@@ -836,7 +843,8 @@ section.grid {
   margin-top: 6px;
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.52;
+  text-wrap: pretty;
 }
 
 .focus-item.tech-up .focus-title {
@@ -1044,7 +1052,8 @@ tbody tr:hover {
   margin-top: 4px;
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.35;
+  line-height: 1.45;
+  text-wrap: pretty;
 }
 
 #decision-table th,
