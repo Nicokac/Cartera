@@ -27,6 +27,17 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 
 Avance UI post-cierre:
 
+- 2026-05-08: unificacion final de interacciones de vista y export en cliente:
+  - `static/report-ui.js` corrige textos mojibake en controles (`✓ Copiado`, `Mostrar más columnas`).
+  - se ajusta la descarga CSV de quick-nav para decodificar entidades HTML antes de generar el blob, manteniendo sanitizacion en el render y contenido correcto en el archivo descargado.
+  - resultado: navegacion por vistas y acciones del shell quedan consistentes para cierre de refactor previo a embellecimiento.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - en `Decisión > Sizing`, usar `Copiar tabla` y validar feedback `✓ Copiado`.
+  - en `Técnico`, alternar `Mostrar más columnas` / `Ocultar columnas secundarias`.
+  - descargar `↓ CSV` y verificar que campos con caracteres especiales/tag-like no salgan escapados como `&lt;...&gt;` en el archivo final.
+
 - 2026-05-08: saneamiento de export CSV en quick-nav y cierre de mojibake residual en cartera:
   - `scripts/report_layout_sections.py` ahora escapa `csv_data` al incrustarlo en `#report-csv-data` para evitar inyeccion de HTML en el source del reporte.
   - mismo archivo normaliza texto visible en cartera (`Mayor posición`, `consolidación`) y separador de principal posicion (`·`).

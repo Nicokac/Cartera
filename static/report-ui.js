@@ -1,4 +1,4 @@
-const tickerInput = document.getElementById('ticker-filter');
+﻿const tickerInput = document.getElementById('ticker-filter');
 const actionSelect = document.getElementById('action-filter');
 const typeSelect = document.getElementById('type-filter');
 const rows = Array.from(document.querySelectorAll('#decision-table tbody tr'));
@@ -150,11 +150,17 @@ if (quickNav) {
 
 const csvDownloadBtn = document.querySelector('[data-csv-download]');
 if (csvDownloadBtn) {
+  const decodeHtmlEntities = (input) => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = input;
+    return textarea.value;
+  };
   csvDownloadBtn.addEventListener('click', () => {
     const filename = csvDownloadBtn.dataset.csvDownload || 'cartera.csv';
     const csvEl = document.getElementById('report-csv-data');
     if (!csvEl) return;
-    const blob = new Blob([csvEl.textContent], { type: 'text/csv;charset=utf-8;' });
+    const csvText = decodeHtmlEntities(csvEl.textContent || '');
+    const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -177,3 +183,4 @@ document.querySelectorAll('details').forEach((det) => {
     localStorage.setItem(key, det.open ? 'open' : 'closed');
   });
 });
+

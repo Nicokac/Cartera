@@ -8,6 +8,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Fixed
 
+- interacciones de cliente en reporte (`static/report-ui.js`):
+  - correccion de textos mojibake en feedbacks UI (`✓ Copiado`, `Mostrar más columnas`).
+  - descarga CSV (`↓ CSV`) ahora decodifica entidades HTML antes de construir el archivo, manteniendo el hardening de sanitizacion sin degradar el contenido exportado.
 - renderer de reporte: sanitizacion del payload CSV embebido en quick-nav
   - `scripts/report_layout_sections.py` escapa `csv_data` en `#report-csv-data` para evitar tags HTML crudos dentro del documento generado.
   - se restablece el test de seguridad `test_render_report_escapes_untrusted_decision_and_macro_text`.
