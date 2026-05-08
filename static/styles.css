@@ -1013,6 +1013,7 @@ td {
   vertical-align: top;
   font-size: 13px;
   line-height: 1.35;
+  font-variant-numeric: tabular-nums;
 }
 
 th {
@@ -1517,6 +1518,40 @@ tbody tr:hover td:first-child {
 
 .signal-table tbody tr:hover .conviction-chip {
   border-color: rgba(15, 108, 92, 0.32);
+}
+
+@media (min-width: 1200px) {
+  .quick-nav {
+    top: 12px;
+    border-color: rgba(15, 108, 92, 0.24);
+    background: rgba(255, 253, 248, 0.9);
+    box-shadow: 0 12px 24px rgba(29, 42, 47, 0.1);
+  }
+
+  [data-view-nav] button {
+    padding: 8px 13px;
+    font-size: 11px;
+  }
+
+  .module-head h2 {
+    font-size: 23px;
+  }
+
+  .panel-head {
+    align-items: flex-end;
+  }
+
+  .cards-primary .card strong {
+    letter-spacing: -0.015em;
+  }
+
+  .table-wrap {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  th {
+    background: linear-gradient(180deg, #f8f4ec 0%, #f3eee5 100%);
+  }
 }
 
 .copy-btn {

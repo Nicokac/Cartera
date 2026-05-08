@@ -81,6 +81,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: separación visual de columnas críticas en `#decision-table` y `signal-table` mediante divisores suaves.
   - `static/styles.css`: hover de fila más claro y refuerzo de primera columna sticky para mejorar seguimiento horizontal.
   - sin cambios funcionales en render, datos ni comportamiento interactivo.
+- embellecimiento UI fase 1 (paquete consolidado desktop):
+  - `static/styles.css`: ajuste simultáneo de shell de escritorio (`quick-nav`, jerarquía de `module-head`, densidad visual de `panel-head`).
+  - `static/styles.css`: mejoras de legibilidad numérica global en tablas (`font-variant-numeric: tabular-nums`) y refinamiento de headers sticky en desktop grande (`>=1200px`).
+  - `static/styles.css`: ajuste de contraste/superficie de `table-wrap` y microtipografía de KPIs para escaneo más rápido en monitores amplios.
+  - sin cambios funcionales en renderer, datos, filtros ni lógica de negocio.
 
 ## [0.5.4] - 2026-05-01
 
