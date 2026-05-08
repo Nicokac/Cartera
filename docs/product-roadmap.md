@@ -27,6 +27,19 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 
 Avance UI post-cierre:
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (batch dashboard + módulos desktop):
+  - `static/styles.css`: ajustes de jerarquía tipográfica en labels/cabeceras, contraste de estado activo en navegación, separación de filas KPI, contraste de barra de integridad, semántica visual de pills de decisión, interacción más clara en colapsables y cabecera de tabla de sizing.
+  - `scripts/report_layout_main.py`: hero con bloque lateral (estado de integridad y hora de corrida) para equilibrar composición en desktop.
+  - `scripts/report_layout_sections.py` + `scripts/report_sections.py`: segunda fila KPI con placeholders explícitos, metadatos de sizing migrados a `kv-grid` y saneamiento de labels con acentos.
+  - corrección de mojibake residual en textos visibles del renderer (`Predicción`, `Decisión`, `Técnico`, `Mayor posición`, `consolidación`).
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - abrir `reports/real-report.html` y validar quick-nav con estado activo más distinguible.
+  - validar dashboard con dos filas KPI legibles (sin celdas “vacías” ambiguas).
+  - validar sección `Asignación sugerida` con metadatos en grilla.
+  - validar textos con acentos sin mojibake en módulos `Cartera` y `Decisión`.
+
 - 2026-05-08: inicio de embellecimiento visual Fase UI-1 (Dashboard visual system):
   - `static/styles.css` incorpora ajuste de tokens de superficie/foco/KPI y mejora jerarquia visual en:
     - `hero` (profundidad y contraste),

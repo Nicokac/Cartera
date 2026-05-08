@@ -37,7 +37,7 @@ def build_report_main_content(
     integrity_status: str = "ok",
 ) -> str:
     return f"""  <main class=\"page\">
-    {build_report_hero(title=title, headline=headline, lede=lede)}
+    {build_report_hero(title=title, headline=headline, lede=lede, generated_at_label=generated_at_label, integrity_status=integrity_status)}
 
     {integrity_strip}
     {quick_nav}
@@ -130,13 +130,21 @@ def build_report_main_content(
   </main>"""
 
 
-def build_report_hero(*, title: str, headline: str, lede: str) -> str:
+def build_report_hero(*, title: str, headline: str, lede: str, generated_at_label: object = None, integrity_status: str = "ok") -> str:
+    time_part = str(generated_at_label or "")
+    if " " in time_part:
+        time_part = time_part.split(" ", 1)[1]
+    integrity_label = {"ok": "Integridad OK", "warn": "Integridad WARN", "error": "Integridad ERROR"}.get(integrity_status, "Integridad OK")
     return f"""<header class=\"hero\">
-      <div>
+      <div class=\"hero-main\">
         <p class=\"eyebrow\">{esc_text(title)}</p>
         <h1>{esc_text(headline)}</h1>
         <p class=\"lede\">{lede}</p>
       </div>
+      <aside class=\"hero-side\">
+        <span class=\"hero-chip {integrity_status}\">{integrity_label}</span>
+        <span class=\"hero-time\">{esc_text(time_part)}</span>
+      </aside>
     </header>"""
 
 
@@ -244,5 +252,4 @@ def build_prediction_module(*, prediction_section: str) -> str:
       {prediction_block}
     </section>
     </section>"""
-
 

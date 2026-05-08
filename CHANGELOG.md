@@ -8,6 +8,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Fixed
 
+- embellecimiento UI fase 1 (batch visual dashboard + módulos desktop):
+  - `static/styles.css`: mejoras de jerarquía tipográfica, contraste de navegación activa, separación visual de filas KPI, mayor contraste de barra de integridad, refinamiento de colapsables y cabeceras de tabla de sizing.
+  - `scripts/report_layout_main.py`: hero con bloque lateral de estado (`Integridad`) y hora para aprovechar mejor el ancho en desktop.
+  - `scripts/report_layout_sections.py` y `scripts/report_sections.py`: estructura de KPIs (placeholders explícitos en segunda fila), metadatos de sizing en formato `kv-grid` y saneamiento de etiquetas visibles.
+  - saneamiento de mojibake en labels clave del renderer (`Predicción`, `Decisión`, `Técnico`, `Mayor posición`, `consolidación`).
+  - sin cambios en reglas de negocio, scoring ni contratos de datos del pipeline.
 - embellecimiento UI fase 1 en shell visual del reporte:
   - `static/styles.css`: refinamiento de `hero`, quick-nav por vistas, cards KPI primarios y headers de modulo para mejorar jerarquia visual y contraste.
   - agregado `focus-visible` en botones de navegacion para navegacion por teclado mas clara.

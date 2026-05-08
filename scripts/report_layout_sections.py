@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import pandas as pd
@@ -72,13 +72,17 @@ def build_header_cards(
     finviz_ratings_covered: int,
 ) -> tuple[str, str, str]:
     primary_cards = f"""
-    <section class="cards cards-primary">
+    <section class="cards cards-primary cards-kpi-top">
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
       <article class="card"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
       <article class="card"><span class="label">Liquidez broker</span><strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></article>
       <article class="card"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
+    </section>
+    <section class="cards cards-primary cards-kpi-bottom">
       <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
       <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
+      <article class="card card-placeholder" aria-hidden="true"><span class="label">—</span><strong>—</strong></article>
+      <article class="card card-placeholder" aria-hidden="true"><span class="label">—</span><strong>—</strong></article>
     </section>
     """
     secondary_cards = f"""
@@ -148,10 +152,10 @@ def build_panorama_section(
       </section>
       <section class="panel spotlight spotlight-side" id="panorama-sizing">
         <h2>Asignación sugerida</h2>
-        <div class="meta">
-          <span>Fuente: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
-          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
-          <span>Usa liquidez IOL: <strong>{liquidez_iol}</strong></span>
+        <div class="kv-grid compact">
+          <article class="kv-item"><span class="k">Fuente</span><strong class="v">{esc_text(sizing_bundle['fuente_fondeo'])}</strong></article>
+          <article class="kv-item"><span class="k">Monto</span><strong class="v">{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></article>
+          <article class="kv-item"><span class="k">Usa liquidez IOL</span><strong class="v">{liquidez_iol}</strong></article>
         </div>
         {sizing_preview}
       </section>
@@ -445,6 +449,7 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
       </section>
     </section>
     """
+
 
 
 

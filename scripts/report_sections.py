@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import pandas as pd
@@ -540,12 +540,12 @@ def build_sizing_section(
         <button id="copy-sizing" class="copy-btn" title="Copiar tabla como TSV para pegar en Excel">Copiar tabla</button>
       </div>
       <section class="module-subblock" id="sizing-resumen">
-        <div class="meta">
-          <span>Fuente de fondeo: <strong>{esc_text(sizing_bundle['fuente_fondeo'])}</strong></span>
-          <span>Usa liquidez IOL: <strong>{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></span>
-          <span>Aporte externo: <strong>{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></span>
-          <span>Porcentaje: <strong>{sizing_bundle['pct_fondeo']:.0%}</strong></span>
-          <span>Monto: <strong>{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></span>
+        <div class="kv-grid">
+          <article class="kv-item"><span class="k">Fuente de fondeo</span><strong class="v">{esc_text(sizing_bundle['fuente_fondeo'])}</strong></article>
+          <article class="kv-item"><span class="k">Usa liquidez IOL</span><strong class="v">{"Si" if sizing_bundle.get('usar_liquidez_iol') else "No"}</strong></article>
+          <article class="kv-item"><span class="k">Aporte externo</span><strong class="v">{fmt_ars(sizing_bundle.get('aporte_externo_ars', 0.0))}</strong></article>
+          <article class="kv-item"><span class="k">Porcentaje</span><strong class="v">{sizing_bundle['pct_fondeo']:.0%}</strong></article>
+          <article class="kv-item"><span class="k">Monto</span><strong class="v">{fmt_ars(sizing_bundle['monto_fondeo_ars'])}</strong></article>
         </div>
       </section>
       <section class="module-subblock" id="sizing-detalle">
@@ -678,3 +678,4 @@ def build_bonistas_section(
       {bond_summary_tables}
     </section>
     """
+
