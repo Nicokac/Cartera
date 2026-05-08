@@ -78,13 +78,14 @@ body {
   margin: 0;
   color: var(--muted);
   max-width: 72ch;
+  line-height: 1.5;
 }
 
 .summary-lede {
   margin: 0 0 14px;
   color: var(--ink);
   font-size: 15px;
-  line-height: 1.58;
+  line-height: 1.62;
   letter-spacing: 0.005em;
 }
 
@@ -250,6 +251,7 @@ section.grid {
 .cards-primary .card {
   border-top: 3px solid rgba(15, 108, 92, 0.35);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 253, 248, 0.92));
+  box-shadow: 0 10px 22px rgba(29, 42, 47, 0.08);
 }
 
 .card .label {
@@ -301,11 +303,24 @@ section.grid {
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .action-card:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(29, 42, 47, 0.12);
+}
+
+.action-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 0 0 0 16px;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .action-card span {
@@ -389,6 +404,7 @@ section.grid {
   font-size: 22px;
   letter-spacing: 0.015em;
   color: #1e2f36;
+  line-height: 1.2;
 }
 
 .module-dashboard {
@@ -729,6 +745,7 @@ section.grid {
 .meta strong {
   color: #23333a;
   font-weight: 700;
+  letter-spacing: 0.005em;
 }
 
 .change-direction-meta {
@@ -1035,6 +1052,11 @@ th {
   background: #f7f2e9;
   border-bottom: 1px solid rgba(215, 208, 198, 0.92);
   box-shadow: inset 0 -1px 0 rgba(215, 208, 198, 0.82);
+  text-wrap: nowrap;
+}
+
+tbody tr {
+  transition: background 0.14s ease;
 }
 
 tbody tr:nth-child(even) {
@@ -1832,6 +1854,7 @@ body.view-all .report-view {
   color: #fffdf8;
   border-color: var(--accent);
   box-shadow: 0 8px 18px rgba(15, 108, 92, 0.18);
+  transform: translateY(-1px);
 }
 
 [data-view-nav] button:focus-visible {
