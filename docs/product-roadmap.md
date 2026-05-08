@@ -71,6 +71,21 @@ Avance UI post-cierre:
   - en tablas anchas, confirmar sticky header + primera columna sin glitches visuales.
   - confirmar que filtros/sort en `Decisión` siguen funcionando igual.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (responsive y densidad mobile):
+  - `static/styles.css` ajusta lectura en pantallas chicas:
+    - `hero` y `cards` mas compactos,
+    - `quick-nav` con mejor ergonomia tactil,
+    - ajustes de `panel`/`meta` y grillas en breakpoint `640px`.
+  - objetivo: mejorar escaneo y navegacion en mobile sin alterar estructura ni comportamiento funcional.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - validar `reports/real-report.html` en viewport ~390px y ~768px:
+    - quick-nav usable horizontalmente,
+    - dashboard legible sin solapamientos,
+    - cards y paneles con buena densidad,
+    - sin overflow horizontal global.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.

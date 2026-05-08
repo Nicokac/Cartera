@@ -1663,7 +1663,8 @@ body.view-all .report-view {
 
   .page {
     width: min(100% - 20px, 1180px);
-    padding-top: 20px;
+    padding-top: 16px;
+    padding-bottom: 28px;
   }
 
   .panel,
@@ -1672,8 +1673,36 @@ body.view-all .report-view {
     border-radius: 16px;
   }
 
+  .hero {
+    padding: 22px 18px;
+  }
+
+  .hero h1 {
+    font-size: clamp(24px, 7vw, 34px);
+    line-height: 1.08;
+  }
+
+  .lede {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
   .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .card strong {
+    font-size: 20px;
+  }
+
+  .summary-kpis .card strong {
+    font-size: 18px;
   }
 
   .dashboard-pulse,
@@ -1702,6 +1731,36 @@ body.view-all .report-view {
   .quick-nav::after {
     width: 18px;
     flex-basis: 18px;
+  }
+
+  .quick-nav {
+    top: 8px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  [data-view-nav] button {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .meta {
+    gap: 8px 10px;
+    font-size: 13px;
+  }
+
+  .quick-nav {
+    border-radius: 14px;
   }
 }
 
