@@ -308,6 +308,21 @@ Avance UI post-cierre:
   - revisar `Decisión`, `Predicción` y `Cartera` confirmando lectura más homogénea de cifras.
   - confirmar que filtros/sort/colapsables siguen idénticos funcionalmente.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (batch de productividad desktop):
+  - `static/styles.css` mejora velocidad operativa en escritorio:
+    - `filters` encapsulados como barra funcional (mejor separación visual de controles),
+    - reducción de altura de `input/select` para mayor densidad utilizable,
+    - `focus-list`/`focus-item` con compactación de tipografía/espaciado para mejor escaneo ejecutivo,
+    - `collapsible` más compacto en `summary/body`,
+    - botones de navegación por vista (`data-view-nav`) más eficientes en footprint.
+  - objetivo: reducir fricción de navegación y lectura en sesiones largas de análisis.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - en desktop, usar filtros de `Decisión` y verificar que la barra de controles sea más clara y menos invasiva.
+  - revisar `Panorama`, `Cambios`, `Predicción` y `Bonos` para confirmar mayor densidad de cards sin perder legibilidad.
+  - abrir/cerrar colapsables y validar ritmo visual más compacto manteniendo usabilidad.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles

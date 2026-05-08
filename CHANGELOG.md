@@ -86,6 +86,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: mejoras de legibilidad numérica global en tablas (`font-variant-numeric: tabular-nums`) y refinamiento de headers sticky en desktop grande (`>=1200px`).
   - `static/styles.css`: ajuste de contraste/superficie de `table-wrap` y microtipografía de KPIs para escaneo más rápido en monitores amplios.
   - sin cambios funcionales en renderer, datos, filtros ni lógica de negocio.
+- embellecimiento UI fase 1 (batch de productividad desktop):
+  - `static/styles.css`: barra de filtros más operativa (`filters`) con contenedor dedicado y menor altura de controles para reducir fatiga visual.
+  - `static/styles.css`: densidad optimizada en `focus-list`/`focus-item`/`focus-detail` para mejorar lectura de cards en bloques ejecutivos.
+  - `static/styles.css`: colapsables más compactos (`summary`/`body`) y navegación de vistas más eficiente (`data-view-nav button`) para flujo analítico rápido.
+  - sin cambios funcionales en renderer, datos ni comportamiento interactivo.
 
 ## [0.5.4] - 2026-05-01
 
