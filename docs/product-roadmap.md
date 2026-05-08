@@ -27,6 +27,20 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 
 Avance UI post-cierre:
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (ronda 3 — consistencia semántica):
+  - `scripts/report_primitives.py`: badges ampliados para cubrir `Rebalancear / tomar ganancia` y ajuste de señales `Momentum`/`Dist.*` por signo para mejorar lectura técnica.
+  - `scripts/report_layout_main.py`: eliminado `dashboard-hero` interno para evitar duplicación de información con el hero global.
+  - `scripts/report_sections.py`: bloque `Riesgo histórico` pasado a `kv-grid` (de texto corrido a estructura legible).
+  - `scripts/report_layout_sections.py` + `scripts/report_sections.py`: color semántico en celdas monetarias (`Ganancia ARS`/`Valorizado ARS`) y refuerzo visual de estado en `Integridad` del módulo Riesgo.
+  - `static/styles.css`: nuevas clases `badge-rebalance`, `money-*`, ajustes de `risk` cards/contexto e identidad de estado OK/WARN/ERROR en el bloque de integridad de riesgo.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives tests.test_report_sections tests.test_report_render_operations -v`
+- que probar manualmente:
+  - validar que `Decisión` muestre chip para `Mantener / Neutral` y `Rebalancear / tomar ganancia`.
+  - validar en `Técnico` que columnas momentum/distance reflejen color por signo (`+` verde / `-` rojo).
+  - validar en `Cartera` y `Resumen por tipo` que montos negativos se vean en rojo.
+  - validar en `Riesgo` que `Riesgo histórico` use grilla y `Integridad` tenga estado visual consistente.
+
 - 2026-05-08: embellecimiento visual Fase UI-1 (ronda de refinamiento desktop):
   - `scripts/report_layout_main.py`: dashboard hero simplificado para evitar duplicación con el hero principal.
   - `scripts/report_layout_sections.py`: barra de integridad sin timestamp duplicado.

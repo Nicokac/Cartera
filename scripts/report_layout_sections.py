@@ -9,6 +9,7 @@ from report_primitives import (
     build_table,
     esc_text,
     fmt_ars,
+    fmt_ars_semantic,
     fmt_label,
     fmt_pct,
     fmt_quantity,
@@ -404,9 +405,9 @@ def build_portfolio_section(df_total: pd.DataFrame, *, pending_rows: pd.DataFram
                 .sort_values("Valorizado_ARS", ascending=False)
                 .rename(columns={"Ticker_IOL": "Ticker", "Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}),
                 formatters={
-                    "Valorizado ARS": fmt_ars,
+                    "Valorizado ARS": fmt_ars_semantic,
                     "Valor USD": fmt_usd,
-                    "Ganancia ARS": fmt_ars,
+                    "Ganancia ARS": fmt_ars_semantic,
                     "Peso %": fmt_pct,
                 },
             ),
@@ -429,13 +430,14 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
             status = "ERROR"
         elif n_warn > 0:
             status = "WARN"
+    status_slug = status.lower()
 
     return f"""
     <section class="panel" id="integridad">
       <h2>Integridad</h2>
       <section class="module-subblock" id="integridad-resumen">
-        <div class="meta">
-          <span>Estado general: <strong>{status}</strong></span>
+        <div class="meta integridad-meta integridad-meta-{status_slug}">
+          <span class="integridad-status"><span class="integrity-dot"></span>Estado general: <strong>{status}</strong></span>
           <span>Chequeos: <strong>{n_checks}</strong></span>
           <span>Alertas: <strong>{n_warn}</strong></span>
         </div>

@@ -10,6 +10,7 @@ from report_primitives import (
     ensure_table_columns,
     esc_text,
     fmt_ars,
+    fmt_ars_semantic,
     fmt_pct,
     fmt_score,
     fmt_usd,
@@ -420,18 +421,16 @@ def build_summary_section(
         )
         risk_html = f"""
       <h3>Riesgo hist\u00f3rico</h3>
-      <div class="meta">
-        <span>Ventana: <strong>{esc_text(portfolio_summary.get('desde'))} &rarr; {esc_text(portfolio_summary.get('hasta'))}</strong></span>
-        <span>Snapshots: <strong>{safe_int(portfolio_summary.get('snapshots'))}</strong></span>
-        <span>Retorno cartera: <strong>{fmt_pct(portfolio_summary.get('retorno_acum_pct'))}</strong></span>
-        <span>Vol diaria cartera: <strong>{fmt_pct(portfolio_summary.get('volatilidad_diaria_pct'))}</strong></span>
-        <span>Max drawdown cartera: <strong>{fmt_pct(portfolio_summary.get('drawdown_max_pct'))}</strong></span>
-      </div>
-      <div class="meta">
-        <span>Metodolog\u00eda: <strong>Universo comparable</strong></span>
-        <span>Pasos estables: <strong>{safe_int(portfolio_summary.get('pasos_estables'))}/{safe_int(portfolio_summary.get('pasos_totales'))}</strong></span>
-        <span>Cobertura previa prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></span>
-        <span>Cobertura actual prom.: <strong>{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></span>
+      <div class="kv-grid risk-kv-grid">
+        <article class="kv-item"><span class="k">Ventana</span><strong class="v">{esc_text(portfolio_summary.get('desde'))} &rarr; {esc_text(portfolio_summary.get('hasta'))}</strong></article>
+        <article class="kv-item"><span class="k">Snapshots</span><strong class="v">{safe_int(portfolio_summary.get('snapshots'))}</strong></article>
+        <article class="kv-item"><span class="k">Retorno cartera</span><strong class="v">{fmt_pct(portfolio_summary.get('retorno_acum_pct'))}</strong></article>
+        <article class="kv-item"><span class="k">Vol diaria cartera</span><strong class="v">{fmt_pct(portfolio_summary.get('volatilidad_diaria_pct'))}</strong></article>
+        <article class="kv-item"><span class="k">Max drawdown cartera</span><strong class="v">{fmt_pct(portfolio_summary.get('drawdown_max_pct'))}</strong></article>
+        <article class="kv-item"><span class="k">Metodología</span><strong class="v">Universo comparable</strong></article>
+        <article class="kv-item"><span class="k">Pasos estables</span><strong class="v">{safe_int(portfolio_summary.get('pasos_estables'))}/{safe_int(portfolio_summary.get('pasos_totales'))}</strong></article>
+        <article class="kv-item"><span class="k">Cobertura previa prom.</span><strong class="v">{fmt_pct(portfolio_summary.get('coverage_prev_promedio_pct'))}</strong></article>
+        <article class="kv-item"><span class="k">Cobertura actual prom.</span><strong class="v">{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></article>
       </div>
       {benchmark_meta}
       {stability_meta}
@@ -442,7 +441,7 @@ def build_summary_section(
         resumen_tipos[["Tipo", "Instrumentos", "Valorizado_ARS", "Valor_USD", "Ganancia_ARS", "Peso_%"]].rename(
             columns={"Valorizado_ARS": "Valorizado ARS", "Valor_USD": "Valor USD", "Ganancia_ARS": "Ganancia ARS", "Peso_%": "Peso %"}
         ),
-        formatters={"Valorizado ARS": fmt_ars, "Valor USD": fmt_usd, "Ganancia ARS": fmt_ars, "Peso %": fmt_pct},
+        formatters={"Valorizado ARS": fmt_ars_semantic, "Valor USD": fmt_usd, "Ganancia ARS": fmt_ars_semantic, "Peso %": fmt_pct},
     )
     taxonomy_table_html = build_table(
         family_summary_view[["Familia", "Subfamilia", "Instrumentos", "Score promedio"]]

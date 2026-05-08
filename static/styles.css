@@ -1410,6 +1410,63 @@ tbody tr:hover td:first-child {
   border-color: rgba(86, 98, 110, 0.18);
 }
 
+.badge-rebalance {
+  background: rgba(176, 126, 15, 0.18);
+  color: #7c5b12;
+  border-color: rgba(176, 126, 15, 0.30);
+}
+
+.money-positive {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.money-negative {
+  color: var(--bad);
+  font-weight: 600;
+}
+
+.money-neutral {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.risk-kv-grid {
+  margin-bottom: 8px;
+}
+
+.risk-subsection .focus-detail {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.integridad-meta {
+  border: 1px solid rgba(15, 108, 92, 0.16);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.integridad-meta-ok {
+  background: rgba(15, 108, 92, 0.05);
+}
+
+.integridad-meta-warn {
+  background: rgba(176, 126, 15, 0.08);
+  border-color: rgba(176, 126, 15, 0.22);
+}
+
+.integridad-meta-error {
+  background: rgba(177, 57, 45, 0.08);
+  border-color: rgba(177, 57, 45, 0.24);
+}
+
+.integridad-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .prediction-legend {
   display: grid;
   gap: 8px;

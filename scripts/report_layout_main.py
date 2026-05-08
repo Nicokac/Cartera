@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from report_primitives import build_collapsible, build_technical_table, esc_text, fmt_ars, fmt_usd
+from report_primitives import build_collapsible, build_technical_table, esc_text
 from report_sections import build_technical_summary
 
 
@@ -185,14 +185,6 @@ def build_dashboard_module(
     lede: str = "",
 ) -> str:
     return f"""<section class=\"module-block report-view is-active module-dashboard\" id=\"module-dashboard\" data-view=\"dashboard\">
-    <div class=\"dashboard-hero\">
-      <div class=\"dashboard-hero-totals\">
-        <span class=\"dashboard-total-ars\">{fmt_ars(total_ars)}</span>
-        <span class=\"dashboard-total-sep\">·</span>
-        <span class=\"dashboard-total-usd\">{fmt_usd(total_usd)}</span>
-      </div>
-      {f'<p class=\"dashboard-lede\">{lede}</p>' if lede else ""}
-    </div>
     <section class=\"dashboard-pulse module-subblock\" id=\"dashboard-foco\">
       <button type=\"button\" class=\"pulse-item\" data-target-view=\"decision\"><strong>Decisión</strong><span>Rebalanceo y acción sugerida</span></button>
       <button type=\"button\" class=\"pulse-item\" data-target-view=\"cartera\"><strong>Cartera</strong><span>Composición y exposición</span></button>

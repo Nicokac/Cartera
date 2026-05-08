@@ -8,6 +8,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Fixed
 
+- embellecimiento UI fase 1 (ronda 3 de consistencia visual):
+  - `scripts/report_primitives.py`: badges semánticos ampliados (`badge-rebalance`) y clases de métricas momentum/distancia por signo (`+/-`), más soporte de celdas HTML seguras en tablas.
+  - `scripts/report_layout_main.py`: removido bloque `dashboard-hero` interno para eliminar duplicación con el hero principal.
+  - `scripts/report_sections.py`: bloque de `Riesgo histórico` migrado de líneas corridas a `kv-grid` para mejor escaneo.
+  - `scripts/report_layout_sections.py` + `scripts/report_sections.py`: `Ganancia ARS`/`Valorizado ARS` con color semántico (positivo/negativo/neutral).
+  - `scripts/report_layout_sections.py`: estado de integridad en módulo Riesgo con señal visual (`dot` + fondo por estado).
+  - `static/styles.css`: estilos para `badge-rebalance`, `money-positive/negative/neutral`, `risk-kv-grid`, contexto de cards de riesgo en tono secundario e identidad visual de integridad en módulo Riesgo.
 - embellecimiento UI fase 1 (ronda de refinamiento desktop):
   - `scripts/report_layout_main.py`: simplificación de `dashboard-hero` para evitar duplicación visual con el hero principal (se mantiene foco en totales).
   - `scripts/report_layout_sections.py`: barra de integridad sin timestamp duplicado (se conserva estado + cantidad de checks/alertas).

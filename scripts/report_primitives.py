@@ -45,6 +45,14 @@ def fmt_ars(value: object) -> str:
     return f"${float(value):,.0f}"
 
 
+def fmt_ars_semantic(value: object) -> str:
+    if pd.isna(value):
+        return '<span class="money-neutral">-</span>'
+    numeric = float(value)
+    css = "money-positive" if numeric > 0 else ("money-negative" if numeric < 0 else "money-neutral")
+    return f'<span class="{css}">{fmt_ars(numeric)}</span>'
+
+
 def fmt_usd(value: object) -> str:
     if pd.isna(value):
         return "-"
@@ -225,9 +233,9 @@ def metric_class(column: str, value: object) -> str:
         "Dist_52w_High_%",
         "Dist_52w_Low_%",
     }:
-        if num > 1:
+        if num > 0:
             return "metric metric-positive"
-        if num < -1:
+        if num < 0:
             return "metric metric-negative"
         return "metric metric-neutral"
 
@@ -280,7 +288,11 @@ def build_table(
                 if raw:
                     raw_slug = raw.replace(" ", "-")
                     cell_class = f' class="cell-quality cell-quality-{html.escape(raw_slug)}"'
-            cells.append(f"<td{cell_class}>{html.escape(str(rendered))}</td>")
+            rendered_text = str(rendered)
+            if rendered_text.startswith("<span ") and rendered_text.endswith("</span>"):
+                cells.append(f"<td{cell_class}>{rendered_text}</td>")
+            else:
+                cells.append(f"<td{cell_class}>{html.escape(rendered_text)}</td>")
         rows.append("<tr>" + "".join(cells) + "</tr>")
     id_attr = f' id="{html.escape(table_id)}"' if table_id else ""
     return f'<div class="table-wrap"><table{id_attr} class="{table_class}"><thead><tr>{headers}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
@@ -492,6 +504,8 @@ def badge_class(action: object) -> str:
         return "badge badge-sell"
     if action_text == ACTION_DESPLEGAR_LIQUIDEZ.lower():
         return "badge badge-fund"
+    if "rebalance" in action_text or "tomar ganancia" in action_text:
+        return "badge badge-rebalance"
     return "badge badge-neutral"
 
 
