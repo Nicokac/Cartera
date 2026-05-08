@@ -1,10 +1,18 @@
-# Changelog
+﻿# Changelog
 
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
+
+### Fixed
+
+- renderer de reporte: sanitizacion del payload CSV embebido en quick-nav
+  - `scripts/report_layout_sections.py` escapa `csv_data` en `#report-csv-data` para evitar tags HTML crudos dentro del documento generado.
+  - se restablece el test de seguridad `test_render_report_escapes_untrusted_decision_and_macro_text`.
+- saneamiento de texto visible en cartera del reporte:
+  - correccion de labels con acento (`Mayor posición`, `consolidación`) y separador visual (`·`) en `scripts/report_layout_sections.py`.
 
 ## [0.5.4] - 2026-05-01
 

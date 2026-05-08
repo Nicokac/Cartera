@@ -234,7 +234,7 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
     operations_btn = '<button type="button" data-target-view="operaciones">Operaciones</button>' if show_operations else ""
     prediction_btn = '<button type="button" data-target-view="prediccion">Predicción</button>' if show_prediction else ""
     download_btn = f'<button type="button" class="nav-download" data-csv-download="{csv_filename}">&#8595; CSV</button>' if csv_filename else ""
-    csv_script = f'<script type="text/plain" id="report-csv-data">{csv_data}</script>' if csv_data else ""
+    csv_script = f'<script type="text/plain" id="report-csv-data">{html.escape(csv_data)}</script>' if csv_data else ""
     buttons = [
         '<button type="button" data-target-view="dashboard" class="active">Dashboard</button>',
         '<button type="button" data-target-view="cartera">Cartera</button>',
@@ -445,5 +445,6 @@ def build_integrity_section(integrity_report: pd.DataFrame) -> str:
       </section>
     </section>
     """
+
 
 

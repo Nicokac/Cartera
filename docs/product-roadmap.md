@@ -1,4 +1,4 @@
-# Product Roadmap v0.3
+﻿# Product Roadmap v0.3
 
 Fecha de validacion: 2026-04-28
 
@@ -26,6 +26,17 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 - baseline de version para esta etapa: `0.5.3`
 
 Avance UI post-cierre:
+
+- 2026-05-08: saneamiento de export CSV en quick-nav y cierre de mojibake residual en cartera:
+  - `scripts/report_layout_sections.py` ahora escapa `csv_data` al incrustarlo en `#report-csv-data` para evitar inyeccion de HTML en el source del reporte.
+  - mismo archivo normaliza texto visible en cartera (`Mayor posición`, `consolidación`) y separador de principal posicion (`·`).
+  - resultado: se preserva la descarga CSV y se recupera el contrato de sanitizacion del renderer.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - generar `reports/real-report.html` y validar que el boton `↓ CSV` sigue descargando correctamente.
+  - validar en el HTML generado que no aparezcan tags crudos inyectados desde datos (ej: `<b>peso</b>`), sino escapados.
+  - revisar en modulo `Cartera` que los labels se muestren con acentos correctos.
 
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
