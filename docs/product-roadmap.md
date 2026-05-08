@@ -164,6 +164,20 @@ Avance UI post-cierre:
   - validar que textos largos no quiebren de forma brusca.
   - confirmar que no hay cambios funcionales en filtros, navegación ni colapsables.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (estados vacíos y superficies secundarias):
+  - `static/styles.css` refuerza consistencia visual en escenarios con baja densidad de datos:
+    - `compact-empty` más legible y menos abrupto,
+    - `collapsible-body` con superficie secundaria suave,
+    - `score-notes summary` con hover de lectura,
+    - `alloc-legend-item` convertido a chip visual consistente.
+  - sin cambios funcionales ni estructurales.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - validar vistas con bloques “Sin datos” y confirmar legibilidad sin ruido visual.
+  - abrir/cerrar colapsables y revisar continuidad de fondo entre summary/body.
+  - revisar leyenda de asignación (`alloc-legend`) y consistencia con chips del resto del reporte.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.

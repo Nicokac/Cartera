@@ -41,6 +41,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - embellecimiento UI fase 1 en microtipografia:
   - `static/styles.css`: ajuste fino de lectura en `summary-lede`, `meta`, `focus-detail` y `muted-inline` para mejorar escaneo narrativo.
   - sin cambios funcionales en renderer, navegación o estructura de datos.
+- embellecimiento UI fase 1 en superficies secundarias:
+  - `static/styles.css`: refinamiento de `compact-empty`, `collapsible-body`, `score-notes` y `alloc-legend-item` para mayor consistencia visual en estados de baja información.
+  - sin cambios funcionales en render ni contratos de salida.
 - cierre documental de refactor UI previo a embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
   - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.
