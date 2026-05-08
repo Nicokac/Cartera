@@ -282,6 +282,17 @@ Avance UI post-cierre:
   - en `Predicción`, validar mejor legibilidad de `Dirección`, `Confianza` y `Fecha objetivo` en tabla completa.
   - confirmar que filtros/sort de `Decisión` no cambiaron comportamiento.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (contraste de tablas en desktop):
+  - `static/styles.css` agrega divisores suaves entre columnas críticas en `Decisión` y `Predicción` para mejorar “scan path” horizontal.
+  - `static/styles.css` refuerza hover de filas y continuidad visual de primera columna sticky al recorrer tablas anchas.
+  - sin cambios de lógica ni contratos funcionales.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - en desktop, recorrer filas largas en `Decisión`/`Predicción` y validar que sea más fácil seguir columnas de referencia.
+  - confirmar que la primera columna sticky conserve continuidad visual durante hover.
+  - confirmar que no cambia el comportamiento de filtros/sort/colapsables.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles

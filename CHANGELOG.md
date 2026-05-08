@@ -77,6 +77,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: alineación y legibilidad de columnas clave en `#decision-table` (ticker y columnas numéricas).
   - `static/styles.css`: mejora de escaneo en `signal-table` (anchos mínimos útiles, jerarquía de columna de confianza y señalización visual sutil por fila).
   - sin cambios funcionales en filtros/sort, lógica de decisión o predicción.
+- embellecimiento UI fase 1 en contraste de tablas desktop:
+  - `static/styles.css`: separación visual de columnas críticas en `#decision-table` y `signal-table` mediante divisores suaves.
+  - `static/styles.css`: hover de fila más claro y refuerzo de primera columna sticky para mejorar seguimiento horizontal.
+  - sin cambios funcionales en render, datos ni comportamiento interactivo.
 
 ## [0.5.4] - 2026-05-01
 
