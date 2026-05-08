@@ -8,6 +8,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 
 ### Fixed
 
+- cierre documental de refactor UI previo a embellecimiento:
+  - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
+  - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.
 - interacciones de cliente en reporte (`static/report-ui.js`):
   - correccion de textos mojibake en feedbacks UI (`✓ Copiado`, `Mostrar más columnas`).
   - descarga CSV (`↓ CSV`) ahora decodifica entidades HTML antes de construir el archivo, manteniendo el hardening de sanitizacion sin degradar el contenido exportado.

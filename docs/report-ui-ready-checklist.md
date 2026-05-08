@@ -1,8 +1,8 @@
-# Checklist: Report UI Ready for Visual Redesign
+﻿# Checklist: Report UI Ready for Visual Redesign
 
-Fecha: 2026-05-01
+Fecha: 2026-05-08
 
-Version base: `0.5.3`
+Version base: `0.5.4`
 
 ## Objetivo
 
@@ -45,8 +45,9 @@ Si todos los criterios anteriores estan en `OK`, el siguiente stream habilitado 
 - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
 - generar `reports/real-report.html`
 - validar manualmente:
-  - quick-nav activo
+  - quick-nav activo por vistas (Dashboard/Cartera/Decision/Prediccion/Tecnico/Bonos/Operaciones/Riesgo)
   - filtros/sort de decision
   - persistencia de `details`
+  - `Copiar tabla` en sizing muestra `✓ Copiado`
+  - `↓ CSV` descarga correctamente y sin entidades HTML escapadas en el archivo final
   - sin overflow horizontal global
-

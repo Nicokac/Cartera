@@ -1,8 +1,8 @@
-# Contrato de Arquitectura de Informacion — Reporte UI
+﻿# Contrato de Arquitectura de Informacion â€” Reporte UI
 
 Fecha: 2026-05-01
 
-Version base: `0.5.3`
+Version base: `0.5.4`
 
 ## Objetivo
 
@@ -128,7 +128,7 @@ Incluye:
 
 ## Niveles de lectura
 
-### Nivel 1 — Lectura rapida
+### Nivel 1 â€” Lectura rapida
 
 Siempre visible:
 - total cartera, liquidez, ganancia
@@ -138,7 +138,7 @@ Siempre visible:
 - sizing resumido
 - integridad general
 
-### Nivel 2 — Analisis modular
+### Nivel 2 â€” Analisis modular
 
 Visible por vista:
 - composicion de cartera
@@ -149,7 +149,7 @@ Visible por vista:
 - operaciones
 - riesgo
 
-### Nivel 3 — Auditoria tecnica
+### Nivel 3 â€” Auditoria tecnica
 
 Colapsable o secundario:
 - tablas completas
@@ -203,21 +203,21 @@ Colapsable o secundario:
 
 ## Backlog de implementacion visual
 
-### P1 — Estructura de producto
+### P1 â€” Estructura de producto
 
 1. Definir shell de navegacion por modulos (tabs o sidebar).
 2. Implementar Dashboard Ejecutivo como nueva portada.
 3. Separar Cartera, Decision, Prediccion en modulos primarios.
 4. Mantener tablas largas en detalle colapsable por defecto.
 
-### P2 — Modulos analiticos
+### P2 â€” Modulos analiticos
 
 1. Separar Tecnico y Bonos/Macro en vistas propias.
 2. Separar Operaciones e Historial en vista propia.
 3. Separar Riesgo e Integridad en vista tecnica dedicada.
 4. Homogeneizar componentes reutilizables (cards, tables, chips, headers).
 
-### P3 — Refinamiento visual
+### P3 â€” Refinamiento visual
 
 1. Visualizaciones ligeras (sparklines, barras compactas, gauges).
 2. Jerarquia tipografica y color por estado semantico.
@@ -230,4 +230,5 @@ Colapsable o secundario:
 - Ninguna tabla larga bloquea la lectura rapida inicial.
 - El usuario puede navegar de resumen -> analisis -> auditoria sin perder contexto.
 - La informacion actual del reporte sigue disponible (sin perdida funcional).
+
 

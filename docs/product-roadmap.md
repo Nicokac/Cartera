@@ -23,9 +23,21 @@ Con el roadmap de producto cerrado, la siguiente linea de trabajo activa pasa a 
 - documento de ejecucion: `docs/report-ui-embellecimiento-plan.md`
 - alcance: embellecimiento visual y mejora de jerarquia, manteniendo arquitectura single-page
 - estrategia: auditoria estructural -> modularizacion de shell/componentes -> prioridades visuales -> implementacion incremental
-- baseline de version para esta etapa: `0.5.3`
+- baseline de version para esta etapa: `0.5.4`
 
 Avance UI post-cierre:
+
+- 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
+  - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
+  - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.
+  - resultado: cierre tecnico-documental de refactor completo y habilitacion explicita de etapa de embellecimiento visual.
+- pruebas sugeridas en este gate (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+  - smoke manual corto:
+    - quick-nav por vistas + `Vista completa`
+    - `Copiar tabla` en sizing (`✓ Copiado`)
+    - toggle `Mostrar más columnas` en Técnico
+    - descarga `↓ CSV` sin entidades escapadas en el archivo
 
 - 2026-05-08: unificacion final de interacciones de vista y export en cliente:
   - `static/report-ui.js` corrige textos mojibake en controles (`✓ Copiado`, `Mostrar más columnas`).
@@ -1220,3 +1232,4 @@ Cierre ejecutivo v0.5:
   - UI operativa con configuracion avanzada
   - reporte HTML mas accesible y portable
   - distribucion ZIP lista para usuarios finales
+
