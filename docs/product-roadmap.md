@@ -240,6 +240,17 @@ Avance UI post-cierre:
   - validar en `Predicción` que la columna `Confianza` y la matriz de señales se lean mejor en desktop y mobile.
   - confirmar que filtros/sort de `Decisión` mantienen comportamiento.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (usabilidad mobile de tablas):
+  - `static/styles.css` agrega pistas de overflow horizontal en ambos bordes de `table-wrap` para mejorar descubribilidad de scroll en pantallas chicas.
+  - `static/styles.css` ajusta tipografía de `th/td` bajo `max-width: 860px` para sostener legibilidad en tablas densas.
+  - sin cambios funcionales en renderer ni contratos de salida.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - abrir `reports/real-report.html` en viewport mobile y validar que se perciba claramente que las tablas tienen scroll horizontal.
+  - revisar `Decisión`, `Predicción`, `Cartera` y `Bonos` para confirmar legibilidad de headers/celdas.
+  - confirmar que sticky headers y primera columna sticky siguen estables.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles

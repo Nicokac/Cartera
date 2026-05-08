@@ -65,6 +65,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: ajuste de densidad en `#decision-table` (badges/drivers/métricas) para mejorar escaneo de filas con alto contenido.
   - `static/styles.css`: refinamiento de `signal-table` (columna de confianza, headers de señales, tamaño de `sig`) para lectura más clara en `Predicción`.
   - sin cambios funcionales en filtros/sort ni en contratos de render.
+- embellecimiento UI fase 1 en usabilidad mobile de tablas:
+  - `static/styles.css`: pistas visuales bilaterales de scroll horizontal en `table-wrap` para pantallas chicas.
+  - `static/styles.css`: ajuste tipográfico de `th/td` bajo `max-width: 860px` para mantener legibilidad en tablas densas.
+  - sin cambios funcionales en datos ni lógica de render.
 
 ## [0.5.4] - 2026-05-01
 
