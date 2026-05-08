@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import html
 import pandas as pd
@@ -87,17 +87,16 @@ def build_prediction_signal_table(predictions_view: pd.DataFrame) -> str:
             }.get(direction_raw, direction_raw or "-")
         )
         conf_raw = row.get("confidence")
-        _CONV_COLORS = {"alta": "#1a7f4b", "media": "#b07e0f", "baja": "#8a9ba8"}
+        _CONV_LABELS = {"alta": "Alta", "media": "Media", "baja": "Baja"}
         if pd.notna(conf_raw):
             conf_val = float(conf_raw)
             raw_label = str(row.get("conviction_label") or "").strip()
-            conv_label = raw_label if raw_label in _CONV_COLORS else (
+            conv_label = raw_label if raw_label in _CONV_LABELS else (
                 "alta" if conf_val >= 0.35 else "media" if conf_val >= 0.20 else "baja"
             )
-            conv_color = _CONV_COLORS[conv_label]
             conf_html = (
-                f'<span style="color:{conv_color};font-size:10px;font-weight:600;margin-right:3px">{conv_label}</span>'
-                f" {html.escape(fmt_pct(conf_val * 100.0))}"
+                f'<span class="conviction-chip conviction-{conv_label}">{_CONV_LABELS[conv_label]}</span>'
+                f'<span class="conviction-value">{html.escape(fmt_pct(conf_val * 100.0))}</span>'
             )
         else:
             conf_html = "-"
@@ -352,4 +351,5 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
       )}
     </section>
     """
+
 

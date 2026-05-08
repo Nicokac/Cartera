@@ -55,6 +55,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - se restablece el test de seguridad `test_render_report_escapes_untrusted_decision_and_macro_text`.
 - saneamiento de texto visible en cartera del reporte:
   - correccion de labels con acento (`Mayor posición`, `consolidación`) y separador visual (`·`) en `scripts/report_layout_sections.py`.
+- saneamiento de predicción del reporte:
+  - `scripts/report_sections_prediction.py`: corrección de mojibake residual en labels y narrativa (`Predicción`, `Señales`, `Régimen`, `Acierto histórico`, etc.).
+  - restauración de claves internas `accion_sugerida_v2` para mantener reglas de advertencia (`⚠ Refuerzo/Reducir`) sin regresión funcional.
+  - mejora visual de la columna `Confianza` con chips semánticos (`Alta/Media/Baja`) y valor porcentual separado.
+- embellecimiento UI fase 1 en predicción:
+  - `static/styles.css`: nuevos estilos `conviction-chip`/`conviction-value` para legibilidad de confianza en tabla de señales.
 
 ## [0.5.4] - 2026-05-01
 

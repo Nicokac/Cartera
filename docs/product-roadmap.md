@@ -212,6 +212,18 @@ Avance UI post-cierre:
   - validar en el HTML generado que no aparezcan tags crudos inyectados desde datos (ej: `<b>peso</b>`), sino escapados.
   - revisar en modulo `Cartera` que los labels se muestren con acentos correctos.
 
+- 2026-05-08: saneamiento de mojibake residual + legibilidad de confianza en `Predicción`:
+  - `scripts/report_sections_prediction.py` corrige textos residuales con encoding incorrecto en headers/leyendas/narrativa (`Predicción`, `Señales`, `Régimen`, `Acierto histórico`, `Preparación`).
+  - se restaura el uso de `accion_sugerida_v2` (sin acentos en clave) para preservar la advertencia `⚠` cuando la dirección del predictor contradice la acción sugerida.
+  - `Confianza` pasa a representar nivel y valor en dos capas (`Alta/Media/Baja` + `%`) para mejorar escaneo.
+  - `static/styles.css` incorpora `conviction-chip` y `conviction-value` para consistencia visual de esa columna.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - abrir `reports/real-report.html` y validar en `Predicción` que no queden textos mojibake.
+  - revisar que la columna `Confianza` muestre chip (`Alta/Media/Baja`) + porcentaje legible.
+  - confirmar que en casos contradictorios siga apareciendo `⚠ Refuerzo` / `⚠ Reducir`.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles
