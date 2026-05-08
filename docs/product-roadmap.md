@@ -41,6 +41,21 @@ Avance UI post-cierre:
   - navegar entre vistas y confirmar estado activo/foco visible en botones de quick-nav.
   - verificar responsive basico en ancho reducido (sin overflow horizontal global nuevo).
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (componentes reutilizables):
+  - `static/styles.css` estandariza tratamiento visual de:
+    - `focus-list` / `focus-item` (bordes, profundidad, hover),
+    - `collapsibles` (hover/focus-visible en summary),
+    - `metric-*` y `badge-*` (bordes semanticos consistentes),
+    - `copy-btn` (focus-visible y feedback visual),
+    - `panel-head` (separacion visual consistente).
+  - sin cambios de logica ni estructura HTML; solo presentacion.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - revisar `Focus` cards en `Decisión`, `Cambios`, `Predicción` y `Bonos` (consistencia visual y hover).
+  - abrir/cerrar bloques colapsables y validar foco de teclado sobre `summary`.
+  - validar chips de `Acción`/`Drivers`/`Métricas` con semántica visual consistente.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.
