@@ -112,6 +112,19 @@ Avance UI post-cierre:
   - comprobar que estados visuales de cards y badges sean claros en desktop y mobile.
   - confirmar que no cambia contenido ni orden funcional de secciones.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (ritmo vertical y separación):
+  - `static/styles.css` ajusta ritmo de lectura global:
+    - mayor separación entre módulos (`module-block`),
+    - mejor continuidad de subbloques (`module-subblock`),
+    - pequeños ajustes de gap en grillas y spacing de encabezados de módulo/panel.
+  - objetivo: escaneo más claro entre capas sin modificar estructura ni navegación.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - recorrer todas las vistas (`Dashboard` a `Riesgo`) y validar separación visual entre bloques.
+  - confirmar que no se perciben “saltos” de densidad entre módulos consecutivos.
+  - validar que en mobile se mantiene legibilidad y continuidad vertical.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.

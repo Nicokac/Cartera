@@ -341,7 +341,7 @@ section.grid {
 .grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: 18px;
+  gap: 20px;
 }
 
 .spotlight-grid {
@@ -350,16 +350,17 @@ section.grid {
 
 .panel {
   padding: 20px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .module-block {
-  margin-top: 24px;
+  margin-top: 28px;
+  padding-top: 2px;
 }
 
 .module-head {
   margin: 0 0 12px;
-  padding: 0 4px 10px;
+  padding: 0 6px 10px;
   border-bottom: 1px solid rgba(215, 208, 198, 0.62);
 }
 
@@ -464,7 +465,7 @@ section.grid {
 }
 
 .module-subblock + .module-subblock {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .dashboard-pulse {
