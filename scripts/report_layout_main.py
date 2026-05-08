@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from report_primitives import build_collapsible, build_technical_table, esc_text
+from report_primitives import build_collapsible, build_technical_table, esc_text, fmt_ars, fmt_usd
 from report_sections import build_technical_summary
 
 
@@ -31,6 +31,10 @@ def build_report_main_content(
     decision_section: str,
     portfolio_section: str,
     integrity_section: str,
+    generated_at_label: object = None,
+    total_ars: float = 0.0,
+    total_usd: float = 0.0,
+    integrity_status: str = "ok",
 ) -> str:
     return f"""  <main class=\"page\">
     {build_report_hero(title=title, headline=headline, lede=lede)}
@@ -44,6 +48,11 @@ def build_report_main_content(
         panorama_section=panorama_section,
         changes_section=changes_section,
         regime_summary=regime_summary,
+        generated_at_label=generated_at_label,
+        total_ars=total_ars,
+        total_usd=total_usd,
+        integrity_status=integrity_status,
+        lede=lede,
     )}
 
     <section class=\"module-block report-view module-portfolio\" id=\"module-cartera\" data-view=\"cartera\">
@@ -161,16 +170,35 @@ def build_dashboard_module(
     panorama_section: str,
     changes_section: str,
     regime_summary: str,
+    generated_at_label: object = None,
+    total_ars: float = 0.0,
+    total_usd: float = 0.0,
+    integrity_status: str = "ok",
+    lede: str = "",
 ) -> str:
+    time_part = str(generated_at_label or "")
+    if " " in time_part:
+        time_part = time_part.split(" ", 1)[1]
+    integrity_label = {"ok": "Integridad OK", "warn": "Integridad WARN", "error": "Integridad ERROR"}.get(integrity_status, "Integridad OK")
+    integrity_class = f"integrity-{integrity_status}"
     return f"""<section class=\"module-block report-view is-active module-dashboard\" id=\"module-dashboard\" data-view=\"dashboard\">
-    <header class=\"module-head\">
-      <p class=\"module-kicker\">Módulo</p>
-      <h2>Dashboard</h2>
-    </header>
+    <div class=\"dashboard-hero\">
+      <div class=\"dashboard-hero-meta\">
+        <span class=\"dashboard-run-label\">Real Run</span>
+        <span class=\"dashboard-run-time\">{esc_text(time_part)}</span>
+        <span class=\"dashboard-integrity-badge {integrity_class}\">{integrity_label}</span>
+      </div>
+      <div class=\"dashboard-hero-totals\">
+        <span class=\"dashboard-total-ars\">{fmt_ars(total_ars)}</span>
+        <span class=\"dashboard-total-sep\">·</span>
+        <span class=\"dashboard-total-usd\">{fmt_usd(total_usd)}</span>
+      </div>
+      {f'<p class=\"dashboard-lede\">{lede}</p>' if lede else ""}
+    </div>
     <section class=\"dashboard-pulse module-subblock\" id=\"dashboard-foco\">
-      <a class=\"pulse-item\" href=\"#module-decision\"><strong>Ir a Decisión</strong><span>Rebalanceo y acción sugerida</span></a>
-      <a class=\"pulse-item\" href=\"#module-cartera\"><strong>Ir a Cartera</strong><span>Composición y exposición</span></a>
-      <a class=\"pulse-item\" href=\"#module-riesgo\"><strong>Ir a Riesgo</strong><span>Integridad y diagnóstico</span></a>
+      <button type=\"button\" class=\"pulse-item\" data-target-view=\"decision\"><strong>Decisión</strong><span>Rebalanceo y acción sugerida</span></button>
+      <button type=\"button\" class=\"pulse-item\" data-target-view=\"cartera\"><strong>Cartera</strong><span>Composición y exposición</span></button>
+      <button type=\"button\" class=\"pulse-item\" data-target-view=\"riesgo\"><strong>Riesgo</strong><span>Integridad y diagnóstico</span></button>
     </section>
     <section class=\"module-subblock\" id=\"dashboard-detalle\">
       {primary_cards}

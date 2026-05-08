@@ -29,7 +29,32 @@ from report_sections import (
 from report_sections_prediction import build_prediction_section
 from portfolio.operations import build_pending_trade_portfolio_rows
 
+import io
+
 from decision.action_constants import NEUTRAL_ACTIONS
+
+_CSV_EXPORT_COLUMNS = [
+    "Ticker_IOL", "Tipo", "asset_family", "asset_subfamily",
+    "Peso_%", "Valorizado_ARS", "Valor_USD", "Ganancia_%", "Ganancia_%_Cap",
+    "score_unificado", "accion_sugerida_v2", "accion_previa",
+    "score_delta_vs_dia_anterior", "dias_consecutivos_refuerzo", "dias_consecutivos_reduccion",
+    "Tech_Trend", "RSI_14", "Momentum_20d_%", "Momentum_60d_%",
+    "Dist_SMA200_%", "ADX_14", "Relative_Volume",
+    "Perf Week", "Perf Month", "Perf YTD",
+    "Beta", "P/E", "ROE", "Profit Margin", "MEP_Premium_%",
+    "consenso", "total_ratings",
+    "driver_1", "driver_2", "driver_3",
+]
+
+
+def _build_csv_export(final_decision: pd.DataFrame, generated_at_label: object) -> tuple[str, str]:
+    available = [c for c in _CSV_EXPORT_COLUMNS if c in final_decision.columns]
+    df = final_decision[available].copy()
+    date_str = str(generated_at_label or "").split(" ")[0] or "export"
+    filename = f"cartera_{date_str}.csv"
+    buf = io.StringIO()
+    df.to_csv(buf, index=False, encoding="utf-8")
+    return buf.getvalue(), filename
 
 
 class RenderSections(TypedDict):
@@ -280,6 +305,8 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         kpis=kpis,
     )
 
+    csv_data, csv_filename = _build_csv_export(final_decision, generated_at_label)
+
     return {
         "mep_real": mep_real,
         "generated_at_label": generated_at_label,
@@ -300,6 +327,8 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         **decision_context,
         "price_history": price_history,
         "pending_portfolio_rows": pending_portfolio_rows,
+        "csv_data": csv_data,
+        "csv_filename": csv_filename,
     }
 
 
@@ -374,6 +403,8 @@ def build_render_sections(
             show_bonistas=bool(context["show_bonistas"]),
             show_operations=bool(context["operations_bundle"]),
             show_prediction=bool(context["prediction_bundle"]) and not context["prediction_bundle"].get("predictions", pd.DataFrame()).empty,
+            csv_filename=str(context.get("csv_filename", "")),
+            csv_data=str(context.get("csv_data", "")),
         ),
     )
     operations_section = time_section(
@@ -450,6 +481,17 @@ def build_render_sections(
     }
 
 
+def _derive_integrity_status(integrity_report: object) -> str:
+    if not isinstance(integrity_report, pd.DataFrame) or integrity_report.empty or "estado" not in integrity_report.columns:
+        return "ok"
+    estados = integrity_report["estado"].str.upper()
+    if (estados == "ERROR").any():
+        return "error"
+    if estados.isin({"WARN", "ERROR"}).any():
+        return "warn"
+    return "ok"
+
+
 def compose_report_body_inputs(
     *,
     context: dict[str, object],
@@ -461,6 +503,9 @@ def compose_report_body_inputs(
     return {
         "title": title,
         "generated_at_label": context.get("generated_at_label"),
+        "total_ars": float(context["kpis"].get("total_ars", 0) or 0),
+        "total_usd": float(context["kpis"].get("total_usd", 0) or 0),
+        "integrity_status": _derive_integrity_status(context["integrity_report"]),
         "headline": headline,
         "lede": lede,
         "integrity_strip": sections.get("integrity_strip", ""),

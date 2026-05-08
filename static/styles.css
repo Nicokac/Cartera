@@ -164,6 +164,20 @@ body {
   opacity: 1;
 }
 
+.quick-nav .nav-download {
+  margin-left: auto;
+  color: #55646c;
+  border-style: dashed;
+  background: rgba(255, 253, 248, 0.65);
+  flex-shrink: 0;
+}
+
+.quick-nav .nav-download:hover {
+  background: rgba(15, 108, 92, 0.08);
+  border-color: rgba(15, 108, 92, 0.30);
+  color: var(--accent);
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -345,6 +359,87 @@ section.grid {
 
 .module-dashboard {
   padding-top: 4px;
+}
+
+.dashboard-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(15, 108, 92, 0.06) 0%, rgba(255, 255, 255, 0.5) 100%);
+  border: 1px solid rgba(15, 108, 92, 0.14);
+}
+
+.dashboard-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashboard-run-label {
+  font: 700 10px/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  background: rgba(15, 108, 92, 0.1);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.dashboard-run-time {
+  font: 13px/1 var(--mono);
+  color: var(--muted);
+}
+
+.dashboard-integrity-badge {
+  font: 700 11px/1 var(--mono);
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.dashboard-integrity-badge.integrity-ok {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+.dashboard-integrity-badge.integrity-warn {
+  background: rgba(234, 179, 8, 0.15);
+  color: #a16207;
+}
+.dashboard-integrity-badge.integrity-error {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
+.dashboard-hero-totals {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.dashboard-total-ars {
+  font: 700 22px/1 var(--mono);
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.dashboard-total-sep {
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.dashboard-total-usd {
+  font: 600 16px/1 var(--mono);
+  color: var(--muted);
+}
+
+.dashboard-lede {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
 }
 
 .module-subblock + .module-subblock {

@@ -11,6 +11,9 @@ def build_report_page(
     *,
     title: str,
     generated_at_label: object,
+    total_ars: float = 0.0,
+    total_usd: float = 0.0,
+    integrity_status: str = "ok",
     headline: str,
     lede: str,
     integrity_strip: str,
@@ -37,6 +40,10 @@ def build_report_page(
     tab_title, meta_description = build_report_meta(title=title, generated_at_label=generated_at_label)
     main_content = build_report_main_content(
         title=title,
+        generated_at_label=generated_at_label,
+        total_ars=total_ars,
+        total_usd=total_usd,
+        integrity_status=integrity_status,
         headline=headline,
         lede=lede,
         integrity_strip=integrity_strip,

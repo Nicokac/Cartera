@@ -73,10 +73,10 @@ def build_header_cards(
 ) -> tuple[str, str, str]:
     primary_cards = f"""
     <section class="cards cards-primary">
-      <article class="card"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
+      <article class="card"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
       <article class="card"><span class="label">Liquidez broker</span><strong>{fmt_ars(kpis.get('liquidez_broker_ars', kpis['liquidez_ars']))}</strong></article>
-      <article class="card"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
+      <article class="card"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
       <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
       <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
     </section>
@@ -85,8 +85,8 @@ def build_header_cards(
     <section class="cards cards-secondary">
       <article class="card compact"><span class="label">Total ARS estilo IOL</span><strong>{fmt_ars(kpis['total_ars_iol'])}</strong></article>
       <article class="card compact"><span class="label">Liquidez ampliada</span><strong>{fmt_ars(kpis['liquidez_ars'])}</strong></article>
-      <article class="card compact"><span class="label">Total USD</span><strong>{fmt_usd(kpis['total_usd'])}</strong></article>
-      <article class="card compact"><span class="label">Ganancia</span><strong>{fmt_ars(kpis['ganancia_total'])}</strong></article>
+      <article class="card compact"><span class="label">MEP</span><strong>{fmt_ars(mep_real)}</strong></article>
+      <article class="card compact"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
       <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
       <article class="card compact"><span class="label">Cobertura t\u00e9cnica</span><strong>{tech_covered}/{tech_total}</strong></article>
       <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
@@ -229,10 +229,12 @@ def build_changes_section(
     """
 
 
-def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool) -> str:
+def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_prediction: bool, csv_filename: str = "", csv_data: str = "") -> str:
     bonistas_btn = '<button type="button" data-target-view="bonos">Bonos y Macro</button>' if show_bonistas else ""
     operations_btn = '<button type="button" data-target-view="operaciones">Operaciones</button>' if show_operations else ""
     prediction_btn = '<button type="button" data-target-view="prediccion">Predicción</button>' if show_prediction else ""
+    download_btn = f'<button type="button" class="nav-download" data-csv-download="{csv_filename}">&#8595; CSV</button>' if csv_filename else ""
+    csv_script = f'<script type="text/plain" id="report-csv-data">{csv_data}</script>' if csv_data else ""
     buttons = [
         '<button type="button" data-target-view="dashboard" class="active">Dashboard</button>',
         '<button type="button" data-target-view="cartera">Cartera</button>',
@@ -243,10 +245,12 @@ def build_quick_nav(*, show_bonistas: bool, show_operations: bool, show_predicti
         operations_btn,
         '<button type="button" data-target-view="riesgo">Riesgo</button>',
         '<button type="button" data-target-view="all">Vista completa</button>',
+        download_btn,
     ]
     sep = "\n"
     items = sep.join("      " + btn for btn in buttons if btn) + "\n"
     return f"""
+    {csv_script}
     <nav class="quick-nav" data-view-nav>
 {items}    </nav>
     """

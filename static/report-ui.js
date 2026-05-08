@@ -148,6 +148,22 @@ if (quickNav) {
   updateQuickNavOverflow();
 }
 
+const csvDownloadBtn = document.querySelector('[data-csv-download]');
+if (csvDownloadBtn) {
+  csvDownloadBtn.addEventListener('click', () => {
+    const filename = csvDownloadBtn.dataset.csvDownload || 'cartera.csv';
+    const csvEl = document.getElementById('report-csv-data');
+    if (!csvEl) return;
+    const blob = new Blob([csvEl.textContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
 document.querySelectorAll('details').forEach((det) => {
   const summary = det.querySelector('summary');
   if (!summary) return;
