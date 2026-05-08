@@ -125,6 +125,20 @@ Avance UI post-cierre:
   - confirmar que no se perciben “saltos” de densidad entre módulos consecutivos.
   - validar que en mobile se mantiene legibilidad y continuidad vertical.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (consistencia semántica de estados):
+  - `static/styles.css` alinea contraste y lectura de estados en:
+    - `regime-chip` activo/inactivo,
+    - celdas de calidad en `risk-history-table` (`Parcial` / `Corta` / `Sin historia`),
+    - `focus-item item-pending`,
+    - bloques `empty` de ausencia de datos.
+  - objetivo: que advertencias y severidades se perciban de forma homogénea en todo el reporte.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - validar coherencia visual entre estados `OK/WARN/ERROR` y estados de calidad de historia.
+  - revisar que bloques `Sin datos` sean visibles pero no invasivos.
+  - confirmar que no cambia contenido ni reglas de negocio.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.

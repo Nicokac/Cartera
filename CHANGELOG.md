@@ -32,6 +32,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
 - embellecimiento UI fase 1 en ritmo de layout:
   - `static/styles.css`: ajuste de separación entre módulos/subbloques y pequeños refinamientos de gap para lectura más continua entre secciones.
   - sin cambios funcionales en navegación, render ni contratos de salida.
+- embellecimiento UI fase 1 en semantica visual de estados:
+  - `static/styles.css`: normalizacion de contraste en `regime-chip`, celdas de calidad de historia (`risk-history-table`), bloques pendientes y estados vacios (`empty`).
+  - sin cambios funcionales en datos, reglas ni estructura de salida.
 - cierre documental de refactor UI previo a embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
   - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.
