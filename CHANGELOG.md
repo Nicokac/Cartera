@@ -61,6 +61,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - mejora visual de la columna `Confianza` con chips semánticos (`Alta/Media/Baja`) y valor porcentual separado.
 - embellecimiento UI fase 1 en predicción:
   - `static/styles.css`: nuevos estilos `conviction-chip`/`conviction-value` para legibilidad de confianza en tabla de señales.
+- embellecimiento UI fase 1 en tablas analíticas:
+  - `static/styles.css`: ajuste de densidad en `#decision-table` (badges/drivers/métricas) para mejorar escaneo de filas con alto contenido.
+  - `static/styles.css`: refinamiento de `signal-table` (columna de confianza, headers de señales, tamaño de `sig`) para lectura más clara en `Predicción`.
+  - sin cambios funcionales en filtros/sort ni en contratos de render.
 
 ## [0.5.4] - 2026-05-01
 

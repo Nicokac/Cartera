@@ -224,6 +224,22 @@ Avance UI post-cierre:
   - revisar que la columna `Confianza` muestre chip (`Alta/Media/Baja`) + porcentaje legible.
   - confirmar que en casos contradictorios siga apareciendo `⚠ Refuerzo` / `⚠ Reducir`.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (tablas analíticas de decisión/predicción):
+  - `static/styles.css` ajusta densidad de `#decision-table`:
+    - badges más compactos,
+    - chips de drivers/métricas con menor ruido visual en filas largas.
+  - `static/styles.css` refuerza legibilidad en `signal-table`:
+    - mejor jerarquía tipográfica en columna `Confianza`,
+    - headers de señales más consistentes,
+    - íconos de señal (`sig`) compactos para reducir saturación horizontal.
+  - sin cambios de lógica ni comportamiento de filtros/sort.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - abrir `reports/real-report.html` y validar en `Decisión` que la tabla sea más escaneable sin pérdida de información.
+  - validar en `Predicción` que la columna `Confianza` y la matriz de señales se lean mejor en desktop y mobile.
+  - confirmar que filtros/sort de `Decisión` mantienen comportamiento.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles

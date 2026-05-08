@@ -1076,6 +1076,22 @@ tbody tr:hover {
   line-height: 1.25;
 }
 
+#decision-table .badge {
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+#decision-table .driver-stack {
+  gap: 4px;
+}
+
+#decision-table .metric {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
 .score-notes {
   margin: 0 0 12px;
 }
@@ -1380,9 +1396,24 @@ tbody tr:hover td:first-child {
   white-space: nowrap;
 }
 
+.signal-table td:nth-child(3) {
+  min-width: 118px;
+}
+
+.signal-table td:nth-child(3),
+.signal-table td:last-child {
+  font-family: var(--mono);
+}
+
+.signal-table tbody tr td strong {
+  font-family: var(--mono);
+  letter-spacing: 0.01em;
+}
+
 .sig-th {
   font-size: 11px;
-  letter-spacing: 0;
+  letter-spacing: 0.03em;
+  color: #607079;
 }
 
 .sig {
@@ -1408,6 +1439,16 @@ tbody tr:hover td:first-child {
 .sig-neu {
   background: var(--neutral-bg);
   color: #8a9ba8;
+}
+
+.signal-table .sig {
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+.signal-table tbody tr:hover .conviction-chip {
+  border-color: rgba(15, 108, 92, 0.32);
 }
 
 .copy-btn {
