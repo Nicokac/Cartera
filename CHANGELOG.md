@@ -91,6 +91,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: densidad optimizada en `focus-list`/`focus-item`/`focus-detail` para mejorar lectura de cards en bloques ejecutivos.
   - `static/styles.css`: colapsables más compactos (`summary`/`body`) y navegación de vistas más eficiente (`data-view-nav button`) para flujo analítico rápido.
   - sin cambios funcionales en renderer, datos ni comportamiento interactivo.
+- embellecimiento UI fase 1 (batch consolidado desktop v2):
+  - `static/styles.css`: reforzado del shell sticky (`quick-nav`) con mayor definición visual y microinteracciones más claras.
+  - `static/styles.css`: jerarquía más marcada en módulos/paneles (`module-head`, `panel-head`, `panel h2/h3`) para mejorar el recorrido visual.
+  - `static/styles.css`: ajuste de lectura KPI y tablas (`dashboard totals`, contraste de `table-wrap`, zebra/hover y headers sticky) para análisis prolongado en browser escritorio.
+  - sin cambios funcionales en lógica, datos ni contratos de render.
 
 ## [0.5.4] - 2026-05-01
 

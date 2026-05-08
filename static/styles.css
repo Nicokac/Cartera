@@ -57,7 +57,7 @@ body {
   border: 1px solid rgba(15, 108, 92, 0.18);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-strong);
-  padding: 30px;
+  padding: 28px 30px;
 }
 
 .eyebrow {
@@ -94,13 +94,13 @@ body {
   gap: 8px;
   margin: 18px 0 0;
   position: sticky;
-  top: 10px;
+  top: 12px;
   z-index: 20;
   padding: 8px;
-  border: 1px solid rgba(15, 108, 92, 0.18);
+  border: 1px solid rgba(15, 108, 92, 0.22);
   border-radius: 14px;
   background: var(--surface-soft);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 10px 22px rgba(29, 42, 47, 0.1);
   backdrop-filter: blur(10px);
   overflow-x: auto;
   scrollbar-width: none;
@@ -120,12 +120,13 @@ body {
   text-decoration: none;
   white-space: nowrap;
   font: 600 12px/1 var(--mono);
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
 .quick-nav a:hover {
   background: rgba(15, 108, 92, 0.12);
   border-color: rgba(15, 108, 92, 0.34);
+  transform: translateY(-1px);
 }
 
 .quick-nav a.active {
@@ -184,6 +185,7 @@ body {
   background: rgba(15, 108, 92, 0.08);
   border-color: rgba(15, 108, 92, 0.30);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .cards {
@@ -195,7 +197,7 @@ body {
 
 .cards-secondary {
   margin-top: 0;
-  opacity: 0.82;
+  opacity: 0.88;
 }
 
 .cards-secondary .card {
@@ -352,11 +354,12 @@ section.grid {
 .panel {
   padding: 22px;
   margin-top: 14px;
+  border-color: rgba(215, 208, 198, 0.82);
 }
 
 .module-block {
   margin-top: 30px;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 /* Anchor ergonomics with sticky nav */
@@ -369,7 +372,7 @@ section.grid {
 
 .module-head {
   margin: 0 0 14px;
-  padding: 0 8px 12px;
+  padding: 0 10px 12px;
   border-bottom: 1px solid rgba(215, 208, 198, 0.82);
 }
 
@@ -377,14 +380,14 @@ section.grid {
   margin: 0 0 4px;
   color: var(--muted);
   font: 600 11px/1.2 var(--mono);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .module-head h2 {
   margin: 0;
   font-size: 22px;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.015em;
   color: #1e2f36;
 }
 
@@ -395,9 +398,9 @@ section.grid {
 .dashboard-hero {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   padding: 16px 18px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, rgba(15, 108, 92, 0.10) 0%, rgba(255, 255, 255, 0.64) 100%);
   border: 1px solid rgba(15, 108, 92, 0.20);
@@ -452,7 +455,7 @@ section.grid {
 }
 
 .dashboard-total-ars {
-  font: 700 22px/1 var(--mono);
+  font: 700 24px/1 var(--mono);
   color: var(--ink);
   letter-spacing: -0.02em;
 }
@@ -463,7 +466,7 @@ section.grid {
 }
 
 .dashboard-total-usd {
-  font: 600 16px/1 var(--mono);
+  font: 600 17px/1 var(--mono);
   color: var(--muted);
 }
 
@@ -657,7 +660,7 @@ section.grid {
 
 .panel h2 {
   margin: 0 0 14px;
-  font-size: 19px;
+  font-size: 20px;
   letter-spacing: 0.01em;
 }
 
@@ -665,7 +668,7 @@ section.grid {
   margin: 0 0 10px;
   font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--muted);
 }
 
@@ -675,7 +678,7 @@ section.grid {
   align-items: center;
   gap: 12px;
   margin-bottom: 14px;
-  padding: 0 0 10px;
+  padding: 0 0 12px;
   border-bottom: 1px solid rgba(215, 208, 198, 0.76);
 }
 
@@ -717,7 +720,7 @@ section.grid {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 18px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.45;
@@ -969,7 +972,7 @@ section.grid {
   overflow-y: hidden;
   border-radius: 14px;
   position: relative;
-  border: 1px solid rgba(215, 208, 198, 0.72);
+  border: 1px solid rgba(215, 208, 198, 0.84);
   background: rgba(255, 255, 255, 0.56);
 }
 
@@ -1007,6 +1010,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: rgba(255, 255, 255, 0.92);
+  table-layout: auto;
 }
 
 th,
@@ -1016,7 +1020,7 @@ td {
   text-align: left;
   vertical-align: top;
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.33;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1028,17 +1032,17 @@ th {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f6f2ea;
+  background: #f7f2e9;
   border-bottom: 1px solid rgba(215, 208, 198, 0.92);
   box-shadow: inset 0 -1px 0 rgba(215, 208, 198, 0.82);
 }
 
 tbody tr:nth-child(even) {
-  background: rgba(15, 108, 92, 0.022);
+  background: rgba(15, 108, 92, 0.026);
 }
 
 tbody tr:hover {
-  background: rgba(15, 108, 92, 0.072);
+  background: rgba(15, 108, 92, 0.082);
 }
 
 .risk-history-table .cell-quality {

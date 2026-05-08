@@ -323,6 +323,22 @@ Avance UI post-cierre:
   - revisar `Panorama`, `Cambios`, `Predicción` y `Bonos` para confirmar mayor densidad de cards sin perder legibilidad.
   - abrir/cerrar colapsables y validar ritmo visual más compacto manteniendo usabilidad.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (batch consolidado desktop v2):
+  - `static/styles.css` refuerza navegación y jerarquía de lectura para browser escritorio:
+    - `quick-nav` sticky con mayor contraste/sombra y hover más expresivo,
+    - `module-head` y `panel-head` con separación más clara entre capas de contenido,
+    - títulos de panel más fuertes para lectura escaneable.
+  - `static/styles.css` optimiza lectura analítica prolongada:
+    - KPIs de dashboard más destacados (`total ARS/USD`),
+    - tablas con contraste refinado de contenedor/cabecera/hover para seguimiento de filas.
+  - sin cambios de lógica, datos ni comportamiento funcional.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - en desktop, navegar por vistas y validar que quick-nav sticky se perciba más estable durante scroll.
+  - revisar separación visual entre módulos (`Dashboard`, `Decisión`, `Predicción`, `Riesgo`) y claridad de títulos.
+  - en tablas largas, validar mejor seguimiento de fila con hover/zebra y encabezado sticky.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles
