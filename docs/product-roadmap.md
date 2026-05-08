@@ -266,6 +266,22 @@ Avance UI post-cierre:
   - recorrer `Dashboard`, `Decisión`, `Cartera` y `Riesgo` para confirmar mejor separación visual de módulos.
   - validar que quick-nav siga estable (sticky, foco y estado activo) durante scroll largo.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (lectura comparativa en tablas desktop):
+  - `static/styles.css` ajusta columnas clave en `#decision-table`:
+    - ticker con ancho mínimo consistente,
+    - columnas numéricas relevantes con alineación monoespaciada a la derecha.
+  - `static/styles.css` mejora escaneo de `signal-table`:
+    - anchos mínimos para `Dirección`/`Fecha objetivo`,
+    - jerarquía más clara de la columna `Confianza`,
+    - realce sutil alternado sobre `Confianza` para lectura rápida por fila.
+  - sin cambios de lógica ni contrato funcional de `Decisión`/`Predicción`.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - en desktop, abrir `Decisión` y validar comparación más rápida entre `Δ Score`/`Racha`/columnas numéricas.
+  - en `Predicción`, validar mejor legibilidad de `Dirección`, `Confianza` y `Fecha objetivo` en tabla completa.
+  - confirmar que filtros/sort de `Decisión` no cambiaron comportamiento.
+
 - 2026-05-01: iniciado Fase UI-1 del reporte (`real-report`) con refactor de JS de interaccion a `static/report-ui.js`, conservando salida y comportamiento mediante inyeccion inline desde `scripts/report_layout.py`.
 - 2026-05-01: continuacion Fase UI-1 con embellecimiento base en `static/styles.css`:
   - mejor jerarquia visual de `quick-nav`, cards y paneles

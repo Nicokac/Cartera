@@ -73,6 +73,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: expansión del ancho útil de página (`1180 -> 1320`) para mejorar densidad informativa en monitores de escritorio.
   - `static/styles.css`: ajuste de jerarquía visual en shell desktop (`quick-nav`, `module-head`, `panel`, `cards`, `grid`, `focus-columns`) para escaneo más claro entre módulos.
   - sin cambios funcionales en renderer ni contratos de salida.
+- embellecimiento UI fase 1 en lectura comparativa desktop:
+  - `static/styles.css`: alineación y legibilidad de columnas clave en `#decision-table` (ticker y columnas numéricas).
+  - `static/styles.css`: mejora de escaneo en `signal-table` (anchos mínimos útiles, jerarquía de columna de confianza y señalización visual sutil por fila).
+  - sin cambios funcionales en filtros/sort, lógica de decisión o predicción.
 
 ## [0.5.4] - 2026-05-01
 

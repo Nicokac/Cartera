@@ -1079,6 +1079,19 @@ tbody tr:hover {
   padding-bottom: 7px;
 }
 
+#decision-table th:nth-child(1),
+#decision-table td:nth-child(1) {
+  min-width: 92px;
+}
+
+#decision-table th:nth-child(5),
+#decision-table td:nth-child(5),
+#decision-table th:nth-child(8),
+#decision-table td:nth-child(8) {
+  text-align: right;
+  font-family: var(--mono);
+}
+
 #decision-table td:last-child {
   min-width: 280px;
 }
@@ -1413,9 +1426,21 @@ tbody tr:hover td:first-child {
   min-width: 118px;
 }
 
+.signal-table th:nth-child(3),
+.signal-table td:nth-child(3) {
+  text-align: left;
+}
+
 .signal-table td:nth-child(3),
 .signal-table td:last-child {
   font-family: var(--mono);
+}
+
+.signal-table th:nth-child(2),
+.signal-table td:nth-child(2),
+.signal-table th:last-child,
+.signal-table td:last-child {
+  min-width: 98px;
 }
 
 .signal-table tbody tr td strong {
@@ -1458,6 +1483,10 @@ tbody tr:hover td:first-child {
   width: 18px;
   height: 18px;
   font-size: 10px;
+}
+
+.signal-table tbody tr:nth-child(odd) td:nth-child(3) {
+  background: rgba(15, 108, 92, 0.035);
 }
 
 .signal-table tbody tr:hover .conviction-chip {
