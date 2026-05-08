@@ -16,6 +16,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y 
   - `static/styles.css`: estandarizacion visual de `focus-item`, `collapsible`, `metric-*`, `badge-*`, `copy-btn` y `panel-head`.
   - mejora de consistencia de estados/semantica visual y foco por teclado en componentes interactivos.
   - sin cambios funcionales en renderer ni contratos de salida.
+- embellecimiento UI fase 1 en legibilidad de tablas:
+  - `static/styles.css`: refinamiento de densidad tipografica/espaciado en `th/td`, sticky header con mayor contraste, primera columna sticky mas estable y mejora de zebra/hover.
+  - `table-wrap` con contenedor visual consistente para tablas largas.
+  - sin cambios funcionales en filtros/sort ni en estructura de tablas.
 - cierre documental de refactor UI previo a embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado real de navegacion por vistas y contratos vigentes.
   - version base de stream UI alineada a `0.5.4` tambien en `docs/report-ia-architecture.md` y `docs/product-roadmap.md`.

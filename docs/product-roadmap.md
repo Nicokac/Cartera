@@ -56,6 +56,21 @@ Avance UI post-cierre:
   - abrir/cerrar bloques colapsables y validar foco de teclado sobre `summary`.
   - validar chips de `Acción`/`Drivers`/`Métricas` con semántica visual consistente.
 
+- 2026-05-08: embellecimiento visual Fase UI-1 (legibilidad de tablas):
+  - `static/styles.css` ajusta densidad y lectura de tablas:
+    - `table-wrap` con borde/superficie consistente,
+    - `th/td` con tipografia y espaciado mas compactos,
+    - encabezados sticky con mejor contraste,
+    - primera columna sticky con separacion visual,
+    - hover/zebra refinados para escaneo rapido.
+  - sin cambios en contratos HTML ni comportamiento de filtros/sort.
+- pruebas aplicadas en este cambio (si aplica):
+  - `python -m unittest tests.test_report_render_ui tests.test_report_render_core tests.test_report_primitives -v`
+- que probar manualmente:
+  - validar en `Decisión`, `Cartera`, `Predicción`, `Técnico` y `Bonos` que la lectura de filas/columnas sea mas clara.
+  - en tablas anchas, confirmar sticky header + primera columna sin glitches visuales.
+  - confirmar que filtros/sort en `Decisión` siguen funcionando igual.
+
 - 2026-05-08: gate de cierre de refactor UI y alineacion documental para embellecimiento:
   - actualizados `docs/report-ui-ready-checklist.md`, `docs/report-ux-architecture.md` y `docs/report-ui-embellecimiento-plan.md` al estado vigente (navegacion por vistas + shell modular).
   - baseline del stream UI alineada a `0.5.4` en `docs/product-roadmap.md` y `docs/report-ia-architecture.md`.
