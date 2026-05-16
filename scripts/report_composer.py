@@ -478,6 +478,16 @@ def build_render_sections(
             decision_view=context["decision_view"],
             action_col=str(context["action_col"]),
             risk_bundle=context.get("risk_bundle", {}),
+            run_quality_status=str(context["run_quality_status"]),
+            run_quality_detail=str(context["run_quality_detail"]),
+            run_quality_recommendation=str(context["run_quality_recommendation"]),
+            prediction_health=(
+                (
+                    context.get("prediction_bundle", {}).get("accuracy", {}).get("health", {})
+                    if isinstance(context.get("prediction_bundle", {}), dict)
+                    else {}
+                )
+            ),
         ),
     )
     sizing_section = time_section(

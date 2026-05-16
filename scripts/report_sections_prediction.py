@@ -137,6 +137,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     accuracy_by_score_band = accuracy.get("by_score_band", []) if isinstance(accuracy, dict) else []
     accuracy_by_horizon = accuracy.get("by_horizon", []) if isinstance(accuracy, dict) else []
     calibration_readiness = accuracy.get("calibration_readiness", []) if isinstance(accuracy, dict) else []
+    trend_last_runs = accuracy.get("trend_last_runs", []) if isinstance(accuracy, dict) else []
 
     def _votes_summary(value: object) -> str:
         votes = _parse_votes(value)
@@ -356,6 +357,27 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         </div>
       </div>
     """
+    trend_items = []
+    if isinstance(trend_last_runs, list):
+        for item in trend_last_runs[:7]:
+            run_date = str(item.get("run_date") or "-")
+            acc = item.get("accuracy_pct")
+            completed_n = int(item.get("completed", 0) or 0)
+            trend_items.append(
+                {
+                    "kicker": run_date,
+                    "title": fmt_pct(acc) if acc is not None else "-",
+                    "detail": f"{completed_n} outcomes verificados",
+                }
+            )
+    trend_block = f"""
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Tendencia de acierto (7 corridas)</h3>
+          {build_focus_list(trend_items, empty_message='Sin historial suficiente para tendencia.', tone='neutral')}
+        </div>
+      </div>
+    """
     return f"""
     <section class="panel" id="prediccion">
       <h2>Predicción</h2>
@@ -382,6 +404,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         </div>
       </div>
       {accuracy_block}
+      {trend_block}
       {readiness_block}
       {build_collapsible(
           "Ver detalle completo de predicción",

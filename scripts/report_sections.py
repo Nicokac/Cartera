@@ -286,6 +286,10 @@ def build_summary_section(
     decision_view: pd.DataFrame | None = None,
     action_col: str = "",
     risk_bundle: dict[str, object] | None = None,
+    run_quality_status: str = "OK",
+    run_quality_detail: str = "Sin vencidos verificables",
+    run_quality_recommendation: str = "Calidad operativa estable.",
+    prediction_health: dict[str, object] | None = None,
 ) -> str:
     score_dist_html = (
         build_score_distribution(decision_view, action_col)
@@ -307,6 +311,28 @@ def build_summary_section(
         <article class="card compact"><span class="label">Finviz ratings</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
       </section>
     """
+    prediction_health = prediction_health or {}
+    verifiable_pending_due = safe_int(prediction_health.get("verifiable_pending_due", 0))
+    verifiable_pending = safe_int(prediction_health.get("verifiable_pending", 0))
+    verifiable_total = safe_int(prediction_health.get("verifiable_total", 0))
+    finviz_status = "OK" if finviz_total > 0 and finviz_fund_covered > 0 and finviz_ratings_covered > 0 else "Degradada"
+    system_items = [
+        {
+            "kicker": "Calidad de corrida",
+            "title": f"{run_quality_status} · {run_quality_detail}",
+            "detail": str(run_quality_recommendation or "-"),
+        },
+        {
+            "kicker": "Verificación predicción",
+            "title": f"{verifiable_pending_due} vencidos verificables",
+            "detail": f"Pendientes {verifiable_pending} de {verifiable_total} verificables",
+        },
+        {
+            "kicker": "Proveedor Finviz",
+            "title": f"{finviz_status} ({finviz_fund_covered}/{finviz_total} | ratings {finviz_ratings_covered}/{finviz_total})",
+            "detail": "Cobertura fundamentals + consenso",
+        },
+    ]
 
     family_summary_view = family_summary.copy() if isinstance(family_summary, pd.DataFrame) else pd.DataFrame()
     if not family_summary_view.empty:
@@ -453,6 +479,12 @@ def build_summary_section(
     <section class="panel" id="resumen">
       <h2>Resumen por tipo</h2>
       {summary_kpis}
+      <div class="focus-columns focus-columns-wide">
+        <div>
+          <h3>Estado del sistema</h3>
+          {build_focus_list(system_items, empty_message='Sin estado del sistema.', tone='neutral')}
+        </div>
+      </div>
       {score_dist_html}
       {build_allocation_bar(resumen_tipos)}
       {summary_table_html}

@@ -567,6 +567,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object |
             "by_score_band": [],
             "by_horizon": [],
             "calibration_readiness": [],
+            "trend_last_runs": [],
         }
 
     work = history.copy()
@@ -594,6 +595,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object |
             "by_score_band": [],
             "by_horizon": [],
             "calibration_readiness": [],
+            "trend_last_runs": [],
         }
 
     work["outcome"] = work["outcome"].fillna("").astype(str).str.strip()
@@ -680,6 +682,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object |
             "by_score_band": [],
             "by_horizon": [],
             "calibration_readiness": [],
+            "trend_last_runs": [],
         }
 
     correct_numeric = pd.to_numeric(completed["correct"], errors="coerce")
@@ -782,6 +785,33 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object |
             )
         calibration_readiness_rows.sort(key=lambda item: (item["ready"] is False, -item["min_count"], item["asset_family"]))
 
+    trend_last_runs: list[dict[str, object]] = []
+    if "run_date" in completed.columns:
+        run_trend = completed.copy()
+        run_trend["run_date"] = pd.to_datetime(run_trend["run_date"], errors="coerce")
+        run_trend = run_trend.dropna(subset=["run_date"]).copy()
+        if not run_trend.empty:
+            run_trend["run_date_norm"] = run_trend["run_date"].dt.normalize()
+            grouped_trend = (
+                run_trend.groupby("run_date_norm", dropna=False)
+                .agg(
+                    completed=("correct", "size"),
+                    accuracy_pct=("correct", lambda s: float(pd.to_numeric(s, errors="coerce").mean() * 100.0)),
+                )
+                .reset_index()
+                .sort_values("run_date_norm", ascending=False)
+                .head(7)
+                .sort_values("run_date_norm", ascending=True)
+            )
+            trend_last_runs = [
+                {
+                    "run_date": row["run_date_norm"].strftime("%Y-%m-%d"),
+                    "completed": int(row["completed"]),
+                    "accuracy_pct": float(row["accuracy_pct"]) if pd.notna(row["accuracy_pct"]) else None,
+                }
+                for _, row in grouped_trend.iterrows()
+            ]
+
     return {
         "global": {
             "completed": int(len(completed)),
@@ -808,6 +838,7 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object |
         "by_score_band": by_score_band_rows,
         "by_horizon": by_horizon_rows,
         "calibration_readiness": calibration_readiness_rows,
+        "trend_last_runs": trend_last_runs,
     }
 
 
