@@ -493,7 +493,53 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
     save_prediction_history(prediction_history)
     prediction_bundle["history_size"] = int(len(prediction_history))
     prediction_bundle["accuracy"] = _build_prediction_accuracy_metrics(prediction_history, today=run_date)
+    prediction_bundle["verification_backlog_path"] = str(
+        _export_prediction_verification_backlog(
+            prediction_history,
+            today=run_date,
+            output_path=RUNTIME_DIR / "prediction_verification_backlog.csv",
+        )
+    )
     return prediction_bundle
+
+
+def _export_prediction_verification_backlog(
+    history: pd.DataFrame,
+    *,
+    today: object,
+    output_path: Path,
+) -> Path:
+    columns = ["ticker", "asset_family", "run_date", "outcome_date", "horizon_days", "days_overdue"]
+    if not isinstance(history, pd.DataFrame) or history.empty:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(columns=columns).to_csv(output_path, index=False, encoding="utf-8")
+        return output_path
+
+    work = history.copy()
+    work["outcome"] = work.get("outcome", pd.Series(index=work.index, dtype=object)).fillna("").astype(str).str.strip()
+    work["ticker"] = work.get("ticker", pd.Series(index=work.index, dtype=object)).fillna("").astype(str).str.strip().str.upper()
+    work["asset_family"] = work.get("asset_family", pd.Series(index=work.index, dtype=object)).fillna("").astype(str).str.strip().str.lower()
+    work["run_date"] = pd.to_datetime(work.get("run_date"), errors="coerce")
+    work["outcome_date"] = pd.to_datetime(work.get("outcome_date"), errors="coerce")
+    work["horizon_days"] = pd.to_numeric(work.get("horizon_days"), errors="coerce")
+
+    today_ts = pd.Timestamp(today).normalize()
+    is_verifiable = work["asset_family"].isin({"stock", "etf"})
+    pending_due = (
+        work["outcome"].eq("")
+        & work["outcome_date"].notna()
+        & (work["outcome_date"].dt.normalize() <= today_ts)
+        & is_verifiable
+    )
+    backlog = work.loc[pending_due, ["ticker", "asset_family", "run_date", "outcome_date", "horizon_days"]].copy()
+    backlog["days_overdue"] = (today_ts - backlog["outcome_date"].dt.normalize()).dt.days.astype(int)
+    backlog["run_date"] = backlog["run_date"].dt.strftime("%Y-%m-%d")
+    backlog["outcome_date"] = backlog["outcome_date"].dt.strftime("%Y-%m-%d")
+    backlog = backlog.sort_values(["days_overdue", "ticker"], ascending=[False, True]).reset_index(drop=True)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    backlog.to_csv(output_path, index=False, encoding="utf-8")
+    return output_path
 
 
 def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object | None = None) -> dict[str, object]:
@@ -931,6 +977,9 @@ def _render_and_persist_report(
         rec = "Mantener monitoreo diario."
     print(f"Calidad de corrida: {status} · {detail}")
     print(f"Recomendación: {rec}")
+    backlog_path = prediction.get("verification_backlog_path") if isinstance(prediction, dict) else None
+    if backlog_path:
+        print(f"Backlog verificación (verificables): {backlog_path}")
 
 
 def _collect_market_runtime_inputs(*, username: str, password: str) -> MarketRuntimeInputs:

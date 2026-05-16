@@ -12,12 +12,21 @@ if str(SRC) not in sys.path:
 from prediction.verifier import (
     build_verification_period,
     classify_outcome,
+    resolve_verification_symbols,
     resolve_close_on_or_after,
     verify_prediction_history,
 )
 
 
 class PredictionVerifierTests(unittest.TestCase):
+    def test_resolve_verification_symbols_uses_mapping_and_local_suffix(self) -> None:
+        brkb = resolve_verification_symbols("BRKB", asset_family="stock")
+        self.assertIn("BRK-B", brkb)
+        self.assertIn("BRKB", brkb)
+        self.assertIn("BRKB.BA", brkb)
+        pamp = resolve_verification_symbols("PAMP", asset_family="")
+        self.assertIn("PAMP.BA", pamp)
+
     def test_classify_outcome_supports_up_down_and_neutral_band(self) -> None:
         self.assertEqual(classify_outcome(0.02, neutral_return_band=0.01), "up")
         self.assertEqual(classify_outcome(-0.02, neutral_return_band=0.01), "down")
@@ -207,6 +216,81 @@ class PredictionVerifierTests(unittest.TestCase):
         al30 = verified.loc[verified["ticker"] == "AL30"].iloc[0]
         self.assertEqual(al30["outcome"], "")
         self.assertTrue(pd.isna(al30["correct"]))
+
+    def test_verify_prediction_history_fallbacks_to_alt_symbol(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-04-20",
+                    "ticker": "DISN",
+                    "asset_family": "stock",
+                    "direction": "up",
+                    "confidence": 0.6,
+                    "consensus_raw": 0.6,
+                    "signal_votes": "{}",
+                    "horizon_days": 5,
+                    "outcome_date": "2026-04-27",
+                    "outcome": "",
+                    "correct": None,
+                },
+            ]
+        )
+
+        calls: list[str] = []
+
+        def fake_fetcher(ticker: str, **kwargs) -> pd.DataFrame:
+            calls.append(ticker)
+            if ticker == "DIS":
+                return pd.DataFrame({"Close": [100.0, 103.0]}, index=pd.to_datetime(["2026-04-20", "2026-04-27"]))
+            return pd.DataFrame()
+
+        verified = verify_prediction_history(
+            history,
+            today="2026-04-28",
+            neutral_return_band=0.01,
+            price_fetcher=fake_fetcher,
+        )
+
+        self.assertIn("DIS", calls)
+        row = verified.iloc[0]
+        self.assertEqual(row["outcome"], "up")
+        self.assertTrue(bool(row["correct"]))
+
+    def test_verify_prediction_history_skips_unknown_ticker_with_missing_family(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-04-20",
+                    "ticker": "ADBAICA",
+                    "asset_family": "",
+                    "direction": "neutral",
+                    "confidence": 0.0,
+                    "consensus_raw": 0.0,
+                    "signal_votes": "{}",
+                    "horizon_days": 5,
+                    "outcome_date": "2026-04-27",
+                    "outcome": "",
+                    "correct": None,
+                },
+            ]
+        )
+        calls: list[str] = []
+
+        def fake_fetcher(ticker: str, **kwargs) -> pd.DataFrame:
+            calls.append(ticker)
+            return pd.DataFrame()
+
+        verified = verify_prediction_history(
+            history,
+            today="2026-04-28",
+            neutral_return_band=0.01,
+            price_fetcher=fake_fetcher,
+        )
+
+        self.assertEqual(calls, [])
+        row = verified.iloc[0]
+        self.assertEqual(row["outcome"], "")
+        self.assertTrue(pd.isna(row["correct"]))
 
 
 if __name__ == "__main__":

@@ -8,15 +8,17 @@ import pandas as pd
 try:
     from ..clients.market_data import fetch_price_history
     from ..common.types import DateLike
-    from ..config import PREDICTION_WEIGHTS
+    from ..config import ARGENTINA_EQUITY_MAP, FINVIZ_MAP, PREDICTION_WEIGHTS
 except ImportError:
     from clients.market_data import fetch_price_history
     from common.types import DateLike
-    from config import PREDICTION_WEIGHTS
+    from config import ARGENTINA_EQUITY_MAP, FINVIZ_MAP, PREDICTION_WEIGHTS
 
 
 logger = logging.getLogger(__name__)
 _NON_VERIFIABLE_FAMILIES = {"fund", "bond", "liquidity"}
+_KNOWN_LOCAL_EQUITIES = set(ARGENTINA_EQUITY_MAP.keys())
+_KNOWN_FINVIZ_TICKERS = set(FINVIZ_MAP.keys())
 
 
 def classify_outcome(return_pct: float, *, neutral_return_band: float) -> str:
@@ -62,12 +64,42 @@ def resolve_close_on_or_after(history: pd.DataFrame, target_date: DateLike) -> f
     return float(close)
 
 
+def resolve_verification_symbols(ticker: str, *, asset_family: str = "") -> list[str]:
+    base = str(ticker or "").strip().upper()
+    if not base:
+        return []
+    family = str(asset_family or "").strip().lower()
+    is_local_equity = base in _KNOWN_LOCAL_EQUITIES
+    symbols: list[str] = []
+    mapped = str(FINVIZ_MAP.get(base, "")).strip().upper()
+    if mapped:
+        symbols.append(mapped)
+    symbols.append(base)
+    if (family == "stock" or is_local_equity) and not base.endswith(".BA"):
+        symbols.append(f"{base}.BA")
+    unique: list[str] = []
+    seen: set[str] = set()
+    for symbol in symbols:
+        if symbol and symbol not in seen:
+            unique.append(symbol)
+            seen.add(symbol)
+    return unique
+
+
+def _infer_verifiable_when_family_missing(ticker: str) -> bool:
+    base = str(ticker or "").strip().upper()
+    if not base:
+        return False
+    return base in _KNOWN_LOCAL_EQUITIES or base in _KNOWN_FINVIZ_TICKERS
+
+
 def verify_prediction_history(
     history: pd.DataFrame,
     *,
     today: DateLike | None = None,
     neutral_return_band: float | None = None,
     price_fetcher: Callable[..., pd.DataFrame] | None = None,
+    symbol_resolver: Callable[..., list[str]] | None = None,
 ) -> pd.DataFrame:
     if history is None or history.empty:
         return pd.DataFrame(columns=getattr(history, "columns", []))
@@ -93,6 +125,7 @@ def verify_prediction_history(
         else (PREDICTION_WEIGHTS.get("neutral_return_band", 0.01))
     )
     price_fetcher = price_fetcher or fetch_price_history
+    symbol_resolver = symbol_resolver or (lambda t, asset_family="": resolve_verification_symbols(t, asset_family=asset_family))
 
     pending_mask = (
         out["outcome"].eq("")
@@ -104,7 +137,12 @@ def verify_prediction_history(
     if pending.empty:
         return out
 
-    non_verifiable_mask = pending["asset_family"].isin(_NON_VERIFIABLE_FAMILIES)
+    missing_family = pending["asset_family"].eq("")
+    inferred_verifiable = pending["ticker"].map(_infer_verifiable_when_family_missing)
+    pending.loc[missing_family & inferred_verifiable, "asset_family"] = "stock"
+    non_verifiable_mask = pending["asset_family"].isin(_NON_VERIFIABLE_FAMILIES) | (
+        pending["asset_family"].eq("") & ~inferred_verifiable
+    )
     pending_skipped_non_verifiable = int(non_verifiable_mask.sum())
     pending = pending.loc[~non_verifiable_mask].copy()
     logger.info(
@@ -121,11 +159,24 @@ def verify_prediction_history(
         min_run_date = ticker_rows["run_date"].min()
         max_outcome_date = ticker_rows["outcome_date"].max()
         period = build_verification_period(min_run_date, max_outcome_date)
-        history_frame = price_fetcher(ticker, period=period, interval="1d", auto_adjust=True)
+        asset_family = str(ticker_rows.iloc[0].get("asset_family") or "").strip().lower()
+        candidates = symbol_resolver(ticker, asset_family=asset_family)
+        if not candidates:
+            candidates = resolve_verification_symbols(ticker, asset_family=asset_family)
+        history_frame = pd.DataFrame()
+        used_symbol = ""
+        for candidate in candidates:
+            fetched = price_fetcher(candidate, period=period, interval="1d", auto_adjust=True)
+            if isinstance(fetched, pd.DataFrame) and not fetched.empty:
+                history_frame = fetched
+                used_symbol = candidate
+                break
 
         if history_frame is None or history_frame.empty:
-            logger.warning("Prediction verifier skipped %s: no price history", ticker)
+            logger.warning("Prediction verifier skipped %s: no price history (candidates=%s)", ticker, ",".join(candidates))
             continue
+        if used_symbol and used_symbol != ticker:
+            logger.info("Prediction verifier symbol fallback: %s -> %s", ticker, used_symbol)
 
         for idx, row in ticker_rows.iterrows():
             price_run = resolve_close_on_or_after(history_frame, row["run_date"])
