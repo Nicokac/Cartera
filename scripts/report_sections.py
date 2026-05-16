@@ -645,6 +645,7 @@ def build_bonistas_section(
         )
 
     bond_monitor_view = bond_monitor.copy() if isinstance(bond_monitor, pd.DataFrame) else pd.DataFrame()
+    bond_volume_note = ""
     if not bond_monitor_view.empty:
         for col in ["asset_subfamily", "bonistas_local_subfamily"]:
             if col in bond_monitor_view.columns:
@@ -678,6 +679,27 @@ def build_bonistas_section(
                 "bonistas_put_flag": "PUT",
             }
         )
+        if "Volumen último" in bond_monitor_view.columns:
+            volume_series = pd.to_numeric(bond_monitor_view["Volumen último"], errors="coerce")
+            volume_observed = volume_series.dropna()
+            if volume_observed.empty:
+                bond_volume_note = (
+                    "Sin datos de volumen para los bonos monitoreados; "
+                    "la lectura de liquidez queda degradada en esta corrida."
+                )
+            else:
+                zero_count = int((volume_observed == 0).sum())
+                observed_count = int(len(volume_observed))
+                if zero_count == observed_count:
+                    bond_volume_note = (
+                        "Volumen en 0 para todos los bonos monitoreados; "
+                        "puede corresponder a fuera de rueda o falta de actualización del proveedor."
+                    )
+                elif zero_count > 0:
+                    bond_volume_note = (
+                        f"Volumen en 0 en {zero_count}/{observed_count} bonos monitoreados; "
+                        "revisar calidad de mercado para lectura intradiaria."
+                    )
 
     bond_summary_tables = (
         build_collapsible("Ver resumen por subfamilia", build_table(bond_subfamily_view, formatters={}), compact=True)
@@ -706,6 +728,7 @@ def build_bonistas_section(
       <h2>Bonos Locales</h2>
       {build_bond_summary(bond_subfamily_summary, bond_local_subfamily_summary, bonistas_macro)}
       {f'<div class="meta"><span>{ust_note}</span></div>' if ust_note else ''}
+      {f'<div class="meta"><span>{bond_volume_note}</span></div>' if bond_volume_note else ''}
       {bond_summary_tables}
     </section>
     """

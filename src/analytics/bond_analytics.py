@@ -78,6 +78,34 @@ def _duration_bucket(value: object) -> str | None:
     return "larga"
 
 
+def _normalize_volume_quality(work: pd.DataFrame) -> pd.DataFrame:
+    """Normalize ambiguous zero-volume payloads into missing volume metadata.
+
+    Some providers return `0` as a placeholder when volume is unavailable.
+    We only convert to missing when there is no supporting avg/ratio context.
+    """
+    required_cols = {"bonistas_volume_last", "bonistas_volume_avg_20d", "bonistas_volume_ratio"}
+    if not required_cols.issubset(set(work.columns)):
+        return work
+
+    volume_last = pd.to_numeric(work.get("bonistas_volume_last"), errors="coerce")
+    volume_avg = pd.to_numeric(work.get("bonistas_volume_avg_20d"), errors="coerce")
+    volume_ratio = pd.to_numeric(work.get("bonistas_volume_ratio"), errors="coerce")
+
+    missing_volume_mask = (
+        volume_last.eq(0)
+        & (volume_avg.isna() | volume_avg.le(0))
+        & volume_ratio.isna()
+    )
+    if missing_volume_mask.any():
+        work.loc[missing_volume_mask, "bonistas_volume_last"] = pd.NA
+        work.loc[missing_volume_mask, "bonistas_volume_avg_20d"] = pd.NA
+        work.loc[missing_volume_mask, "bonistas_volume_ratio"] = pd.NA
+        if "bonistas_liquidity_bucket" in work.columns:
+            work.loc[missing_volume_mask, "bonistas_liquidity_bucket"] = None
+    return work
+
+
 def enrich_bond_analytics(
     df_bonds: pd.DataFrame,
     df_bonistas: pd.DataFrame | None = None,
@@ -218,6 +246,8 @@ def enrich_bond_analytics(
         elif pd.notna(ust_5y_value):
             ust_reference.loc[uses_ust_context & ust_reference.isna()] = ust_5y_value
         work["bonistas_spread_vs_ust_pct"] = tir_value - ust_reference
+
+    work = _normalize_volume_quality(work)
 
     logger.info(
         "Bond analytics ready: rows=%s local_subfamilies=%s ust_context=%s",

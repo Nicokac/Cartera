@@ -288,6 +288,32 @@ class BondAnalyticsTests(unittest.TestCase):
         self.assertIn("bonistas_volume_last", monitor.columns)
         self.assertIn("bonistas_liquidity_bucket", monitor.columns)
 
+    def test_enrich_bond_analytics_treats_zero_volume_without_context_as_missing(self) -> None:
+        df_bonds = pd.DataFrame(
+            [
+                {"Ticker_IOL": "GD30", "Tipo": "Bono", "Bloque": "Soberano AR", "asset_subfamily": "bond_sov_ar"},
+            ]
+        )
+        df_bonistas = pd.DataFrame(
+            [
+                {
+                    "bonistas_ticker": "GD30",
+                    "bonistas_volume_last": 0.0,
+                    "bonistas_volume_avg_20d": None,
+                    "bonistas_volume_ratio": None,
+                    "bonistas_liquidity_bucket": "baja",
+                }
+            ]
+        )
+
+        enriched = enrich_bond_analytics(df_bonds, df_bonistas, reference_date="2026-05-16")
+        row = enriched.iloc[0]
+
+        self.assertTrue(pd.isna(row.get("bonistas_volume_last")))
+        self.assertTrue(pd.isna(row.get("bonistas_volume_avg_20d")))
+        self.assertTrue(pd.isna(row.get("bonistas_volume_ratio")))
+        self.assertTrue(pd.isna(row.get("bonistas_liquidity_bucket")) or row.get("bonistas_liquidity_bucket") in (None, ""))
+
 
 if __name__ == "__main__":
     unittest.main()
