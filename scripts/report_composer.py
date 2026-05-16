@@ -237,6 +237,40 @@ def _extract_decision_context(
     }
 
 
+def _extract_run_quality_context(
+    *,
+    finviz_total: int,
+    finviz_fund_covered: int,
+    finviz_ratings_covered: int,
+    prediction_bundle: dict[str, object],
+) -> dict[str, object]:
+    finviz_degraded = finviz_total > 0 and (finviz_fund_covered == 0 or finviz_ratings_covered == 0)
+    accuracy = prediction_bundle.get("accuracy", {}) if isinstance(prediction_bundle, dict) else {}
+    health = accuracy.get("health", {}) if isinstance(accuracy, dict) else {}
+    pending_due_verifiable = int(health.get("verifiable_pending_due", 0) or 0)
+    if finviz_degraded:
+        status = "Degradada"
+        detail = f"Finviz {finviz_fund_covered}/{finviz_total} | ratings {finviz_ratings_covered}/{finviz_total}"
+        recommendation = "Restaurar capa Finviz (fundamentals/ratings) antes de usar la corrida como referencia táctica."
+    elif pending_due_verifiable > 20:
+        status = "Crítica"
+        detail = f"{pending_due_verifiable} vencidos verificables"
+        recommendation = "Priorizar cierre de vencidos verificables (top ticker backlog) hasta bajar de 20."
+    elif pending_due_verifiable > 0:
+        status = "Atención"
+        detail = f"{pending_due_verifiable} vencidos verificables"
+        recommendation = "Reducir vencidos verificables a 0 para estabilizar métricas históricas."
+    else:
+        status = "OK"
+        detail = "Sin vencidos verificables"
+        recommendation = "Calidad operativa estable. Mantener monitoreo diario."
+    return {
+        "run_quality_status": status,
+        "run_quality_detail": detail,
+        "run_quality_recommendation": recommendation,
+    }
+
+
 def _build_pending_portfolio_rows(
     *,
     operations_bundle: dict[str, object],
@@ -296,6 +330,12 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         market_regime=market_regime,
         asignacion_final=asignacion_final,
     )
+    run_quality_context = _extract_run_quality_context(
+        finviz_total=int(coverage_context["finviz_total"]),
+        finviz_fund_covered=int(coverage_context["finviz_fund_covered"]),
+        finviz_ratings_covered=int(coverage_context["finviz_ratings_covered"]),
+        prediction_bundle=prediction_bundle,
+    )
     pending_portfolio_rows = _build_pending_portfolio_rows(
         operations_bundle=operations_bundle,
         df_total=df_total,
@@ -325,6 +365,7 @@ def prepare_render_context(result: dict[str, object]) -> dict[str, object]:
         **bonistas_context,
         **coverage_context,
         **decision_context,
+        **run_quality_context,
         "price_history": price_history,
         "pending_portfolio_rows": pending_portfolio_rows,
         "csv_data": csv_data,
@@ -361,6 +402,8 @@ def build_render_sections(
             finviz_fund_covered=int(context["finviz_fund_covered"]),
             finviz_total=int(context["finviz_total"]),
             finviz_ratings_covered=int(context["finviz_ratings_covered"]),
+            run_quality_status=str(context["run_quality_status"]),
+            run_quality_detail=str(context["run_quality_detail"]),
         ),
     )
     panorama_section = time_section(
@@ -386,6 +429,9 @@ def build_render_sections(
             finviz_ratings_covered=int(context["finviz_ratings_covered"]),
             tech_covered=int(context["tech_covered"]),
             tech_total=int(context["tech_total"]),
+            run_quality_status=str(context["run_quality_status"]),
+            run_quality_detail=str(context["run_quality_detail"]),
+            run_quality_recommendation=str(context["run_quality_recommendation"]),
         ),
     )
     regime_summary = build_regime_section(context["market_regime"])

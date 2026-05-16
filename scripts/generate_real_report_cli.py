@@ -45,10 +45,18 @@ def resolve_iol_credentials_impl(
     getpass_fn: Callable[[str], str],
     print_fn: Callable[[str], None],
 ) -> tuple[str, str]:
-    load_local_env_fn()
+    loaded_env = load_local_env_fn() or {}
 
-    username = username_override.strip() or str(environ.get("IOL_USERNAME", "")).strip()
-    password = password_override.strip() or str(environ.get("IOL_PASSWORD", "")).strip()
+    username = (
+        username_override.strip()
+        or str(loaded_env.get("IOL_USERNAME", "")).strip()
+        or str(environ.get("IOL_USERNAME", "")).strip()
+    )
+    password = (
+        password_override.strip()
+        or str(loaded_env.get("IOL_PASSWORD", "")).strip()
+        or str(environ.get("IOL_PASSWORD", "")).strip()
+    )
 
     if not username:
         if non_interactive:

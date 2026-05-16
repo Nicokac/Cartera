@@ -93,6 +93,7 @@ from prediction.store import (
     save_prediction_history,
     upsert_prediction_history,
 )
+from prediction.verifier import verify_prediction_history
 from prediction.maturity import MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION, MIN_RUNS_FOR_RELIABLE_SERIES
 from report_renderer import REPORTS_DIR, render_report
 
@@ -354,13 +355,17 @@ def write_real_snapshots(
     portfolio_bundle: dict[str, object],
     dashboard_bundle: dict[str, object],
     decision_bundle: dict[str, object],
+    prediction_bundle: dict[str, object] | None = None,
     technical_overlay: pd.DataFrame | None,
+    finviz_stats: dict[str, object] | None = None,
 ) -> list[Path]:
     return write_real_snapshots_impl(
         portfolio_bundle=portfolio_bundle,
         dashboard_bundle=dashboard_bundle,
         decision_bundle=decision_bundle,
+        prediction_bundle=prediction_bundle,
         technical_overlay=technical_overlay,
+        finviz_stats=finviz_stats,
         snapshots_dir=SNAPSHOTS_DIR,
     )
 
@@ -478,6 +483,7 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
         load_prediction_history(),
         prediction_bundle.get("history_observation", pd.DataFrame()),
     )
+    prediction_history = verify_prediction_history(prediction_history, today=run_date)
     retention_days = int(os.environ.get("PREDICTION_HISTORY_RETENTION_DAYS", DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS))
     prediction_history = apply_prediction_history_retention(
         prediction_history,
@@ -486,14 +492,31 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
     )
     save_prediction_history(prediction_history)
     prediction_bundle["history_size"] = int(len(prediction_history))
-    prediction_bundle["accuracy"] = _build_prediction_accuracy_metrics(prediction_history)
+    prediction_bundle["accuracy"] = _build_prediction_accuracy_metrics(prediction_history, today=run_date)
     return prediction_bundle
 
 
-def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, object]:
+def _build_prediction_accuracy_metrics(history: pd.DataFrame, *, today: object | None = None) -> dict[str, object]:
     if not isinstance(history, pd.DataFrame) or history.empty:
         return {
             "global": {"completed": 0, "accuracy_pct": None},
+            "health": {
+                "total": 0,
+                "completed": 0,
+                "pending": 0,
+                "pending_due": 0,
+                "pending_verifiable": 0,
+                "pending_non_verifiable": 0,
+                "pending_due_verifiable": 0,
+                "pending_due_non_verifiable": 0,
+                "verifiable_total": 0,
+                "verifiable_completed": 0,
+                "verifiable_pending": 0,
+                "verifiable_pending_due": 0,
+                "verifiable_due_status": "ok",
+                "pending_due_verifiable_top": [],
+                "pending_due_non_verifiable_top": [],
+            },
             "by_family": [],
             "by_score_band": [],
             "by_horizon": [],
@@ -504,6 +527,23 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
     if "outcome" not in work.columns or "correct" not in work.columns:
         return {
             "global": {"completed": 0, "accuracy_pct": None},
+            "health": {
+                "total": 0,
+                "completed": 0,
+                "pending": 0,
+                "pending_due": 0,
+                "pending_verifiable": 0,
+                "pending_non_verifiable": 0,
+                "pending_due_verifiable": 0,
+                "pending_due_non_verifiable": 0,
+                "verifiable_total": 0,
+                "verifiable_completed": 0,
+                "verifiable_pending": 0,
+                "verifiable_pending_due": 0,
+                "verifiable_due_status": "ok",
+                "pending_due_verifiable_top": [],
+                "pending_due_non_verifiable_top": [],
+            },
             "by_family": [],
             "by_score_band": [],
             "by_horizon": [],
@@ -511,10 +551,85 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
         }
 
     work["outcome"] = work["outcome"].fillna("").astype(str).str.strip()
+    work["asset_family"] = work.get("asset_family", pd.Series(index=work.index, dtype=object)).fillna("").astype(str).str.strip().str.lower()
+    work["ticker"] = work.get("ticker", pd.Series(index=work.index, dtype=object)).fillna("").astype(str).str.strip().str.upper()
+    verifiable_families = {"stock", "etf"}
+    is_verifiable = work["asset_family"].isin(verifiable_families)
+    is_pending = work["outcome"].eq("")
+    total_rows = int(len(work))
+    completed_rows = int(work["outcome"].ne("").sum())
+    pending_rows = int(is_pending.sum())
+    pending_verifiable_rows = int((is_pending & is_verifiable).sum())
+    pending_non_verifiable_rows = int((is_pending & ~is_verifiable).sum())
+    verifiable_total_rows = int(is_verifiable.sum())
+    verifiable_completed_rows = int(((~is_pending) & is_verifiable).sum())
+    verifiable_pending_rows = int((is_pending & is_verifiable).sum())
+    pending_due_rows = 0
+    pending_due_verifiable_rows = 0
+    pending_due_non_verifiable_rows = 0
+    verifiable_pending_due_rows = 0
+    pending_due_verifiable_top: list[dict[str, object]] = []
+    pending_due_non_verifiable_top: list[dict[str, object]] = []
+    if "outcome_date" in work.columns:
+        today_ts = pd.Timestamp(today).normalize() if today is not None else pd.Timestamp.now().normalize()
+        outcome_dates = pd.to_datetime(work["outcome_date"], errors="coerce")
+        is_due = outcome_dates.notna() & (outcome_dates.dt.normalize() <= today_ts)
+        pending_due_mask = is_pending & is_due
+        pending_due_rows = int(pending_due_mask.sum())
+        pending_due_verifiable_rows = int((pending_due_mask & is_verifiable).sum())
+        verifiable_pending_due_rows = pending_due_verifiable_rows
+        if pending_due_verifiable_rows > 0:
+            due_verifiable = (
+                work.loc[pending_due_mask & is_verifiable]
+                .groupby("ticker", dropna=False)
+                .size()
+                .sort_values(ascending=False)
+                .head(5)
+            )
+            pending_due_verifiable_top = [
+                {"ticker": str(ticker), "count": int(count)} for ticker, count in due_verifiable.items() if str(ticker).strip()
+            ]
+        pending_due_non_verifiable_mask = pending_due_mask & ~is_verifiable
+        pending_due_non_verifiable_rows = int(pending_due_non_verifiable_mask.sum())
+        if pending_due_non_verifiable_rows > 0:
+            blocked = (
+                work.loc[pending_due_non_verifiable_mask]
+                .groupby("ticker", dropna=False)
+                .size()
+                .sort_values(ascending=False)
+                .head(5)
+            )
+            pending_due_non_verifiable_top = [
+                {"ticker": str(ticker), "count": int(count)} for ticker, count in blocked.items() if str(ticker).strip()
+            ]
+
+    verifiable_due_status = "ok"
+    if verifiable_pending_due_rows > 20:
+        verifiable_due_status = "critico"
+    elif verifiable_pending_due_rows > 0:
+        verifiable_due_status = "atencion"
+
     completed = work.loc[work["outcome"] != ""].copy()
     if completed.empty:
         return {
             "global": {"completed": 0, "accuracy_pct": None},
+            "health": {
+                "total": total_rows,
+                "completed": completed_rows,
+                "pending": pending_rows,
+                "pending_due": pending_due_rows,
+                "pending_verifiable": pending_verifiable_rows,
+                "pending_non_verifiable": pending_non_verifiable_rows,
+                "pending_due_verifiable": pending_due_verifiable_rows,
+                "pending_due_non_verifiable": pending_due_non_verifiable_rows,
+                "verifiable_total": verifiable_total_rows,
+                "verifiable_completed": verifiable_completed_rows,
+                "verifiable_pending": verifiable_pending_rows,
+                "verifiable_pending_due": verifiable_pending_due_rows,
+                "verifiable_due_status": verifiable_due_status,
+                "pending_due_verifiable_top": pending_due_verifiable_top,
+                "pending_due_non_verifiable_top": pending_due_non_verifiable_top,
+            },
             "by_family": [],
             "by_score_band": [],
             "by_horizon": [],
@@ -626,6 +741,23 @@ def _build_prediction_accuracy_metrics(history: pd.DataFrame) -> dict[str, objec
             "completed": int(len(completed)),
             "accuracy_pct": global_accuracy,
         },
+        "health": {
+            "total": total_rows,
+            "completed": completed_rows,
+            "pending": pending_rows,
+            "pending_due": pending_due_rows,
+            "pending_verifiable": pending_verifiable_rows,
+            "pending_non_verifiable": pending_non_verifiable_rows,
+            "pending_due_verifiable": pending_due_verifiable_rows,
+            "pending_due_non_verifiable": pending_due_non_verifiable_rows,
+            "verifiable_total": verifiable_total_rows,
+            "verifiable_completed": verifiable_completed_rows,
+            "verifiable_pending": verifiable_pending_rows,
+            "verifiable_pending_due": verifiable_pending_due_rows,
+            "verifiable_due_status": verifiable_due_status,
+            "pending_due_verifiable_top": pending_due_verifiable_top,
+            "pending_due_non_verifiable_top": pending_due_non_verifiable_top,
+        },
         "by_family": by_family_rows,
         "by_score_band": by_score_band_rows,
         "by_horizon": by_horizon_rows,
@@ -690,6 +822,16 @@ def _print_coverage_stats(technical_overlay: pd.DataFrame, df_cedears: pd.DataFr
         f"{finviz_stats.get('fundamentals_covered', 0)}/{finviz_stats.get('cedears_total', 0)}"
         f" | Ratings: {finviz_stats.get('ratings_covered', 0)}/{finviz_stats.get('cedears_total', 0)}"
     )
+    finviz_total = int(finviz_stats.get("cedears_total", 0) or 0)
+    finviz_fund = int(finviz_stats.get("fundamentals_covered", 0) or 0)
+    finviz_ratings = int(finviz_stats.get("ratings_covered", 0) or 0)
+    if finviz_total > 0 and (finviz_fund == 0 or finviz_ratings == 0):
+        msg = (
+            "Finviz en modo degradado: fundamentals=%s/%s ratings=%s/%s. "
+            "La corrida mantiene capa tecnica, pero sin soporte fundamental/consenso externo."
+        )
+        print("WARNING:", msg % (finviz_fund, finviz_total, finviz_ratings, finviz_total))
+        logger.warning(msg, finviz_fund, finviz_total, finviz_ratings, finviz_total)
     if finviz_stats.get("errors"):
         print("Errores Finviz (muestra):")
         for item in finviz_stats["errors"]:
@@ -738,7 +880,9 @@ def _render_and_persist_report(
     portfolio_bundle: dict[str, object],
     dashboard_bundle: dict[str, object],
     decision_bundle: dict[str, object],
+    prediction_bundle: dict[str, object] | None = None,
     technical_overlay: pd.DataFrame,
+    finviz_stats: dict[str, object] | None = None,
 ) -> None:
     render_started = time.perf_counter()
     html_body = render_report(
@@ -753,12 +897,40 @@ def _render_and_persist_report(
         portfolio_bundle=portfolio_bundle,
         dashboard_bundle=dashboard_bundle,
         decision_bundle=decision_bundle,
+        prediction_bundle=prediction_bundle,
         technical_overlay=technical_overlay,
+        finviz_stats=finviz_stats,
     )
     print(f"Reporte generado en: {HTML_PATH}")
     print("Snapshots generados:")
     for path in snapshot_paths:
         print(f"  - {path}")
+    finviz = report.get("finviz_stats", {}) if isinstance(report, dict) else {}
+    prediction = report.get("prediction_bundle", {}) if isinstance(report, dict) else {}
+    accuracy = prediction.get("accuracy", {}) if isinstance(prediction, dict) else {}
+    health = accuracy.get("health", {}) if isinstance(accuracy, dict) else {}
+    finviz_total = int(finviz.get("cedears_total", 0) or 0)
+    finviz_fund = int(finviz.get("fundamentals_covered", 0) or 0)
+    finviz_ratings = int(finviz.get("ratings_covered", 0) or 0)
+    due_verifiable = int(health.get("verifiable_pending_due", 0) or 0)
+    if finviz_total > 0 and (finviz_fund == 0 or finviz_ratings == 0):
+        status = "Degradada"
+        detail = f"Finviz {finviz_fund}/{finviz_total} | ratings {finviz_ratings}/{finviz_total}"
+        rec = "Restaurar cobertura Finviz antes de usar la corrida como referencia táctica."
+    elif due_verifiable > 20:
+        status = "Crítica"
+        detail = f"{due_verifiable} vencidos verificables"
+        rec = "Priorizar cierre de vencidos verificables hasta bajar de 20."
+    elif due_verifiable > 0:
+        status = "Atención"
+        detail = f"{due_verifiable} vencidos verificables"
+        rec = "Llevar vencidos verificables a 0 para estabilizar métricas históricas."
+    else:
+        status = "OK"
+        detail = "Sin vencidos verificables"
+        rec = "Mantener monitoreo diario."
+    print(f"Calidad de corrida: {status} · {detail}")
+    print(f"Recomendación: {rec}")
 
 
 def _collect_market_runtime_inputs(*, username: str, password: str) -> MarketRuntimeInputs:
@@ -857,6 +1029,35 @@ def _build_analysis_context(
     decision_bundle = _merge_bond_context_into_decision(decision_bundle, bonistas_bundle)
     decision_bundle = _enrich_decision_with_temporal_memory(decision_bundle, run_date=run_date)
     prediction_bundle = _build_prediction_bundle_with_history(decision_bundle, run_date=run_date)
+    pred_accuracy = prediction_bundle.get("accuracy", {}) if isinstance(prediction_bundle, dict) else {}
+    pred_health = pred_accuracy.get("health", {}) if isinstance(pred_accuracy, dict) else {}
+    due_status = str(pred_health.get("verifiable_due_status", "ok") or "ok").strip().lower()
+    if due_status == "critico":
+        due_n = int(pred_health.get("verifiable_pending_due", 0) or 0)
+        top_items = pred_health.get("pending_due_verifiable_top", [])
+        top_label = ", ".join(
+            f"{str(item.get('ticker', '-'))}:{int(item.get('count', 0) or 0)}"
+            for item in (top_items[:5] if isinstance(top_items, list) else [])
+        ) or "-"
+        msg = (
+            "Calidad de corrida CRITICA por verificacion: %s vencidos verificables. "
+            "Top pendientes verificables: %s"
+        )
+        print("WARNING:", msg % (due_n, top_label))
+        logger.warning(msg, due_n, top_label)
+    elif due_status == "atencion":
+        due_n = int(pred_health.get("verifiable_pending_due", 0) or 0)
+        top_items = pred_health.get("pending_due_verifiable_top", [])
+        top_label = ", ".join(
+            f"{str(item.get('ticker', '-'))}:{int(item.get('count', 0) or 0)}"
+            for item in (top_items[:5] if isinstance(top_items, list) else [])
+        ) or "-"
+        msg = (
+            "Calidad de corrida EN ATENCION por verificacion: %s vencidos verificables. "
+            "Top pendientes verificables: %s"
+        )
+        print("NOTICE:", msg % (due_n, top_label))
+        logger.info(msg, due_n, top_label)
     sizing_bundle = build_sizing_bundle(
         final_decision=decision_bundle["final_decision"],
         mep_real=mep_real,
@@ -967,7 +1168,9 @@ def run_real_report(args: object) -> None:
             portfolio_bundle=decision_phase["portfolio_bundle"],
             dashboard_bundle=output_phase["dashboard_bundle"],
             decision_bundle=decision_phase["decision_bundle"],
+            prediction_bundle=decision_phase["prediction_bundle"],
             technical_overlay=output_phase["technical_overlay"],
+            finviz_stats=output_phase["finviz_stats"],
         )
 
 

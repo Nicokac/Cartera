@@ -12,7 +12,9 @@ def write_real_snapshots_impl(
     portfolio_bundle: dict[str, object],
     dashboard_bundle: dict[str, object],
     decision_bundle: dict[str, object],
+    prediction_bundle: dict[str, object] | None,
     technical_overlay: pd.DataFrame | None,
+    finviz_stats: dict[str, object] | None,
     snapshots_dir: Path,
 ) -> list[Path]:
     snapshots_dir.mkdir(parents=True, exist_ok=True)
@@ -22,6 +24,39 @@ def write_real_snapshots_impl(
     final_decision = decision_bundle["final_decision"].copy()
     liquidity_contract = dict(portfolio_bundle["liquidity_contract"])
     kpis = dict(dashboard_bundle["kpis"])
+    finviz = finviz_stats or {}
+    finviz_total = int(finviz.get("cedears_total", 0) or 0)
+    finviz_fundamentals = int(finviz.get("fundamentals_covered", 0) or 0)
+    finviz_ratings = int(finviz.get("ratings_covered", 0) or 0)
+    finviz_degraded = bool(finviz_total > 0 and (finviz_fundamentals == 0 or finviz_ratings == 0))
+    kpis["finviz_degraded"] = finviz_degraded
+    kpis["finviz_fundamentals_covered"] = finviz_fundamentals
+    kpis["finviz_ratings_covered"] = finviz_ratings
+    kpis["finviz_total"] = finviz_total
+    accuracy = (prediction_bundle or {}).get("accuracy", {}) if isinstance(prediction_bundle, dict) else {}
+    health = accuracy.get("health", {}) if isinstance(accuracy, dict) else {}
+    kpis["prediction_verifiable_due_status"] = str(health.get("verifiable_due_status", "ok") or "ok")
+    kpis["prediction_verifiable_pending_due"] = int(health.get("verifiable_pending_due", 0) or 0)
+    kpis["prediction_verifiable_pending"] = int(health.get("verifiable_pending", 0) or 0)
+    kpis["prediction_verifiable_total"] = int(health.get("verifiable_total", 0) or 0)
+    kpis["prediction_pending_due_verifiable_top"] = health.get("pending_due_verifiable_top", [])
+    verifiable_due = int(kpis["prediction_verifiable_pending_due"] or 0)
+    if finviz_degraded:
+        kpis["run_quality_status"] = "degradada"
+        kpis["run_quality_detail"] = f"finviz {finviz_fundamentals}/{finviz_total} | ratings {finviz_ratings}/{finviz_total}"
+        kpis["run_quality_recommendation"] = "restaurar cobertura finviz antes de usar la corrida como referencia táctica"
+    elif verifiable_due > 20:
+        kpis["run_quality_status"] = "critica"
+        kpis["run_quality_detail"] = f"{verifiable_due} vencidos verificables"
+        kpis["run_quality_recommendation"] = "priorizar cierre de vencidos verificables hasta bajar de 20"
+    elif verifiable_due > 0:
+        kpis["run_quality_status"] = "atencion"
+        kpis["run_quality_detail"] = f"{verifiable_due} vencidos verificables"
+        kpis["run_quality_recommendation"] = "llevar vencidos verificables a 0 para estabilizar métricas históricas"
+    else:
+        kpis["run_quality_status"] = "ok"
+        kpis["run_quality_detail"] = "sin vencidos verificables"
+        kpis["run_quality_recommendation"] = "mantener monitoreo diario"
 
     paths = [
         snapshots_dir / f"{stamp}_real_portfolio_master.csv",

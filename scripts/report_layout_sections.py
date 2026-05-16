@@ -67,7 +67,21 @@ def build_header_cards(
     finviz_fund_covered: int,
     finviz_total: int,
     finviz_ratings_covered: int,
+    run_quality_status: str = "OK",
+    run_quality_detail: str = "",
 ) -> tuple[str, str, str]:
+    finviz_degraded = finviz_total > 0 and (finviz_fund_covered == 0 or finviz_ratings_covered == 0)
+    finviz_label = "Cobertura Finviz (degradada)" if finviz_degraded else "Cobertura Finviz"
+    ratings_label = "Ratings Finviz (degradada)" if finviz_degraded else "Ratings Finviz"
+    quality_slug = str(run_quality_status or "ok").strip().lower()
+    if quality_slug.startswith("cr"):
+        quality_slug = "critica"
+    elif quality_slug.startswith("at"):
+        quality_slug = "atencion"
+    elif quality_slug.startswith("de"):
+        quality_slug = "degradada"
+    else:
+        quality_slug = "ok"
     primary_cards = f"""
     <section class="cards cards-primary cards-kpi-top">
       <article class="card"><span class="label">Total ARS consolidado</span><strong>{fmt_ars(kpis['total_ars'])}</strong></article>
@@ -78,7 +92,7 @@ def build_header_cards(
     <section class="cards cards-primary cards-kpi-bottom">
       <article class="card"><span class="label">Refuerzos</span><strong>{int(action_counts.get(ACTION_REFUERZO, 0))}</strong></article>
       <article class="card"><span class="label">Reducciones</span><strong>{int(action_counts.get(ACTION_REDUCIR, 0))}</strong></article>
-      <article class="card card-placeholder" aria-hidden="true"><span class="label">—</span><strong>—</strong></article>
+      <article class="card run-quality run-quality-{quality_slug}"><span class="label">Calidad de corrida</span><strong>{esc_text(run_quality_status)}</strong><small>{' · ' + esc_text(run_quality_detail) if str(run_quality_detail).strip() else ''}</small></article>
       <article class="card card-placeholder" aria-hidden="true"><span class="label">—</span><strong>—</strong></article>
     </section>
     """
@@ -90,8 +104,8 @@ def build_header_cards(
       <article class="card compact"><span class="label">Corrida</span><strong>{esc_text(generated_at_label)}</strong></article>
       <article class="card compact"><span class="label">Instrumentos</span><strong>{int(kpis['n_instrumentos'])}</strong></article>
       <article class="card compact"><span class="label">Cobertura t\u00e9cnica</span><strong>{tech_covered}/{tech_total}</strong></article>
-      <article class="card compact"><span class="label">Cobertura Finviz</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
-      <article class="card compact"><span class="label">Ratings Finviz</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
+      <article class="card compact"><span class="label">{finviz_label}</span><strong>{finviz_fund_covered}/{finviz_total}</strong></article>
+      <article class="card compact"><span class="label">{ratings_label}</span><strong>{finviz_ratings_covered}/{finviz_total}</strong></article>
     </section>
     """
     action_summary = f"""
@@ -169,7 +183,16 @@ def build_changes_section(
     finviz_ratings_covered: int,
     tech_covered: int,
     tech_total: int,
+    run_quality_status: str = "OK",
+    run_quality_detail: str = "",
+    run_quality_recommendation: str = "",
 ) -> str:
+    finviz_degraded = finviz_total > 0 and (finviz_fund_covered == 0 or finviz_ratings_covered == 0)
+    finviz_detail = (
+        "Cobertura nula: corrida en modo degradado para capa fundamental/consenso (usar lectura con cautela)."
+        if finviz_degraded
+        else "Cobertura visible para la capa fundamental y de consenso."
+    )
     memory_summary = ""
     if decision_memory:
         n_senales = int(decision_memory.get('se\u00f1ales_nuevas', 0))
@@ -216,12 +239,17 @@ def build_changes_section(
             <article class="focus-item">
               <div class="focus-top"><strong>Finviz</strong></div>
               <div class="focus-title">{finviz_fund_covered}/{finviz_total} fundamentals | {finviz_ratings_covered}/{finviz_total} ratings</div>
-              <div class="focus-detail">Cobertura visible para la capa fundamental y de consenso.</div>
+              <div class="focus-detail">{finviz_detail}</div>
             </article>
             <article class="focus-item">
               <div class="focus-top"><strong>T\u00e9cnico</strong></div>
               <div class="focus-title">{tech_covered}/{tech_total} con overlay</div>
               <div class="focus-detail">Cobertura t\u00e9cnica efectiva para la lectura de tendencia y momentum.</div>
+            </article>
+            <article class="focus-item">
+              <div class="focus-top"><strong>Calidad operativa</strong></div>
+              <div class="focus-title">{esc_text(run_quality_status)}{(' · ' + esc_text(run_quality_detail)) if str(run_quality_detail).strip() else ''}</div>
+              <div class="focus-detail">{esc_text(run_quality_recommendation or '-')}</div>
             </article>
           </div>
         </div>

@@ -132,6 +132,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     config = prediction_bundle.get("config", {}) or {}
     accuracy = prediction_bundle.get("accuracy", {}) or {}
     accuracy_global = (accuracy.get("global", {}) or {}) if isinstance(accuracy, dict) else {}
+    accuracy_health = (accuracy.get("health", {}) or {}) if isinstance(accuracy, dict) else {}
     accuracy_by_family = accuracy.get("by_family", []) if isinstance(accuracy, dict) else []
     accuracy_by_score_band = accuracy.get("by_score_band", []) if isinstance(accuracy, dict) else []
     accuracy_by_horizon = accuracy.get("by_horizon", []) if isinstance(accuracy, dict) else []
@@ -235,6 +236,29 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     global_completed = int(accuracy_global.get("completed", 0) or 0)
     global_accuracy_pct = accuracy_global.get("accuracy_pct")
     global_accuracy_label = fmt_pct(global_accuracy_pct) if global_accuracy_pct is not None else "-"
+    health_total = int(accuracy_health.get("total", 0) or 0)
+    health_pending = int(accuracy_health.get("pending", 0) or 0)
+    health_pending_due = int(accuracy_health.get("pending_due", 0) or 0)
+    health_pending_verifiable = int(accuracy_health.get("pending_verifiable", 0) or 0)
+    health_pending_non_verifiable = int(accuracy_health.get("pending_non_verifiable", 0) or 0)
+    health_pending_due_verifiable = int(accuracy_health.get("pending_due_verifiable", 0) or 0)
+    health_pending_due_non_verifiable = int(accuracy_health.get("pending_due_non_verifiable", 0) or 0)
+    health_verifiable_total = int(accuracy_health.get("verifiable_total", 0) or 0)
+    health_verifiable_completed = int(accuracy_health.get("verifiable_completed", 0) or 0)
+    health_verifiable_pending = int(accuracy_health.get("verifiable_pending", 0) or 0)
+    health_verifiable_pending_due = int(accuracy_health.get("verifiable_pending_due", 0) or 0)
+    health_verifiable_due_status = str(accuracy_health.get("verifiable_due_status", "ok") or "ok").strip().lower()
+    status_label = {"ok": "OK", "atencion": "Atención", "critico": "Crítico"}.get(health_verifiable_due_status, "OK")
+    health_pending_due_verifiable_top = accuracy_health.get("pending_due_verifiable_top", [])
+    verifiable_top_label = ", ".join(
+        f"{str(item.get('ticker', '-'))}:{int(item.get('count', 0) or 0)}"
+        for item in (health_pending_due_verifiable_top[:5] if isinstance(health_pending_due_verifiable_top, list) else [])
+    ) or "-"
+    health_pending_due_non_verifiable_top = accuracy_health.get("pending_due_non_verifiable_top", [])
+    blocked_top_label = ", ".join(
+        f"{str(item.get('ticker', '-'))}:{int(item.get('count', 0) or 0)}"
+        for item in (health_pending_due_non_verifiable_top[:3] if isinstance(health_pending_due_non_verifiable_top, list) else [])
+    ) or "-"
     by_family_items = []
     for item in accuracy_by_family[:6]:
         fam = str(item.get("asset_family") or "sin_familia")
@@ -256,6 +280,21 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
               <div class="focus-top"><strong>Global</strong></div>
               <div class="focus-title">{global_accuracy_label}</div>
               <div class="focus-detail">{global_completed} outcomes verificados</div>
+            </article>
+            <article class="focus-item">
+              <div class="focus-top"><strong>Salud de verificación</strong></div>
+              <div class="focus-title">{status_label} | {health_verifiable_pending_due} vencidos verificables</div>
+              <div class="focus-detail">Verificables: pendientes {health_verifiable_pending} de {health_verifiable_total} | completados {health_verifiable_completed}</div>
+            </article>
+            <article class="focus-item">
+              <div class="focus-top"><strong>Top pendientes verificables</strong></div>
+              <div class="focus-title">{health_pending_due_verifiable} vencidos recuperables</div>
+              <div class="focus-detail">{verifiable_top_label}</div>
+            </article>
+            <article class="focus-item">
+              <div class="focus-top"><strong>Bloqueo de verificación</strong></div>
+              <div class="focus-title">{health_pending_due_non_verifiable} vencidos no verificables</div>
+              <div class="focus-detail">Top tickers: {blocked_top_label} | Global pendientes {health_pending}/{health_total}</div>
             </article>
           </div>
         </div>

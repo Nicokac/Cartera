@@ -158,6 +158,56 @@ class PredictionVerifierTests(unittest.TestCase):
         self.assertEqual(msft["outcome"], "")
         self.assertTrue(pd.isna(msft["correct"]))
 
+    def test_verify_prediction_history_skips_explicit_non_verifiable_families(self) -> None:
+        history = pd.DataFrame(
+            [
+                {
+                    "run_date": "2026-04-20",
+                    "ticker": "AL30",
+                    "asset_family": "bond",
+                    "direction": "up",
+                    "confidence": 0.1,
+                    "consensus_raw": 0.0,
+                    "signal_votes": "{}",
+                    "horizon_days": 5,
+                    "outcome_date": "2026-04-27",
+                    "outcome": "",
+                    "correct": None,
+                },
+                {
+                    "run_date": "2026-04-20",
+                    "ticker": "AAPL",
+                    "asset_family": "stock",
+                    "direction": "up",
+                    "confidence": 0.6,
+                    "consensus_raw": 0.6,
+                    "signal_votes": "{}",
+                    "horizon_days": 5,
+                    "outcome_date": "2026-04-27",
+                    "outcome": "",
+                    "correct": None,
+                },
+            ]
+        )
+
+        calls: list[str] = []
+
+        def fake_fetcher(ticker: str, **kwargs) -> pd.DataFrame:
+            calls.append(ticker)
+            return pd.DataFrame({"Close": [100.0, 103.0]}, index=pd.to_datetime(["2026-04-20", "2026-04-27"]))
+
+        verified = verify_prediction_history(
+            history,
+            today="2026-04-28",
+            neutral_return_band=0.01,
+            price_fetcher=fake_fetcher,
+        )
+
+        self.assertEqual(calls, ["AAPL"])
+        al30 = verified.loc[verified["ticker"] == "AL30"].iloc[0]
+        self.assertEqual(al30["outcome"], "")
+        self.assertTrue(pd.isna(al30["correct"]))
+
 
 if __name__ == "__main__":
     unittest.main()

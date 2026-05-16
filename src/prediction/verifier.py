@@ -16,6 +16,7 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+_NON_VERIFIABLE_FAMILIES = {"fund", "bond", "liquidity"}
 
 
 def classify_outcome(return_pct: float, *, neutral_return_band: float) -> str:
@@ -79,6 +80,9 @@ def verify_prediction_history(
 
     out["outcome"] = out["outcome"].fillna("").astype(str).str.strip()
     out["ticker"] = out["ticker"].astype(str).str.strip().str.upper()
+    if "asset_family" not in out.columns:
+        out["asset_family"] = ""
+    out["asset_family"] = out["asset_family"].fillna("").astype(str).str.strip().str.lower()
     out["run_date"] = pd.to_datetime(out["run_date"], errors="coerce")
     out["outcome_date"] = pd.to_datetime(out["outcome_date"], errors="coerce")
 
@@ -100,7 +104,18 @@ def verify_prediction_history(
     if pending.empty:
         return out
 
-    logger.info("Prediction verifier started: pending=%s today=%s", len(pending), today_ts.strftime("%Y-%m-%d"))
+    non_verifiable_mask = pending["asset_family"].isin(_NON_VERIFIABLE_FAMILIES)
+    pending_skipped_non_verifiable = int(non_verifiable_mask.sum())
+    pending = pending.loc[~non_verifiable_mask].copy()
+    logger.info(
+        "Prediction verifier started: pending=%s pending_verifiable=%s skipped_non_verifiable=%s today=%s",
+        int(pending_mask.sum()),
+        len(pending),
+        pending_skipped_non_verifiable,
+        today_ts.strftime("%Y-%m-%d"),
+    )
+    if pending.empty:
+        return out
 
     for ticker, ticker_rows in pending.groupby("ticker", sort=False):
         min_run_date = ticker_rows["run_date"].min()
