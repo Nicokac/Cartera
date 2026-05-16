@@ -336,17 +336,30 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
       </div>
     """
     readiness_items = []
+    calibration_class_items = []
     for item in calibration_readiness[:6]:
         status = "Lista" if bool(item.get("ready")) else "Pendiente"
+        up_n = int(item.get("up", 0) or 0)
+        down_n = int(item.get("down", 0) or 0)
+        neutral_n = int(item.get("neutral", 0) or 0)
+        required_n = int(item.get("required", 30) or 30)
+        min_n = int(item.get("min_count", 0) or 0)
         readiness_items.append(
             {
                 "kicker": str(item.get("asset_family") or "-"),
                 "title": status,
                 "detail": (
-                    f"up={int(item.get('up', 0) or 0)} | down={int(item.get('down', 0) or 0)} | "
-                    f"neutral={int(item.get('neutral', 0) or 0)} | min={int(item.get('min_count', 0) or 0)}/"
-                    f"{int(item.get('required', 30) or 30)}"
+                    f"up={up_n} | down={down_n} | "
+                    f"neutral={neutral_n} | min={min_n}/{required_n}"
                 ),
+            }
+        )
+        missing_n = max(required_n - min_n, 0)
+        calibration_class_items.append(
+            {
+                "kicker": str(item.get("asset_family") or "-"),
+                "title": f"down {down_n}/{required_n}",
+                "detail": f"Faltan {missing_n} para calibrar (cuello por clase).",
             }
         )
     readiness_block = f"""
@@ -354,6 +367,10 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <div>
           <h3>Preparación calibración por familia</h3>
           {build_focus_list(readiness_items, empty_message='Sin outcomes verificados para medir preparación.', tone='neutral')}
+        </div>
+        <div>
+          <h3>Cobertura por clase (calibración)</h3>
+          {build_focus_list(calibration_class_items, empty_message='Sin familias para cobertura de calibración.', tone='neutral')}
         </div>
       </div>
     """

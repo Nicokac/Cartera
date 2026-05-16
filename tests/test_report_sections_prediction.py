@@ -157,7 +157,8 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("5 ruedas", html)
         self.assertIn("Preparaci\u00f3n calibraci\u00f3n por familia", html)
         self.assertIn("Pendiente", html)
-        self.assertIn(">alta</span> 40.00%", html)
+        self.assertIn("conviction-chip conviction-alta", html)
+        self.assertIn("40.00%", html)
 
     def test_warns_when_action_contradicts_direction(self) -> None:
         predictions = pd.DataFrame(

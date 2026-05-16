@@ -388,6 +388,13 @@ def build_summary_section(
         stability_note = portfolio_summary.get("nota_estabilidad")
         benchmark_validation = portfolio_summary.get("benchmark_validation", {}) or {}
         benchmark_note = benchmark_validation.get("nota")
+        serie_confiable = bool(portfolio_summary.get("serie_agregada_confiable", False))
+        if serie_confiable:
+            risk_series_status = "OK"
+            risk_series_detail = "Cobertura suficiente en pasos estables."
+        else:
+            risk_series_status = "Atención"
+            risk_series_detail = "Serie no confiable; métricas agregadas ocultas."
 
         _drawdown_col = 'Drawdown m\u00e1x.'
         _risk_tbl_cols = [
@@ -459,6 +466,7 @@ def build_summary_section(
         <article class="kv-item"><span class="k">Cobertura actual prom.</span><strong class="v">{fmt_pct(portfolio_summary.get('coverage_curr_promedio_pct'))}</strong></article>
       </div>
       {benchmark_meta}
+      <div class="meta"><span>Estado serie: <strong>{esc_text(risk_series_status)}</strong> | {esc_text(risk_series_detail)}</span></div>
       {stability_meta}
       {benchmark_note_meta}
       {risk_diag_collapsible}

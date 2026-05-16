@@ -339,6 +339,20 @@ def build_operations_summary(
             }
         )
 
+    if trading_count > 0:
+        unresolved_count = len(unresolved_symbols)
+        reflected_count = max(trading_count - unresolved_count, 0)
+        reflected_pct = (reflected_count / trading_count) * 100.0 if trading_count > 0 else 0.0
+        latency_label = "Baja" if unresolved_count == 0 else ("Media" if unresolved_count <= 2 else "Alta")
+        operational_items.append(
+            {
+                "kicker": "Latencia de impacto",
+                "title": f"{latency_label} | reflejadas {reflected_count}/{trading_count} ({fmt_pct(reflected_pct)})",
+                "detail": f"Pendientes sin reflejar en cartera: {unresolved_count}.",
+                "extra_class": "item-pending" if unresolved_count > 0 else "",
+            }
+        )
+
     explanations_html = build_focus_list(
         operational_items,
         empty_message="Sin lectura operacional adicional para esta ventana.",
