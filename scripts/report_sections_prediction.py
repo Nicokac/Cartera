@@ -26,6 +26,31 @@ _VOTE_KEYS = [
 ]
 
 
+def _fmt_delta_pp(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+    numeric = float(value)
+    sign = "+" if numeric > 0 else ""
+    return f"{sign}{numeric:.2f} pp"
+
+
+def _fmt_delta_pp_semantic(value: object) -> str:
+    if pd.isna(value):
+        return '<strong class="money-neutral">-</strong>'
+    numeric = float(value)
+    css = "money-positive" if numeric > 0 else ("money-negative" if numeric < 0 else "money-neutral")
+    return f'<strong class="{css}">{_fmt_delta_pp(numeric)}</strong>'
+
+
+def _fmt_delta_count_semantic(value: object) -> str:
+    if pd.isna(value):
+        return '<strong class="money-neutral">-</strong>'
+    numeric = int(float(value))
+    css = "money-positive" if numeric > 0 else ("money-negative" if numeric < 0 else "money-neutral")
+    sign = "+" if numeric > 0 else ""
+    return f'<strong class="{css}">{sign}{numeric}</strong>'
+
+
 def _parse_votes(value: object) -> dict[str, float]:
     if isinstance(value, dict):
         out: dict[str, float] = {}
@@ -179,6 +204,33 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
     bullish = work.loc[work["direction"].astype(str) == "up"].sort_values("confidence", ascending=False)
     bearish = work.loc[work["direction"].astype(str) == "down"].sort_values("confidence", ascending=False)
     neutral = work.loc[work["direction"].astype(str) == "neutral"].sort_values("confidence", ascending=False)
+    directional_mask = work["direction"].astype(str).str.lower().isin(["up", "down"])
+    directional_conf = pd.to_numeric(work.loc[directional_mask, "confidence"], errors="coerce").dropna()
+    directional_mean_html = (
+        fmt_pct(float(directional_conf.mean()) * 100.0) if not directional_conf.empty else "-"
+    )
+    bullish_conf = pd.to_numeric(bullish.get("confidence"), errors="coerce").dropna()
+    bearish_conf = pd.to_numeric(bearish.get("confidence"), errors="coerce").dropna()
+    mean_up_html = fmt_pct(float(bullish_conf.mean()) * 100.0) if not bullish_conf.empty else "-"
+    mean_down_html = fmt_pct(float(bearish_conf.mean()) * 100.0) if not bearish_conf.empty else "-"
+    previous_directional_mean = pd.to_numeric(pd.Series([summary.get("previous_directional_mean_confidence")]), errors="coerce").iloc[0]
+    directional_delta_pp = (
+        ((float(directional_conf.mean()) - float(previous_directional_mean)) * 100.0)
+        if not directional_conf.empty and pd.notna(previous_directional_mean)
+        else pd.NA
+    )
+    previous_directional_run_date = str(summary.get("previous_directional_run_date") or "").strip()
+    previous_directional_fragment = f" ({html.escape(previous_directional_run_date)})" if previous_directional_run_date else ""
+    classifier_b_delta_pp = pd.to_numeric(pd.Series([summary.get("classifier_b_agreement_delta")]), errors="coerce").iloc[0]
+    previous_classifier_b_run_date = str(summary.get("previous_classifier_b_run_date") or "").strip()
+    previous_classifier_b_fragment = f" ({html.escape(previous_classifier_b_run_date)})" if previous_classifier_b_run_date else ""
+    delta_up = pd.to_numeric(pd.Series([summary.get("direction_count_delta_up")]), errors="coerce").iloc[0]
+    delta_down = pd.to_numeric(pd.Series([summary.get("direction_count_delta_down")]), errors="coerce").iloc[0]
+    delta_neutral = pd.to_numeric(pd.Series([summary.get("direction_count_delta_neutral")]), errors="coerce").iloc[0]
+    previous_direction_counts_run_date = str(summary.get("previous_direction_counts_run_date") or "").strip()
+    previous_direction_counts_fragment = (
+        f" ({html.escape(previous_direction_counts_run_date)})" if previous_direction_counts_run_date else ""
+    )
 
     def _accion_con_advertencia(row: object) -> str:
         direction = str(row.get("direction", "")).strip().lower()
@@ -295,7 +347,7 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
             <article class="focus-item">
               <div class="focus-top"><strong>Bloqueo de verificación</strong></div>
               <div class="focus-title">{health_pending_due_non_verifiable} vencidos no verificables</div>
-              <div class="focus-detail">Top tickers: {blocked_top_label} | Global pendientes {health_pending}/{health_total}</div>
+              <div class="focus-detail">Top tickers: {blocked_top_label} | Global pendientes {health_pending}/{health_total}. No impacta la calidad operativa (se mide sobre verificables).</div>
             </article>
           </div>
         </div>
@@ -404,7 +456,13 @@ def build_prediction_section(prediction_bundle: dict[str, object]) -> str:
         <span>Baja: <strong>{int(summary.get('down', 0))}</strong></span>
         <span>Neutral: <strong>{int(summary.get('neutral', 0))}</strong></span>
         <span>Confianza media: <strong>{fmt_pct(float(summary.get('mean_confidence', 0.0)) * 100.0)}</strong></span>
+        <span>Confianza media suba: <strong>{mean_up_html}</strong></span>
+        <span>Confianza media baja: <strong>{mean_down_html}</strong></span>
+        <span>Confianza media dir (up/down): <strong>{directional_mean_html}</strong></span>
+        <span>Δ confianza dir vs previa: {_fmt_delta_pp_semantic(directional_delta_pp)}{previous_directional_fragment}</span>
         <span>Coincidencia clasificador B: <strong>{fmt_pct(summary.get('classifier_b_agreement_pct'))}</strong></span>
+        <span>Δ clasificador B vs previa: {_fmt_delta_pp_semantic(classifier_b_delta_pp)}{previous_classifier_b_fragment}</span>
+        <span>Δ conteo dir vs previa: Suba {_fmt_delta_count_semantic(delta_up)} | Baja {_fmt_delta_count_semantic(delta_down)} | Neutral {_fmt_delta_count_semantic(delta_neutral)}{previous_direction_counts_fragment}</span>
         <span>Horizonte: <strong>{int(config.get('horizon_days') or 0)} ruedas</strong></span>
       </div>
       <div class="meta">

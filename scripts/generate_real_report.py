@@ -472,6 +472,113 @@ def _enrich_decision_with_temporal_memory(decision_bundle: dict[str, object], *,
     return decision_bundle
 
 
+def _backfill_prediction_history_taxonomy(
+    history: pd.DataFrame,
+    *,
+    final_decision: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    if not isinstance(history, pd.DataFrame) or history.empty:
+        return history
+
+    out = history.copy()
+    if "ticker" not in out.columns:
+        return out
+
+    out["ticker"] = out["ticker"].fillna("").astype(str).str.strip().str.upper()
+    if "asset_family" not in out.columns:
+        out["asset_family"] = ""
+    if "asset_subfamily" not in out.columns:
+        out["asset_subfamily"] = ""
+    out["asset_family"] = out["asset_family"].fillna("").astype(str).str.strip().str.lower()
+    out["asset_subfamily"] = out["asset_subfamily"].fillna("").astype(str).str.strip().str.lower()
+
+    decision_family_map: dict[str, str] = {}
+    decision_subfamily_map: dict[str, str] = {}
+    if isinstance(final_decision, pd.DataFrame) and not final_decision.empty and "Ticker_IOL" in final_decision.columns:
+        decision_tax = final_decision.copy()
+        decision_tax["Ticker_IOL"] = decision_tax["Ticker_IOL"].fillna("").astype(str).str.strip().str.upper()
+        if "asset_family" in decision_tax.columns:
+            family_series = (
+                decision_tax["asset_family"]
+                .fillna("")
+                .astype(str)
+                .str.strip()
+                .str.lower()
+            )
+            decision_family_map = dict(zip(decision_tax["Ticker_IOL"], family_series))
+        if "asset_subfamily" in decision_tax.columns:
+            subfamily_series = (
+                decision_tax["asset_subfamily"]
+                .fillna("")
+                .astype(str)
+                .str.strip()
+                .str.lower()
+            )
+            decision_subfamily_map = dict(zip(decision_tax["Ticker_IOL"], subfamily_series))
+
+    profile_family_map: dict[str, str] = {}
+    profile_subfamily_map: dict[str, str] = {}
+    for ticker, profile in dict(project_config.INSTRUMENT_PROFILE_MAP).items():
+        if not isinstance(profile, dict):
+            continue
+        key = str(ticker).strip().upper()
+        family = str(profile.get("asset_family") or "").strip().lower()
+        subfamily = str(profile.get("asset_subfamily") or "").strip().lower()
+        if family:
+            profile_family_map[key] = family
+        if subfamily:
+            profile_subfamily_map[key] = subfamily
+
+    argentina_subfamily_map: dict[str, str] = {}
+    for ticker, profile in dict(project_config.ARGENTINA_EQUITY_MAP).items():
+        if not isinstance(profile, dict):
+            continue
+        key = str(ticker).strip().upper()
+        subfamily = str(profile.get("asset_subfamily") or "").strip().lower()
+        if subfamily:
+            argentina_subfamily_map[key] = subfamily
+
+    missing_family = out["asset_family"].eq("")
+    if missing_family.any():
+        out.loc[missing_family, "asset_family"] = (
+            out.loc[missing_family, "ticker"].map(decision_family_map).fillna("")
+        )
+        missing_family = out["asset_family"].eq("")
+    if missing_family.any():
+        out.loc[missing_family, "asset_family"] = (
+            out.loc[missing_family, "ticker"].map(profile_family_map).fillna("")
+        )
+        missing_family = out["asset_family"].eq("")
+    if missing_family.any():
+        known_verifiable = set(map(str.upper, project_config.FINVIZ_MAP.keys()))
+        known_local = set(map(str.upper, project_config.ARGENTINA_EQUITY_MAP.keys()))
+        infer_stock_mask = missing_family & out["ticker"].isin(known_verifiable | known_local)
+        out.loc[infer_stock_mask, "asset_family"] = "stock"
+
+    missing_subfamily = out["asset_subfamily"].eq("")
+    if missing_subfamily.any():
+        out.loc[missing_subfamily, "asset_subfamily"] = (
+            out.loc[missing_subfamily, "ticker"].map(decision_subfamily_map).fillna("")
+        )
+        missing_subfamily = out["asset_subfamily"].eq("")
+    if missing_subfamily.any():
+        out.loc[missing_subfamily, "asset_subfamily"] = (
+            out.loc[missing_subfamily, "ticker"].map(profile_subfamily_map).fillna("")
+        )
+        missing_subfamily = out["asset_subfamily"].eq("")
+    if missing_subfamily.any():
+        local_stock_mask = (
+            missing_subfamily
+            & out["asset_family"].eq("stock")
+            & out["ticker"].isin(argentina_subfamily_map.keys())
+        )
+        out.loc[local_stock_mask, "asset_subfamily"] = out.loc[local_stock_mask, "ticker"].map(argentina_subfamily_map)
+
+    out["asset_family"] = out["asset_family"].fillna("").astype(str).str.strip().str.lower()
+    out["asset_subfamily"] = out["asset_subfamily"].fillna("").astype(str).str.strip().str.lower()
+    return out
+
+
 def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *, run_date: object) -> dict[str, object]:
     prediction_bundle = build_prediction_bundle(
         final_decision=decision_bundle["final_decision"],
@@ -483,6 +590,10 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
         load_prediction_history(),
         prediction_bundle.get("history_observation", pd.DataFrame()),
     )
+    prediction_history = _backfill_prediction_history_taxonomy(
+        prediction_history,
+        final_decision=decision_bundle.get("final_decision"),
+    )
     prediction_history = verify_prediction_history(prediction_history, today=run_date)
     retention_days = int(os.environ.get("PREDICTION_HISTORY_RETENTION_DAYS", DEFAULT_PREDICTION_HISTORY_RETENTION_DAYS))
     prediction_history = apply_prediction_history_retention(
@@ -493,6 +604,11 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
     save_prediction_history(prediction_history)
     prediction_bundle["history_size"] = int(len(prediction_history))
     prediction_bundle["accuracy"] = _build_prediction_accuracy_metrics(prediction_history, today=run_date)
+    _enrich_prediction_summary_with_directional_history(
+        prediction_bundle,
+        prediction_history=prediction_history,
+        run_date=run_date,
+    )
     prediction_bundle["verification_backlog_path"] = str(
         _export_prediction_verification_backlog(
             prediction_history,
@@ -501,6 +617,139 @@ def _build_prediction_bundle_with_history(decision_bundle: dict[str, object], *,
         )
     )
     return prediction_bundle
+
+
+def _enrich_prediction_summary_with_directional_history(
+    prediction_bundle: dict[str, object],
+    *,
+    prediction_history: pd.DataFrame,
+    run_date: object,
+) -> None:
+    def _mean_classifier_b_agreement_pct(series: pd.Series) -> float | None:
+        numeric = pd.to_numeric(series, errors="coerce")
+        numeric = numeric.dropna()
+        if not numeric.empty:
+            return float(numeric.mean() * 100.0)
+        text = series.fillna("").astype(str).str.strip().str.lower()
+        mapped = text.map(
+            {
+                "true": 1.0,
+                "false": 0.0,
+                "1": 1.0,
+                "0": 0.0,
+                "yes": 1.0,
+                "no": 0.0,
+                "t": 1.0,
+                "f": 0.0,
+            }
+        ).dropna()
+        if mapped.empty:
+            return None
+        return float(mapped.mean() * 100.0)
+
+    if not isinstance(prediction_bundle, dict):
+        return
+    summary_raw = prediction_bundle.get("summary")
+    summary = dict(summary_raw) if isinstance(summary_raw, dict) else {}
+    predictions = prediction_bundle.get("predictions", pd.DataFrame())
+    if not isinstance(predictions, pd.DataFrame) or predictions.empty:
+        prediction_bundle["summary"] = summary
+        return
+
+    direction_series = predictions.get("direction", pd.Series(index=predictions.index, dtype=object))
+    direction_series = direction_series.fillna("").astype(str).str.strip().str.lower()
+    confidence_series = pd.to_numeric(predictions.get("confidence"), errors="coerce")
+
+    up_conf = confidence_series.loc[direction_series.eq("up")].dropna()
+    down_conf = confidence_series.loc[direction_series.eq("down")].dropna()
+    directional_conf = confidence_series.loc[direction_series.isin(["up", "down"])].dropna()
+
+    summary["mean_confidence_up"] = round(float(up_conf.mean()), 6) if not up_conf.empty else None
+    summary["mean_confidence_down"] = round(float(down_conf.mean()), 6) if not down_conf.empty else None
+    current_directional_mean = float(directional_conf.mean()) if not directional_conf.empty else None
+    summary["mean_confidence_directional"] = round(current_directional_mean, 6) if current_directional_mean is not None else None
+    summary["previous_directional_mean_confidence"] = None
+    summary["previous_directional_run_date"] = None
+    summary["directional_mean_confidence_delta"] = None
+    summary["previous_classifier_b_agreement_pct"] = None
+    summary["previous_classifier_b_run_date"] = None
+    summary["classifier_b_agreement_delta"] = None
+    summary["previous_direction_counts_run_date"] = None
+    summary["direction_count_delta_up"] = None
+    summary["direction_count_delta_down"] = None
+    summary["direction_count_delta_neutral"] = None
+
+    current_classifier_b_pct = pd.to_numeric(
+        pd.Series([summary.get("classifier_b_agreement_pct")]),
+        errors="coerce",
+    ).iloc[0]
+    if pd.isna(current_classifier_b_pct):
+        current_classifier_b_raw = predictions.get("classifier_b_agrees", pd.Series(index=predictions.index, dtype=object))
+        computed_classifier_b_pct = _mean_classifier_b_agreement_pct(current_classifier_b_raw)
+        if computed_classifier_b_pct is not None:
+            current_classifier_b_pct = float(computed_classifier_b_pct)
+            summary["classifier_b_agreement_pct"] = round(float(computed_classifier_b_pct), 2)
+
+    if (
+        not isinstance(prediction_history, pd.DataFrame)
+        or prediction_history.empty
+        or "run_date" not in prediction_history.columns
+        or "direction" not in prediction_history.columns
+        or "confidence" not in prediction_history.columns
+    ):
+        prediction_bundle["summary"] = summary
+        return
+
+    history = prediction_history.copy()
+    history["run_date"] = pd.to_datetime(history["run_date"], errors="coerce").dt.normalize()
+    history = history.loc[history["run_date"].notna()].copy()
+    if history.empty:
+        prediction_bundle["summary"] = summary
+        return
+
+    horizon_days = int((prediction_bundle.get("config", {}) or {}).get("horizon_days", 0) or 0)
+    if "horizon_days" in history.columns:
+        history_horizon = pd.to_numeric(history["horizon_days"], errors="coerce").fillna(0).astype(int)
+        history = history.loc[history_horizon.eq(horizon_days)].copy()
+    if history.empty:
+        prediction_bundle["summary"] = summary
+        return
+
+    current_run_date = pd.Timestamp(run_date).normalize()
+    history_prev = history.loc[history["run_date"] < current_run_date].copy()
+    if history_prev.empty:
+        prediction_bundle["summary"] = summary
+        return
+
+    prev_run_date = history_prev["run_date"].max()
+    prev_slice = history_prev.loc[history_prev["run_date"].eq(prev_run_date)].copy()
+    summary["previous_direction_counts_run_date"] = prev_run_date.strftime("%Y-%m-%d")
+    prev_direction = prev_slice["direction"].fillna("").astype(str).str.strip().str.lower()
+    prev_direction_counts = prev_direction.value_counts()
+    current_direction_counts = direction_series.value_counts()
+    summary["direction_count_delta_up"] = int(current_direction_counts.get("up", 0) - prev_direction_counts.get("up", 0))
+    summary["direction_count_delta_down"] = int(current_direction_counts.get("down", 0) - prev_direction_counts.get("down", 0))
+    summary["direction_count_delta_neutral"] = int(
+        current_direction_counts.get("neutral", 0) - prev_direction_counts.get("neutral", 0)
+    )
+    prev_confidence = pd.to_numeric(prev_slice["confidence"], errors="coerce")
+    prev_directional = prev_confidence.loc[prev_direction.isin(["up", "down"])].dropna()
+    if not prev_directional.empty:
+        prev_directional_mean = float(prev_directional.mean())
+        summary["previous_directional_mean_confidence"] = round(prev_directional_mean, 6)
+        summary["previous_directional_run_date"] = prev_run_date.strftime("%Y-%m-%d")
+        if current_directional_mean is not None:
+            summary["directional_mean_confidence_delta"] = round(current_directional_mean - prev_directional_mean, 6)
+
+    if "classifier_b_agrees" in prev_slice.columns:
+        prev_classifier_b_pct = _mean_classifier_b_agreement_pct(prev_slice["classifier_b_agrees"])
+        if prev_classifier_b_pct is not None:
+            summary["previous_classifier_b_agreement_pct"] = round(prev_classifier_b_pct, 2)
+            summary["previous_classifier_b_run_date"] = prev_run_date.strftime("%Y-%m-%d")
+            if pd.notna(current_classifier_b_pct):
+                summary["classifier_b_agreement_delta"] = round(float(current_classifier_b_pct) - prev_classifier_b_pct, 2)
+
+    prediction_bundle["summary"] = summary
 
 
 def _export_prediction_verification_backlog(
@@ -1142,6 +1391,7 @@ def _build_analysis_context(
         final_decision=decision_bundle["final_decision"],
         mep_real=mep_real,
         bucket_weights=project_config.BUCKET_WEIGHTS,
+        market_regime=decision_bundle.get("market_regime"),
         usar_liquidez_iol=usar_liquidez_iol,
         aporte_externo_ars=aporte_externo_ars,
         action_rules=project_config.ACTION_RULES,

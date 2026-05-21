@@ -181,6 +181,71 @@ class PredictionPredictorTests(unittest.TestCase):
         self.assertEqual(result["votes"], {"momentum_20d": 1})
         self.assertAlmostEqual(result["consensus_raw"], 1.0, places=6)
 
+    def test_predict_applies_family_override_weights(self) -> None:
+        custom_weights = {
+            "direction_threshold": 0.15,
+            "signals": {
+                "rsi": {
+                    "weight": 1.0,
+                    "vote_rules": {"oversold_threshold": 35, "overbought_threshold": 65},
+                },
+                "momentum_20d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+                },
+            },
+            "family_overrides": {
+                "stock": {
+                    "signals": {
+                        "momentum_20d": {"weight": 0.2},
+                    }
+                }
+            },
+        }
+        row = {
+            "asset_family": "stock",
+            "RSI_14": 30.0,
+            "Momentum_20d_%": -4.0,
+        }
+
+        result = predict(row, custom_weights)
+
+        self.assertEqual(result["votes"], {"rsi": 1, "momentum_20d": -1})
+        self.assertEqual(result["direction"], "up")
+        self.assertGreater(result["consensus_raw"], 0.15)
+
+    def test_predict_family_override_does_not_affect_other_families(self) -> None:
+        custom_weights = {
+            "direction_threshold": 0.15,
+            "signals": {
+                "rsi": {
+                    "weight": 1.0,
+                    "vote_rules": {"oversold_threshold": 35, "overbought_threshold": 65},
+                },
+                "momentum_20d": {
+                    "weight": 1.0,
+                    "vote_rules": {"positive_threshold": 2.0, "negative_threshold": -2.0},
+                },
+            },
+            "family_overrides": {
+                "stock": {
+                    "signals": {
+                        "momentum_20d": {"weight": 0.2},
+                    }
+                }
+            },
+        }
+        row = {
+            "asset_family": "etf",
+            "RSI_14": 30.0,
+            "Momentum_20d_%": -4.0,
+        }
+
+        result = predict(row, custom_weights)
+
+        self.assertEqual(result["direction"], "neutral")
+        self.assertAlmostEqual(result["consensus_raw"], 0.0, places=6)
+
     def test_predict_confidence_is_discounted_by_signal_disagreement(self) -> None:
         custom_weights = {
             "direction_threshold": 0.15,

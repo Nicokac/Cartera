@@ -192,6 +192,7 @@ def build_sizing_bundle(
     final_decision: pd.DataFrame,
     mep_real: float | None,
     bucket_weights: dict[str, float],
+    market_regime: dict[str, Any] | None = None,
     usar_liquidez_iol: bool = True,
     aporte_externo_ars: float = 0.0,
     action_rules: dict[str, Any] | None = None,
@@ -220,6 +221,7 @@ def build_sizing_bundle(
         mep_real=mep_real,
         bucket_weights=bucket_weights,
         sizing_rules=sizing_rules,
+        market_regime=market_regime,
     )
     return {
         **operational_bundle,

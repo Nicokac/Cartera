@@ -14,6 +14,7 @@ if str(SCRIPTS) not in sys.path:
 from generate_real_report import (
     _build_analysis_context,
     _collect_market_runtime_inputs,
+    _backfill_prediction_history_taxonomy,
     _log_phase_duration,
     _build_report_payload,
     _build_prediction_accuracy_metrics,
@@ -41,6 +42,39 @@ from generate_real_report import (
 
 
 class GenerateRealReportTests(unittest.TestCase):
+    def test_backfill_prediction_history_taxonomy_fills_missing_family_and_subfamily(self) -> None:
+        history = pd.DataFrame(
+            [
+                {"ticker": "CUSTOM", "asset_family": "", "asset_subfamily": ""},
+                {"ticker": "O", "asset_family": "", "asset_subfamily": ""},
+                {"ticker": "AL30", "asset_family": "", "asset_subfamily": ""},
+                {"ticker": "AAPL", "asset_family": "stock", "asset_subfamily": ""},
+                {"ticker": "UNMAPPED", "asset_family": "", "asset_subfamily": ""},
+            ]
+        )
+        final_decision = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "CUSTOM",
+                    "asset_family": "stock",
+                    "asset_subfamily": "stock_other",
+                }
+            ]
+        )
+
+        out = _backfill_prediction_history_taxonomy(history, final_decision=final_decision)
+        by_ticker = out.set_index("ticker")
+
+        self.assertEqual(by_ticker.at["CUSTOM", "asset_family"], "stock")
+        self.assertEqual(by_ticker.at["CUSTOM", "asset_subfamily"], "stock_other")
+        self.assertEqual(by_ticker.at["O", "asset_family"], "stock")
+        self.assertEqual(by_ticker.at["O", "asset_subfamily"], "stock_defensive_dividend")
+        self.assertEqual(by_ticker.at["AL30", "asset_family"], "")
+        self.assertEqual(by_ticker.at["AL30", "asset_subfamily"], "")
+        self.assertEqual(by_ticker.at["AAPL", "asset_subfamily"], "stock_growth")
+        self.assertEqual(by_ticker.at["UNMAPPED", "asset_family"], "")
+        self.assertEqual(by_ticker.at["UNMAPPED", "asset_subfamily"], "")
+
     def test_build_prediction_accuracy_metrics_computes_global_and_by_family(self) -> None:
         history = pd.DataFrame(
             [

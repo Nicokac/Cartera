@@ -248,6 +248,64 @@ class FundingSummary(TypedDict):
     monto_fondeo_usd: float
 
 
+def _is_growth_candidate(row: pd.Series) -> bool:
+    subfamily = str(row.get("asset_subfamily") or "").strip().lower()
+    block = str(row.get("Bloque") or "").strip().lower()
+    return ("growth" in subfamily) or ("growth" in block)
+
+
+def _apply_growth_cap_if_high_ust_regime(
+    asignacion: pd.DataFrame,
+    *,
+    market_regime: Mapping[str, Any] | None = None,
+    sizing_rules: Mapping[str, Any] | None = None,
+) -> pd.DataFrame:
+    out = asignacion.copy()
+    if out.empty or "Peso_Fondeo_%" not in out.columns:
+        return out
+
+    market_regime = market_regime or {}
+    active_flags = {str(flag).strip() for flag in (market_regime.get("active_flags", []) or []) if str(flag).strip()}
+    if "tasas_ust_altas" not in active_flags:
+        return out
+
+    sizing_rules = sizing_rules or {}
+    cap_rules = (sizing_rules.get("market_regime_caps", {}) or {}).get("tasas_ust_altas", {}) or {}
+    growth_max_pct = float(cap_rules.get("growth_max_pct", 35.0))
+    if growth_max_pct <= 0:
+        growth_max_pct = 0.0
+
+    growth_mask = out.apply(_is_growth_candidate, axis=1)
+    if not bool(growth_mask.any()):
+        return out
+
+    growth_total = float(pd.to_numeric(out.loc[growth_mask, "Peso_Fondeo_%"], errors="coerce").fillna(0.0).sum())
+    if growth_total <= growth_max_pct + 1e-9:
+        return out
+
+    rest_mask = ~growth_mask
+    if not bool(rest_mask.any()):
+        return out
+
+    growth_weights = pd.to_numeric(out.loc[growth_mask, "Peso_Fondeo_%"], errors="coerce").fillna(0.0)
+    rest_weights = pd.to_numeric(out.loc[rest_mask, "Peso_Fondeo_%"], errors="coerce").fillna(0.0)
+    rest_total = float(rest_weights.sum())
+    if rest_total <= 0:
+        return out
+
+    scale = growth_max_pct / growth_total if growth_total > 0 else 0.0
+    out.loc[growth_mask, "Peso_Fondeo_%"] = growth_weights * scale
+    excess = growth_total - float(pd.to_numeric(out.loc[growth_mask, "Peso_Fondeo_%"], errors="coerce").fillna(0.0).sum())
+    if excess > 0:
+        out.loc[rest_mask, "Peso_Fondeo_%"] = rest_weights + (rest_weights / rest_total) * excess
+
+    total = float(pd.to_numeric(out["Peso_Fondeo_%"], errors="coerce").fillna(0.0).sum())
+    if total > 0:
+        out["Peso_Fondeo_%"] = (pd.to_numeric(out["Peso_Fondeo_%"], errors="coerce").fillna(0.0) / total) * 100.0
+
+    return out
+
+
 def _calculate_funding_summary(
     propuesta: pd.DataFrame,
     *,
@@ -483,6 +541,7 @@ def build_dynamic_allocation(
     bucket_weights: dict[str, float],
     tope_pct: float = 65.0,
     sizing_rules: Mapping[str, Any] | None = None,
+    market_regime: Mapping[str, Any] | None = None,
 ) -> pd.DataFrame:
     sizing_rules = sizing_rules or {}
     tope_pct = float(sizing_rules.get("tope_posicion_pct", tope_pct))
@@ -499,7 +558,20 @@ def build_dynamic_allocation(
 
     pesos = asignacion_final["Peso_Asignacion"] / asignacion_final["Peso_Asignacion"].sum()
     asignacion_final["Peso_Fondeo_%"] = (pesos * 100).round(2)
+
+    asignacion_final = _apply_growth_cap_if_high_ust_regime(
+        asignacion_final,
+        market_regime=market_regime,
+        sizing_rules=sizing_rules,
+    )
+
     asignacion_final["Monto_ARS"] = (pesos * monto_fondeo_ars).round(0)
+    asignacion_final["Monto_USD"] = (asignacion_final["Monto_ARS"] / mep_real).round(2) if mep_real else np.nan
+
+    # Recalcula montos tras cap por régimen.
+    asignacion_final["Monto_ARS"] = (
+        pd.to_numeric(asignacion_final["Peso_Fondeo_%"], errors="coerce").fillna(0.0) / 100.0 * monto_fondeo_ars
+    ).round(0)
     asignacion_final["Monto_USD"] = (asignacion_final["Monto_ARS"] / mep_real).round(2) if mep_real else np.nan
 
     mask_tope = asignacion_final["Peso_Fondeo_%"] > tope_pct

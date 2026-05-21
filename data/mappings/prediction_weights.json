@@ -1,22 +1,33 @@
 {
   "horizon_days": 5,
-  "direction_threshold": 0.15,
-  "active_vote_threshold": 0.1,
+  "direction_threshold": 0.1,
+  "active_vote_threshold": 0.12,
   "neutral_return_band": 0.01,
   "conviction_thresholds": {
-    "high": 0.35,
-    "medium": 0.20
+    "high": 0.33,
+    "medium": 0.2
   },
   "calibration": {
     "min_samples": 30,
     "min_weight": 0.1,
     "max_weight": 1.0,
     "lookback_samples": 60,
-    "min_recent_samples": 20
+    "min_recent_samples": 20,
+    "family_enabled": true,
+    "family_min_samples": 30,
+    "family_min_per_direction": 30,
+    "family_shrink_enabled": true,
+    "family_shrink_min_alpha": 0.1,
+    "family_shrink_max_alpha": 0.75,
+    "global_shrink_enabled": true,
+    "global_shrink_alpha": 0.25,
+    "global_negative_floor": 0.05,
+    "global_min_active_signals": 8,
+    "global_min_retain_weight": 0.12
   },
   "signals": {
     "rsi": {
-      "weight": 0.8,
+      "weight": 0.214136,
       "vote_mode": "continuous",
       "vote_rules": {
         "center": 50.0,
@@ -25,17 +36,17 @@
       }
     },
     "momentum_20d": {
-      "weight": 0.6,
+      "weight": 0.08,
       "vote_mode": "continuous",
       "vote_rules": {
         "positive_threshold": 2.0,
         "negative_threshold": -2.0,
-        "positive_saturation": 8.0,
-        "negative_saturation": 8.0
+        "positive_saturation": 6.0,
+        "negative_saturation": 6.0
       }
     },
     "momentum_60d": {
-      "weight": 0.5,
+      "weight": 0.03,
       "vote_mode": "continuous",
       "vote_rules": {
         "positive_threshold": 5.0,
@@ -45,7 +56,7 @@
       }
     },
     "sma_trend": {
-      "weight": 0.4,
+      "weight": 0.08,
       "vote_mode": "continuous",
       "vote_rules": {
         "graduated_votes": {
@@ -57,7 +68,7 @@
       }
     },
     "score_unificado": {
-      "weight": 0.7,
+      "weight": 0.03,
       "vote_mode": "continuous",
       "vote_rules": {
         "high_threshold": 0.1,
@@ -67,7 +78,7 @@
       }
     },
     "market_regime": {
-      "weight": 0.5,
+      "weight": 0.03,
       "vote_rules": {
         "bearish_flags": [
           "stress_soberano_local",
@@ -84,7 +95,7 @@
       }
     },
     "adx": {
-      "weight": 0.3,
+      "weight": 0.06,
       "vote_mode": "continuous",
       "vote_rules": {
         "adx_threshold": 20.0,
@@ -92,12 +103,80 @@
       }
     },
     "relative_volume": {
-      "weight": 0.3,
+      "weight": 0.03,
       "vote_mode": "continuous",
       "vote_rules": {
         "high_threshold": 1.5,
         "high_saturation": 3.0
       }
     }
+  },
+  "family_overrides": {
+    "etf": {
+      "signals": {
+        "rsi": {
+          "weight": 0.202722
+        },
+        "momentum_20d": {
+          "weight": 0.06
+        },
+        "momentum_60d": {
+          "weight": 0.02
+        },
+        "sma_trend": {
+          "weight": 0.06
+        },
+        "score_unificado": {
+          "weight": 0.02
+        },
+        "market_regime": {
+          "weight": 0.02
+        },
+        "adx": {
+          "weight": 0.06
+        },
+        "relative_volume": {
+          "weight": 0.02
+        }
+      }
+    },
+    "stock": {
+      "signals": {
+        "rsi": {
+          "weight": 0.239528
+        },
+        "momentum_20d": {
+          "weight": 0.05
+        },
+        "momentum_60d": {
+          "weight": 0.02
+        },
+        "sma_trend": {
+          "weight": 0.05
+        },
+        "score_unificado": {
+          "weight": 0.02
+        },
+        "market_regime": {
+          "weight": 0.02
+        },
+        "adx": {
+          "weight": 0.05
+        },
+        "relative_volume": {
+          "weight": 0.02
+        }
+      }
+    }
+  },
+  "calibration_state": {
+    "completed_signature": "ed7aacd3e98fe362729751d99711a2f3cd39509fca6b11a78a7fc4344692b37b",
+    "completed_rows": 541,
+    "history_rows": 936,
+    "last_run_date_utc": "2026-05-21T03:29:49.768810+00:00"
+  },
+  "classifier_b": {
+    "enabled": true,
+    "direction_threshold": 0.2
   }
 }

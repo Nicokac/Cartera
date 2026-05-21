@@ -63,11 +63,20 @@ class PredictionCalibrationTests(unittest.TestCase):
         self.assertEqual(stats["samples"], 4)
         self.assertAlmostEqual(float(stats["ic"]), 1.0, places=6)
 
+    @staticmethod
+    def _disable_global_conservative(custom_weights: dict) -> None:
+        calibration = custom_weights.setdefault("calibration", {})
+        calibration["global_shrink_enabled"] = False
+        calibration["global_min_active_signals"] = 0
+        calibration["global_negative_floor"] = 0.0
+
     def test_calibrate_prediction_weights_recalibrates_with_sufficient_samples(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
         custom_weights["calibration"]["min_samples"] = 4
         custom_weights["calibration"]["min_weight"] = 0.1
         custom_weights["calibration"]["max_weight"] = 1.0
+        self._disable_global_conservative(custom_weights)
 
         history = pd.DataFrame(
             [
@@ -90,9 +99,11 @@ class PredictionCalibrationTests(unittest.TestCase):
 
     def test_calibrate_prediction_weights_turns_negative_ic_signal_off(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
         custom_weights["calibration"]["min_samples"] = 4
         custom_weights["calibration"]["min_weight"] = 0.1
         custom_weights["calibration"]["max_weight"] = 1.0
+        self._disable_global_conservative(custom_weights)
 
         history = pd.DataFrame(
             [
@@ -112,7 +123,9 @@ class PredictionCalibrationTests(unittest.TestCase):
 
     def test_calibrate_prediction_weights_preserves_weight_when_samples_are_insufficient(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
         custom_weights["calibration"]["min_samples"] = 5
+        self._disable_global_conservative(custom_weights)
 
         history = pd.DataFrame(
             [
@@ -133,11 +146,13 @@ class PredictionCalibrationTests(unittest.TestCase):
 
     def test_calibrate_with_lookback_uses_recent_window_when_sufficient(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
         custom_weights["calibration"]["min_samples"] = 4
         custom_weights["calibration"]["min_weight"] = 0.1
         custom_weights["calibration"]["max_weight"] = 1.0
         custom_weights["calibration"]["lookback_samples"] = 4
         custom_weights["calibration"]["min_recent_samples"] = 4
+        self._disable_global_conservative(custom_weights)
 
         history = pd.DataFrame(
             [
@@ -161,11 +176,13 @@ class PredictionCalibrationTests(unittest.TestCase):
 
     def test_calibrate_with_lookback_falls_back_to_full_history_when_recent_window_insufficient(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
         custom_weights["calibration"]["min_samples"] = 4
         custom_weights["calibration"]["min_weight"] = 0.1
         custom_weights["calibration"]["max_weight"] = 1.0
         custom_weights["calibration"]["lookback_samples"] = 4
         custom_weights["calibration"]["min_recent_samples"] = 5
+        self._disable_global_conservative(custom_weights)
 
         history = pd.DataFrame(
             [
@@ -187,8 +204,10 @@ class PredictionCalibrationTests(unittest.TestCase):
 
     def test_calibrate_without_lookback_uses_full_history(self) -> None:
         custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
         custom_weights["calibration"]["min_samples"] = 4
         custom_weights["calibration"]["lookback_samples"] = 0
+        self._disable_global_conservative(custom_weights)
 
         history = pd.DataFrame(
             [
@@ -248,6 +267,7 @@ class PredictionCalibrationTests(unittest.TestCase):
         custom_weights["calibration"]["family_enabled"] = True
         custom_weights["calibration"]["family_min_samples"] = 3
         custom_weights["calibration"]["family_min_per_direction"] = 2
+        custom_weights["calibration"]["family_shrink_enabled"] = False
 
         history = pd.DataFrame(
             [
@@ -270,6 +290,63 @@ class PredictionCalibrationTests(unittest.TestCase):
             float(custom_weights["signals"]["rsi"]["weight"]),
             places=6,
         )
+
+    def test_calibrate_prediction_weights_family_not_ready_uses_shrink_when_enabled(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = True
+        custom_weights["calibration"]["family_min_samples"] = 6
+        custom_weights["calibration"]["family_min_per_direction"] = 3
+        custom_weights["calibration"]["family_shrink_enabled"] = True
+        custom_weights["calibration"]["family_shrink_min_alpha"] = 0.1
+        custom_weights["calibration"]["family_shrink_max_alpha"] = 0.75
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "E1", "asset_family": "etf", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "E2", "asset_family": "etf", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "E3", "asset_family": "etf", "run_date": "2026-04-22", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "E4", "asset_family": "etf", "run_date": "2026-04-23", "outcome": "neutral", "signal_votes": "{\"rsi\": 0}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        etf_rsi = summary.loc[
+            (summary["scope"] == "family")
+            & (summary["asset_family"] == "etf")
+            & (summary["signal"] == "rsi")
+        ].iloc[0]
+
+        self.assertEqual(etf_rsi["status"], "family_shrinked")
+        self.assertFalse(bool(etf_rsi["family_ready"]))
+        self.assertLess(
+            float(updated["family_overrides"]["etf"]["signals"]["rsi"]["weight"]),
+            float(custom_weights["signals"]["rsi"]["weight"]),
+        )
+
+    def test_calibrate_prediction_weights_global_negative_ic_shrinks_instead_of_zero_when_enabled(self) -> None:
+        custom_weights = json.loads(json.dumps(self.weights))
+        custom_weights["calibration"]["family_enabled"] = False
+        custom_weights["calibration"]["min_samples"] = 4
+        custom_weights["calibration"]["global_shrink_enabled"] = True
+        custom_weights["calibration"]["global_shrink_alpha"] = 0.25
+        custom_weights["calibration"]["global_min_active_signals"] = 0
+        custom_weights["calibration"]["global_negative_floor"] = 0.0
+        custom_weights["signals"]["rsi"]["weight"] = 0.8
+
+        history = pd.DataFrame(
+            [
+                {"ticker": "AAPL", "run_date": "2026-04-20", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "MSFT", "run_date": "2026-04-21", "outcome": "up", "signal_votes": "{\"rsi\": -1}"},
+                {"ticker": "KO", "run_date": "2026-04-22", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+                {"ticker": "V", "run_date": "2026-04-23", "outcome": "down", "signal_votes": "{\"rsi\": 1}"},
+            ]
+        )
+
+        updated, summary = calibrate_prediction_weights(history, custom_weights)
+        rsi_row = summary.loc[summary["signal"] == "rsi"].iloc[0]
+
+        self.assertEqual(rsi_row["status"], "recalibrated_shrinked")
+        self.assertAlmostEqual(float(updated["signals"]["rsi"]["weight"]), 0.6, places=6)
 
 
 if __name__ == "__main__":

@@ -113,7 +113,15 @@ class BuildPredictionSectionTests(unittest.TestCase):
                     "down": 1,
                     "neutral": 1,
                     "mean_confidence": 0.30,
+                    "previous_directional_mean_confidence": 0.25,
+                    "previous_directional_run_date": "2026-04-30",
                     "classifier_b_agreement_pct": 66.67,
+                    "classifier_b_agreement_delta": 6.67,
+                    "previous_classifier_b_run_date": "2026-04-30",
+                    "direction_count_delta_up": 2,
+                    "direction_count_delta_down": -1,
+                    "direction_count_delta_neutral": -1,
+                    "previous_direction_counts_run_date": "2026-04-30",
                 },
                 "config": {"horizon_days": 10},
                 "accuracy": {
@@ -143,7 +151,16 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("Baja: <strong>1</strong>", html)
         self.assertIn("Neutral: <strong>1</strong>", html)
         self.assertIn("30.00%", html)
+        self.assertIn("Confianza media suba: <strong>40.00%</strong>", html)
+        self.assertIn("Confianza media baja: <strong>30.00%</strong>", html)
+        self.assertIn("Confianza media dir (up/down): <strong>35.00%</strong>", html)
+        self.assertIn("Δ confianza dir vs previa: <strong class=\"money-positive\">+10.00 pp</strong> (2026-04-30)", html)
         self.assertIn("66.67%", html)
+        self.assertIn("Δ clasificador B vs previa: <strong class=\"money-positive\">+6.67 pp</strong> (2026-04-30)", html)
+        self.assertIn(
+            "Δ conteo dir vs previa: Suba <strong class=\"money-positive\">+2</strong> | Baja <strong class=\"money-negative\">-1</strong> | Neutral <strong class=\"money-negative\">-1</strong> (2026-04-30)",
+            html,
+        )
         self.assertIn("10 ruedas", html)
         self.assertIn("Se\u00f1ales de suba", html)
         self.assertIn("signal-table", html)
@@ -159,6 +176,7 @@ class BuildPredictionSectionTests(unittest.TestCase):
         self.assertIn("Pendiente", html)
         self.assertIn("conviction-chip conviction-alta", html)
         self.assertIn("40.00%", html)
+        self.assertIn("No impacta la calidad operativa", html)
 
     def test_warns_when_action_contradicts_direction(self) -> None:
         predictions = pd.DataFrame(
@@ -182,6 +200,30 @@ class BuildPredictionSectionTests(unittest.TestCase):
         html = build_prediction_section({"predictions": predictions, "summary": {}, "config": {}})
         self.assertIn("<td>-</td>", html)
         self.assertNotIn("\u26a0 -", html)
+
+    def test_directional_mean_confidence_shows_dash_without_up_or_down(self) -> None:
+        predictions = pd.DataFrame(
+            [
+                _prediction_row("AAA", "neutral", 0.25, "-", {"rsi": 0}),
+                _prediction_row("BBB", "neutral", 0.10, "-", {"rsi": 0}),
+            ]
+        )
+        html = build_prediction_section(
+            {
+                "predictions": predictions,
+                "summary": {"total": 2, "up": 0, "down": 0, "neutral": 2, "mean_confidence": 0.175},
+                "config": {"horizon_days": 5},
+            }
+        )
+        self.assertIn("Confianza media suba: <strong>-</strong>", html)
+        self.assertIn("Confianza media baja: <strong>-</strong>", html)
+        self.assertIn("Confianza media dir (up/down): <strong>-</strong>", html)
+        self.assertIn("Δ confianza dir vs previa: <strong class=\"money-neutral\">-</strong>", html)
+        self.assertIn("Δ clasificador B vs previa: <strong class=\"money-neutral\">-</strong>", html)
+        self.assertIn(
+            "Δ conteo dir vs previa: Suba <strong class=\"money-neutral\">-</strong> | Baja <strong class=\"money-neutral\">-</strong> | Neutral <strong class=\"money-neutral\">-</strong>",
+            html,
+        )
 
 
 if __name__ == "__main__":

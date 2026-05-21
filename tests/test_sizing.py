@@ -224,6 +224,60 @@ class SizingTests(unittest.TestCase):
         self.assertTrue(math.isclose(result["monto_fondeo_liquidez_usd"], 200.0, rel_tol=0, abs_tol=0.01))
         self.assertNotIn("ADBAICA", result["top_fondeo"]["Ticker_IOL"].tolist())
 
+    def test_build_dynamic_allocation_caps_growth_when_ust_rates_flag_is_active(self) -> None:
+        top_reforzar = pd.DataFrame(
+            [
+                {
+                    "Ticker_IOL": "AAPL",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Growth",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": 0.50,
+                    "Beta": 1.5,
+                },
+                {
+                    "Ticker_IOL": "NVDA",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Growth",
+                    "asset_subfamily": "stock_growth",
+                    "score_unificado": 0.45,
+                    "Beta": 1.6,
+                },
+                {
+                    "Ticker_IOL": "KO",
+                    "Tipo": "CEDEAR",
+                    "Bloque": "Dividendos",
+                    "asset_subfamily": "stock_defensive_dividend",
+                    "score_unificado": 0.25,
+                    "Beta": 0.7,
+                },
+            ]
+        )
+
+        alloc = build_dynamic_allocation(
+            top_reforzar,
+            monto_fondeo_ars=600000,
+            monto_fondeo_usd=420.0,
+            mep_real=1400.0,
+            bucket_weights=self.bucket_weights,
+            tope_pct=100.0,
+            sizing_rules={
+                "tope_posicion_pct": 100.0,
+                "market_regime_caps": {
+                    "tasas_ust_altas": {"growth_max_pct": 35.0}
+                },
+            },
+            market_regime={"active_flags": ["tasas_ust_altas"], "any_active": True},
+        )
+
+        growth_weight = float(
+            alloc.loc[alloc["Bloque"].astype(str).str.lower() == "growth", "Peso_Fondeo_%"].sum()
+        )
+        total_weight = float(alloc["Peso_Fondeo_%"].sum())
+
+        self.assertLessEqual(growth_weight, 35.01)
+        self.assertAlmostEqual(total_weight, 100.0, places=2)
+
     def test_bond_subfamily_rebalance_threshold_is_not_overwritten_by_monitor_rule(self) -> None:
         final_decision = self.final_decision.copy()
         final_decision.loc[final_decision["Ticker_IOL"] == "GD30", "score_unificado"] = -0.18

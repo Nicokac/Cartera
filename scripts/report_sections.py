@@ -325,7 +325,10 @@ def build_summary_section(
         {
             "kicker": "Verificación predicción",
             "title": f"{verifiable_pending_due} vencidos verificables",
-            "detail": f"Pendientes {verifiable_pending} de {verifiable_total} verificables",
+            "detail": (
+                f"Pendientes {verifiable_pending} de {verifiable_total} verificables. "
+                "No verificables no impactan este semáforo."
+            ),
         },
         {
             "kicker": "Proveedor Finviz",
@@ -383,7 +386,8 @@ def build_summary_section(
             ascending=[True, True, False],
             na_position="last",
         ).drop(columns=["_history_rank"]).reset_index(drop=True)
-        market_risk = position_risk.loc[position_risk["Tipo"].astype(str) != "Bono"].copy()
+        market_risk = position_risk.loc[~position_risk["Tipo"].astype(str).isin({"Bono", "Liquidez"})].copy()
+        liquidity_risk = position_risk.loc[position_risk["Tipo"].astype(str) == "Liquidez"].copy()
         bond_risk = position_risk.loc[position_risk["Tipo"].astype(str) == "Bono"].copy()
         stability_note = portfolio_summary.get("nota_estabilidad")
         benchmark_validation = portfolio_summary.get("benchmark_validation", {}) or {}
@@ -413,9 +417,19 @@ def build_summary_section(
             table_class="risk-history-table",
             table_id="risk-history-table",
         )
+        liquidity_note = ""
+        if not liquidity_risk.empty:
+            liquidity_note = (
+                "<div class=\"meta\"><span>"
+                "Las posiciones de liquidez se excluyen de los rankings de riesgo de mercado para evitar distorsiones "
+                "(se mantienen en la tabla completa)."
+                "</span></div>"
+            )
+
         risk_details = f"""
       {_build_risk_focus_block(market_risk, title='Riesgo de mercado', empty_message='Sin posiciones de mercado para analizar.')}
       {_build_risk_focus_block(bond_risk, title='Riesgo de renta fija', empty_message='Sin bonos para analizar.')}
+      {liquidity_note}
       <div class="panel-head">
         <h3>Tabla de riesgo</h3>
         <div class="filters">

@@ -57,6 +57,41 @@ def _resolve_regime_target_keys(row: dict[str, Any]) -> list[str]:
     return keys
 
 
+def _resolve_effective_signals(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    base_signals = weights.get("signals", {}) or {}
+    if not isinstance(base_signals, dict) or not base_signals:
+        return {}
+
+    family_overrides_raw = weights.get("family_overrides", {}) or {}
+    family_overrides: dict[str, dict[str, Any]] = {}
+    if isinstance(family_overrides_raw, dict):
+        for key, payload in family_overrides_raw.items():
+            family_key = _normalize_key(key)
+            if not family_key or not isinstance(payload, dict):
+                continue
+            family_overrides[family_key] = payload
+
+    family_key = _normalize_key(row.get("asset_family"))
+    selected_override = family_overrides.get(family_key) if family_key else None
+    if selected_override is None:
+        selected_override = family_overrides.get("default")
+
+    override_signals = {}
+    if isinstance(selected_override, dict):
+        override_signals = selected_override.get("signals", {}) or {}
+    if not isinstance(override_signals, dict):
+        override_signals = {}
+
+    resolved: dict[str, dict[str, Any]] = {}
+    for signal_name, base_cfg in base_signals.items():
+        cfg = dict(base_cfg or {})
+        override_cfg = override_signals.get(signal_name, {}) or {}
+        if isinstance(override_cfg, dict):
+            cfg.update(override_cfg)
+        resolved[signal_name] = cfg
+    return resolved
+
+
 def _clip_vote(value: float) -> float:
     return max(-1.0, min(1.0, float(value)))
 
@@ -327,7 +362,7 @@ def vote_signal(signal_name: str, row: dict[str, Any], signal_config: dict[str, 
 
 
 def predict(row: dict[str, Any], weights: dict[str, Any]) -> dict[str, Any]:
-    signals = weights.get("signals", {}) or {}
+    signals = _resolve_effective_signals(row, weights)
     direction_threshold = float(weights.get("direction_threshold", 0.15))
     active_vote_threshold = float(weights.get("active_vote_threshold", 0.0) or 0.0)
 

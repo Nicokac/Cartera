@@ -101,6 +101,22 @@ def compute_signal_ic(vote_frame: pd.DataFrame, signal_name: str) -> dict[str, A
     return {"signal": signal_name, "samples": int(len(df)), "ic": float(ic)}
 
 
+def _bounded_weight_from_ic(
+    *,
+    ic: float | None,
+    min_weight: float,
+    max_weight: float,
+    negative_floor: float = 0.0,
+) -> float | None:
+    if ic is None:
+        return None
+    ic_value = float(ic)
+    if ic_value <= 0:
+        return max(0.0, min(float(max_weight), float(negative_floor)))
+    bounded_ic = max(float(min_weight), ic_value)
+    return max(float(min_weight), min(float(max_weight), bounded_ic))
+
+
 def calibrate_prediction_weights(
     history: pd.DataFrame,
     weights: dict[str, Any],
@@ -118,6 +134,17 @@ def calibrate_prediction_weights(
     family_min_per_direction = int(
         calibration_cfg.get("family_min_per_direction", MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION) or MIN_OUTCOMES_PER_FAMILY_FOR_CALIBRATION
     )
+    family_shrink_enabled = bool(calibration_cfg.get("family_shrink_enabled", False))
+    family_shrink_min_alpha = float(calibration_cfg.get("family_shrink_min_alpha", 0.05) or 0.05)
+    family_shrink_max_alpha = float(calibration_cfg.get("family_shrink_max_alpha", 0.8) or 0.8)
+    global_shrink_enabled = bool(calibration_cfg.get("global_shrink_enabled", False))
+    global_shrink_alpha = float(calibration_cfg.get("global_shrink_alpha", 0.25) or 0.25)
+    global_negative_floor = float(calibration_cfg.get("global_negative_floor", 0.0) or 0.0)
+    global_min_active_signals = int(calibration_cfg.get("global_min_active_signals", 0) or 0)
+    global_min_retain_weight = float(calibration_cfg.get("global_min_retain_weight", 0.05) or 0.05)
+    global_shrink_alpha = max(0.0, min(1.0, global_shrink_alpha))
+    global_negative_floor = max(0.0, min(max_weight, global_negative_floor))
+    global_min_retain_weight = max(0.0, min(max_weight, global_min_retain_weight))
 
     vote_frame = extract_signal_vote_frame(history)
     if lookback_samples > 0 and not vote_frame.empty:
@@ -128,6 +155,7 @@ def calibrate_prediction_weights(
         effective_frame = vote_frame
 
     summaries: list[dict[str, Any]] = []
+    summary_idx_by_signal: dict[str, int] = {}
 
     for signal_name, signal_cfg in (updated.get("signals", {}) or {}).items():
         previous_weight = float(signal_cfg.get("weight", 0.0) or 0.0)
@@ -139,14 +167,24 @@ def calibrate_prediction_weights(
             new_weight = previous_weight
             status = "insufficient_samples"
         else:
-            if float(ic) <= 0:
-                new_weight = 0.0
+            target_weight = _bounded_weight_from_ic(
+                ic=ic,
+                min_weight=min_weight,
+                max_weight=max_weight,
+                negative_floor=global_negative_floor,
+            )
+            if target_weight is None:
+                new_weight = previous_weight
+                status = "insufficient_samples"
+            elif global_shrink_enabled:
+                new_weight = ((1.0 - global_shrink_alpha) * previous_weight) + (global_shrink_alpha * target_weight)
+                status = "recalibrated_shrinked"
             else:
-                bounded_ic = max(min_weight, float(ic))
-                new_weight = max(min_weight, min(max_weight, bounded_ic))
-            status = "recalibrated"
+                new_weight = target_weight
+                status = "recalibrated"
 
         signal_cfg["weight"] = round(float(new_weight), 6)
+        summary_idx_by_signal[signal_name] = len(summaries)
         summaries.append(
             {
                 "signal": signal_name,
@@ -157,6 +195,41 @@ def calibrate_prediction_weights(
                 "status": status,
             }
         )
+
+    if global_min_active_signals > 0:
+        signal_items = list((updated.get("signals", {}) or {}).items())
+        active_count = sum(1 for _, cfg in signal_items if float(cfg.get("weight", 0.0) or 0.0) > 0.0)
+        missing = max(0, int(global_min_active_signals) - int(active_count))
+        if missing > 0:
+            ranked_candidates: list[tuple[str, float, float, float]] = []
+            for signal_name, signal_cfg in signal_items:
+                current_weight = float(signal_cfg.get("weight", 0.0) or 0.0)
+                if current_weight > 0.0:
+                    continue
+                row = summaries[summary_idx_by_signal[signal_name]]
+                row_ic = row.get("ic")
+                ic_value = float(row_ic) if row_ic is not None else -1.0
+                previous_weight = float(row.get("previous_weight", 0.0) or 0.0)
+                ranked_candidates.append((signal_name, abs(ic_value), previous_weight, ic_value))
+
+            ranked_candidates.sort(key=lambda item: (item[1], item[2], item[3]), reverse=True)
+            for signal_name, _, previous_weight, _ in ranked_candidates:
+                if missing <= 0:
+                    break
+                signal_cfg = (updated.get("signals", {}) or {}).get(signal_name, {})
+                current_weight = float(signal_cfg.get("weight", 0.0) or 0.0)
+                if current_weight > 0.0:
+                    continue
+                retained_weight = max(global_min_retain_weight, min(max_weight, previous_weight))
+                if retained_weight <= 0.0:
+                    retained_weight = global_min_retain_weight
+                if retained_weight <= 0.0:
+                    continue
+                signal_cfg["weight"] = round(float(retained_weight), 6)
+                row = summaries[summary_idx_by_signal[signal_name]]
+                row["new_weight"] = float(signal_cfg["weight"])
+                row["status"] = "recovered_min_active"
+                missing -= 1
 
     summary_df = pd.DataFrame(summaries).sort_values("signal").reset_index(drop=True)
 
@@ -176,21 +249,41 @@ def calibrate_prediction_weights(
             family_ready = min_dir >= family_min_per_direction
             family_signal_overrides: dict[str, Any] = {}
 
+            coverage_by_direction = min(
+                1.0,
+                float(min_dir) / float(max(1, family_min_per_direction)),
+            )
+
             for signal_name, signal_cfg in (updated.get("signals", {}) or {}).items():
                 previous_weight = float(signal_cfg.get("weight", 0.0) or 0.0)
                 stats = compute_signal_ic(family_frame, signal_name)
                 samples = int(stats["samples"])
                 ic = stats["ic"]
+                coverage_by_samples = min(1.0, float(samples) / float(max(1, family_min_samples)))
+
+                family_target_weight = _bounded_weight_from_ic(
+                    ic=ic,
+                    min_weight=min_weight,
+                    max_weight=max_weight,
+                    negative_floor=0.0,
+                )
+                if family_target_weight is None:
+                    family_target_weight = previous_weight
 
                 if (not family_ready) or samples < family_min_samples or ic is None:
-                    new_weight = previous_weight
-                    status = "family_insufficient_samples"
-                else:
-                    if float(ic) <= 0:
-                        new_weight = 0.0
+                    if family_shrink_enabled and samples > 0 and ic is not None:
+                        raw_alpha = max(0.0, min(coverage_by_direction, coverage_by_samples))
+                        if raw_alpha <= 0.0:
+                            alpha = 0.0
+                        else:
+                            alpha = max(family_shrink_min_alpha, min(family_shrink_max_alpha, raw_alpha))
+                        new_weight = ((1.0 - alpha) * previous_weight) + (alpha * family_target_weight)
+                        status = "family_shrinked"
                     else:
-                        bounded_ic = max(min_weight, float(ic))
-                        new_weight = max(min_weight, min(max_weight, bounded_ic))
+                        new_weight = previous_weight
+                        status = "family_insufficient_samples"
+                else:
+                    new_weight = family_target_weight
                     status = "family_recalibrated"
 
                 family_signal_overrides[signal_name] = {"weight": round(float(new_weight), 6)}

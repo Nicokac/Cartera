@@ -90,7 +90,11 @@ def _infer_verifiable_when_family_missing(ticker: str) -> bool:
     base = str(ticker or "").strip().upper()
     if not base:
         return False
-    return base in _KNOWN_LOCAL_EQUITIES or base in _KNOWN_FINVIZ_TICKERS
+    if base in _KNOWN_LOCAL_EQUITIES:
+        return True
+    # Evita tratar bonos/FCI con ticker alfanumerico (p.ej. AL30, BPOC7, TZX26)
+    # como verificables cuando el asset_family historico viene vacio.
+    return base.isalpha() and base in _KNOWN_FINVIZ_TICKERS
 
 
 def verify_prediction_history(

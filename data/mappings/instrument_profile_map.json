@@ -1595,6 +1595,13 @@
     "is_etf": false,
     "is_core_etf": false
   },
+  "O": {
+    "instrument_class": "Stock",
+    "asset_family": "stock",
+    "asset_subfamily": "stock_defensive_dividend",
+    "is_etf": false,
+    "is_core_etf": false
+  },
   "ORLY": {
     "instrument_class": "Stock",
     "asset_family": "stock",

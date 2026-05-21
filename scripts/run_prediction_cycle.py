@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -22,6 +23,25 @@ from prediction.store import (
 from prediction.verifier import verify_prediction_history
 
 
+def _completed_signature(history: pd.DataFrame) -> str:
+    if history is None or history.empty:
+        return ""
+    required = ["run_date", "ticker", "outcome", "outcome_date"]
+    frame = history.copy()
+    for col in required:
+        if col not in frame.columns:
+            frame[col] = ""
+    stable = (
+        frame[required]
+        .fillna("")
+        .astype(str)
+        .sort_values(required)
+        .reset_index(drop=True)
+    )
+    raw = stable.to_csv(index=False, lineterminator="\n")
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
 def run_prediction_cycle(*, today: object | None = None) -> dict[str, object]:
     """Mantiene el historial existente de predicciones.
 
@@ -41,7 +61,38 @@ def run_prediction_cycle(*, today: object | None = None) -> dict[str, object]:
 
     completed_mask = verified_history.get("outcome", pd.Series(dtype=object)).fillna("").astype(str).str.strip() != ""
     completed = verified_history.loc[completed_mask].copy()
-    updated_weights, calibration_summary = calibrate_prediction_weights(verified_history, project_config.PREDICTION_WEIGHTS)
+    current_signature = _completed_signature(completed)
+    current_weights = project_config.PREDICTION_WEIGHTS
+    calibration_state = (current_weights.get("calibration_state", {}) or {}) if isinstance(current_weights, dict) else {}
+    previous_signature = str(calibration_state.get("completed_signature", "") or "")
+
+    recalibration_skipped = previous_signature == current_signature and bool(current_signature)
+    if recalibration_skipped:
+        updated_weights = current_weights
+        calibration_summary = pd.DataFrame(
+            [
+                {
+                    "signal": "-",
+                    "samples": int(len(completed)),
+                    "ic": None,
+                    "previous_weight": None,
+                    "new_weight": None,
+                    "status": "skipped_no_new_completed_outcomes",
+                    "scope": "global",
+                    "asset_family": "global",
+                }
+            ]
+        )
+    else:
+        updated_weights, calibration_summary = calibrate_prediction_weights(verified_history, current_weights)
+
+    updated_weights = dict(updated_weights or {})
+    updated_weights["calibration_state"] = {
+        "completed_signature": current_signature,
+        "completed_rows": int(len(completed)),
+        "history_rows": int(len(verified_history)),
+        "last_run_date_utc": pd.Timestamp.utcnow().isoformat(),
+    }
     save_prediction_weights(updated_weights)
 
     recalibrated = 0
@@ -53,6 +104,7 @@ def run_prediction_cycle(*, today: object | None = None) -> dict[str, object]:
         "completed_rows": int(len(completed)),
         "pending_rows": int((~completed_mask).sum()) if len(verified_history) else 0,
         "recalibrated_signals": recalibrated,
+        "recalibration_skipped": bool(recalibration_skipped),
         "weights_path": str((project_config.MAPPINGS_DIR / "prediction_weights.json").resolve()),
         "history_path": str((ROOT / "data" / "runtime" / "prediction_history.csv").resolve()),
         "calibration_summary": calibration_summary,
